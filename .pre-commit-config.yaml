@@ -1,0 +1,26 @@
+# Cài một lần:  make setup   (đã gồm `pre-commit install`)
+# Dùng hook "local" chạy qua uv để luôn cùng phiên bản công cụ với dự án.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      - id: catalog
+        name: sinh lại tài liệu từ catalog/
+        entry: uv run python -m aiarch.catalog build
+        language: system
+        files: ^(catalog/|src/aiarch/catalog\.py)
+        pass_filenames: false
+      - id: no-env-file
+        name: chặn commit file .env
+        entry: .env chứa khóa bí mật — không được commit
+        language: fail
+        files: (^|/)\.env$

@@ -1,0 +1,14 @@
+# Mẫu một kỹ năng mới — chép vào catalog/skills.yaml, đúng mảng, rồi `make catalog && make check`.
+- id: ML-09                # <MÃ MẢNG>-<số tiếp theo>; không tái sử dụng id đã xóa
+  name: Tên ngắn
+  domain: ML               # một trong các mã ở `domains`
+  summary: Một câu — kỹ năng này giải quyết vấn đề gì.
+  levels:
+    basic: Việc làm được ở mức cơ bản (động từ, kiểm chứng được).
+    intermediate: Việc làm được trên dữ liệu thật, có đo lường.
+    advanced: Việc làm được ở production — quy mô, giám sát, chi phí.
+  used_by: {G1: core, G3: needed}   # core | needed | minor; bỏ trống nhóm không liên quan
+  prereqs: [ML-01]                  # id kỹ năng tiên quyết
+  tools: [thư viện A, thư viện B]
+  done_when: Tiêu chí tự đánh giá ở mức trung cấp, gắn với một kết quả đo được.
+  efficiency_note: (tùy chọn) Kỹ năng giúp tiết kiệm token/chi phí hoặc giữ độ chính xác ra sao.
