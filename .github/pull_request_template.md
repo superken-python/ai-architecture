@@ -17,3 +17,4 @@
 
 - [ ] `make check` chạy qua (lint, test, catalog-check)
 - [ ] Không có dữ liệu thật, khóa bí mật hay file lớn trong commit
+- [ ] Đã cập nhật `HISTORY.md` (việc đã làm) và `CHECKLIST.md` (đánh dấu việc xong, thêm việc mới)
