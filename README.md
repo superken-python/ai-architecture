@@ -61,4 +61,4 @@ Nguyên tắc mở rộng:
 - **Kỹ năng dùng chung → code dùng chung:** khi hai dự án cần cùng một tiện ích (harness đánh giá, client LLM đo chi
   phí...), đưa nó vào `src/aiarch/`.
 
-Đóng góp: [CONTRIBUTING.md](CONTRIBUTING.md).
+Việc sắp làm: [CHECKLIST.md](CHECKLIST.md) · Đã làm: [HISTORY.md](HISTORY.md) · Đóng góp: [CONTRIBUTING.md](CONTRIBUTING.md).

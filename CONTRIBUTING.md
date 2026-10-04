@@ -8,6 +8,7 @@
   định — không đổi, không tái sử dụng sau khi đã công bố; tài liệu, lab và dự án đều tham chiếu theo mã.
 - **Một nguồn dữ liệu duy nhất:** mọi thông tin về nhóm/kỹ năng/tổ hợp nằm trong `catalog/*.yaml`. Không sửa tay
   các file trong `docs/02-skill-map/generated/` — chúng được sinh lại và CI sẽ báo lỗi nếu lệch.
+- **Theo dõi công việc:** việc sắp làm ở [CHECKLIST.md](CHECKLIST.md), việc đã làm ở [HISTORY.md](HISTORY.md) — cập nhật cả hai trong cùng PR.
 - **Nhánh & PR:** không commit thẳng vào `main`; mỗi thay đổi đi qua PR, điền mẫu PR, `make check` phải xanh.
 
 ## Các tác vụ thường gặp
