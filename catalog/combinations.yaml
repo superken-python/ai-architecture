@@ -1,0 +1,117 @@
+# Tổ hợp kỹ năng — dự án thực tế ghép nhiều nhóm bài toán.
+# Mỗi tổ hợp: luồng giữa các nhóm, kỹ năng cần, "kỹ năng keo" ở điểm nối,
+# bẫy khi ghép và metric end-to-end. Bộ kiểm tra bảo đảm mọi id đều tồn tại.
+
+version: 1
+
+combinations:
+  - id: CMB-01
+    name: Hồ sơ vay / eKYC từ đầu đến cuối
+    groups: [G5, G1, G7]
+    flow: Đọc giấy tờ và trích trường (Nhóm 5) → chấm điểm tín dụng (Nhóm 1) → điều phối quy trình, người duyệt ở bước rủi ro (Nhóm 7)
+    examples: [duyệt khoản vay tiêu dùng, mở tài khoản online]
+    skills: [DL-04, DL-05, EFF-07, ML-02, ML-04, STAT-05, LLM-05, LLM-06, OPS-08, OPS-06]
+    glue: [LLM-02, STAT-05, EFF-07]
+    pitfalls:
+      - Lỗi trích xuất ở Nhóm 5 đi thẳng vào model tín dụng như dữ liệu đúng — phải truyền cả độ tin cậy của từng trường.
+      - Model tín dụng huấn luyện trên dữ liệu nhập tay sạch, nhưng chạy trên dữ liệu OCR có lỗi → lệch phân phối.
+      - Agent tự quyết khoản vay mà không có người duyệt và lý do từ chối.
+    end_to_end_metric: Tỷ lệ hồ sơ xử lý tự động hoàn toàn đúng; thời gian xử lý mỗi hồ sơ; tỷ lệ nợ xấu của nhóm được duyệt tự động.
+
+  - id: CMB-02
+    name: Dự báo rồi tối ưu (tồn kho, xếp ca)
+    groups: [G2, G8]
+    flow: Dự báo nhu cầu dạng quantile (Nhóm 2) → tối ưu đặt hàng / xếp ca dưới ràng buộc (Nhóm 8)
+    examples: [đặt hàng cho chuỗi bán lẻ, xếp ca tổng đài theo lưu lượng dự báo]
+    skills: [ML-06, STAT-04, DATA-03, DATA-04, OPT-01, OPT-03, OPS-03]
+    glue: [STAT-04, OPT-03]
+    pitfalls:
+      - Tối ưu trên dự báo một điểm, bỏ qua bất định → thiếu hàng ngày cao điểm.
+      - Đánh giá dự báo bằng WAPE nhưng không đo chi phí quyết định cuối cùng.
+    end_to_end_metric: Tổng chi phí (thiếu hàng + tồn kho + nhân sự) so với cách làm hiện tại, trên mô phỏng và thực tế.
+
+  - id: CMB-03
+    name: Trợ lý nội bộ có RAG và thao tác được
+    groups: [G6, G7]
+    flow: Truy xuất tài liệu/quy trình có trích dẫn (Nhóm 6) → thực hiện thao tác trên CRM/ERP theo quy trình (Nhóm 7)
+    examples: [trợ lý HR trả lời chính sách và tạo đơn nghỉ phép, trợ lý CSKH tra cứu và mở ticket]
+    skills: [LLM-03, LLM-04, LLM-05, LLM-06, ML-07, EFF-02, EFF-03, OPS-06]
+    glue: [LLM-05, LLM-06, EFF-03]
+    pitfalls:
+      - Nội dung tài liệu truy xuất chứa chỉ dẫn độc hại (prompt injection) khiến agent thực hiện hành động ngoài ý muốn.
+      - Agent thấy được tài liệu mà người hỏi không có quyền xem.
+      - Ngữ cảnh phình to qua nhiều lượt → chi phí tăng nhanh, chất lượng giảm.
+    end_to_end_metric: Tỷ lệ hoàn thành nhiệm vụ đúng; tỷ lệ câu trả lời có trích dẫn đúng; chi phí mỗi nhiệm vụ.
+
+  - id: CMB-04
+    name: Phát hiện rồi giải thích (cảnh báo gian lận cho điều tra viên)
+    groups: [G3, G6, G7]
+    flow: Chấm điểm bất thường (Nhóm 3) → LLM tóm tắt bằng chứng cho từng cảnh báo (Nhóm 6) → hàng đợi xử lý + ghi nhận phản hồi (Nhóm 7)
+    examples: [gian lận ví điện tử, giám sát giao dịch đáng ngờ]
+    skills: [ML-05, ML-03, DATA-07, STAT-05, LLM-02, EFF-07, OPS-07, OPS-04]
+    glue: [STAT-05, LLM-02]
+    pitfalls:
+      - LLM "bịa" lý do không có trong dữ liệu — tóm tắt phải dựa trên trường dữ liệu cụ thể, kiểm tra được.
+      - Không thu thập phản hồi của điều tra viên → model không học được từ sai lầm.
+    end_to_end_metric: precision@k theo năng lực xử lý; thời gian điều tra mỗi cảnh báo; số tiền gian lận chặn được.
+
+  - id: CMB-05
+    name: Gợi ý và kiểm chứng bằng thí nghiệm
+    groups: [G4, G8]
+    flow: Sinh danh sách gợi ý (Nhóm 4) → đo tác động thật bằng A/B test hoặc bandit (Nhóm 8)
+    examples: [gợi ý sản phẩm trên app, bán chéo bảo hiểm]
+    skills: [ML-07, ML-08, STAT-03, OPT-04, STAT-06, OPS-04]
+    glue: [STAT-03, OPT-04]
+    pitfalls:
+      - Metric offline tăng nhưng doanh thu online không đổi.
+      - Vòng lặp phản hồi — chỉ gợi ý thứ đã phổ biến, dữ liệu huấn luyện ngày càng lệch.
+    end_to_end_metric: Doanh thu mỗi phiên / tỷ lệ chuyển đổi tăng có ý nghĩa thống kê trong A/B test.
+
+  - id: CMB-06
+    name: Dự đoán rồi can thiệp (churn + uplift)
+    groups: [G1, G8]
+    flow: Dự đoán khả năng rời bỏ (Nhóm 1) → chọn khách mà can thiệp thật sự thay đổi kết quả (Nhóm 8, uplift)
+    examples: [giữ chân khách hàng viễn thông, tặng ưu đãi có chọn lọc]
+    skills: [ML-02, ML-04, STAT-05, STAT-06, STAT-03, DATA-03]
+    glue: [STAT-06]
+    pitfalls:
+      - Gọi cho khách có điểm churn cao nhất — nhiều người trong số đó sẽ rời đi dù có gọi hay không.
+      - Không có nhóm đối chứng nên không đo được hiệu quả chiến dịch.
+    end_to_end_metric: Lợi nhuận tăng thêm của chiến dịch so với nhóm đối chứng.
+
+  - id: CMB-07
+    name: Tổng đài thông minh
+    groups: [G6, G7, G2, G8]
+    flow: Ghi âm → ASR → phân loại/tóm tắt (Nhóm 6) → chuyển ticket (Nhóm 7); lưu lượng lịch sử → dự báo cuộc gọi (Nhóm 2) → xếp ca (Nhóm 8)
+    examples: [tổng đài ngân hàng, CSKH thương mại điện tử]
+    skills: [DL-06, LLM-01, LLM-02, EFF-04, EFF-06, LLM-05, ML-06, OPT-02]
+    glue: [EFF-04, LLM-02]
+    pitfalls:
+      - Gửi toàn bộ transcript dài vào LLM cho mọi cuộc gọi — chi phí lớn trong khi phần lớn cuộc gọi là câu hỏi lặp lại.
+      - Lỗi ASR ở tên riêng/số tài khoản làm sai bước phân loại phía sau.
+    end_to_end_metric: Tỷ lệ chuyển đúng bộ phận; thời gian chờ; chi phí xử lý mỗi cuộc gọi; mức đáp ứng SLA theo ca.
+
+  - id: CMB-08
+    name: Phân loại lai ML + LLM (cascade tiết kiệm token)
+    groups: [G1, G6]
+    flow: Luật → model nhỏ (TF-IDF/PhoBERT, kỹ năng Nhóm 1) xử lý ca dễ có độ tin cậy cao → LLM xử lý ca khó (Nhóm 6) → người xử lý ca vẫn nghi ngờ
+    examples: [phân loại ticket, gắn nhãn email, phân loại giao dịch]
+    skills: [ML-01, DL-02, STAT-05, LLM-02, LLM-04, EFF-04, EFF-05, EFF-07]
+    glue: [STAT-05, EFF-04]
+    pitfalls:
+      - Ngưỡng chuyển tầng chọn theo cảm giác → model nhỏ "tự tin sai" và lỗi lọt qua.
+      - Đo độ chính xác chung mà không đo riêng từng tầng.
+    end_to_end_metric: Độ chính xác trên phần tự động; tỷ lệ tự động; chi phí trung bình mỗi ticket.
+
+  - id: CMB-09
+    name: Hỏi số liệu bằng tiếng Việt (text-to-SQL agent)
+    groups: [G6, G7]
+    flow: Câu hỏi tự nhiên → chọn bảng/metric (schema linking) → sinh và kiểm tra SQL → chạy → diễn giải kết quả (Nhóm 6 + 7)
+    examples: [hỏi doanh thu theo chi nhánh, tra số dư công nợ]
+    skills: [DATA-01, LLM-08, LLM-02, LLM-04, EFF-03, EFF-07, OPS-08]
+    glue: [LLM-08, EFF-07]
+    pitfalls:
+      - LLM tự "nhẩm" con số thay vì để SQL tính.
+      - So sánh chuỗi SQL thay vì so sánh kết quả truy vấn khi đánh giá.
+      - Truy vấn được phép đọc bảng nhạy cảm.
+    end_to_end_metric: Tỷ lệ câu trả lời có con số đúng tuyệt đối trên golden set; tỷ lệ hỏi lại đúng lúc với câu mơ hồ.

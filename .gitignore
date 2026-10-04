@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# Notebook
+.ipynb_checkpoints/
+
+# Bí mật — KHÔNG BAO GIỜ commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dữ liệu và kết quả lớn — để ngoài Git (xem data/README.md)
+data/*
+!data/README.md
+!data/.gitkeep
+mlruns/
+outputs/
+*.parquet
+*.csv.gz
+*.onnx
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+
+# Hệ điều hành / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

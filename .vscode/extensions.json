@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-toolsai.jupyter",
+    "charliermarsh.ruff",
+    "editorconfig.editorconfig",
+    "redhat.vscode-yaml",
+    "bierner.markdown-mermaid"
+  ]
+}

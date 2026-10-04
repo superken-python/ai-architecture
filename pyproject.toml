@@ -1,0 +1,95 @@
+[project]
+name = "ai-architecture"
+version = "0.2.0"
+description = "Bản đồ bài toán AI doanh nghiệp và bản đồ kỹ năng lập trình AI từ cơ bản đến nâng cao."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+# Phụ thuộc lõi chỉ gồm thứ cần để chạy bộ công cụ catalog.
+dependencies = ["pyyaml>=6.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aiarch"]
+
+# ──────────────────────────────────────────────────────────────────────────
+# Nhóm phụ thuộc (PEP 735) — cài theo nhu cầu học, KHÔNG cần cài hết:
+#   uv sync                              # chỉ dev (mặc định)
+#   uv sync --group core --group tabular # ví dụ: làm Nhóm 1
+#   make setup-<tên nhóm>                # xem Makefile
+# Bản đồ nhóm phụ thuộc ↔ nhóm bài toán: docs/00-setup/02-moi-truong-python.md
+# ──────────────────────────────────────────────────────────────────────────
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+  "pre-commit>=3.7",
+]
+# Nền dữ liệu & notebook — dùng cho mọi nhóm
+core = [
+  "numpy",
+  "pandas",
+  "polars",
+  "pyarrow",
+  "duckdb",
+  "scipy",
+  "statsmodels",
+  "scikit-learn",
+  "matplotlib",
+  "jupyterlab",
+  "python-dotenv",
+  "pydantic>=2",
+  "httpx",
+  "tenacity",
+]
+# Nhóm 1 · Dữ liệu bảng
+tabular = ["lightgbm", "xgboost", "catboost", "shap", "optuna"]
+# Nhóm 2 · Chuỗi thời gian
+timeseries = ["statsforecast", "mlforecast"]
+# Nhóm 3 · Bất thường
+anomaly = ["pyod", "networkx"]
+# Nhóm 4 · Gợi ý & xếp hạng
+recsys = ["implicit", "faiss-cpu"]
+# Nhóm 5 · Ảnh & tài liệu (nặng — cài khi cần; GPU xem docs/00-setup/04-gpu-va-tinh-toan.md)
+vision = [
+  "torch",
+  "torchvision",
+  "ultralytics",
+  "opencv-python-headless",
+  "onnxruntime",
+  "pymupdf",
+  "pdfplumber",
+]
+# Nhóm 6 · LLM & RAG
+llm = [
+  "anthropic",
+  "openai",
+  "sentence-transformers",
+  "rank-bm25",
+  "qdrant-client",
+  "underthesea",
+  "langfuse",
+]
+# Nhóm 7 · Agent
+agent = ["langgraph", "mcp"]
+# Nhóm 8 · Tối ưu & nhân quả
+optimization = ["ortools", "pulp", "dowhy", "econml"]
+# Triển khai & MLOps — dùng chung
+mlops = ["fastapi", "uvicorn", "mlflow", "evidently"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

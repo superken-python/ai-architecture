@@ -1,0 +1,934 @@
+# Danh mục kỹ năng lập trình AI (giai đoạn 2) — NGUỒN DỮ LIỆU DUY NHẤT.
+# Mọi bảng/ma trận trong docs/02-skill-map/generated/ được sinh từ file này.
+# Sửa xong chạy:  make catalog   (sinh lại tài liệu)  và  make check  (kiểm tra).
+#
+# Quy ước trường của một kỹ năng:
+#   id        : <MÃ MẢNG>-<số 2 chữ số>, ví dụ PY-01. Không đổi id đã công bố.
+#   name      : tên ngắn.
+#   domain    : mã mảng (xem `domains`).
+#   summary   : 1 câu: kỹ năng này giải quyết điều gì.
+#   levels    : basic / intermediate / advanced — việc LÀM ĐƯỢC ở từng mức.
+#   used_by   : mức cần thiết theo nhóm bài toán: core (Cốt lõi) | needed (Cần) | minor (Ít).
+#               Nhóm không liệt kê = không liên quan.
+#   prereqs   : kỹ năng tiên quyết (id). Bộ kiểm tra chặn vòng lặp.
+#   tools     : công cụ/thư viện tiêu biểu.
+#   done_when : tiêu chí tự đánh giá "đã đạt" (ở mức trung cấp).
+#   efficiency_note (tùy chọn): kỹ năng này giúp tiết kiệm token/chi phí hoặc giữ độ chính xác ra sao.
+#
+# Tầng (tier) KHÔNG khai báo tay mà được tính từ used_by:
+#   Nền tảng chung = core/needed ở cả 8 nhóm; Dùng chung = core/needed ở 2–7 nhóm;
+#   Chuyên biệt = core/needed ở đúng 1 nhóm; Bổ trợ = chỉ ở mức minor.
+
+version: 1
+
+domains:
+  - code: PY
+    name: Lập trình nền tảng
+    description: Python, Git, môi trường, kiểm thử, gọi API bền vững — nền móng cho mọi nhóm.
+  - code: DATA
+    name: SQL & dữ liệu
+    description: Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng thời điểm, không rò rỉ.
+  - code: STAT
+    name: Thống kê & thực nghiệm
+    description: Đo lường bất định, thí nghiệm, calibration, nhân quả — để kết luận đúng.
+  - code: ML
+    name: ML cổ điển
+    description: Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuất & xếp hạng.
+  - code: DL
+    name: Deep learning
+    description: PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, giọng nói.
+  - code: LLM
+    name: LLM, RAG & Agent
+    description: Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-tune.
+  - code: OPT
+    name: Tối ưu hóa (OR)
+    description: LP/MIP, định tuyến, lập lịch, quyết định dưới bất định, bandit.
+  - code: OPS
+    name: Triển khai & MLOps
+    description: Đóng gói, theo dõi thực nghiệm, pipeline, giám sát, serving, LLMOps, bảo mật dữ liệu.
+  - code: BIZ
+    name: Nghiệp vụ & phương pháp
+    description: Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy trình ĐÚNG → NHANH → CHÍNH XÁC → THUYẾT PHỤC.
+  - code: EFF
+    name: Tiết kiệm token & độ tin cậy
+    description: Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache, tinh gọn, định tuyến, kiểm chứng.
+
+skills:
+  # ───────────────────────── PY · Lập trình nền tảng ─────────────────────────
+  - id: PY-01
+    name: Python cho dữ liệu và AI
+    domain: PY
+    summary: Viết code Python rõ ràng, có kiểu, tái sử dụng được cho xử lý dữ liệu và gọi model.
+    levels:
+      basic: Cú pháp, cấu trúc dữ liệu, hàm, module; đọc/ghi CSV, JSON, Parquet; xử lý ngoại lệ; type hints cho hàm.
+      intermediate: dataclass/pydantic cho dữ liệu có cấu trúc, generator cho dữ liệu lớn, logging, cấu hình qua file/biến môi trường, CLI (typer/argparse).
+      advanced: Profiling (cProfile, py-spy), vector hóa thay vòng lặp, đa tiến trình, viết thư viện nội bộ có tài liệu và phiên bản.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    prereqs: []
+    tools: [Python 3.12, VS Code, JupyterLab, pydantic, typer]
+    done_when: Viết được một module xử lý dữ liệu có type hints, logging, CLI và người khác chạy được chỉ bằng README.
+
+  - id: PY-02
+    name: Git, môi trường và cấu trúc dự án
+    domain: PY
+    summary: Quản lý mã nguồn, môi trường tái lập được và cấu trúc dự án dễ mở rộng.
+    levels:
+      basic: commit/branch/merge, .gitignore (không commit dữ liệu và secret), uv + pyproject.toml, cấu trúc src/ tests/ notebooks/.
+      intermediate: Pull request và code review, lockfile để tái lập môi trường, pre-commit, Makefile; chuyển code từ notebook sang module.
+      advanced: Monorepo nhiều dự án, versioning dữ liệu/model (DVC hoặc Git LFS), semantic versioning, CI chạy lint/test/eval.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    prereqs: [PY-01]
+    tools: [Git, GitHub, uv, pre-commit, make, DVC]
+    done_when: Clone repo sạch trên máy khác, chạy một lệnh setup là có môi trường giống hệt, mọi thay đổi đi qua PR.
+
+  - id: PY-03
+    name: Kiểm thử và chất lượng code
+    domain: PY
+    summary: Bảo đảm code và pipeline dữ liệu chạy đúng, kể cả với hệ có thành phần ngẫu nhiên như LLM.
+    levels:
+      basic: pytest cho hàm thuần, ruff để lint/format, assert về shape và kiểu dữ liệu.
+      intermediate: Test pipeline dữ liệu bằng fixture nhỏ, kiểm tra schema (pandera), test thuộc tính (hypothesis), type check, chạy test trong CI.
+      advanced: Eval-as-test — chạy golden set trong CI và chặn merge khi metric giảm quá ngưỡng; test hệ không tất định bằng ngưỡng thống kê thay vì so khớp chuỗi.
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: core, G7: core, G8: needed}
+    prereqs: [PY-01]
+    tools: [pytest, ruff, mypy hoặc pyright, hypothesis, pandera]
+    done_when: Mọi PR có test tự động; một thay đổi làm giảm chất lượng model/prompt bị CI phát hiện trước khi merge.
+    efficiency_note: Eval-as-test là "lưới an toàn" cho mọi tối ưu token — chỉ merge khi chất lượng không giảm.
+
+  - id: PY-04
+    name: Gọi API và I/O đồng thời bền vững
+    domain: PY
+    summary: Gọi API (LLM, OCR, nội bộ) với số lượng lớn mà không mất dữ liệu, không vượt hạn mức.
+    levels:
+      basic: httpx/requests, timeout, xử lý mã lỗi HTTP, đọc tài liệu API, không hard-code khóa bí mật.
+      intermediate: asyncio + semaphore giới hạn đồng thời, retry exponential backoff + jitter cho lỗi 429/5xx, rate limit, idempotency key.
+      advanced: Hàng đợi tác vụ (queue/worker), circuit breaker, streaming (SSE), xử lý hàng trăm nghìn request có checkpoint/resume.
+    used_by: {G1: minor, G2: minor, G3: needed, G4: minor, G5: needed, G6: core, G7: core, G8: minor}
+    prereqs: [PY-01]
+    tools: [httpx, asyncio, tenacity]
+    done_when: Xử lý 10.000 tài liệu qua API có giới hạn tốc độ; chạy lại sau sự cố không gọi trùng, không mất bản ghi.
+    efficiency_note: Retry có kiểm soát + idempotency tránh trả tiền hai lần cho cùng một request.
+
+  # ───────────────────────── DATA · SQL & dữ liệu ─────────────────────────
+  - id: DATA-01
+    name: SQL phân tích
+    domain: DATA
+    summary: Lấy đúng dữ liệu, đúng thời điểm từ kho dữ liệu doanh nghiệp.
+    levels:
+      basic: SELECT/WHERE/GROUP BY/JOIN, xử lý NULL, kiểu ngày giờ; truy vấn KPI tổng hợp.
+      intermediate: Window function (LAG, ROW_NUMBER, rolling), CTE, truy vấn "as-of" theo mốc thời gian, đọc EXPLAIN; DuckDB để phân tích tại máy.
+      advanced: Mô hình dữ liệu (star schema, SCD type 2), dbt, tầng ngữ nghĩa (semantic layer) cho text-to-SQL, phân quyền theo hàng/cột.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: minor, G6: needed, G7: needed, G8: needed}
+    prereqs: []
+    tools: [PostgreSQL, DuckDB, dbt]
+    done_when: Viết được truy vấn tạo bảng huấn luyện theo từng mốc thời gian, kết quả khớp với số liệu báo cáo chính thức.
+
+  - id: DATA-02
+    name: Xử lý dữ liệu bảng
+    domain: DATA
+    summary: Làm sạch, biến đổi, ghép nối dữ liệu bảng nhanh và đúng.
+    levels:
+      basic: Đọc, lọc, groupby, merge, pivot; xử lý thiếu/trùng; ép kiểu dữ liệu.
+      intermediate: polars/DuckDB cho dữ liệu lớn hơn RAM, Parquet, ngày giờ và múi giờ, kiểm tra trùng khóa sau merge.
+      advanced: Pipeline tăng dần (incremental) tái lập được, tối ưu bộ nhớ cho hàng chục triệu dòng.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: minor, G6: minor, G7: minor, G8: needed}
+    prereqs: [PY-01]
+    tools: [pandas, polars, DuckDB, pyarrow]
+    done_when: Xử lý bảng 10 triệu dòng trên laptop trong vài phút, không sinh dòng trùng sau khi ghép.
+
+  - id: DATA-03
+    name: Đúng thời điểm và chống rò rỉ dữ liệu
+    domain: DATA
+    summary: Bảo đảm model chỉ "nhìn thấy" thông tin có sẵn tại thời điểm ra quyết định.
+    levels:
+      basic: Nhận biết leakage; chia train/test theo thời gian; loại cột được tạo sau thời điểm dự đoán.
+      intermediate: Xây feature "as-of" (chỉ dùng dữ liệu trước mốc cắt), backtest cuốn chiếu, phát hiện leakage qua feature importance bất thường.
+      advanced: Point-in-time join trong feature store, cửa sổ nhãn và khoảng trống (gap) giữa feature và nhãn, mô phỏng đúng độ trễ dữ liệu ở production.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G8: needed}
+    prereqs: [DATA-01, DATA-02]
+    tools: [SQL window function, pandas merge_asof, scikit-learn TimeSeriesSplit]
+    done_when: Kết quả offline và kết quả chạy thật lệch nhau trong biên sai số đã ước lượng, không "đẹp bất thường".
+
+  - id: DATA-04
+    name: Feature engineering cho bảng và chuỗi thời gian
+    domain: DATA
+    summary: Biến dữ liệu thô thành tín hiệu mà model học được.
+    levels:
+      basic: Biến đổi số/phân loại, aggregate theo khách hàng (RFM), đặc trưng ngày (thứ, tháng, ngày lễ).
+      intermediate: lag/rolling/EWM, target encoding out-of-fold, đặc trưng lịch âm (Tết, rằm), khuyến mãi, ngày nhận lương.
+      advanced: Đặc trưng chuỗi hành vi, đặc trưng đồ thị, tự động hóa và giám sát chất lượng feature.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G8: needed}
+    prereqs: [DATA-02, DATA-03]
+    tools: [pandas, polars, Featuretools, lunardate hoặc lịch âm tự xây]
+    done_when: Feature mới cải thiện metric trên backtest theo thời gian, không chỉ trên split ngẫu nhiên.
+
+  - id: DATA-05
+    name: Kiểm định chất lượng dữ liệu và nhãn
+    domain: DATA
+    summary: Phát hiện dữ liệu hỏng, nhãn sai trước khi chúng làm hỏng model.
+    levels:
+      basic: Kiểm tra schema, giá trị thiếu, trùng, khoảng giá trị; profile dữ liệu trước khi train.
+      intermediate: Validation tự động trong pipeline (pandera/Great Expectations), kiểm tra chất lượng nhãn (độ đồng thuận người gán, nhãn mâu thuẫn).
+      advanced: Data contract giữa các team, cảnh báo khi nguồn đổi định dạng, tìm và sửa nhãn sai có hệ thống (cleanlab).
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed}
+    prereqs: [DATA-02]
+    tools: [pandera, Great Expectations, cleanlab]
+    done_when: Pipeline tự dừng và báo lỗi rõ ràng khi dữ liệu đầu vào sai schema hoặc lệch phân phối mạnh.
+
+  - id: DATA-06
+    name: Văn bản tiếng Việt và dữ liệu phi cấu trúc
+    domain: DATA
+    summary: Chuẩn hóa và làm sạch văn bản tiếng Việt để tìm kiếm, phân loại, đếm token chính xác.
+    levels:
+      basic: Chuẩn hóa Unicode NFC (dấu dựng sẵn vs dấu tổ hợp), làm sạch HTML/khoảng trắng, regex cho số điện thoại, CCCD, mã số thuế, số tiền.
+      intermediate: Tách từ tiếng Việt (underthesea, pyvi) cho BM25, xử lý văn bản không dấu/viết tắt, chuẩn hóa số và ngày kiểu Việt Nam (1.000.000,50 vs 1,000,000.50).
+      advanced: Pipeline làm sạch quy mô lớn, khử trùng lặp gần đúng (MinHash), ẩn danh hóa PII trước khi gửi ra API bên ngoài.
+    used_by: {G5: needed, G6: needed, G7: minor}
+    prereqs: [PY-01]
+    tools: [unicodedata, underthesea, pyvi, regex, datasketch]
+    done_when: Cùng một câu gõ bằng hai bộ gõ khác nhau cho ra cùng kết quả tìm kiếm; PII được che trước khi rời hệ thống.
+    efficiency_note: Làm sạch boilerplate/HTML và khử trùng lặp trước khi gửi LLM giảm token đầu vào trực tiếp.
+
+  - id: DATA-07
+    name: Dữ liệu đồ thị
+    domain: DATA
+    summary: Biểu diễn quan hệ (tài khoản–thiết bị–giao dịch) để phát hiện mẫu mà dữ liệu bảng bỏ sót.
+    levels:
+      basic: Dựng đồ thị từ bảng quan hệ; bậc, thành phần liên thông.
+      intermediate: Đặc trưng đồ thị (PageRank, cộng đồng) đưa vào model bảng; truy vấn đồ thị.
+      advanced: Phát hiện vòng gian lận (fraud ring), graph neural network khi đã có baseline vững.
+    used_by: {G3: needed, G4: minor, G8: minor}
+    prereqs: [DATA-02]
+    tools: [NetworkX, igraph, Neo4j, PyTorch Geometric]
+    done_when: Thêm đặc trưng đồ thị làm tăng precision@k của mô hình gian lận so với chỉ dùng đặc trưng bảng.
+
+  # ───────────────────────── STAT · Thống kê & thực nghiệm ─────────────────────────
+  - id: STAT-01
+    name: Xác suất và thống kê mô tả
+    domain: STAT
+    summary: Đọc dữ liệu và metric đúng, hiểu vì sao tỷ lệ nền quyết định ý nghĩa của mọi con số.
+    levels:
+      basic: Phân phối, trung bình/trung vị/phân vị, phương sai, tương quan, tỷ lệ nền (base rate); đọc histogram/boxplot.
+      intermediate: Định lý giới hạn trung tâm, luật Bayes (vì sao 99% accuracy vô dụng khi gian lận chỉ 0,1%), sai lệch chọn mẫu.
+      advanced: Mô hình Bayes/phân cấp, dữ liệu bị kiểm duyệt (survival cho churn), phân tích công suất thống kê.
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: needed, G8: core}
+    prereqs: []
+    tools: [numpy, scipy, statsmodels, matplotlib]
+    done_when: Giải thích được cho người ngoài ngành vì sao một model "99% chính xác" có thể không có giá trị.
+
+  - id: STAT-02
+    name: Đo lường bất định của kết quả đánh giá
+    domain: STAT
+    summary: Biết khi nào chênh lệch giữa hai model/prompt là thật, khi nào chỉ là nhiễu.
+    levels:
+      basic: Khoảng tin cậy cho tỷ lệ — golden set 100 câu đạt 90% thì khoảng tin cậy 95% xấp xỉ ±6 điểm phần trăm; không kết luận từ chênh lệch nhỏ hơn sai số.
+      intermediate: Bootstrap cho mọi metric (F1, NDCG, WAPE), so sánh cặp hai hệ trên cùng tập (paired bootstrap, McNemar), ước lượng cỡ golden set cần thiết.
+      advanced: Kiểm soát nhiều phép so sánh khi thử nhiều prompt/model (tránh overfit tập đánh giá), tách dev/test cho eval, lấy mẫu phân tầng để người kiểm tra.
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: core, G7: needed, G8: core}
+    prereqs: [STAT-01]
+    tools: [scipy.stats, numpy, statsmodels]
+    done_when: Mọi bảng so sánh model/prompt đều kèm khoảng tin cậy, và quyết định chọn được giải thích bằng nó.
+    efficiency_note: Là công cụ để chứng minh một tối ưu token "không làm giảm chất lượng" — không có nó thì chỉ là cảm giác.
+
+  - id: STAT-03
+    name: Thiết kế thí nghiệm và A/B test
+    domain: STAT
+    summary: Đo tác động thật của model/tính năng lên KPI kinh doanh.
+    levels:
+      basic: Giả thuyết, nhóm đối chứng, ngẫu nhiên hóa, p-value và ý nghĩa thực tế, tính cỡ mẫu trước khi chạy.
+      intermediate: Lỗi "nhìn trộm" và dừng sớm, metric bảo vệ (guardrail), đơn vị ngẫu nhiên hóa (người dùng vs phiên), CUPED giảm phương sai.
+      advanced: Thử nghiệm tuần tự (sequential), switchback cho hệ có hiệu ứng mạng, interleaving cho xếp hạng.
+    used_by: {G1: needed, G2: minor, G3: minor, G4: core, G6: needed, G7: minor, G8: core}
+    prereqs: [STAT-02]
+    tools: [statsmodels, scipy, GrowthBook]
+    done_when: Thiết kế được một A/B test có cỡ mẫu, thời gian chạy và tiêu chí dừng chốt trước khi bắt đầu.
+
+  - id: STAT-04
+    name: Dự báo xác suất và định lượng bất định
+    domain: STAT
+    summary: Đưa ra khoảng dự báo thay vì một con số, để quyết định tính được rủi ro.
+    levels:
+      basic: Khoảng dự báo vs dự báo điểm; đọc quantile P10/P50/P90; pinball loss.
+      intermediate: Quantile regression (LightGBM objective=quantile), conformal prediction cho khoảng có bảo đảm độ phủ.
+      advanced: Dự báo phân phối đầy đủ, mô phỏng Monte Carlo làm đầu vào tối ưu, theo dõi độ phủ thực tế theo thời gian.
+    used_by: {G1: minor, G2: core, G3: minor, G8: core}
+    prereqs: [STAT-01, ML-01]
+    tools: [LightGBM, MAPIE, statsforecast]
+    done_when: Khoảng dự báo 80% thực sự chứa giá trị thật khoảng 80% số lần trên dữ liệu backtest.
+
+  - id: STAT-05
+    name: Calibration, ngưỡng theo chi phí và dự đoán có chọn lọc
+    domain: STAT
+    summary: Biến điểm số của model thành quyết định — tự động ca chắc chắn, chuyển người ca nghi ngờ.
+    levels:
+      basic: Ma trận nhầm lẫn, precision/recall theo ngưỡng, chọn ngưỡng theo chi phí từng loại sai và năng lực xử lý (top-k mỗi ngày).
+      intermediate: Hiệu chỉnh xác suất (Platt, isotonic), biểu đồ reliability, đường coverage–accuracy để chọn phần được tự động hóa.
+      advanced: Selective prediction có bảo đảm (conformal risk control); điểm tin cậy cho đầu ra LLM/OCR từ tín hiệu ngoài model (luật kiểm tra, đối chiếu chéo, đồng thuận nhiều lần chạy).
+    used_by: {G1: core, G3: core, G4: minor, G5: needed, G6: needed, G7: needed, G8: needed}
+    prereqs: [STAT-01, ML-01]
+    tools: [scikit-learn calibration, MAPIE]
+    done_when: Vẽ được đường coverage–accuracy và chọn được mức tự động hóa đạt độ chính xác mục tiêu trên phần tự động.
+    efficiency_note: Kỹ năng then chốt để vừa rẻ vừa "chính xác tuyệt đối" trên phần tự động — phần nghi ngờ đi đường đắt hơn (model lớn hoặc người).
+
+  - id: STAT-06
+    name: Suy luận nhân quả và uplift
+    domain: STAT
+    summary: Ước lượng tác động thật của một hành động, không nhầm tương quan với nhân quả.
+    levels:
+      basic: Tương quan ≠ nhân quả; biến gây nhiễu; vì sao cần nhóm đối chứng.
+      intermediate: DAG nhân quả, difference-in-differences, uplift modeling (T-/X-learner), đánh giá bằng đường Qini/uplift.
+      advanced: DoWhy/EconML (double ML, causal forest), synthetic control, off-policy evaluation cho chính sách và gợi ý.
+    used_by: {G1: minor, G4: needed, G8: core}
+    prereqs: [STAT-03, ML-02]
+    tools: [DoWhy, EconML, CausalML]
+    done_when: Chọn được nhóm khách "thuyết phục được" bằng uplift và chứng minh bằng thí nghiệm rằng họ mang lại lợi nhuận cao hơn nhóm điểm churn cao nhất.
+
+  # ───────────────────────── ML · ML cổ điển ─────────────────────────
+  - id: ML-01
+    name: Quy trình học có giám sát chuẩn
+    domain: ML
+    summary: Dựng baseline đúng cách và so sánh model công bằng.
+    levels:
+      basic: train/val/test, cross-validation, Pipeline + ColumnTransformer, baseline (dummy, logistic regression), metric đúng cho phân loại/hồi quy.
+      intermediate: CV theo nhóm/thời gian, tuning có ngân sách (Optuna), so sánh model trên cùng split, lưu/tải pipeline.
+      advanced: Ensemble/stacking có kiểm soát, học bán giám sát, active learning chọn mẫu cần gán nhãn.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: minor, G6: needed, G7: minor, G8: needed}
+    prereqs: [DATA-02, STAT-01]
+    tools: [scikit-learn, Optuna]
+    done_when: Có baseline trong 1–2 ngày và bảng so sánh mọi thí nghiệm trên cùng một tập đánh giá cố định.
+    efficiency_note: TF-IDF + logistic regression phân loại văn bản gần như miễn phí — tầng đầu của cascade trước khi gọi LLM.
+
+  - id: ML-02
+    name: Gradient boosting
+    domain: ML
+    summary: Công cụ mạnh nhất cho dữ liệu bảng; nền cho dự báo, xếp hạng, uplift.
+    levels:
+      basic: Train với tham số mặc định, early stopping, đọc feature importance.
+      intermediate: Biến phân loại (CatBoost/categorical_feature), tuning có kiểm soát, objective tùy chỉnh (quantile, tweedie, lambdarank), mô hình toàn cục cho nhiều chuỗi.
+      advanced: Ràng buộc đơn điệu (quan trọng với chấm điểm tín dụng), tối ưu tốc độ suy luận, so sánh với TabPFN khi dữ liệu ít.
+    used_by: {G1: core, G2: core, G3: needed, G4: core, G8: needed}
+    prereqs: [ML-01]
+    tools: [LightGBM, XGBoost, CatBoost, TabPFN]
+    done_when: Một mô hình LightGBM vượt baseline có ý nghĩa thống kê trên backtest theo thời gian.
+
+  - id: ML-03
+    name: Dữ liệu mất cân bằng và sự kiện hiếm
+    domain: ML
+    summary: Đánh giá và huấn luyện đúng khi lớp quan tâm chỉ chiếm vài phần nghìn.
+    levels:
+      basic: Vì sao accuracy đánh lừa; PR-AUC, precision@k, recall tại mức cảnh báo cố định.
+      intermediate: class weight, focal loss, lấy mẫu lại (và tác hại của nó lên calibration), đánh giá phân tầng.
+      advanced: Học từ phản hồi điều tra viên (nhãn trễ, nhãn có chọn lọc), positive-unlabeled learning.
+    used_by: {G1: core, G3: core, G4: minor, G5: needed}
+    prereqs: [ML-01]
+    tools: [scikit-learn, imbalanced-learn]
+    done_when: Báo cáo metric theo đúng năng lực xử lý của đội vận hành (precision@k) thay vì accuracy.
+
+  - id: ML-04
+    name: Giải thích mô hình
+    domain: ML
+    summary: Trả lời "vì sao model quyết định vậy" cho người dùng, quản lý và pháp chế.
+    levels:
+      basic: Feature importance, permutation importance, giải thích bằng ví dụ cụ thể.
+      intermediate: SHAP (toàn cục và từng ca), lý do từ chối (reason codes) cho tín dụng, PDP/ICE.
+      advanced: Giải thích cho người không chuyên, kiểm tra công bằng theo nhóm, Grad-CAM cho ảnh, trích dẫn nguồn như "lời giải thích" của hệ LLM.
+    used_by: {G1: core, G3: needed, G4: minor, G5: needed, G6: minor, G8: needed}
+    prereqs: [ML-02]
+    tools: [SHAP, scikit-learn inspection, Captum]
+    done_when: Danh sách top khách cho CSKH có kèm 3 lý do dễ hiểu cho từng người.
+
+  - id: ML-05
+    name: Học không giám sát và phát hiện bất thường
+    domain: ML
+    summary: Tìm điểm lạ khi gần như không có nhãn.
+    levels:
+      basic: z-score, IQR, luật nghiệp vụ, Isolation Forest, K-means.
+      intermediate: LOF, kết hợp luật + điểm ML, đánh giá khi thiếu nhãn (gán nhãn top-k), PyOD.
+      advanced: Autoencoder, bất thường theo ngữ cảnh/mùa vụ, drift của "mức bình thường", học từ phản hồi người điều tra.
+    used_by: {G1: minor, G2: minor, G3: core, G4: needed}
+    prereqs: [ML-01]
+    tools: [scikit-learn, PyOD]
+    done_when: Danh sách cảnh báo top-k có tỷ lệ đúng đủ cao để đội vận hành chấp nhận xử lý hằng ngày.
+
+  - id: ML-06
+    name: Mô hình chuỗi thời gian
+    domain: ML
+    summary: Dự báo theo thời gian, luôn đánh bại được baseline đơn giản.
+    levels:
+      basic: Seasonal naive, ETS/ARIMA (statsforecast), WAPE/MASE, backtest cuốn chiếu.
+      intermediate: LightGBM toàn cục (mlforecast) với lag/rolling/lịch lễ, chuỗi gián đoạn (Croston/TSB) cho hàng bán chậm, cold-start mã hàng mới.
+      advanced: Hierarchical reconciliation, mô hình nền tảng (Chronos, TimesFM) so với baseline, dự báo theo kịch bản khuyến mãi.
+    used_by: {G2: core, G3: needed, G8: needed}
+    prereqs: [ML-02, DATA-03]
+    tools: [statsforecast, mlforecast, Darts, Chronos]
+    done_when: Backtest nhiều mốc cho thấy model giảm WAPE so với seasonal naive ở các mã hàng quan trọng.
+
+  - id: ML-07
+    name: Truy xuất và xếp hạng hai tầng (retrieve → rerank)
+    domain: ML
+    summary: Kiến trúc dùng chung của hệ gợi ý và RAG — lấy nhanh ứng viên rồi xếp hạng kỹ.
+    levels:
+      basic: BM25, embedding + cosine, Recall@K, MRR, NDCG; tự xây tập truy vấn–kết quả đúng.
+      intermediate: Hybrid search (BM25 + vector, RRF), chỉ mục ANN (HNSW, Faiss, Qdrant, pgvector), reranker cross-encoder, learning-to-rank.
+      advanced: Fine-tune embedding/reranker trên dữ liệu nội bộ, lọc metadata và phân quyền ngay khi truy xuất, quantization vector để giảm bộ nhớ.
+    used_by: {G4: core, G5: needed, G6: core, G7: needed}
+    prereqs: [ML-01, DL-03]
+    tools: [rank-bm25, Faiss, Qdrant, pgvector, sentence-transformers]
+    done_when: Đo được Recall@K của tầng truy xuất tách biệt với chất lượng cuối, và cải thiện từng tầng độc lập.
+    efficiency_note: Truy xuất tốt cho phép gửi top-k nhỏ vào LLM thay vì cả tài liệu — đòn bẩy giảm token lớn nhất của RAG.
+
+  - id: ML-08
+    name: Hệ gợi ý chuyên biệt
+    domain: ML
+    summary: Cá nhân hóa danh sách gợi ý và đo bằng doanh thu thật.
+    levels:
+      basic: Baseline phổ biến/hay mua cùng, collaborative filtering (ALS), Recall@K/NDCG offline.
+      intermediate: Kiến trúc 2 tầng retrieval + ranking, two-tower, cold-start bằng nội dung, loại thứ đã mua, đa dạng hóa.
+      advanced: Mô hình chuỗi hành vi (SASRec/transformer), cân bằng nhiều mục tiêu, chống popularity bias, A/B đo doanh thu.
+    used_by: {G4: core}
+    prereqs: [ML-07, ML-02]
+    tools: [implicit, LightGBM LambdaRank, Faiss, RecBole]
+    done_when: ALS hoặc two-tower vượt baseline phổ biến về Recall@10 và NDCG@10 trên split theo thời gian.
+
+  # ───────────────────────── DL · Deep learning ─────────────────────────
+  - id: DL-01
+    name: PyTorch nền tảng
+    domain: DL
+    summary: Tự viết và gỡ lỗi vòng huấn luyện mạng nơ-ron.
+    levels:
+      basic: Tensor, autograd, vòng huấn luyện, Dataset/DataLoader, chạy trên GPU, lưu checkpoint.
+      intermediate: Mixed precision, gradient accumulation, scheduler, theo dõi overfit, tái lập kết quả (seed).
+      advanced: Huấn luyện phân tán (DDP), tối ưu bộ nhớ, loss/kiến trúc tùy chỉnh, gỡ lỗi khi không hội tụ.
+    used_by: {G1: minor, G2: needed, G3: needed, G4: needed, G5: core, G6: needed, G7: minor, G8: minor}
+    prereqs: [PY-01, ML-01]
+    tools: [PyTorch, Lightning, TensorBoard]
+    done_when: Tự viết vòng huấn luyện cho một bài phân loại ảnh, giải thích được đường loss.
+
+  - id: DL-02
+    name: Transfer learning và fine-tune mô hình pretrained
+    domain: DL
+    summary: Tận dụng mô hình có sẵn để đạt chất lượng cao với ít dữ liệu.
+    levels:
+      basic: Hugging Face pipeline; fine-tune ResNet/ViT phân loại ảnh; fine-tune PhoBERT phân loại văn bản tiếng Việt.
+      intermediate: PEFT/LoRA, augmentation, chiến lược đóng băng tầng, đánh giá theo từng lớp.
+      advanced: Tiếp tục pretrain trên dữ liệu miền (domain-adaptive), distillation sang model nhỏ, đa nhiệm.
+    used_by: {G3: minor, G4: minor, G5: core, G6: needed}
+    prereqs: [DL-01]
+    tools: [Hugging Face Transformers, PEFT, timm]
+    done_when: Model fine-tune nhỏ đạt chất lượng gần LLM lớn trên một tác vụ phân loại hẹp, với chi phí suy luận thấp hơn nhiều.
+    efficiency_note: Model nhỏ fine-tune cho tác vụ hẹp, lưu lượng lớn thường rẻ hơn gọi LLM mỗi lần.
+
+  - id: DL-03
+    name: Embedding và học biểu diễn
+    domain: DL
+    summary: Biểu diễn văn bản, ảnh, người dùng, sản phẩm thành vector để so sánh và tìm kiếm.
+    levels:
+      basic: Dùng embedding có sẵn (bge-m3, multilingual-e5 cho tiếng Việt; CLIP cho ảnh), cosine similarity, kiểm tra bằng ví dụ láng giềng gần.
+      intermediate: Chọn embedding theo benchmark trên dữ liệu thật của mình, contrastive learning cơ bản, autoencoder cho bất thường.
+      advanced: Fine-tune embedding với hard negatives, Matryoshka/quantization để giảm chi phí lưu trữ, theo dõi drift embedding.
+    used_by: {G3: needed, G4: needed, G5: needed, G6: needed, G7: minor}
+    prereqs: [PY-01]
+    tools: [sentence-transformers, bge-m3, multilingual-e5, open_clip]
+    done_when: So sánh ít nhất 3 embedding trên tập truy vấn tiếng Việt thật và chọn bằng số liệu.
+
+  - id: DL-04
+    name: Thị giác máy tính (detection, segmentation, OCR)
+    domain: DL
+    summary: Nhận diện vật thể, vùng lỗi và chữ trong ảnh chụp thực tế.
+    levels:
+      basic: YOLO (Ultralytics) phát hiện vật thể, OCR có sẵn (PaddleOCR, VietOCR), mAP/IoU, đo độ chính xác theo từng trường.
+      intermediate: Chiến lược gán nhãn (Label Studio), augmentation mô phỏng ảnh thật (mờ, lóa, nghiêng), segmentation, tiền xử lý (deskew, crop).
+      advanced: Active learning, xử lý ảnh chất lượng xấu, so khớp khuôn mặt và chống giả mạo (liveness) cho eKYC.
+    used_by: {G5: core}
+    prereqs: [DL-02]
+    tools: [Ultralytics YOLO, OpenCV, PaddleOCR, VietOCR, Label Studio]
+    done_when: Model chạy trên ảnh chụp điện thoại thật (không chỉ ảnh mẫu sạch) với độ chính xác theo trường được báo cáo riêng.
+
+  - id: DL-05
+    name: Document AI và mô hình thị giác–ngôn ngữ (VLM)
+    domain: DL
+    summary: Trích xuất dữ liệu có cấu trúc từ hóa đơn, hợp đồng, giấy tờ nhiều mẫu.
+    levels:
+      basic: Phân biệt PDF có text và PDF scan; trích text/bảng bằng công cụ có sẵn; VLM trích trường từ ảnh theo JSON schema.
+      intermediate: Phân tích bố cục, trích bảng, so sánh OCR + luật với VLM theo chi phí/độ chính xác, đo độ chính xác từng trường.
+      advanced: Pipeline nhiều mẫu tài liệu (phân loại mẫu → trích xuất chuyên biệt), đối chiếu chéo trường, fine-tune cho mẫu khó, chuyển ca nghi ngờ cho người.
+    used_by: {G5: core, G6: needed, G7: needed}
+    prereqs: [DL-04, LLM-02]
+    tools: [PyMuPDF, pdfplumber, Docling, PaddleOCR, VLM API]
+    done_when: Báo cáo được độ chính xác từng trường và tỷ lệ hồ sơ xử lý tự động hoàn toàn trên bộ hóa đơn thật.
+    efficiency_note: Chỉ gửi vùng ảnh/trang cần thiết, đúng độ phân giải cần thiết; OCR + luật cho mẫu cố định, VLM chỉ cho mẫu lạ.
+
+  - id: DL-06
+    name: Xử lý giọng nói (ASR)
+    domain: DL
+    summary: Chuyển ghi âm tổng đài tiếng Việt thành văn bản để phân tích.
+    levels:
+      basic: Whisper/PhoWhisper chuyển giọng nói thành văn bản; đo WER/CER.
+      intermediate: Tách người nói (diarization), VAD cắt khoảng lặng, xử lý giọng vùng miền và thuật ngữ riêng.
+      advanced: Streaming ASR độ trễ thấp, fine-tune trên ghi âm tổng đài, kết hợp tóm tắt và trích ý định.
+    used_by: {G6: needed}
+    prereqs: [DL-02]
+    tools: [Whisper, faster-whisper, PhoWhisper, pyannote]
+    done_when: Đo được WER trên ghi âm thật của công ty và biết nhóm lỗi lớn nhất (tên riêng, số, giọng vùng miền).
+    efficiency_note: VAD cắt khoảng lặng trước khi ASR giảm thời lượng xử lý; transcript ngắn gọn giảm token cho bước tóm tắt.
+
+  # ───────────────────────── LLM · LLM, RAG & Agent ─────────────────────────
+  - id: LLM-01
+    name: Gọi LLM API và prompt engineering
+    domain: LLM
+    summary: Viết prompt rõ ràng, có cấu trúc, quản lý như code.
+    levels:
+      basic: Cấu trúc messages/system prompt, ví dụ mẫu (few-shot), chỉ dẫn rõ có tiêu chí, max_tokens; prompt lưu trong file có version.
+      intermediate: Tách tác vụ thành chuỗi bước (prompt chaining), ngữ cảnh có cấu trúc (thẻ XML/markdown), cho phép trả lời "không biết", chọn model theo độ khó.
+      advanced: Tối ưu prompt có hệ thống trên golden set, prompt cho tiếng Việt và đa ngôn ngữ, review/A-B/rollback prompt như code.
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: needed, G6: core, G7: core, G8: minor}
+    prereqs: [PY-01]
+    tools: ["LLM API (Anthropic, OpenAI, Gemini…)", Jinja2]
+    done_when: Mọi prompt nằm trong repo, có version, có golden set đi kèm và lịch sử thay đổi có số liệu.
+
+  - id: LLM-02
+    name: Structured output và kiểm chứng đầu ra
+    domain: LLM
+    summary: Ép LLM trả về dữ liệu có cấu trúc hợp lệ, kiểm tra được bằng code.
+    levels:
+      basic: Yêu cầu JSON theo schema, validate bằng pydantic, dùng enum cho nhãn thay vì văn bản tự do.
+      intermediate: Structured outputs/strict tool schema của nhà cung cấp, retry kèm thông báo lỗi validation, kiểm tra ràng buộc nghiệp vụ giữa các trường.
+      advanced: Constrained decoding cho model tự host, thiết kế schema tối giản, theo dõi tỷ lệ output hợp lệ và tỷ lệ retry như metric production.
+    used_by: {G5: core, G6: core, G7: core}
+    prereqs: [LLM-01]
+    tools: [pydantic, JSON Schema, instructor, outlines]
+    done_when: 100% output đi vào hệ thống phía sau đều qua validate; ca không hợp lệ được retry hoặc chuyển người, không bao giờ lọt.
+    efficiency_note: Output ngắn theo schema (mã nhãn, enum) rẻ hơn văn xuôi nhiều lần và kiểm tra được tự động.
+
+  - id: LLM-03
+    name: RAG — trả lời dựa trên tài liệu
+    domain: LLM
+    summary: Trả lời có trích dẫn từ tài liệu nội bộ, biết nói "không tìm thấy".
+    levels:
+      basic: parse → chunk → embedding → vector store → trả lời có trích dẫn; trả lời "không tìm thấy" khi không có căn cứ.
+      intermediate: Chunk theo cấu trúc (mục, bảng), hybrid search + rerank, metadata/lọc, đánh giá tách riêng retrieval (recall@k) và generation (faithfulness).
+      advanced: Phân quyền tài liệu theo người dùng, cập nhật chỉ mục tăng dần, viết lại/tách câu hỏi, kết hợp text-to-SQL cho số liệu, GraphRAG khi thật sự cần.
+    used_by: {G6: core, G7: needed}
+    prereqs: [LLM-02, ML-07, DATA-06]
+    tools: [Qdrant, pgvector, BM25, cross-encoder reranker, Docling]
+    done_when: Golden set ~100 câu tiếng Việt có recall@k, faithfulness và độ đúng được đo; mọi câu trả lời có nguồn kiểm tra được.
+    efficiency_note: Top-k nhỏ + rerank thay vì nhồi cả tài liệu; chunk sạch giảm token mà còn tăng độ chính xác.
+
+  - id: LLM-04
+    name: Đánh giá hệ LLM (evals)
+    domain: LLM
+    summary: Đo chất lượng hệ LLM bằng số liệu thay vì cảm giác, trước và sau mọi thay đổi.
+    levels:
+      basic: Golden set từ dữ liệu thật (≥100 mẫu có đáp án), chấm tự động bằng so khớp chính xác/so khớp từng trường, đọc thủ công các ca sai.
+      intermediate: LLM-as-judge với rubric rõ, đo độ đồng thuận judge–người, bộ hồi quy chạy mỗi khi đổi prompt/model, báo cáo chi phí và độ trễ cùng chất lượng.
+      advanced: Đánh giá trajectory của agent, dữ liệu kiểm thử đối kháng (prompt injection), đánh giá online từ phản hồi người dùng.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [LLM-02, STAT-02, BIZ-02]
+    tools: [pytest, Langfuse, promptfoo, Inspect]
+    done_when: Một lệnh `make eval` in ra chất lượng + chi phí + độ trễ, so với baseline, kèm khoảng tin cậy.
+    efficiency_note: Không có eval thì không thể tối ưu token an toàn — mọi cắt giảm phải qua cổng eval.
+
+  - id: LLM-05
+    name: Tool calling và điều phối workflow/agent
+    domain: LLM
+    summary: Để LLM gọi công cụ, chạy chuỗi bước có trạng thái, có người duyệt ở bước rủi ro.
+    levels:
+      basic: Định nghĩa tool bằng JSON schema, vòng lặp gọi tool, workflow cố định (chuỗi bước LLM xen code), người duyệt ở bước rủi ro.
+      intermediate: Các mẫu workflow (chaining, routing, song song, orchestrator–workers, evaluator–optimizer), quản lý state (LangGraph hoặc agent SDK), MCP, xử lý lỗi/timeout của tool, tracing.
+      advanced: Agent tự chủ có ngân sách bước/token, quản lý ngữ cảnh dài (nén, bộ nhớ ngoài), multi-agent, computer-use; thiết kế bộ tool "ít mà đủ".
+    used_by: {G6: needed, G7: core}
+    prereqs: [LLM-02, PY-04]
+    tools: [LangGraph, agent SDK của các hãng, MCP, Langfuse]
+    done_when: Agent báo giá chạy end-to-end, mọi hành động có log, bước gửi email luôn chờ người duyệt.
+    efficiency_note: Workflow cố định rẻ và dễ kiểm chứng hơn agent tự chủ; ít tool, mô tả tool ngắn gọn giảm token mỗi lượt.
+
+  - id: LLM-06
+    name: An toàn và bảo mật hệ LLM
+    domain: LLM
+    summary: Chặn rò rỉ dữ liệu, prompt injection và hành động vượt quyền.
+    levels:
+      basic: Không đưa secret vào prompt, che PII trước khi gửi API bên ngoài, giới hạn phạm vi trả lời.
+      intermediate: Phòng prompt injection (tách dữ liệu và chỉ dẫn, không tin nội dung tài liệu/email), guardrails đầu vào/đầu ra, phân quyền tài liệu trong RAG, audit log.
+      advanced: Quyền tối thiểu cho agent, sandbox cho tool nguy hiểm, red-teaming định kỳ, đáp ứng yêu cầu bảo vệ dữ liệu cá nhân.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [LLM-01, OPS-08]
+    tools: [Presidio, guardrails, sandbox container]
+    done_when: Bộ test prompt injection nằm trong eval; agent không thể thực hiện hành động ngoài danh sách cho phép.
+
+  - id: LLM-07
+    name: Fine-tune, distill và tự host LLM
+    domain: LLM
+    summary: Làm model riêng rẻ hơn/nhanh hơn cho tác vụ hẹp, lưu lượng lớn.
+    levels:
+      basic: Biết khi nào KHÔNG cần fine-tune (prompt + RAG trước); chuẩn bị dữ liệu instruction sạch.
+      intermediate: SFT với LoRA/QLoRA trên model open-weight nhỏ, đánh giá trước/sau trên golden set, tự host bằng vLLM.
+      advanced: DPO/preference tuning, distill từ model lớn sang model nhỏ, quantization (AWQ/GPTQ), tính tổng chi phí GPU so với API.
+    used_by: {G5: needed, G6: needed, G7: minor}
+    prereqs: [LLM-04, DL-02]
+    tools: [PEFT, TRL, Unsloth, vLLM]
+    done_when: Model distill đạt chất lượng trong biên sai số của model lớn trên golden set, với chi phí mỗi request thấp hơn rõ rệt.
+    efficiency_note: Đòn bẩy chi phí mạnh nhất khi lưu lượng lớn và tác vụ ổn định — nhưng chỉ sau khi đã có eval vững.
+
+  - id: LLM-08
+    name: Text-to-SQL và hỏi đáp số liệu
+    domain: LLM
+    summary: Cho người dùng hỏi số liệu bằng tiếng Việt mà kết quả vẫn đúng tuyệt đối.
+    levels:
+      basic: Đưa schema + mô tả cột + ví dụ vào prompt, sinh SQL chỉ đọc, chạy trên bản sao dữ liệu.
+      intermediate: Schema linking (chỉ đưa bảng liên quan), kiểm tra SQL (parse, EXPLAIN, danh sách bảng cho phép), golden set so sánh KẾT QUẢ truy vấn chứ không so chuỗi SQL.
+      advanced: Tầng ngữ nghĩa với metric định nghĩa sẵn để LLM chọn metric thay vì viết SQL tự do, phân quyền hàng/cột, hỏi lại khi câu hỏi mơ hồ.
+    used_by: {G6: needed, G7: needed}
+    prereqs: [DATA-01, LLM-02, LLM-04]
+    tools: [sqlglot, DuckDB, dbt semantic layer]
+    done_when: Trên golden set câu hỏi số liệu, kết quả truy vấn khớp 100% với đáp án ở phần được trả lời tự động; câu mơ hồ được hỏi lại.
+    efficiency_note: Schema linking giảm mạnh token ngữ cảnh; con số do SQL tính chứ không do LLM tự "nhẩm" → chính xác tuyệt đối.
+
+  # ───────────────────────── OPT · Tối ưu hóa ─────────────────────────
+  - id: OPT-01
+    name: Quy hoạch tuyến tính và nguyên (LP/MIP)
+    domain: OPT
+    summary: Mô hình hóa quyết định có ràng buộc và để solver tìm phương án tốt nhất.
+    levels:
+      basic: Biến quyết định–ràng buộc–mục tiêu; giải LP với PuLP/OR-Tools (phân bổ ngân sách, pha trộn).
+      intermediate: MIP cho xếp ca, chọn địa điểm; kỹ thuật mô hình hóa (big-M, biến nhị phân); đọc gap và thời gian giải.
+      advanced: Mô hình lớn (phân rã, warm start), so sánh solver (HiGHS, CBC, SCIP), phân tích độ nhạy (shadow price) để giải thích cho nghiệp vụ.
+    used_by: {G2: needed, G8: core}
+    prereqs: [PY-01]
+    tools: [OR-Tools, PuLP, Pyomo, HiGHS]
+    done_when: Mô hình phân bổ ngân sách cho kết quả tốt hơn cách làm hiện tại và giải thích được ràng buộc nào đang "chặn" lợi nhuận.
+
+  - id: OPT-02
+    name: Tối ưu tổ hợp — định tuyến và lập lịch
+    domain: OPT
+    summary: Giải VRP, xếp ca, lập lịch với ràng buộc thực tế.
+    levels:
+      basic: TSP/VRP nhỏ với OR-Tools routing, ma trận khoảng cách.
+      intermediate: VRP có cửa sổ thời gian và tải trọng; xếp ca bằng CP-SAT với ràng buộc cứng/mềm.
+      advanced: Heuristic/metaheuristic cho bài toán lớn, tối ưu lại theo thời gian thực, đo lợi ích so với cách làm hiện tại.
+    used_by: {G8: core}
+    prereqs: [OPT-01]
+    tools: [OR-Tools routing, CP-SAT]
+    done_when: Tuyến giao hàng 1 kho × 20 điểm ngắn hơn tuyến hiện tại và tôn trọng mọi ràng buộc.
+
+  - id: OPT-03
+    name: Ra quyết định dưới bất định (dự báo rồi tối ưu)
+    domain: OPT
+    summary: Nối dự báo xác suất với tối ưu để quyết định chịu được rủi ro.
+    levels:
+      basic: Bài toán newsvendor, tồn kho an toàn từ quantile dự báo.
+      intermediate: Tối ưu theo kịch bản (stochastic), đưa dự báo quantile vào MIP, đánh giá quyết định bằng mô phỏng.
+      advanced: Robust optimization, đánh giá theo chi phí quyết định (decision-focused) thay vì độ chính xác dự báo.
+    used_by: {G2: needed, G8: core}
+    prereqs: [OPT-01, STAT-04]
+    tools: [OR-Tools, Pyomo, numpy]
+    done_when: Mô phỏng cho thấy chính sách đặt hàng dựa trên quantile giảm tổng chi phí (thiếu + tồn) so với dùng dự báo điểm.
+
+  - id: OPT-04
+    name: Bandit và học tăng cường cơ bản
+    domain: OPT
+    summary: Vừa khám phá vừa khai thác khi lựa chọn có phản hồi liên tục.
+    levels:
+      basic: Explore vs exploit, epsilon-greedy, Thompson sampling.
+      intermediate: Contextual bandit, đánh giá off-policy.
+      advanced: RL cho định giá/phân bổ khi có mô phỏng tốt; nhận biết khi RL là quá mức cần thiết.
+    used_by: {G4: needed, G8: needed}
+    prereqs: [STAT-03]
+    tools: [Vowpal Wabbit, numpy]
+    done_when: Mô phỏng cho thấy Thompson sampling thu được nhiều lợi ích hơn A/B cố định trong cùng thời gian.
+
+  # ───────────────────────── OPS · Triển khai & MLOps ─────────────────────────
+  - id: OPS-01
+    name: Đóng gói và phục vụ model
+    domain: OPS
+    summary: Đưa model/hệ LLM thành dịch vụ hoặc job chạy ổn định.
+    levels:
+      basic: FastAPI + pydantic, Dockerfile, job chấm điểm batch hằng ngày ra bảng/CSV.
+      intermediate: Tách cấu hình/secret, health check, version model trong API, xử lý lỗi/timeout, test tải cơ bản.
+      advanced: Autoscaling, canary/blue-green, shadow mode, SLA độ trễ.
+    used_by: {G1: needed, G2: needed, G3: core, G4: core, G5: core, G6: core, G7: core, G8: needed}
+    prereqs: [PY-02]
+    tools: [FastAPI, Docker, uvicorn]
+    done_when: "`docker compose up` là có API chấm điểm chạy được, có health check và version model."
+
+  - id: OPS-02
+    name: Theo dõi thực nghiệm và tái lập
+    domain: OPS
+    summary: Biết chính xác model/prompt nào, dữ liệu nào cho ra kết quả nào.
+    levels:
+      basic: Ghi tham số, phiên bản dữ liệu, metric mỗi lần chạy (MLflow); cố định seed.
+      intermediate: Model registry, versioning dữ liệu và prompt, so sánh run, báo cáo tự động.
+      advanced: Huấn luyện lại tự động có cổng kiểm định (chỉ deploy khi tốt hơn champion), lineage dữ liệu–model.
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed}
+    prereqs: [PY-02, ML-01]
+    tools: [MLflow, DVC, Weights & Biases]
+    done_when: Tái tạo lại đúng metric của một thí nghiệm cũ từ registry trong vòng 10 phút.
+
+  - id: OPS-03
+    name: Pipeline và điều phối tác vụ
+    domain: OPS
+    summary: Chạy chuỗi xử lý dữ liệu/huấn luyện/chấm điểm theo lịch, an toàn khi chạy lại.
+    levels:
+      basic: Script chạy theo lịch (cron), idempotent, log rõ ràng.
+      intermediate: Prefect/Airflow/Dagster, phụ thuộc giữa tác vụ, retry, backfill.
+      advanced: Feature pipeline dùng chung cho train và serve, nền tảng dữ liệu/ML cho nhiều team.
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G6: needed, G8: minor}
+    prereqs: [PY-02]
+    tools: [Prefect, Airflow, Dagster]
+    done_when: Pipeline chạy lại cho một ngày bất kỳ trong quá khứ mà không tạo dữ liệu trùng.
+
+  - id: OPS-04
+    name: Giám sát model và drift
+    domain: OPS
+    summary: Phát hiện model xuống cấp trước khi nghiệp vụ phát hiện.
+    levels:
+      basic: Theo dõi phân phối input/output, số request, tỷ lệ lỗi.
+      intermediate: Drift (PSI, KS), hiệu năng khi nhãn về trễ, cảnh báo, dashboard (Evidently).
+      advanced: Phát hiện vòng phản hồi (model ảnh hưởng dữ liệu tương lai), tự kích hoạt huấn luyện lại, giám sát theo phân khúc.
+    used_by: {G1: needed, G2: needed, G3: core, G4: core, G5: needed, G6: needed, G8: needed}
+    prereqs: [OPS-01, STAT-02]
+    tools: [Evidently, Prometheus, Grafana]
+    done_when: Dashboard cảnh báo khi phân phối điểm số lệch mạnh so với lúc huấn luyện.
+
+  - id: OPS-05
+    name: Tối ưu suy luận và serving model
+    domain: OPS
+    summary: Chạy model nhanh, rẻ, kể cả trên thiết bị biên.
+    levels:
+      basic: Export ONNX, đo độ trễ/throughput, batch inference.
+      intermediate: Quantization int8, ONNX Runtime/TensorRT, tối ưu tiền xử lý, chọn GPU vs CPU theo chi phí.
+      advanced: Triển khai biên (edge/mobile), dynamic batching (Triton, vLLM), distillation để đạt SLA.
+    used_by: {G3: needed, G4: needed, G5: core, G6: needed}
+    prereqs: [OPS-01, DL-01]
+    tools: [ONNX Runtime, TensorRT, Triton, vLLM]
+    done_when: Model sau quantization giữ chất lượng trong biên sai số và nhanh hơn đo được.
+
+  - id: OPS-06
+    name: LLMOps — tracing, chi phí, độ trễ
+    domain: OPS
+    summary: "Nhìn thấy mọi lời gọi LLM: tốn bao nhiêu, chậm ở đâu, sai ở đâu."
+    levels:
+      basic: Log mỗi lời gọi (version prompt, model, token vào/ra, chi phí, độ trễ).
+      intermediate: Tracing nhiều bước (Langfuse/OpenTelemetry), dashboard chi phí theo tính năng/người dùng, cảnh báo vượt ngân sách, lấy mẫu trace để đánh giá.
+      advanced: Đổi model/nhà cung cấp không downtime, fallback khi lỗi, phân bổ chi phí theo đơn vị nghiệp vụ, SLO cho chất lượng.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [OPS-01, LLM-01]
+    tools: [Langfuse, OpenTelemetry, LiteLLM]
+    done_when: Trả lời được "tháng này tính năng X tốn bao nhiêu, mỗi tác vụ hoàn thành tốn bao nhiêu" trong 1 phút.
+    efficiency_note: Không đo được thì không tối ưu được — tracing là nguồn dữ liệu cho mọi quyết định cắt giảm token.
+
+  - id: OPS-07
+    name: Real-time và streaming
+    domain: OPS
+    summary: Chấm điểm sự kiện trong vài chục mili-giây khi nghiệp vụ thật sự cần.
+    levels:
+      basic: Phân biệt batch / near-real-time / real-time; biết khi nào thật sự cần real-time.
+      intermediate: Kafka/Redpanda, consumer, feature theo cửa sổ thời gian, lưu feature online (Redis).
+      advanced: Chấm điểm dưới 100 ms, đồng nhất feature online/offline, xử lý sự kiện trễ/trùng.
+    used_by: {G3: needed, G4: needed}
+    prereqs: [OPS-01, DATA-04]
+    tools: [Kafka, Redpanda, Redis, Faust/Bytewax]
+    done_when: Feature tính online và offline cho cùng một giao dịch ra cùng giá trị.
+
+  - id: OPS-08
+    name: Bảo mật dữ liệu và tuân thủ
+    domain: OPS
+    summary: Xử lý dữ liệu khách hàng đúng quy định, không rò rỉ.
+    levels:
+      basic: Quản lý secret (.env, vault), không commit dữ liệu thật, nhận diện dữ liệu cá nhân (PII), ẩn danh hóa khi phân tích.
+      intermediate: Phân quyền theo vai trò, audit log, mã hóa khi lưu/truyền, chính sách lưu giữ, đánh giá rủi ro khi gửi dữ liệu ra API bên ngoài.
+      advanced: Đáp ứng quy định bảo vệ dữ liệu cá nhân của Việt Nam (làm việc cùng pháp chế), triển khai on-premise/VPC cho dữ liệu nhạy cảm, đánh giá tác động xử lý dữ liệu.
+    used_by: {G1: needed, G2: minor, G3: needed, G4: minor, G5: needed, G6: needed, G7: core, G8: minor}
+    prereqs: [PY-02]
+    tools: [python-dotenv, HashiCorp Vault, Presidio]
+    done_when: Không có secret/dữ liệu thật trong lịch sử Git; có danh sách dữ liệu nào được phép gửi ra ngoài.
+
+  # ───────────────────────── BIZ · Nghiệp vụ & phương pháp ─────────────────────────
+  - id: BIZ-01
+    name: Framing bài toán và quy đổi giá trị (ĐÚNG)
+    domain: BIZ
+    summary: Chốt quyết định nào thay đổi, KPI nào, loại sai nào đắt hơn — trước khi viết code.
+    levels:
+      basic: Viết 1 trang — quyết định thay đổi, KPI, chi phí từng loại sai, cách làm hiện tại; xếp bài toán vào đúng nhóm (cây quyết định 30 giây).
+      intermediate: Tách dự án thành bài toán con (hồ sơ vay = Nhóm 5 + 1 + 7), quy metric kỹ thuật ra tiền/giờ công, nhận ra khi nào chỉ cần luật if-else.
+      advanced: Business case và ROI, thiết kế quy trình người–máy (ai duyệt gì), tiêu chí dừng dự án.
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: core, G8: core}
+    prereqs: []
+    tools: [Mẫu 1 trang framing (templates/project)]
+    done_when: Mục tiêu mơ hồ ("giảm churn") được viết lại thành bài toán đo được ("precision@500 mỗi tuần cho CSKH").
+    efficiency_note: Framing đúng loại bỏ việc dùng LLM cho chỗ luật đơn giản làm được — khoản tiết kiệm lớn nhất là lời gọi không cần thực hiện.
+
+  - id: BIZ-02
+    name: Baseline nhanh và bộ đánh giá cố định (NHANH)
+    domain: BIZ
+    summary: Có baseline trong 1–2 ngày cùng một bộ đánh giá cố định từ dữ liệu thật.
+    levels:
+      basic: Baseline bằng luật, LightGBM mặc định hoặc LLM API + prompt; tách tập đánh giá cố định từ dữ liệu thật trước khi thử bất cứ gì.
+      intermediate: Harness đánh giá một lệnh (`make eval`) in metric + chi phí + độ trễ; bảng so sánh mọi thí nghiệm với baseline.
+      advanced: Đánh giá nhiều tầng (offline → shadow → A/B), quản lý tập đánh giá để không bị "học thuộc", eval chạy trong CI.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    prereqs: [BIZ-01]
+    tools: [pytest, MLflow, Langfuse]
+    done_when: Ngày thứ 2 của dự án đã có con số baseline và một lệnh tái tạo nó.
+
+  - id: BIZ-03
+    name: Phân tích lỗi và cải tiến lấy dữ liệu làm trung tâm (CHÍNH XÁC)
+    domain: BIZ
+    summary: Đọc ca sai, nhóm theo nguyên nhân, sửa nhóm lớn nhất — cách tăng chính xác hiệu quả nhất.
+    levels:
+      basic: Đọc 50–100 ca sai, gán nhãn nguyên nhân, đếm theo nhóm.
+      intermediate: Sửa nhóm lỗi lớn nhất trước (dữ liệu/feature/prompt/luật hậu kiểm) rồi đo lại; phân tích theo phân khúc (slice).
+      advanced: Vòng lặp lỗi → nhãn mới → huấn luyện lại liên tục; taxonomy lỗi dùng chung cho cả team.
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    prereqs: [BIZ-02]
+    tools: [Notebook, bảng tính, Label Studio, Langfuse]
+    done_when: Mỗi vòng cải tiến có bảng "nhóm lỗi – số ca – đã sửa – metric trước/sau".
+    efficiency_note: Phân tích lỗi thường chỉ ra phần ngữ cảnh/prompt thừa — sửa đúng chỗ vừa tăng chính xác vừa giảm token.
+
+  - id: BIZ-04
+    name: Trình bày, demo và thuyết phục (THUYẾT PHỤC)
+    domain: BIZ
+    summary: So với baseline, quy ra tiền hoặc giờ công, demo chạy được, nói rõ giới hạn.
+    levels:
+      basic: Bảng so sánh với baseline; nói rõ giới hạn và rủi ro.
+      intermediate: Demo chạy được (Streamlit/Gradio), quy ra tiền/giờ công, biểu đồ đúng và dễ đọc.
+      advanced: Design doc, trình bày cho lãnh đạo và pháp chế, kế hoạch triển khai theo giai đoạn có tiêu chí go/no-go.
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed}
+    prereqs: [BIZ-02]
+    tools: [Streamlit, Gradio, matplotlib, slide]
+    done_when: Người ngoài ngành hiểu được kết quả và quyết định có triển khai hay không sau 10 phút trình bày.
+
+  - id: BIZ-05
+    name: Kiến thức miền nghiệp vụ
+    domain: BIZ
+    summary: Hiểu quy trình, thuật ngữ, ràng buộc của ngành để model phục vụ đúng người dùng.
+    levels:
+      basic: Vẽ được sơ đồ quy trình đang làm, biết thuật ngữ và người dùng cuối.
+      intermediate: Hiểu ràng buộc pháp lý/vận hành (tín dụng cần lý do từ chối; tồn kho có lead time; tổng đài có SLA).
+      advanced: Đề xuất thay đổi quy trình nhờ AI thay vì chỉ tự động hóa quy trình cũ.
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: core, G8: core}
+    prereqs: []
+    tools: [Phỏng vấn người dùng, sơ đồ BPMN]
+    done_when: Người làm nghiệp vụ xác nhận sơ đồ quy trình và danh sách loại sai của bạn là đúng.
+
+  - id: BIZ-06
+    name: Đọc và tái hiện paper
+    domain: BIZ
+    summary: Cập nhật kỹ thuật mới một cách có phê phán, gắn với bài toán đang làm.
+    levels:
+      basic: Đọc abstract, hình, bảng kết quả; tìm code đi kèm.
+      intermediate: Tái hiện kết quả chính trên dữ liệu công khai, so với baseline của mình.
+      advanced: Đánh giá benchmark có giống dữ liệu công ty không; chuyển ý tưởng vào bài toán thật.
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: minor, G6: minor, G7: minor, G8: minor}
+    prereqs: []
+    tools: [arXiv, Papers with Code, Hugging Face]
+    done_when: Mỗi tuần một paper gắn với bài toán đang làm, có ghi chú và (khi được) kết quả tái hiện.
+
+  # ───────────────────────── EFF · Tiết kiệm token & độ tin cậy ─────────────────────────
+  - id: EFF-01
+    name: Đo token và chi phí trên mỗi tác vụ
+    domain: EFF
+    summary: Biết chính xác mỗi tác vụ hoàn thành tốn bao nhiêu token, tiền và thời gian.
+    levels:
+      basic: Đếm token bằng tokenizer/endpoint đếm token của đúng nhà cung cấp (mỗi hãng một tokenizer; tiếng Việt thường tốn nhiều token hơn tiếng Anh — đo, đừng đoán); đọc trường usage trong response.
+      intermediate: Chi phí trên mỗi TÁC VỤ HOÀN THÀNH (không phải mỗi request) — tách input thường / input cache / output / retry; bảng chi phí–chất lượng cho từng cấu hình.
+      advanced: Dự báo chi phí theo lưu lượng, ngân sách và cảnh báo theo tính năng, chọn điểm Pareto chất lượng–chi phí–độ trễ.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [LLM-01]
+    tools: [usage trong response API, endpoint đếm token của nhà cung cấp, Langfuse]
+    done_when: Có bảng baseline "chất lượng / chi phí mỗi tác vụ / độ trễ" trước khi áp dụng bất kỳ tối ưu nào.
+
+  - id: EFF-02
+    name: Prompt caching và tái sử dụng kết quả
+    domain: EFF
+    summary: Không trả tiền đầy đủ hai lần cho cùng một phần ngữ cảnh hoặc cùng một câu hỏi.
+    levels:
+      basic: Đặt phần cố định (system prompt, tài liệu, định nghĩa tool) ở đầu, phần thay đổi ở cuối; cache kết quả ở tầng ứng dụng cho input trùng (hash).
+      intermediate: Prompt caching của nhà cung cấp (đọc cache rẻ hơn nhiều so với input thường, ghi cache đắt hơn một chút); kiểm tra tỷ lệ cache hit từ usage; tránh "phá cache" (timestamp, JSON không sắp xếp, đổi bộ tool).
+      advanced: Chọn TTL theo khoảng cách giữa các request, agent loop chỉ nối thêm (append-only) để giữ cache, semantic cache có ngưỡng an toàn chỉ cho câu hỏi lặp lại đã kiểm định.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [EFF-01]
+    tools: [prompt caching của nhà cung cấp, Redis]
+    done_when: Tỷ lệ token đọc từ cache được đo hằng ngày; ở agent loop, phần lớn input đến từ cache.
+    efficiency_note: Không đổi output → không ảnh hưởng độ chính xác (với cache prefix của nhà cung cấp). Semantic cache thì CÓ rủi ro, phải qua eval.
+
+  - id: EFF-03
+    name: Tinh gọn ngữ cảnh đầu vào
+    domain: EFF
+    summary: Gửi cho model đúng thứ nó cần — không thiếu (sai) và không thừa (đắt, dễ nhiễu).
+    levels:
+      basic: Trích đoạn liên quan thay vì cả tài liệu, bỏ boilerplate/HTML, giới hạn số lượt hội thoại gửi lại.
+      intermediate: RAG với top-k nhỏ + rerank, schema linking cho text-to-SQL, tóm tắt/cắt kết quả tool trước khi đưa lại cho model, ảnh đúng độ phân giải cần thiết.
+      advanced: Quản lý ngữ cảnh agent dài (compaction, bộ nhớ ngoài, chỉ tải tool khi cần), ablation đo đóng góp của từng phần ngữ cảnh lên chất lượng.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [EFF-01]
+    tools: [reranker, sqlglot, tokenizer]
+    done_when: Mỗi phần ngữ cảnh trong prompt đều có lý do tồn tại được chứng minh bằng ablation trên golden set.
+    efficiency_note: Cắt ngữ cảnh CÓ thể làm giảm chính xác — luôn đo lại trên golden set; ngữ cảnh gọn thường còn tăng độ chính xác.
+
+  - id: EFF-04
+    name: Định tuyến và cascade — đúng việc, đúng công cụ
+    domain: EFF
+    summary: Code làm được thì không gọi LLM; model nhỏ làm được thì không gọi model lớn.
+    levels:
+      basic: Dùng code/regex/SQL cho việc xác định được; chỉ gọi LLM cho phần mơ hồ.
+      intermediate: Cascade luật → model nhỏ (TF-IDF/PhoBERT) → LLM; chuyển tầng theo độ tin cậy; chọn model và mức suy luận (effort) theo độ khó — đo trên golden set.
+      advanced: Router học từ dữ liệu, distill tác vụ lưu lượng lớn sang model nhỏ; so sánh "model mạnh + mức suy luận thấp" với cascade nhiều model (cache tách theo model) trước khi chọn.
+    used_by: {G1: minor, G5: needed, G6: core, G7: core}
+    prereqs: [EFF-01, LLM-04, ML-01]
+    tools: [scikit-learn, PhoBERT, LLM API]
+    done_when: Đường coverage–accuracy của từng tầng được đo; tổng chi phí giảm trong khi độ chính xác chung không giảm ngoài biên sai số.
+    efficiency_note: Rủi ro chính là tầng rẻ "tự tin sai" — ngưỡng chuyển tầng phải chọn bằng calibration (STAT-05), không chọn theo cảm giác.
+
+  - id: EFF-05
+    name: Kiểm soát đầu ra và mức suy luận
+    domain: EFF
+    summary: Token đầu ra thường đắt hơn đầu vào nhiều lần — chỉ sinh những gì cần dùng.
+    levels:
+      basic: Đầu ra ngắn theo schema (enum, mã nhãn) thay vì văn xuôi; đặt max_tokens hợp lý (quá thấp gây cắt cụt và phải gọi lại).
+      intermediate: Chỉ yêu cầu giải thích khi cần (ví dụ chỉ cho ca bị từ chối); chỉnh mức suy luận/effort theo từng loại tác vụ.
+      advanced: Quét mức effort/model trên golden set để chọn điểm rẻ nhất vẫn đạt ngưỡng; tách bước suy luận khó khỏi bước định dạng đầu ra.
+    used_by: {G5: needed, G6: core, G7: core}
+    prereqs: [EFF-01, LLM-02]
+    tools: [structured outputs, tham số effort/reasoning của nhà cung cấp]
+    done_when: Token đầu ra trung bình mỗi tác vụ giảm mà eval không giảm; không có output bị cắt cụt.
+
+  - id: EFF-06
+    name: Xử lý theo lô và bất đồng bộ
+    domain: EFF
+    summary: Việc không cần trả lời ngay thì chạy theo lô với giá rẻ hơn.
+    levels:
+      basic: Gom việc không cần realtime (gán nhãn, tóm tắt hàng loạt, chạy eval) để chạy theo lô.
+      intermediate: Batch API của nhà cung cấp (nhiều hãng giảm khoảng 50%, có hãng cộng dồn với giảm giá cache), khử trùng lặp trước khi gửi, checkpoint/resume.
+      advanced: Lập lịch xử lý lớn, kết hợp batch + cache cho pipeline hàng triệu tài liệu.
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: needed, G6: needed, G7: minor}
+    prereqs: [EFF-01, PY-04]
+    tools: [Batch API của nhà cung cấp]
+    done_when: Toàn bộ eval và tác vụ offline chạy qua batch; kết quả được ghép lại theo custom_id, không theo thứ tự.
+    efficiency_note: Cùng model, cùng prompt → cùng chất lượng, chỉ đổi độ trễ lấy giá; là tối ưu "miễn phí" về độ chính xác.
+
+  - id: EFF-07
+    name: Kiểm chứng xác định và "không lỗi im lặng"
+    domain: EFF
+    summary: Độ chính xác do hệ thống bảo đảm — mọi đầu ra tự động đều qua lớp kiểm chứng bằng code.
+    levels:
+      basic: Kiểm tra định dạng (regex, độ dài, checksum), ràng buộc nghiệp vụ (tổng tiền = Σ dòng + thuế; ngày hợp lệ), đối chiếu danh mục chuẩn (mã hàng, khách hàng).
+      intermediate: Đối chiếu chéo nhiều nguồn (OCR vs VLM, hai lần chạy), để LLM gọi tool tính toán/SQL thay vì tự tính, bắt buộc trích dẫn và kiểm tra trích dẫn có thật trong tài liệu.
+      advanced: Thiết kế lớp kiểm chứng cho mọi đầu ra tự động; đo precision trên phần tự động đạt mục tiêu (ví dụ 99,5%) và chuyển phần còn lại cho người; giám sát liên tục tỷ lệ lỗi lọt.
+    used_by: {G1: minor, G5: core, G6: core, G7: core}
+    prereqs: [LLM-02, STAT-05]
+    tools: [pydantic validators, sqlglot, regex, rapidfuzz]
+    done_when: Không có đầu ra nào được ghi vào hệ thống nghiệp vụ mà chưa qua kiểm chứng; tỷ lệ lỗi lọt được đo bằng kiểm tra mẫu định kỳ.
+    efficiency_note: Lớp kiểm chứng cho phép dùng model rẻ hơn một cách an toàn — sai sẽ bị bắt và chuyển tầng, không lọt ra ngoài.
+
+  - id: EFF-08
+    name: Tiết kiệm token khi dùng AI hỗ trợ lập trình
+    domain: EFF
+    summary: Dùng trợ lý lập trình AI hiệu quả — ít token, ít vòng lặp sửa, kết quả kiểm chứng được.
+    levels:
+      basic: Mô tả việc cụ thể, chỉ rõ file/hàm liên quan thay vì "đọc cả repo"; yêu cầu kế hoạch ngắn trước khi sửa lớn.
+      intermediate: File hướng dẫn dự án (CLAUDE.md/AGENTS.md) ngắn, cập nhật; phiên mới cho việc mới; dùng test làm tiêu chí xác nhận.
+      advanced: Chia nhỏ việc lớn, giao tìm kiếm rộng cho tác vụ phụ, tự động hóa lint/test/eval để trợ lý tự sửa lỗi mà không phải dán log.
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: minor, G6: minor, G7: minor, G8: minor}
+    prereqs: [PY-02]
+    tools: [Claude Code, Cursor, GitHub Copilot, Makefile, pytest]
+    done_when: Phần lớn thay đổi do trợ lý AI tạo ra qua được test/lint ngay lần đầu.
