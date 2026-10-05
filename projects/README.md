@@ -17,6 +17,7 @@ thể có một dự án tích hợp. Dự án đi trọn quy trình ĐÚNG → 
 | `g7-quote-agent/` | 7 · Agent | Đọc email → tra giá → soạn báo giá → chờ duyệt | Tự tạo |
 | `g8-vrp-delivery/` | 8 · Tối ưu | Tuyến 1 kho × 20 điểm bằng OR-Tools | Tự sinh |
 | `cmb-08-ticket-cascade/` | Tổ hợp CMB-08 | Phân loại ticket: model nhỏ → LLM → người, bảng chất lượng–chi phí | Tự tạo / công khai |
+| [`cmb-09-data-agent-os/`](cmb-09-data-agent-os/README.md) | Tổ hợp CMB-09 | Data agent nhiều domain pack trên AgentOS (Agno + OpenAI Agents SDK), dữ liệu qua MCP DBHub — **đang thiết kế** | Giả lập (timesheet, finance) |
 
 Chi tiết từng nhóm (metric, bẫy, kỹ năng cần): xem trang nhóm trong [bản đồ kỹ năng](../docs/02-skill-map/generated/README.md).
 
