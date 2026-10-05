@@ -10,7 +10,28 @@ Quy ước khi thêm một mục:
 
 ---
 
-## 2026-10-05 · Thiết kế dự án nghiên cứu CMB-09 Data Agent OS
+## 2026-10-05 · CMB-09 Data Agent OS — thiết kế v2 cho POC tối giản
+
+**Đã làm**
+
+- Vẽ lại kiến trúc v2 (`docs/assets/kien-truc-v2.svg`) và thêm sequence diagram cho **khởi tạo agent object**, **một lần chạy**,
+  biến thể OpenAI Agents SDK.
+- Đánh giá tái sử dụng 10 skill của Data plugin (`anthropics/knowledge-work-plugins`, thư mục `data`, commit `8444efc`,
+  Apache-2.0): chạy validator của Agno (9/10 lỗi vì `argument-hint`/`user-invocable`), nạp được cả 10 bằng `validate=False`.
+- Viết lại chi tiết kỹ thuật thành tài liệu POC, ADR-001 v2, checklist POC (P0 → POC-1/2/3). Xóa tài liệu chỉ dùng cho v1.
+
+**Quyết định (đề xuất, chờ duyệt)**
+
+- Bỏ khỏi POC: review/learning, auth/RBAC, Data Gateway, router, workflow báo cáo. Platform DB là PostgreSQL.
+- Không còn pack `core` tự viết: skill chung lấy từ Data plugin (6 skill chỉ-hướng-dẫn), nạp **trước** skill domain.
+- Domain pack = `pack.yaml` + một skill sinh bằng `data-context-extractor` + `evals.yaml`.
+- POC-1/2 chỉ dùng Agno; OpenAI Agents SDK là POC-3 tùy chọn (một agent, skill qua tool `load_skill`, không sandbox).
+
+**Còn mở**
+
+- Bản Data plugin 20 skill mà chủ dự án đang cài không có trong repo công khai — cần file thật để kiểm tra lại (P0-02).
+
+## 2026-10-05 · Thiết kế dự án nghiên cứu CMB-09 Data Agent OS ([#3](https://github.com/superken-python/ai-architecture/pull/3), đã merge)
 
 **Đã làm**
 
