@@ -10,7 +10,7 @@ Quy ước khi thêm một mục:
 
 ---
 
-## 2026-10-05 · CMB-09 Data Agent OS — thiết kế v2 cho POC tối giản
+## 2026-10-05 · CMB-09 Data Agent OS — thiết kế v2 cho POC tối giản ([#4](https://github.com/superken-python/ai-architecture/pull/4))
 
 **Đã làm**
 
