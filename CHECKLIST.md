@@ -59,8 +59,8 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 - [ ] **P2** `projects/g6-rag-handbook/` — mốc cuối tháng 4: RAG tiếng Việt + golden set ~100 câu + bảng
       chất lượng–chi phí–độ trễ.
 - [ ] **P2** `projects/cmb-08-ticket-cascade/` — chứng minh tiết kiệm token mà độ chính xác không giảm.
-- [ ] **P1** `projects/cmb-09-data-agent-os/` — chủ dự án review thiết kế (kiến trúc v1, review diagram v0, ADR-001), trả lời
-      mục P0 rồi triển khai theo [checklist riêng của dự án](projects/cmb-09-data-agent-os/CHECKLIST.md).
+- [ ] **P1** `projects/cmb-09-data-agent-os/` — chủ dự án review thiết kế v2 (kiến trúc POC, tái sử dụng skill Data plugin,
+      ADR-001), trả lời mục P0 rồi làm POC theo [checklist riêng của dự án](projects/cmb-09-data-agent-os/CHECKLIST.md).
 - [ ] **P2** Dự án của hướng chuyên sâu đã chọn — mốc cuối tháng 6.
 
 ## Giai đoạn 5 · Production (dự kiến)

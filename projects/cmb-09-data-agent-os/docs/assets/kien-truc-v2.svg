@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="1000" viewBox="0 0 1560 1000" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif">
+  <title>Data Agent OS — kiến trúc v2 (POC tối giản)</title>
+  <style>
+    text { fill: #1f2328; }
+    .h1 { font-size: 26px; font-weight: 700; }
+    .sub { font-size: 14px; fill: #57606a; }
+    .bt { font-size: 20px; font-weight: 700; }
+    .ct { font-size: 15px; font-weight: 700; }
+    .ct2 { font-size: 13px; font-weight: 700; }
+    .cl { font-size: 12px; fill: #57606a; }
+    .cm { font-size: 13px; fill: #3d444d; }
+    .mono { font-family: 'DejaVu Sans Mono', Menlo, Consolas, monospace; font-size: 12px; fill: #24292f; }
+    .mono-c { font-family: 'DejaVu Sans Mono', Menlo, Consolas, monospace; font-size: 12px; fill: #6e7781; }
+    .lbl { font-size: 12px; fill: #3d444d; }
+    .lblb { font-size: 13px; font-weight: 700; }
+    .mid { text-anchor: middle; }
+    .arrow { stroke: #2f3640; stroke-width: 1.8; fill: none; }
+    .arrow-g { stroke: #16733f; stroke-width: 2; fill: none; }
+    .dash { stroke-dasharray: 7 5; }
+    .tag { font-size: 11px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2f3640"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16733f"/>
+    </marker>
+  </defs>
+  <rect width="1560" height="1000" fill="#ffffff"/>
+
+  <text x="20" y="42" class="h1">Data Agent OS — kiến trúc v2 (POC tối giản)</text>
+  <text x="20" y="68" class="sub">AgentOS + Agno Agent · skill tái sử dụng từ Data plugin (nạp trước) + skill của domain pack (nạp sau) · dữ liệu qua MCP DBHub · lưu trữ PostgreSQL</text>
+
+  <!-- Client -->
+  <rect x="20" y="95" width="200" height="500" rx="14" fill="#eef4fd" stroke="#9cc2f0" stroke-width="1.5"/>
+  <text x="120" y="130" class="bt mid">Client</text>
+  <rect x="36" y="155" width="168" height="62" rx="10" fill="#fff" stroke="#c8dcf6"/>
+  <text x="120" y="182" class="ct mid">AgentOS UI</text>
+  <text x="120" y="202" class="cl mid">chọn agent, chat, xem trace</text>
+  <rect x="36" y="232" width="168" height="62" rx="10" fill="#fff" stroke="#c8dcf6"/>
+  <text x="120" y="259" class="ct mid">Web app / API</text>
+  <text x="120" y="279" class="cl mid">REST + SSE</text>
+  <rect x="36" y="309" width="168" height="62" rx="10" fill="#fff" stroke="#c8dcf6"/>
+  <text x="120" y="336" class="ct mid">Script eval</text>
+  <text x="120" y="356" class="cl mid">chạy evals.yaml (POC-2)</text>
+
+  <text x="260" y="286" class="lblb mid">Request</text>
+  <text x="260" y="302" class="lbl mid" font-size="11">agent_id,</text>
+  <text x="260" y="315" class="lbl mid" font-size="11">message,</text>
+    <line x1="222" y1="330" x2="296" y2="330" class="arrow" marker-end="url(#a)"/>
+  <line x1="296" y1="380" x2="222" y2="380" class="arrow" marker-end="url(#a)"/>
+  <text x="260" y="402" class="lblb mid">Response</text>
+  <text x="260" y="418" class="lbl mid" font-size="11">trả lời</text>
+  <text x="260" y="432" class="lbl mid" font-size="11">+ SQL đã chạy</text>
+
+  <!-- AgentOS -->
+  <rect x="300" y="95" width="820" height="500" rx="16" fill="#f7f3fe" stroke="#c9b6f2" stroke-width="1.5"/>
+  <text x="710" y="130" class="mid" font-size="24" font-weight="700" style="fill:#3b1f7a">AgentOS (Agno 3.1 · FastAPI)</text>
+  <text x="710" y="154" class="cm mid">một tiến trình Python: <tspan class="mono">uv run python app.py</tspan> · cổng 7777</text>
+
+  <rect x="320" y="172" width="250" height="80" rx="10" fill="#fff" stroke="#ddd3f3"/>
+  <text x="445" y="200" class="ct mid">Agents &amp; sessions</text>
+  <text x="445" y="222" class="cl mid">danh sách agent, lịch sử hội thoại</text>
+  <text x="445" y="238" class="cl mid">(thay cho Agent Registry)</text>
+  <rect x="585" y="172" width="250" height="80" rx="10" fill="#fff" stroke="#ddd3f3"/>
+  <text x="710" y="200" class="ct mid">Run API + UI</text>
+  <text x="710" y="222" class="cl mid">POST /agents/{id}/runs (SSE)</text>
+  <text x="710" y="238" class="cl mid">AgentOS UI: os.agno.com</text>
+  <rect x="850" y="172" width="250" height="80" rx="10" fill="#fff" stroke="#ddd3f3"/>
+  <text x="975" y="200" class="ct mid">Tracing (tracing=True)</text>
+  <text x="975" y="222" class="cl mid">OpenTelemetry → bảng traces,</text>
+  <text x="975" y="238" class="cl mid">spans trong PostgreSQL</text>
+
+  <rect x="320" y="268" width="780" height="310" rx="12" fill="#f1ebfc" stroke="#c9b6f2"/>
+  <text x="710" y="294" class="mid" font-size="17" font-weight="700" style="fill:#5b2bb5">Agent objects — tạo lúc khởi động, mỗi domain pack một agent</text>
+
+  <rect x="340" y="310" width="240" height="252" rx="10" fill="#e9f7ef" stroke="#8fd0aa" stroke-width="1.5"/>
+  <rect x="500" y="302" width="72" height="18" rx="9" fill="#16733f"/>
+  <text x="536" y="315" class="tag">POC-1</text>
+  <text x="460" y="337" class="ct mid" style="fill:#16733f">timesheet-agent</text>
+  <text x="460" y="355" class="cl mid">agno.agent.Agent</text>
+  <text x="352" y="382" class="cm">model: gpt-5.4-mini</text>
+  <text x="352" y="404" class="cm">skills ① Data plugin (6)</text>
+  <text x="352" y="424" class="cm">skills ② timesheet-data-analyst</text>
+  <text x="352" y="450" class="cm">tools: MCPTools (DBHub)</text>
+  <text x="352" y="470" class="mono">  execute_sql_timesheet</text>
+  <text x="352" y="488" class="mono">  search_objects_timesheet</text>
+  <text x="352" y="514" class="cm">db: PostgresDb</text>
+  <text x="352" y="536" class="cl">instructions: ngắn, trỏ tới skill</text>
+
+  <rect x="595" y="310" width="240" height="252" rx="10" fill="#e9f7ef" stroke="#8fd0aa" stroke-width="1.5"/>
+  <rect x="755" y="302" width="72" height="18" rx="9" fill="#16733f"/>
+  <text x="791" y="315" class="tag">POC-2</text>
+  <text x="715" y="337" class="ct mid" style="fill:#16733f">finance-agent</text>
+  <text x="715" y="355" class="cl mid">agno.agent.Agent</text>
+  <text x="607" y="382" class="cm">model: gpt-5.4-mini</text>
+  <text x="607" y="404" class="cm">skills ① Data plugin (6)</text>
+  <text x="607" y="424" class="cm">skills ② finance-data-analyst</text>
+  <text x="607" y="450" class="cm">tools: MCPTools (DBHub)</text>
+  <text x="607" y="470" class="mono">  execute_sql_finance</text>
+  <text x="607" y="488" class="mono">  search_objects_finance</text>
+  <text x="607" y="514" class="cm">db: PostgresDb</text>
+  <text x="607" y="536" class="cl">cùng code khởi tạo, khác pack</text>
+
+  <rect x="850" y="310" width="232" height="252" rx="10" fill="#eef4fd" stroke="#4a78c2" stroke-width="1.5" class="dash"/>
+  <rect x="970" y="302" width="104" height="18" rx="9" fill="#1f4f99"/>
+  <text x="1022" y="315" class="tag">POC-3 tùy chọn</text>
+  <text x="966" y="337" class="ct mid" style="fill:#1f4f99">finance-openai</text>
+  <text x="966" y="355" class="cl mid">OpenAI Agents SDK</text>
+  <text x="862" y="382" class="cm">vào AgentOS qua adapter</text>
+  <text x="862" y="400" class="mono">  BaseExternalAgent</text>
+  <text x="862" y="424" class="cm">skills: danh mục trong prompt</text>
+  <text x="862" y="442" class="cm">+ tool load_skill (cùng file)</text>
+  <text x="862" y="470" class="cm">MCP: MCPServerStreamable-</text>
+  <text x="862" y="488" class="cm">Http (cùng tool DBHub)</text>
+  <text x="862" y="514" class="cm">trace: TracingProcessor</text>
+  <text x="862" y="532" class="cm">→ cùng bảng PostgreSQL</text>
+
+  <!-- DBHub -->
+  <rect x="1160" y="95" width="380" height="250" rx="16" fill="#fff6ea" stroke="#f2c27a" stroke-width="1.5"/>
+  <text x="1350" y="130" class="bt mid" style="fill:#8a4b00">MCP DBHub 1.4</text>
+  <text x="1350" y="152" class="cm mid">npx @bytebase/dbhub --transport http</text>
+  <text x="1180" y="186" class="cm">• <tspan class="mono">execute_sql_&lt;source&gt;</tspan></text>
+  <text x="1194" y="206" class="cl">readonly = true, max_rows = 500</text>
+  <text x="1180" y="232" class="cm">• <tspan class="mono">search_objects_&lt;source&gt;</tspan></text>
+  <text x="1194" y="252" class="cl">tìm bảng/cột (progressive disclosure)</text>
+  <text x="1180" y="280" class="cm">• sources: timesheet, finance</text>
+  <text x="1180" y="306" class="cl">cấu hình: dbhub.toml (viết tay cho POC)</text>
+  <text x="1180" y="324" class="cl">tool tùy biến theo pack: để sau POC</text>
+
+  <path d="M1100,440 L1132,440 L1132,220 L1158,220" class="arrow" marker-end="url(#a)"/>
+  <text x="1150" y="400" class="lbl" font-size="11" transform="rotate(-90 1150 400)">MCP · streamable-http</text>
+
+  <!-- PostgreSQL -->
+  <rect x="1160" y="375" width="380" height="220" rx="16" fill="#eef1f8" stroke="#8e9fc6" stroke-width="1.5"/>
+  <text x="1350" y="410" class="bt mid" style="fill:#2c3e70">PostgreSQL 17</text>
+  <text x="1350" y="432" class="cm mid">một container, ba database</text>
+  <text x="1180" y="464" class="ct2">agentos</text>
+  <text x="1260" y="464" class="cl">sessions, runs, traces, spans</text>
+  <text x="1180" y="492" class="ct2">timesheet</text>
+  <text x="1260" y="492" class="cl">dữ liệu mẫu (giả lập)</text>
+  <text x="1180" y="520" class="ct2">finance</text>
+  <text x="1260" y="520" class="cl">dữ liệu mẫu (giả lập)</text>
+  <text x="1180" y="552" class="cl">DBHub đăng nhập bằng user chỉ có quyền SELECT</text>
+  <text x="1180" y="570" class="cl">trên timesheet, finance</text>
+  <line x1="1350" y1="345" x2="1350" y2="373" class="arrow" marker-end="url(#a)"/>
+  <line x1="1120" y1="470" x2="1158" y2="470" class="arrow" marker-end="url(#a)"/>
+
+  <!-- Nguồn skill -->
+  <rect x="20" y="640" width="1520" height="340" rx="16" fill="#eff8f2" stroke="#9fd3b0" stroke-width="1.5"/>
+  <text x="40" y="674" font-size="20" font-weight="700" style="fill:#146c43">Thư mục skill và domain pack (trong repo, đọc lúc khởi tạo agent)</text>
+
+  <rect x="40" y="692" width="720" height="270" rx="12" fill="#fff" stroke="#9fd3b0"/>
+  <text x="58" y="720" class="ct">① <tspan class="mono" font-size="13">vendor/data-plugin/skills/</tspan> — tái sử dụng từ Data plugin</text>
+  <text x="58" y="740" class="cl">bản sao thư mục data của anthropics/knowledge-work-plugins (Apache-2.0, ghim commit, giữ LICENSE) · nạp TRƯỚC</text>
+  <rect x="58" y="756" width="220" height="190" rx="8" fill="#e9f7ef" stroke="#8fd0aa"/>
+  <text x="168" y="778" class="ct2 mid" style="fill:#16733f">Dùng lại ngay (POC)</text>
+  <text x="72" y="802" class="mono">analyze</text>
+  <text x="72" y="822" class="mono">write-query</text>
+  <text x="72" y="842" class="mono">sql-queries</text>
+  <text x="72" y="862" class="mono">explore-data</text>
+  <text x="72" y="882" class="mono">validate-data</text>
+  <text x="72" y="902" class="mono">statistical-analysis</text>
+  <text x="72" y="928" class="cl">chỉ là hướng dẫn, chạy bằng SQL</text>
+  <rect x="290" y="756" width="220" height="190" rx="8" fill="#fff8e6" stroke="#e8c26a"/>
+  <text x="400" y="778" class="ct2 mid" style="fill:#8a5a00">Sau POC (cần thêm tool)</text>
+  <text x="304" y="802" class="mono">build-dashboard</text>
+  <text x="304" y="822" class="mono">create-viz</text>
+  <text x="304" y="842" class="mono">data-visualization</text>
+  <text x="304" y="868" class="cl">cần ghi file HTML/PNG hoặc</text>
+  <text x="304" y="886" class="cl">chạy Python (sandbox)</text>
+  <text x="304" y="912" class="cl">"Build Report" bản mới: kiểm</text>
+  <text x="304" y="930" class="cl">tra lại khi có file plugin</text>
+  <rect x="522" y="756" width="222" height="190" rx="8" fill="#f3f0fb" stroke="#b9a7e6"/>
+  <text x="633" y="778" class="ct2 mid" style="fill:#5b2bb5">Dùng offline</text>
+  <text x="536" y="802" class="mono">data-context-extractor</text>
+  <text x="536" y="826" class="cl">chạy trong Claude/Claude Code có</text>
+  <text x="536" y="844" class="cl">kết nối DBHub để SINH skill domain</text>
+  <text x="536" y="862" class="cl">(phỏng vấn analyst → SKILL.md</text>
+  <text x="536" y="880" class="cl">+ references/). Không nạp vào</text>
+  <text x="536" y="898" class="cl">agent lúc chạy.</text>
+  <text x="536" y="928" class="cl">nạp bằng validate=False (frontmatter)</text>
+
+  <path d="M744,850 L790,850" class="arrow-g dash" marker-end="url(#ag)"/>
+  <text x="776" y="838" class="lbl mid" style="fill:#16733f">sinh</text>
+
+  <rect x="792" y="692" width="728" height="270" rx="12" fill="#fff" stroke="#9fd3b0"/>
+  <text x="810" y="720" class="ct">② <tspan class="mono" font-size="13">packs/&lt;domain&gt;/</tspan> — domain pack tối giản (nạp SAU, trùng tên thì domain thắng)</text>
+  <text x="810" y="752" class="mono">packs/timesheet/</text>
+  <text x="810" y="772" class="mono">├── pack.yaml</text>
+  <text x="1110" y="772" class="mono-c">id, dbhub_source, data_skills, model</text>
+  <text x="810" y="792" class="mono">├── skills/timesheet-data-analyst/</text>
+  <text x="810" y="812" class="mono">│   ├── SKILL.md</text>
+  <text x="1110" y="812" class="mono-c">thuật ngữ, bộ lọc chuẩn, metric</text>
+  <text x="810" y="832" class="mono">│   └── references/</text>
+  <text x="1110" y="832" class="mono-c">tables.md, metrics.md, entities.md</text>
+  <text x="810" y="852" class="mono">└── evals.yaml</text>
+  <text x="1110" y="852" class="mono-c">câu hỏi + SQL kỳ vọng (POC-2)</text>
+  <text x="810" y="884" class="mono">packs/finance/</text>
+  <text x="1110" y="884" class="mono-c">cùng cấu trúc</text>
+  <text x="810" y="916" class="cl">Business rules + data dictionary nằm trong SKILL.md và references/ theo đúng template của data-context-extractor;</text>
+  <text x="810" y="934" class="cl">report template và tool tùy biến của DBHub: thêm sau POC khi cần.</text>
+
+  <line x1="710" y1="638" x2="710" y2="582" class="arrow-g" marker-end="url(#ag)"/>
+  <text x="722" y="616" class="lblb" style="fill:#16733f">Khởi tạo agent: Skills(loaders = [① Data plugin, ② domain skill])</text>
+</svg>

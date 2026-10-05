@@ -1,81 +1,58 @@
-# ADR-001 · Vai trò của OpenAI Agents SDK và việc nạp kỹ năng core trong luồng OpenAI
+# ADR-001 · OpenAI Agents SDK trong POC và cách nạp skill trong luồng OpenAI
 
-- **Trạng thái:** đề xuất — chờ chủ dự án duyệt
+- **Trạng thái:** đề xuất (v2) — chờ chủ dự án duyệt
 - **Ngày:** 2026-10-05
 - **Phiên bản đã xem xét:** `agno` 3.1.1, `openai-agents` 0.23.1
 
 ## Bối cảnh
 
-Diagram v0 đặt Agno SDK và OpenAI Agents SDK ngang nhau trong Agent Runtime. Yêu cầu: agent khi khởi tạo phải lấy kỹ năng của
-data agent (pack `core`) trước, và *"nếu đi theo flow OpenAI Agents SDK thì xem có cần không"*. Có hai câu hỏi tách biệt:
+Diagram v0 đặt Agno SDK và OpenAI Agents SDK ngang nhau trong Agent Runtime. Yêu cầu: agent khi khởi tạo phải lấy skill của
+data agent (v2: các skill dùng lại từ Data plugin) trước, và *"nếu đi theo flow OpenAI Agents SDK thì xem có cần không"*.
+POC phải đơn giản nhất có thể.
 
-1. Dự án có cần runtime OpenAI Agents SDK không, và ở vai trò nào?
-2. Trong luồng OpenAI Agents SDK, có cần nạp kỹ năng core trước không — cho agent nào, bằng cơ chế gì?
+Sự thật kỹ thuật (đã kiểm tra mã nguồn):
 
-Sự thật kỹ thuật liên quan (đã kiểm tra mã nguồn):
+- AgentOS là sản phẩm của Agno. Agent Agno được hỗ trợ đầy đủ (session, UI, tracing, kết nối MCP). Agent của framework khác vào
+  AgentOS qua `agno.agents.base.BaseExternalAgent`; Agno có sẵn adapter cho Claude Agent SDK, LangGraph, DSPy nhưng **chưa có
+  cho OpenAI Agents SDK**.
+- Agno có **Skills native**: nạp thư mục SKILL.md, đưa tên + mô tả vào prompt, tải nội dung khi cần. Skill của Data plugin nạp
+  được bằng `LocalSkills(..., validate=False)` (đã thử).
+- OpenAI Agents SDK chỉ có skill qua `SandboxAgent` + capability `Skills` (mount thư mục skill vào sandbox) hoặc skill của
+  `ShellTool` — đều cần môi trường sandbox/shell.
+- Tracing của OpenAI Agents SDK mặc định gửi lên nền tảng OpenAI; thay được bằng `set_trace_processors([...])`.
 
-- AgentOS là sản phẩm của Agno: agent Agno được hỗ trợ đầy đủ (session, memory, tracing, UI, scheduler, JWT). Agent của
-  framework khác vào AgentOS qua `BaseExternalAgent`; Agno có sẵn adapter cho Claude Agent SDK, LangGraph, DSPy nhưng
-  **chưa có cho OpenAI Agents SDK** → phải tự viết (hai hook, ~150 dòng).
-- Agno có **Skills native** (SKILL.md, progressive disclosure, validator). OpenAI Agents SDK chỉ có skills qua
-  `SandboxAgent` + capability `Skills` hoặc `ShellTool` — tức là cần môi trường sandbox/shell để agent đọc file skill.
-- Khi **handoff**, agent nhận tiếp quản hội thoại nhưng chạy bằng instructions và tools **của chính nó**; instructions/tools
-  của agent chuyển giao không đi theo.
-- Tracing của OpenAI Agents SDK mặc định gửi lên nền tảng OpenAI; thay được bằng `set_trace_processors`.
+## Quyết định
 
-## Câu hỏi 1 — Có cần OpenAI Agents SDK không?
+1. **POC-1 và POC-2 chỉ dùng Agno.** Một agent Agno cho mỗi domain pack. Không cần adapter, không cần processor tracing riêng.
+2. **POC-3 (tùy chọn, phục vụ nghiên cứu): thêm đúng một agent OpenAI Agents SDK** (`finance-openai`) cho cùng pack `finance`,
+   đưa vào AgentOS qua `OpenAIAgentsAdapter(BaseExternalAgent)`, để so sánh hai runtime trên cùng `evals.yaml`.
+   **Không** làm agent điều phối/handoff và **không** dùng `SandboxAgent` trong POC.
+3. **Trong luồng OpenAI, skill vẫn cần — và nạp cùng thứ tự ① Data plugin → ② domain.** Thiếu skill chung thì agent mất workflow
+   phân tích và kiểm tra kết quả; thiếu skill domain thì không biết bộ lọc chuẩn, metric. Cách nạp: chèn danh mục skill (tên +
+   mô tả) vào instructions và thêm function tool `load_skill(name)` đọc **cùng file SKILL.md** — giống cơ chế
+   `get_skill_instructions` của Agno, không cần sandbox.
+4. **Trace của agent OpenAI ghi vào cùng PostgreSQL** (`agno.agno_traces`, `agno.agno_spans`) bằng một `TracingProcessor` tự
+   viết; tắt bộ xuất mặc định để dữ liệu không rời hệ thống.
 
-| Phương án | Ưu | Nhược |
-|---|---|---|
-| A. Chỉ Agno | một runtime, ít code nhất, tích hợp AgentOS trọn vẹn | không trả lời được câu hỏi nghiên cứu "runtime nào tốt hơn cho data agent"; không dùng được tính năng riêng của OpenAI |
-| **B. Agno chính + OpenAI SDK phụ qua adapter** | giữ được so sánh hai runtime trên cùng pack/eval; mở đường cho handoff, guardrail, sandbox, hosted tools của OpenAI khi cần | thêm adapter + trace processor phải bảo trì; hai cách khai báo tool |
-| C. OpenAI SDK chính | hệ sinh thái OpenAI (Evals, hosted tools) | lệch khỏi AgentOS (UI, session, scheduler đều là của Agno); skills phải qua sandbox; trace mặc định ra ngoài |
+## Phương án đã cân nhắc
 
-**Quyết định: B.** Agno là runtime mặc định cho mọi agent. OpenAI Agents SDK là runtime **tùy chọn theo từng agent**
-(`runtime: openai` trong `config/agents.yaml`), chỉ bật khi có ít nhất một lý do sau:
-
-1. **So sánh nghiên cứu:** chạy cùng pack + golden set trên hai runtime để đo độ chính xác, chi phí, độ trễ (mục tiêu chính
-   của dự án nghiên cứu này).
-2. Cần **handoff** giữa nhiều agent chuyên trách theo mô hình của OpenAI, hoặc **guardrail** chạy song song với model.
-3. Cần **SandboxAgent** để chạy script của skill (ví dụ phân tích pandas/vẽ biểu đồ trên kết quả truy vấn).
-4. Cần **hosted tools** của OpenAI (code interpreter, file search, web search) hoặc Realtime/voice.
-
-Nếu sau giai đoạn eval (P8 trong checklist) runtime OpenAI không hơn Agno ở tiêu chí nào và không có nhu cầu 2–4, giữ adapter ở
-trạng thái `experimental` và không thêm agent mới trên runtime này.
-
-## Câu hỏi 2 — Luồng OpenAI có cần nạp kỹ năng core trước không?
-
-Luồng OpenAI dự kiến: `data-triage-openai` (điều phối) → handoff → `timesheet-openai` / `finance-openai` (chuyên trách).
-
-| Agent trong luồng OpenAI | Cần kỹ năng core? | Lý do |
-|---|---|---|
-| Agent chuyên trách (domain) | **Có — bắt buộc**, cùng thứ tự `core → domain → learnings` như Agno | Sau handoff, chỉ instructions/tools của agent chuyên trách có hiệu lực; thiếu core thì mất quy tắc SQL an toàn, tự kiểm tra, trích nguồn |
-| Agent điều phối (triage) | **Không** | Chỉ cần mô tả pack (`handoff_description`) để chọn; thêm skill core làm tốn token và khiến nó tự đi truy vấn thay vì chuyển giao. Agent này không có tool dữ liệu |
-| `SandboxAgent` + capability `Skills` | **Không cần** mặc định | Skill của data agent là hướng dẫn (instruction-only); dữ liệu lấy qua tool của gateway, không cần shell. Chỉ dùng khi một skill có `scripts/` phải chạy |
-
-**Cơ chế cho agent chuyên trách:** dùng **cùng Resolver** với Agno (cùng danh sách skill có thứ tự, cùng SKILL.md), nhưng
-thay `Skills` của Agno bằng:
-
-- danh mục skill (tên + mô tả) do Context Builder chèn vào instructions, theo đúng thứ tự core trước;
-- function tool `load_skill(name)` trả nội dung SKILL.md (progressive disclosure, giống `get_skill_instructions` của Agno).
-
-**Phương án đã cân nhắc và không chọn:** "core data agent làm tool" (`agent.as_tool()`) cho các agent domain. Bị loại vì
-quy tắc nghiệp vụ và từ điển của domain phải định hình *chính câu SQL*; tách agent viết SQL (core) khỏi ngữ cảnh domain hoặc
-làm mất ngữ cảnh đó, hoặc phải truyền lại toàn bộ — tốn gấp đôi token.
+| Phương án | Vì sao không chọn cho POC |
+|---|---|
+| Hai runtime ngang hàng ngay từ đầu | gấp đôi việc trước khi biết Agno đã đủ hay chưa; trái mục tiêu POC đơn giản |
+| `SandboxAgent` + capability `Skills` cho luồng OpenAI | đúng cơ chế "native" của SDK nhưng cần dựng sandbox (local/Docker); các skill dùng trong POC chỉ là hướng dẫn, không có script phải chạy |
+| Agent điều phối + handoff sang agent domain | POC chỉ cần người dùng chọn agent trên UI; handoff thêm một lượt gọi model và phải xử lý skill cho từng agent |
+| Bỏ hẳn OpenAI Agents SDK | mất câu trả lời cho câu hỏi nghiên cứu "runtime nào tốt hơn cho data agent"; giữ ở mức tùy chọn là đủ |
 
 ## Hệ quả
 
-- Thêm hai thành phần phải bảo trì: `OpenAIAgentsAdapter` (`BaseExternalAgent`) và `AgnoDbTracingProcessor`; cả hai test
-  được không cần API key nhờ `agents.testing.ScriptedModel`.
-- Data tools định nghĩa một lần (`ToolSpec`), sinh ra cho hai SDK — không viết tool hai lần.
-- Lịch sử hội thoại của agent OpenAI nằm trong session của AgentOS (adapter nạp `history`), không dùng Session riêng của
-  OpenAI SDK.
-- Trace của luồng OpenAI nằm cùng bảng với Agno; mặc định không gửi lên OpenAI (`DAGENT_OPENAI_TRACE_EXPORT=local`).
-- Test bắt buộc: skill core xuất hiện **trước** skill domain trong instructions của agent chuyên trách; instructions của
-  agent điều phối **không** chứa skill index.
+- POC-1/2 chạy được chỉ với Agno; POC-3 thêm ba phần tự viết: adapter, tool `load_skill`, trace processor (test được không cần
+  API key bằng `agents.testing.ScriptedModel`).
+- Một nguồn skill duy nhất trên đĩa cho cả hai runtime; khác biệt chỉ nằm ở cách đưa skill vào agent.
+- Cần một hàm dùng chung `resolve_skill_files(pack)` trả về danh sách file SKILL.md theo đúng thứ tự ①→②, để hai runtime không
+  lệch nhau.
 
 ## Điều kiện xem lại
 
+- Sau POC-3: nếu agent OpenAI không tốt hơn Agno ở độ chính xác, chi phí hoặc độ trễ → dừng runtime OpenAI.
+- Khi cần `build-dashboard` / `create-viz` (ghi file, chạy Python) → cân nhắc `SandboxAgent` hoặc tool chạy code của Agno.
 - Agno phát hành adapter chính thức cho OpenAI Agents SDK → thay adapter tự viết.
-- OpenAI Agents SDK hỗ trợ skills không cần sandbox → bỏ tool `load_skill` tự viết.
-- Kết quả eval P8 cho thấy một runtime vượt trội rõ rệt → cân nhắc chỉ giữ một runtime.
