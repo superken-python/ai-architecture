@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import heapq
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +24,7 @@ RELEVANCE = {"core": "Cốt lõi", "needed": "Cần", "minor": "Ít"}
 SYMBOL = {"core": "●", "needed": "◐", "minor": "○"}
 WEIGHT = {"core": 2, "needed": 1, "minor": 0}
 LEVELS = {"basic": "Cơ bản", "intermediate": "Trung cấp", "advanced": "Nâng cao"}
+LEVEL_RANK = {"basic": 1, "intermediate": 2, "advanced": 3}
 TIERS = {
     "foundation": ("Nền tảng chung", "Cốt lõi/Cần ở cả 8 nhóm — học một lần, dùng mọi nơi."),
     "bridge": (
@@ -46,6 +47,8 @@ class Catalog:
     domains: list[dict[str, Any]]
     skills: list[dict[str, Any]]
     combinations: list[dict[str, Any]]
+    roadmap: dict[str, Any] = field(default_factory=dict)
+    identify: dict[str, Any] = field(default_factory=dict)
 
     @property
     def group_ids(self) -> list[str]:
@@ -72,6 +75,7 @@ def load(root: Path = REPO_ROOT) -> Catalog:
     problems = read("problems.yaml")
     skills = read("skills.yaml")
     combos = read("combinations.yaml")
+    roadmap = read("roadmap.yaml") if (root / "catalog" / "roadmap.yaml").exists() else {}
     return Catalog(
         blocks=problems["blocks"],
         families=problems["families"],
@@ -79,6 +83,8 @@ def load(root: Path = REPO_ROOT) -> Catalog:
         domains=skills["domains"],
         skills=skills["skills"],
         combinations=combos["combinations"],
+        roadmap=roadmap,
+        identify=problems.get("identify", {}),
     )
 
 
@@ -158,6 +164,29 @@ def unlocks(cat: Catalog) -> dict[str, list[str]]:
     for s in cat.skills:
         for p in s["prereqs"]:
             result[p].append(s["id"])
+    return result
+
+
+def roadmap_placements(cat: Catalog) -> dict[str, list[dict[str, str]]]:
+    """Mỗi kỹ năng xuất hiện ở đâu trong lộ trình: bước, hướng chuyên sâu, thanh ngang chữ T, thói quen."""
+    result: dict[str, list[dict[str, str]]] = {s["id"]: [] for s in cat.skills}
+
+    def add(sid: str, where: str, label: str, level: str) -> None:
+        if sid in result:
+            result[sid].append({"where": where, "label": label, "level": level})
+
+    for stage in cat.roadmap.get("stages", []):
+        for step in stage.get("steps", []):
+            for item in step["skills"]:
+                add(item["id"], step["id"], f"Bước {step['id']} · {step['title']}", item["level"])
+        for track in stage.get("tracks", []):
+            for item in track["skills"]:
+                add(item["id"], f"{stage['id']}:{track['id']}", f"Hướng {track['name']}", item["level"])
+    for row in cat.roadmap.get("t_bar", []):
+        for sid in row["skills"]:
+            add(sid, f"T:{row['group']}", f"Thanh ngang chữ T · Nhóm {row['group'][1:]}", "basic")
+    for row in cat.roadmap.get("ongoing", []):
+        add(row["id"], "ongoing", "Thói quen xuyên suốt", "basic")
     return result
 
 
@@ -256,6 +285,129 @@ def validate(cat: Catalog) -> list[str]:
         for sid in [*c["skills"], *c.get("glue", [])]:
             if sid not in skill_ids:
                 errors.append(f"{c['id']}: kỹ năng không tồn tại '{sid}'")
+    for q in cat.identify.get("questions", []):
+        if q["group"] not in group_ids:
+            errors.append(f"identify: nhóm không tồn tại '{q['group']}'")
+    if cat.identify and cat.identify.get("fallback") not in group_ids:
+        errors.append(f"identify: fallback không tồn tại '{cat.identify.get('fallback')}'")
+    if cat.roadmap:
+        errors += validate_roadmap(cat)
+    return errors
+
+
+# Khóa hợp lệ của từng loại mục trong roadmap.yaml: (bắt buộc, tùy chọn).
+# Bắt cả lỗi YAML hay gặp: chuỗi có dấu phẩy trong {...} không đặt trong ngoặc kép bị tách thành khóa lạ.
+ROADMAP_KEYS = {
+    "stage": (
+        {"id", "name", "period", "goal", "setup", "book", "milestone"},
+        {"weeks", "project", "note", "steps", "tracks"},
+    ),
+    "step": ({"id", "title", "do", "deliverable", "skills"}, {"week"}),
+    "track": ({"id", "name", "groups", "skills"}, {"combos"}),
+    "item": ({"id", "level"}, set()),
+    "t_bar": ({"group", "skills", "note"}, set()),
+    "ongoing": ({"id", "text"}, set()),
+}
+
+
+def _check_keys(kind: str, where: str, obj: Any) -> list[str]:
+    required, optional = ROADMAP_KEYS[kind]
+    if not isinstance(obj, dict):
+        return [f"Lộ trình {where}: phải là một mapping"]
+    errors = [f"Lộ trình {where}: thiếu trường '{k}'" for k in sorted(required - obj.keys())]
+    extra = sorted(str(k) for k in obj.keys() - required - optional)
+    if extra:
+        errors.append(f"Lộ trình {where}: trường lạ {extra} — chuỗi có dấu phẩy trong {{...}} cần đặt trong ngoặc kép")
+    errors += [f"Lộ trình {where}: '{k}' rỗng" for k in sorted(required) if k in obj and obj[k] in (None, "", [])]
+    return errors
+
+
+def _roadmap_shape(rm: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for st in rm.get("stages", []):
+        errors += _check_keys("stage", f"giai đoạn {st.get('id')}", st)
+        for step in st.get("steps", []):
+            errors += _check_keys("step", f"bước {step.get('id')}", step)
+            for item in step.get("skills") or []:
+                errors += _check_keys("item", f"bước {step.get('id')}", item)
+        for tr in st.get("tracks", []):
+            errors += _check_keys("track", f"hướng {tr.get('id')}", tr)
+            for item in tr.get("skills") or []:
+                errors += _check_keys("item", f"hướng {tr.get('id')}", item)
+    for row in rm.get("t_bar", []):
+        errors += _check_keys("t_bar", f"t_bar {row.get('group') if isinstance(row, dict) else row}", row)
+    for row in rm.get("ongoing", []):
+        errors += _check_keys("ongoing", f"ongoing {row.get('id') if isinstance(row, dict) else row}", row)
+    return errors
+
+
+def validate_roadmap(cat: Catalog) -> list[str]:
+    """Lộ trình: đúng cấu trúc, id hợp lệ, học tiên quyết trước, mức không giảm, phủ đủ mọi kỹ năng."""
+    errors = _roadmap_shape(cat.roadmap)
+    if errors:
+        return errors
+    by_id = cat.skill_by_id
+    group_ids = set(cat.group_ids)
+    combo_ids = {c["id"] for c in cat.combinations}
+
+    def check_items(where: str, items: list[dict[str, str]]) -> list[dict[str, str]]:
+        valid = []
+        for item in items:
+            if item.get("id") not in by_id:
+                errors.append(f"Lộ trình {where}: kỹ năng không tồn tại '{item.get('id')}'")
+            elif item.get("level") not in LEVEL_RANK:
+                errors.append(f"Lộ trình {where}: {item['id']} có level không hợp lệ '{item.get('level')}'")
+            else:
+                valid.append(item)
+        return valid
+
+    def check_order(where: str, items: list[dict[str, str]], available: set[str], learned: dict[str, int]) -> None:
+        for item in items:
+            for p in by_id[item["id"]]["prereqs"]:
+                if p not in available:
+                    errors.append(f"Lộ trình {where}: {item['id']} cần học {p} ở bước trước")
+            if LEVEL_RANK[item["level"]] < learned.get(item["id"], 0):
+                errors.append(f"Lộ trình {where}: mức mục tiêu của {item['id']} thấp hơn bước trước")
+
+    step_ids: list[str] = []
+    learned: dict[str, int] = {}  # mức cao nhất đã đặt ở các bước tuần tự
+    track_skills: set[str] = set()
+    for stage in cat.roadmap["stages"]:
+        for step in stage.get("steps", []):
+            step_ids.append(step["id"])
+            items = check_items(step["id"], step["skills"])
+            check_order(step["id"], items, set(learned) | track_skills | {i["id"] for i in items}, learned)
+            for i in items:
+                learned[i["id"]] = max(learned.get(i["id"], 0), LEVEL_RANK[i["level"]])
+        base = dict(learned)
+        for track in stage.get("tracks", []):
+            where = f"{stage['id']}/{track['id']}"
+            for g in track["groups"]:
+                if g not in group_ids:
+                    errors.append(f"Lộ trình {where}: nhóm không tồn tại '{g}'")
+            for cid in track.get("combos", []):
+                if cid not in combo_ids:
+                    errors.append(f"Lộ trình {where}: tổ hợp không tồn tại '{cid}'")
+            items = check_items(where, track["skills"])
+            check_order(where, items, set(base) | {i["id"] for i in items}, base)
+            track_skills |= {i["id"] for i in items}
+    for dup in sorted(_duplicates(step_ids)):
+        errors.append(f"Lộ trình: trùng id bước {dup}")
+
+    for row in cat.roadmap.get("t_bar", []):
+        if row["group"] not in group_ids:
+            errors.append(f"Lộ trình t_bar: nhóm không tồn tại '{row['group']}'")
+        for sid in row["skills"]:
+            if sid not in by_id:
+                errors.append(f"Lộ trình t_bar: kỹ năng không tồn tại '{sid}'")
+    for row in cat.roadmap.get("ongoing", []):
+        if row["id"] not in by_id:
+            errors.append(f"Lộ trình ongoing: kỹ năng không tồn tại '{row['id']}'")
+
+    if not errors:
+        missing = [sid for sid, places in roadmap_placements(cat).items() if not places]
+        if missing:
+            errors.append(f"Lộ trình chưa phủ các kỹ năng: {', '.join(missing)}")
     return errors
 
 
@@ -290,6 +442,7 @@ class Renderer:
         self.tier = {s["id"]: tier(s, cat) for s in cat.skills}
         self.unlocks = unlocks(cat)
         self.depth = depths(cat)
+        self.placements = roadmap_placements(cat)
 
     # liên kết tới thẻ kỹ năng, tính từ thư mục `base` bên trong generated/
     def link(self, sid: str, base: str = "") -> str:
@@ -311,6 +464,8 @@ class Renderer:
             "to-hop-ky-nang.md": self.combinations(),
             "tu-danh-gia.md": self.self_assessment(),
         }
+        if self.cat.roadmap:
+            files["lo-trinh.md"] = self.roadmap()
         for d in self.cat.domains:
             files[domain_file(d["code"])] = self.domain_page(d)
         for g in self.cat.groups:
@@ -346,6 +501,7 @@ class Renderer:
             "",
             "- [Ma trận kỹ năng × nhóm bài toán](ma-tran-ky-nang.md) — kỹ năng nào dùng cho nhóm nào, "
             "mức chia sẻ giữa các nhóm, đối chiếu với giai đoạn 1.",
+            "- [Lộ trình theo bước](lo-trinh.md) — 4 giai đoạn, từng tuần học kỹ năng nào đến mức nào, nộp gì.",
             "- [Thứ tự học & kỹ năng đòn bẩy](thu-tu-hoc.md) — học gì trước, kỹ năng nào dùng được nhiều nhất.",
             '- [Tổ hợp kỹ năng](to-hop-ky-nang.md) — dự án ghép nhiều nhóm và kỹ năng "keo" ở điểm nối.',
             "- [Bảng tự đánh giá](tu-danh-gia.md) — đánh dấu từng mức của từng kỹ năng.",
@@ -551,6 +707,10 @@ class Renderer:
         ]
         if s.get("efficiency_note"):
             lines.append(f"- **Token & độ chính xác:** {s['efficiency_note']}")
+        places = self.placements.get(sid, [])
+        if places:
+            where = " · ".join(f"{p['label']} ({LEVELS[p['level']]})" for p in places)
+            lines.append(f"- **Trong lộ trình:** {where} — xem [lộ trình theo bước](../lo-trinh.md)")
         lines.append("")
         return lines
 
@@ -624,6 +784,81 @@ class Renderer:
             lines += ["", "## Tổ hợp có nhóm này", ""]
             for c in combos:
                 lines.append(f"- [{c['id']} · {c['name']}](../to-hop-ky-nang.md#{anchor(c['id'])}) — {c['flow']}")
+        return "\n".join(lines)
+
+    # ── Lộ trình theo bước ──
+    def skill_items(self, items: list[dict[str, str]]) -> str:
+        return "<br>".join(
+            f"{self.link(i['id'])} {self.by_id[i['id']]['name']} — *{LEVELS[i['level']]}*" for i in items
+        )
+
+    def roadmap(self) -> str:
+        rm = self.cat.roadmap
+        groups = self.cat.group_by_id
+        combos = {c["id"]: c for c in self.cat.combinations}
+        covered = sum(1 for places in self.placements.values() if places)
+        lines = [
+            "# Lộ trình học theo bước",
+            "",
+            "Từ cơ bản đến nâng cao: mỗi bước nêu việc cần làm, sản phẩm phải nộp "
+            "và kỹ năng cần đạt kèm **mức mục tiêu**. "
+            "Bộ kiểm tra bảo đảm kỹ năng tiên quyết luôn xuất hiện ở bước trước, mức mục tiêu không giảm, "
+            f"và lộ trình phủ **{covered}/{len(self.cat.skills)} kỹ năng**. Nguyên tắc và cách dùng: "
+            "[04-lo-trinh-hoc.md](../04-lo-trinh-hoc.md).",
+            "",
+            "| Giai đoạn | Thời gian | Mục tiêu | Mốc |",
+            "|---|---|---|---|",
+        ]
+        for st in rm["stages"]:
+            lines.append(
+                f"| [{st['id']} · {st['name']}](#giai-doan-{st['id'].lower()}) | {st['period']} | {cell(st['goal'])} "
+                f"| {cell(st['milestone'])} |"
+            )
+        lines.append("")
+        for st in rm["stages"]:
+            lines += [
+                f'<a id="giai-doan-{st["id"].lower()}"></a>',
+                "",
+                f"## {st['id']} · {st['name']} — {st['period']}",
+                "",
+            ]
+            lines += [f"**Mục tiêu:** {st['goal']}  ", f"**Mốc:** {st['milestone']}  "]
+            lines += [f"**Cài đặt:** `{st['setup']}` · **Đọc:** {st['book']}"]
+            if st.get("note"):
+                lines += ["", f"> {st['note']}"]
+            lines += ["", "| Bước | Tuần | Việc cần làm | Kỹ năng → mức mục tiêu | Sản phẩm |", "|---|---|---|---|---|"]
+            for step in st.get("steps", []):
+                lines.append(
+                    f"| **{step['id']}** {cell(step['title'])} | {step.get('week', '—')} | {cell(step['do'])} "
+                    f"| {self.skill_items(step['skills'])} | {cell(step['deliverable'])} |"
+                )
+            if st.get("tracks"):
+                lines += [
+                    "",
+                    "### Hướng chuyên sâu (chọn 1–2)",
+                    "",
+                    "| Hướng | Nhóm | Kỹ năng → mức mục tiêu | Tổ hợp tiêu biểu |",
+                    "|---|---|---|---|",
+                ]
+                for tr in st["tracks"]:
+                    gl = ", ".join(f"[{g[1:]} · {groups[g]['short']}]({group_file(groups[g])})" for g in tr["groups"])
+                    cl = ", ".join(f"[{c}](to-hop-ky-nang.md#{anchor(c)}) {combos[c]['name']}" for c in tr["combos"])
+                    lines.append(f"| **{tr['name']}** | {gl} | {self.skill_items(tr['skills'])} | {cl} |")
+            lines.append("")
+        lines += [
+            "## Thanh ngang chữ T — baseline cho cả 8 nhóm",
+            "",
+            "Ngoài kỹ năng nền tảng, mỗi nhóm cần thêm các kỹ năng sau ở mức **Cơ bản** để dựng được baseline.",
+            "",
+            "| Nhóm | Kỹ năng | Gợi ý baseline |",
+            "|---|---|---|",
+        ]
+        for row in rm.get("t_bar", []):
+            g = groups[row["group"]]
+            sk = ", ".join(self.link_named(sid) for sid in row["skills"])
+            lines.append(f"| [{g['id'][1:]} · {g['name']}]({group_file(g)}) | {sk} | {cell(row['note'])} |")
+        lines += ["", "## Thói quen xuyên suốt", ""]
+        lines += [f"- {self.link(r['id'])} — {r['text']}" for r in rm.get("ongoing", [])]
         return "\n".join(lines)
 
     # ── Tổ hợp ──

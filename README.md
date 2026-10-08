@@ -10,6 +10,7 @@ Bản đồ học và làm AI trong doanh nghiệp: từ **các bài toán thị
 | [00 · Setup](docs/00-setup/README.md) | Chuẩn bị môi trường: công cụ, Python/uv, API key, GPU, dữ liệu | ✅ |
 | [01 · Bản đồ bài toán](docs/01-problem-map/README.md) | 8 nhóm bài toán AI doanh nghiệp, 4 khối, cách nhận diện, lộ trình 6 tháng | ✅ |
 | [02 · Bản đồ kỹ năng](docs/02-skill-map/README.md) | 65 kỹ năng × 10 mảng × 3 mức; dùng chung / riêng / kết hợp; tiết kiệm token & độ chính xác | ✅ |
+| [Trang web lộ trình](web/README.md) | Lộ trình 4 giai đoạn từng bước, cơ bản → nâng cao, tự đánh dấu tiến độ — GitHub Pages | ✅ |
 | [03 · Labs](labs/README.md) | Bài lab ngắn cho từng kỹ năng, theo thứ tự lộ trình | ⏳ |
 | [04 · Dự án](projects/README.md) | Dự án luyện tập cho 8 nhóm và các tổ hợp | ⏳ |
 | 05 · Production | Mẫu triển khai, giám sát, vận hành chi phí cho dự án thật | 🔜 |
@@ -25,6 +26,8 @@ make check      # lint + test + kiểm tra catalog
 
 Rồi đọc theo thứ tự: [setup](docs/00-setup/README.md) → [bản đồ bài toán](docs/01-problem-map/README.md) →
 [bản đồ kỹ năng](docs/02-skill-map/README.md) → [lộ trình học](docs/02-skill-map/04-lo-trinh-hoc.md).
+Hoặc mở **trang web lộ trình** (`https://superken-python.github.io/ai-architecture/` sau khi bật Pages; xem thử tại
+máy bằng `make site-serve`).
 
 ## Cấu trúc thư mục
 
@@ -33,14 +36,16 @@ ai-architecture/
 ├── catalog/                    # NGUỒN DỮ LIỆU DUY NHẤT (YAML) cho bài toán, kỹ năng, tổ hợp
 │   ├── problems.yaml           #   8 nhóm, 2 họ, ma trận giai đoạn 1
 │   ├── skills.yaml             #   10 mảng, 65 kỹ năng
-│   └── combinations.yaml       #   9 tổ hợp dự án nhiều nhóm
+│   ├── combinations.yaml       #   9 tổ hợp dự án nhiều nhóm
+│   └── roadmap.yaml            #   lộ trình 4 giai đoạn, từng bước + mức mục tiêu
 ├── docs/
 │   ├── 00-setup/               # chuẩn bị môi trường (đọc đầu tiên)
 │   ├── 01-problem-map/         # giai đoạn 1 — bản đồ bài toán (+ file .docx gốc)
 │   └── 02-skill-map/           # giai đoạn 2 — bản đồ kỹ năng
 │       ├── 0x-*.md             #   tài liệu viết tay: kiến trúc, kết hợp, token, lộ trình
 │       └── generated/          #   SINH TỰ ĐỘNG từ catalog/: ma trận, thẻ kỹ năng, lộ trình theo nhóm
-├── src/aiarch/                 # thư viện dùng chung (hiện có: công cụ catalog)
+├── web/                        # trang web lộ trình (HTML/CSS/JS thuần) → GitHub Pages
+├── src/aiarch/                 # thư viện dùng chung (catalog: kiểm tra + sinh Markdown; site: sinh trang web)
 ├── labs/                       # giai đoạn 3 — lab theo kỹ năng: labs/<id>-<mức>-<tên>/
 ├── projects/                   # giai đoạn 4 — dự án theo nhóm: projects/g<N>-<tên>/
 ├── templates/                  # mẫu: kỹ năng (YAML), lab, dự án

@@ -34,3 +34,27 @@ jobs:
 
       - name: Script kiểm tra môi trường chạy được
         run: uv run python scripts/check_env.py
+
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài uv
+        run: pip install uv
+
+      - name: Cài môi trường (nhóm dev)
+        run: uv sync --locked
+
+      - name: Kiểm tra cú pháp JavaScript
+        run: node --check web/assets/app.js
+
+      - name: Cài Chromium cho Playwright
+        run: uv run --with playwright playwright install --with-deps chromium
+
+      - name: Kiểm thử trang web bằng trình duyệt thật
+        run: uv run --with playwright python scripts/smoke_site.py

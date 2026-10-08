@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lộ trình kỹ năng AI</title>
+  <meta name="description" content="Lộ trình kỹ năng lập trình AI cho doanh nghiệp: 8 nhóm bài toán, 65 kỹ năng, từ cơ bản đến nâng cao, có tự đánh dấu tiến độ.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232a78d6'/%3E%3Cpath d='M8 22l6-12 4 8 2-4 4 8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/style.css">
+  <script>
+    // Áp dụng giao diện sáng/tối đã chọn trước khi vẽ trang để không bị nháy màu.
+    try {
+      var t = localStorage.getItem("aiarch-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#app">Bỏ qua điều hướng</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M8 22l6-12 4 8 2-4 4 8" fill="none" stroke="var(--on-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-text">Lộ trình kỹ năng AI</span>
+      </a>
+      <nav class="site-nav" aria-label="Điều hướng chính">
+        <a href="#/" data-nav="">Tổng quan</a>
+        <a href="#/lo-trinh" data-nav="lo-trinh">Lộ trình</a>
+        <a href="#/nhom" data-nav="nhom">Nhóm bài toán</a>
+        <a href="#/ky-nang" data-nav="ky-nang">Kỹ năng</a>
+        <a href="#/ma-tran" data-nav="ma-tran">Ma trận</a>
+        <a href="#/to-hop" data-nav="to-hop">Tổ hợp</a>
+        <a href="#/tien-do" data-nav="tien-do">Tiến độ</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-action="theme" aria-label="Đổi giao diện sáng/tối" title="Đổi giao diện sáng/tối">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="app" class="container" tabindex="-1">
+    <noscript><p class="notice">Trang cần JavaScript để hiển thị. Bản Markdown của lộ trình nằm trong thư mục <code>docs/</code> của repo.</p></noscript>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner" id="footer"></div>
+  </footer>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+  <!--CATALOG_DATA-->
+  <script src="assets/app.js"></script>
+</body>
+</html>

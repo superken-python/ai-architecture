@@ -1,0 +1,353 @@
+# Lộ trình học theo bước — nguồn dữ liệu cho docs/02-skill-map/generated/lo-trinh.md và trang web (web/).
+#
+# Giai đoạn A–C là lộ trình 6 tháng của giai đoạn 1 (nền tảng → GenAI → chuyên sâu), ánh xạ xuống từng kỹ năng.
+# Giai đoạn D (nâng cao / production) là phần đề xuất thêm ở giai đoạn 2 để đi tới mức Nâng cao.
+#
+# Mỗi bước (step): tiêu đề, việc cần làm, sản phẩm phải nộp, danh sách {id kỹ năng, level mục tiêu}.
+# level: basic | intermediate | advanced.
+#
+# Bộ kiểm tra (make check) bảo đảm:
+#   - id kỹ năng tồn tại, level hợp lệ;
+#   - mọi kỹ năng tiên quyết đã xuất hiện ở bước trước (hoặc cùng bước) — không học "nhảy cóc";
+#   - một kỹ năng xuất hiện lại thì mức mục tiêu không giảm;
+#   - mọi kỹ năng trong catalog đều có mặt ở ít nhất một chỗ trong lộ trình (không bỏ sót).
+
+version: 1
+
+stages:
+  - id: A
+    name: Nền tảng
+    period: Tháng 1–2
+    weeks: 1–8
+    goal: Viết code dữ liệu sạch, dựng baseline đúng cách và đóng gói được một model dữ liệu bảng.
+    setup: make setup-tabular setup-mlops
+    book: Hands-On Machine Learning — Aurélien Géron
+    project: G1
+    milestone: Dự án Nhóm 1 (churn Telco) chạy qua API FastAPI + Docker, có bộ đánh giá cố định và danh sách top 500 khách kèm lý do SHAP.
+    steps:
+      - id: A1
+        week: 1
+        title: Python, Git và framing bài toán
+        do: Dựng repo cá nhân theo cấu trúc src/ tests/ notebooks/ với uv; viết framing 1 trang cho bài toán churn.
+        deliverable: Repo chạy được bằng một lệnh setup + file framing (quyết định, KPI, chi phí từng loại sai).
+        skills:
+          - {id: PY-01, level: basic}
+          - {id: PY-02, level: basic}
+          - {id: BIZ-01, level: basic}
+      - id: A2
+        week: 2
+        title: SQL, xử lý bảng và thống kê mô tả
+        do: Khám phá bộ Telco Customer Churn bằng DuckDB và pandas/polars; tính tỷ lệ churn nền, phân phối các biến chính.
+        deliverable: Notebook EDA có truy vấn SQL, biểu đồ và 5 nhận xét có số liệu.
+        skills:
+          - {id: DATA-01, level: basic}
+          - {id: DATA-02, level: basic}
+          - {id: STAT-01, level: basic}
+      - id: A3
+        week: 3
+        title: Baseline và bộ đánh giá cố định
+        do: Tách và đóng băng tập đánh giá trước khi thử model; dựng baseline dummy + logistic regression trong một Pipeline.
+        deliverable: "`make eval` in AUC/F1 của baseline kèm khoảng tin cậy bootstrap."
+        skills:
+          - {id: ML-01, level: basic}
+          - {id: BIZ-02, level: basic}
+          - {id: STAT-02, level: basic}
+      - id: A4
+        week: 4
+        title: Dữ liệu đúng thời điểm và feature
+        do: Xây feature as-of theo mốc thời gian, cố tình tạo một leakage rồi phát hiện nó; thêm kiểm tra schema cho pipeline.
+        deliverable: Pipeline feature có kiểm tra pandera và ghi chú chứng minh không rò rỉ dữ liệu.
+        skills:
+          - {id: DATA-03, level: intermediate}
+          - {id: DATA-04, level: basic}
+          - {id: DATA-05, level: basic}
+      - id: A5
+        week: 5
+        title: Gradient boosting, mất cân bằng và ngưỡng theo chi phí
+        do: Huấn luyện LightGBM, đánh giá bằng PR-AUC và precision@500; hiệu chỉnh xác suất và chọn ngưỡng theo năng lực gọi của CSKH.
+        deliverable: Bảng so sánh với baseline (có khoảng tin cậy) + đường coverage–accuracy + ngưỡng đã chọn.
+        skills:
+          - {id: ML-02, level: intermediate}
+          - {id: ML-03, level: intermediate}
+          - {id: STAT-05, level: intermediate}
+      - id: A6
+        week: 6
+        title: Phân tích lỗi, giải thích và kiểm thử
+        do: Đọc 50–100 ca sai, nhóm theo nguyên nhân và sửa nhóm lớn nhất; sinh lý do SHAP cho từng khách; viết test cho pipeline.
+        deliverable: Bảng "nhóm lỗi – số ca – đã sửa – metric trước/sau" + danh sách top 500 khách kèm 3 lý do.
+        skills:
+          - {id: BIZ-03, level: intermediate}
+          - {id: ML-04, level: intermediate}
+          - {id: PY-03, level: intermediate}
+      - id: A7
+        week: 7
+        title: Đóng gói, theo dõi thực nghiệm và bảo mật dữ liệu
+        do: Bọc model bằng FastAPI + Docker có health check và version; ghi mọi lần chạy vào MLflow; rà soát secret và dữ liệu thật.
+        deliverable: "`docker compose up` ra API chấm điểm; MLflow có lịch sử thí nghiệm; repo không chứa secret/dữ liệu thật."
+        skills:
+          - {id: OPS-01, level: basic}
+          - {id: OPS-02, level: basic}
+          - {id: OPS-08, level: basic}
+      - id: A8
+        week: 8
+        title: Trình bày kết quả — mốc giai đoạn A
+        do: Quy kết quả ra số cuộc gọi tiết kiệm/khách giữ được; làm demo; viết rõ giới hạn.
+        deliverable: Demo chạy được + trang báo cáo 1 trang so với baseline.
+        skills:
+          - {id: BIZ-04, level: basic}
+          - {id: PY-02, level: intermediate}
+
+  - id: B
+    name: GenAI
+    period: Tháng 3–4
+    weeks: 9–16
+    goal: Xây hệ LLM/RAG tiếng Việt có bộ đánh giá, tracing và kiểm soát chi phí token.
+    setup: make setup-llm setup-agent
+    book: AI Engineering — Chip Huyen
+    project: G6
+    milestone: Hệ RAG tiếng Việt có golden set ~100 câu (recall@k, faithfulness, độ đúng), có tracing và bảng chất lượng–chi phí–độ trễ trước/sau tối ưu token.
+    steps:
+      - id: B1
+        week: 9
+        title: Gọi LLM, structured output và gọi API bền vững
+        do: Viết script phân loại ticket tiếng Việt trả JSON theo schema, validate bằng pydantic, gọi song song có giới hạn và retry.
+        deliverable: Script xử lý 1.000 ticket không lỗi schema, không gọi trùng khi chạy lại.
+        skills:
+          - {id: LLM-01, level: basic}
+          - {id: LLM-02, level: intermediate}
+          - {id: PY-04, level: intermediate}
+      - id: B2
+        week: 10
+        title: Đo chi phí, tracing và golden set đầu tiên
+        do: Ghi token vào/ra, chi phí, độ trễ cho mọi lời gọi; dựng golden set 30 mẫu rồi mở rộng lên 100.
+        deliverable: Bảng baseline "chất lượng / chi phí mỗi tác vụ / độ trễ" + trace xem được trong Langfuse.
+        skills:
+          - {id: EFF-01, level: basic}
+          - {id: OPS-06, level: basic}
+          - {id: LLM-04, level: basic}
+      - id: B3
+        week: 11
+        title: Văn bản tiếng Việt, embedding và truy xuất
+        do: Chuẩn hóa NFC, tách từ cho BM25; so sánh BM25, embedding và hybrid + rerank trên bộ câu hỏi tiếng Việt.
+        deliverable: Bảng Recall@5/MRR của 3 cách truy xuất trên cùng bộ truy vấn.
+        skills:
+          - {id: DATA-06, level: basic}
+          - {id: DL-03, level: basic}
+          - {id: ML-07, level: intermediate}
+      - id: B4
+        week: 12
+        title: RAG có trích dẫn
+        do: Dựng RAG trên văn bản công khai — chunk theo cấu trúc, hybrid search, rerank, trả lời có trích dẫn và biết nói "không tìm thấy".
+        deliverable: RAG trả lời golden set, mọi câu trả lời có nguồn kiểm tra được.
+        skills:
+          - {id: LLM-03, level: intermediate}
+      - id: B5
+        week: 13
+        title: Đánh giá nghiêm túc và lớp kiểm chứng
+        do: LLM-as-judge với rubric, đo độ đồng thuận với nhãn người; kiểm tra tự động đoạn trích dẫn có thật trong tài liệu.
+        deliverable: Báo cáo eval tách retrieval / generation + tỷ lệ trích dẫn hợp lệ.
+        skills:
+          - {id: LLM-04, level: intermediate}
+          - {id: EFF-07, level: intermediate}
+      - id: B6
+        week: 14
+        title: Tiết kiệm token có kiểm soát
+        do: Áp dụng lần lượt prompt caching, tinh gọn ngữ cảnh, rút gọn đầu ra, batch cho eval — mỗi đòn bẩy một lần đo.
+        deliverable: Bảng chất lượng–chi phí trước/sau từng đòn bẩy, chất lượng không giảm ngoài biên sai số.
+        skills:
+          - {id: EFF-02, level: intermediate}
+          - {id: EFF-03, level: basic}
+          - {id: EFF-05, level: basic}
+          - {id: EFF-06, level: intermediate}
+      - id: B7
+        week: 15
+        title: Tool calling, workflow và bảo mật LLM
+        do: Workflow cố định tra cứu tài liệu rồi tạo ticket, có người duyệt bước gửi; thêm bộ test prompt injection vào eval.
+        deliverable: Workflow có log mọi hành động + test injection chạy trong eval.
+        skills:
+          - {id: LLM-05, level: basic}
+          - {id: LLM-06, level: basic}
+      - id: B8
+        week: 16
+        title: Cascade và trình bày — mốc giai đoạn B
+        do: Dựng cascade luật → model nhỏ → LLM → người cho phân loại ticket; trình bày bảng chất lượng–chi phí.
+        deliverable: Báo cáo cascade (độ chính xác phần tự động, tỷ lệ tự động, chi phí mỗi ticket) + demo RAG.
+        skills:
+          - {id: EFF-04, level: basic}
+          - {id: BIZ-04, level: intermediate}
+
+  - id: C
+    name: Chuyên sâu
+    period: Tháng 5–6
+    weeks: 17–24
+    goal: Đi sâu 1–2 nhóm sát nhu cầu công ty — kỹ năng Cốt lõi của hướng đã chọn lên Trung cấp, một phần lên Nâng cao.
+    setup: make setup-<nhóm của hướng đã chọn>
+    book: Designing Machine Learning Systems — Chip Huyen
+    milestone: Một dự án chuyên sâu cho công ty (hoặc một tổ hợp) có baseline, bộ đánh giá, kết quả quy ra tiền/giờ công, demo và tài liệu giới hạn.
+    steps:
+      - id: C1
+        week: 17–18
+        title: Chọn hướng, hiểu nghiệp vụ và lấp khoảng trống
+        do: Chọn một hướng chuyên sâu bên dưới; phỏng vấn người dùng nghiệp vụ; đạt Cơ bản ở các kỹ năng của hướng còn thiếu.
+        deliverable: Framing dự án chuyên sâu đã được người nghiệp vụ xác nhận + danh sách kỹ năng còn thiếu.
+        skills:
+          - {id: BIZ-05, level: intermediate}
+          - {id: BIZ-01, level: intermediate}
+      - id: C2
+        week: 19–22
+        title: Dự án chuyên sâu theo hướng đã chọn
+        do: Làm dự án theo quy trình ĐÚNG → NHANH → CHÍNH XÁC → THUYẾT PHỤC, luyện các kỹ năng của hướng (xem bảng hướng chuyên sâu).
+        deliverable: Baseline + ít nhất 2 vòng cải tiến có bảng phân tích lỗi.
+        skills:
+          - {id: BIZ-02, level: intermediate}
+      - id: C3
+        week: 23
+        title: MLOps cho dự án chuyên sâu
+        do: Đưa dự án vào pipeline chạy theo lịch, model registry và giám sát drift/chi phí.
+        deliverable: Pipeline chạy lại được cho một ngày bất kỳ + dashboard giám sát.
+        skills:
+          - {id: OPS-02, level: intermediate}
+          - {id: OPS-03, level: basic}
+          - {id: OPS-04, level: intermediate}
+      - id: C4
+        week: 24
+        title: Bảo vệ kết quả — mốc giai đoạn C
+        do: Trình bày cho lãnh đạo/nghiệp vụ, đề xuất kế hoạch triển khai theo giai đoạn có tiêu chí go/no-go.
+        deliverable: Design doc + demo + kế hoạch triển khai.
+        skills:
+          - {id: BIZ-04, level: intermediate}
+    tracks:
+      - id: risk
+        name: Rủi ro & tín dụng
+        groups: [G1, G3]
+        combos: [CMB-04, CMB-06]
+        skills:
+          - {id: ML-02, level: advanced}
+          - {id: ML-03, level: advanced}
+          - {id: ML-04, level: advanced}
+          - {id: STAT-05, level: advanced}
+          - {id: ML-05, level: intermediate}
+          - {id: DATA-07, level: intermediate}
+          - {id: STAT-03, level: basic}
+          - {id: STAT-06, level: basic}
+          - {id: OPS-07, level: basic}
+      - id: forecast
+        name: Dự báo & vận hành
+        groups: [G2, G8]
+        combos: [CMB-02]
+        skills:
+          - {id: ML-06, level: intermediate}
+          - {id: STAT-04, level: intermediate}
+          - {id: OPT-01, level: intermediate}
+          - {id: OPT-02, level: intermediate}
+          - {id: OPT-03, level: intermediate}
+      - id: growth
+        name: Cá nhân hóa & tăng trưởng
+        groups: [G4, G8]
+        combos: [CMB-05, CMB-06]
+        skills:
+          - {id: ML-07, level: advanced}
+          - {id: ML-08, level: intermediate}
+          - {id: STAT-03, level: intermediate}
+          - {id: STAT-06, level: intermediate}
+          - {id: OPT-04, level: basic}
+      - id: docai
+        name: Document AI
+        groups: [G5, G6]
+        combos: [CMB-01]
+        skills:
+          - {id: DL-01, level: intermediate}
+          - {id: DL-02, level: intermediate}
+          - {id: DL-04, level: intermediate}
+          - {id: DL-05, level: intermediate}
+          - {id: OPS-05, level: basic}
+          - {id: EFF-07, level: advanced}
+          - {id: LLM-07, level: basic}
+      - id: llm-agent
+        name: LLM ứng dụng & Agent
+        groups: [G6, G7]
+        combos: [CMB-03, CMB-07, CMB-08, CMB-09]
+        skills:
+          - {id: LLM-05, level: intermediate}
+          - {id: LLM-06, level: intermediate}
+          - {id: LLM-08, level: intermediate}
+          - {id: EFF-03, level: intermediate}
+          - {id: EFF-04, level: intermediate}
+          - {id: EFF-05, level: intermediate}
+          - {id: OPS-06, level: intermediate}
+          - {id: DATA-06, level: intermediate}
+          - {id: DL-01, level: basic}
+          - {id: DL-02, level: basic}
+          - {id: DL-06, level: basic}
+
+  - id: D
+    name: Nâng cao · Production
+    period: Tháng 7 trở đi
+    weeks: 25+
+    goal: Vận hành ổn định ở production — tối ưu chi phí, giám sát, giải thích được, mở rộng quy mô (định nghĩa mức Nâng cao của giai đoạn 1).
+    setup: make setup-all
+    book: Đọc tài liệu vận hành của công cụ đang dùng + 1 paper mỗi tuần
+    milestone: Một hệ đang chạy thật có SLO chất lượng/độ trễ/chi phí, giám sát, quy trình cập nhật model an toàn và báo cáo chi phí theo đơn vị nghiệp vụ.
+    note: Phần đề xuất thêm ở giai đoạn 2 (lộ trình gốc dừng ở tháng 6). Thứ tự các bước linh hoạt theo nhu cầu dự án.
+    steps:
+      - id: D1
+        title: Vận hành dịch vụ model
+        do: Canary/shadow deploy, autoscaling, SLA độ trễ; tối ưu suy luận (quantization, batching); real-time khi nghiệp vụ thật sự cần.
+        deliverable: Dịch vụ có SLA đo được, triển khai phiên bản mới không downtime.
+        skills:
+          - {id: OPS-01, level: advanced}
+          - {id: OPS-05, level: intermediate}
+          - {id: OPS-07, level: intermediate}
+      - id: D2
+        title: Giám sát và vòng đời model
+        do: Giám sát drift theo phân khúc, huấn luyện lại tự động có cổng kiểm định, data contract với các team nguồn.
+        deliverable: Model mới chỉ được deploy khi tốt hơn champion; cảnh báo khi nguồn dữ liệu đổi định dạng.
+        skills:
+          - {id: OPS-04, level: advanced}
+          - {id: OPS-02, level: advanced}
+          - {id: OPS-03, level: intermediate}
+          - {id: DATA-05, level: advanced}
+      - id: D3
+        title: Chi phí và độ tin cậy của hệ LLM ở quy mô
+        do: Ngân sách và cảnh báo theo tính năng, TTL cache theo lưu lượng, router/distill cho tác vụ lưu lượng lớn, lớp kiểm chứng cho mọi đầu ra tự động.
+        deliverable: Báo cáo chi phí mỗi tác vụ theo đơn vị nghiệp vụ + tỷ lệ lỗi lọt đo bằng kiểm tra mẫu định kỳ.
+        skills:
+          - {id: EFF-01, level: advanced}
+          - {id: EFF-02, level: advanced}
+          - {id: EFF-04, level: advanced}
+          - {id: EFF-07, level: advanced}
+          - {id: OPS-06, level: advanced}
+          - {id: LLM-07, level: intermediate}
+      - id: D4
+        title: Bảo mật, quyền và tuân thủ
+        do: Quyền tối thiểu cho agent, sandbox cho tool nguy hiểm, red-teaming định kỳ, tuân thủ bảo vệ dữ liệu cá nhân cùng pháp chế.
+        deliverable: Báo cáo red-team + danh mục dữ liệu được phép gửi ra ngoài đã được pháp chế duyệt.
+        skills:
+          - {id: OPS-08, level: advanced}
+          - {id: LLM-06, level: advanced}
+      - id: D5
+        title: Phương pháp ở quy mô team
+        do: Eval nhiều tầng (offline → shadow → A/B) chạy trong CI, taxonomy lỗi dùng chung, design doc và kế hoạch go/no-go.
+        deliverable: Một quy trình đánh giá và phát hành dùng chung cho mọi dự án AI của team.
+        skills:
+          - {id: BIZ-02, level: advanced}
+          - {id: BIZ-03, level: advanced}
+          - {id: BIZ-04, level: advanced}
+          - {id: PY-03, level: advanced}
+          - {id: STAT-02, level: advanced}
+
+# Thanh ngang chữ T: kỹ năng tối thiểu (mức Cơ bản) để dựng baseline cho từng nhóm, ngoài các kỹ năng nền tảng.
+t_bar:
+  - {group: G1, skills: [ML-01, ML-02], note: "Logistic regression rồi LightGBM mặc định"}
+  - {group: G2, skills: [ML-06], note: "Seasonal naive, ETS, backtest cuốn chiếu"}
+  - {group: G3, skills: [ML-05, ML-03], note: "Luật + Isolation Forest, đo precision@k"}
+  - {group: G4, skills: [ML-08], note: "Baseline phổ biến, ALS"}
+  - {group: G5, skills: [DL-04, DL-05], note: "YOLO/OCR có sẵn, VLM + schema"}
+  - {group: G6, skills: [LLM-01, LLM-02, LLM-03], note: "Prompt + structured output + RAG tối giản"}
+  - {group: G7, skills: [LLM-05], note: "Workflow cố định + người duyệt"}
+  - {group: G8, skills: [OPT-01, STAT-03], note: "LP với OR-Tools, A/B test đúng cách"}
+
+# Thói quen xuyên suốt mọi giai đoạn.
+ongoing:
+  - {id: BIZ-06, text: "Mỗi tuần một paper gắn với bài toán đang làm, thử tái hiện kết quả."}
+  - {id: EFF-08, text: "Dùng AI hỗ trợ lập trình có kỷ luật — để `make check` làm lớp kiểm chứng."}

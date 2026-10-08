@@ -30,6 +30,7 @@ LP/MIP, định tuyến, lập lịch, quyết định dưới bất định, ba
 - **Mở khóa:** [OPT-02](../mang/opt.md#opt-02), [OPT-03](../mang/opt.md#opt-03)
 - **Công cụ:** OR-Tools, PuLP, Pyomo, HiGHS
 - **Đạt khi:** Mô hình phân bổ ngân sách cho kết quả tốt hơn cách làm hiện tại và giải thích được ràng buộc nào đang "chặn" lợi nhuận.
+- **Trong lộ trình:** Hướng Dự báo & vận hành (Trung cấp) · Thanh ngang chữ T · Nhóm 8 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="opt-02"></a>
 
@@ -50,6 +51,7 @@ LP/MIP, định tuyến, lập lịch, quyết định dưới bất định, ba
 - **Mở khóa:** —
 - **Công cụ:** OR-Tools routing, CP-SAT
 - **Đạt khi:** Tuyến giao hàng 1 kho × 20 điểm ngắn hơn tuyến hiện tại và tôn trọng mọi ràng buộc.
+- **Trong lộ trình:** Hướng Dự báo & vận hành (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="opt-03"></a>
 
@@ -70,6 +72,7 @@ LP/MIP, định tuyến, lập lịch, quyết định dưới bất định, ba
 - **Mở khóa:** —
 - **Công cụ:** OR-Tools, Pyomo, numpy
 - **Đạt khi:** Mô phỏng cho thấy chính sách đặt hàng dựa trên quantile giảm tổng chi phí (thiếu + tồn) so với dùng dự báo điểm.
+- **Trong lộ trình:** Hướng Dự báo & vận hành (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="opt-04"></a>
 
@@ -90,3 +93,4 @@ LP/MIP, định tuyến, lập lịch, quyết định dưới bất định, ba
 - **Mở khóa:** —
 - **Công cụ:** Vowpal Wabbit, numpy
 - **Đạt khi:** Mô phỏng cho thấy Thompson sampling thu được nhiều lợi ích hơn A/B cố định trong cùng thời gian.
+- **Trong lộ trình:** Hướng Cá nhân hóa & tăng trưởng (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

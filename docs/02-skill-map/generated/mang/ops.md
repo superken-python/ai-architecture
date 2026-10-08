@@ -34,6 +34,7 @@
 - **Mở khóa:** [OPS-04](../mang/ops.md#ops-04), [OPS-05](../mang/ops.md#ops-05), [OPS-06](../mang/ops.md#ops-06), [OPS-07](../mang/ops.md#ops-07)
 - **Công cụ:** FastAPI, Docker, uvicorn
 - **Đạt khi:** `docker compose up` là có API chấm điểm chạy được, có health check và version model.
+- **Trong lộ trình:** Bước A7 · Đóng gói, theo dõi thực nghiệm và bảo mật dữ liệu (Cơ bản) · Bước D1 · Vận hành dịch vụ model (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-02"></a>
 
@@ -54,6 +55,7 @@
 - **Mở khóa:** —
 - **Công cụ:** MLflow, DVC, Weights & Biases
 - **Đạt khi:** Tái tạo lại đúng metric của một thí nghiệm cũ từ registry trong vòng 10 phút.
+- **Trong lộ trình:** Bước A7 · Đóng gói, theo dõi thực nghiệm và bảo mật dữ liệu (Cơ bản) · Bước C3 · MLOps cho dự án chuyên sâu (Trung cấp) · Bước D2 · Giám sát và vòng đời model (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-03"></a>
 
@@ -74,6 +76,7 @@
 - **Mở khóa:** —
 - **Công cụ:** Prefect, Airflow, Dagster
 - **Đạt khi:** Pipeline chạy lại cho một ngày bất kỳ trong quá khứ mà không tạo dữ liệu trùng.
+- **Trong lộ trình:** Bước C3 · MLOps cho dự án chuyên sâu (Cơ bản) · Bước D2 · Giám sát và vòng đời model (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-04"></a>
 
@@ -94,6 +97,7 @@
 - **Mở khóa:** —
 - **Công cụ:** Evidently, Prometheus, Grafana
 - **Đạt khi:** Dashboard cảnh báo khi phân phối điểm số lệch mạnh so với lúc huấn luyện.
+- **Trong lộ trình:** Bước C3 · MLOps cho dự án chuyên sâu (Trung cấp) · Bước D2 · Giám sát và vòng đời model (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-05"></a>
 
@@ -114,6 +118,7 @@
 - **Mở khóa:** —
 - **Công cụ:** ONNX Runtime, TensorRT, Triton, vLLM
 - **Đạt khi:** Model sau quantization giữ chất lượng trong biên sai số và nhanh hơn đo được.
+- **Trong lộ trình:** Hướng Document AI (Cơ bản) · Bước D1 · Vận hành dịch vụ model (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-06"></a>
 
@@ -135,6 +140,7 @@
 - **Công cụ:** Langfuse, OpenTelemetry, LiteLLM
 - **Đạt khi:** Trả lời được "tháng này tính năng X tốn bao nhiêu, mỗi tác vụ hoàn thành tốn bao nhiêu" trong 1 phút.
 - **Token & độ chính xác:** Không đo được thì không tối ưu được — tracing là nguồn dữ liệu cho mọi quyết định cắt giảm token.
+- **Trong lộ trình:** Bước B2 · Đo chi phí, tracing và golden set đầu tiên (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) · Bước D3 · Chi phí và độ tin cậy của hệ LLM ở quy mô (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-07"></a>
 
@@ -155,6 +161,7 @@
 - **Mở khóa:** —
 - **Công cụ:** Kafka, Redpanda, Redis, Faust/Bytewax
 - **Đạt khi:** Feature tính online và offline cho cùng một giao dịch ra cùng giá trị.
+- **Trong lộ trình:** Hướng Rủi ro & tín dụng (Cơ bản) · Bước D1 · Vận hành dịch vụ model (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-08"></a>
 
@@ -175,3 +182,4 @@
 - **Mở khóa:** [LLM-06](../mang/llm.md#llm-06)
 - **Công cụ:** python-dotenv, HashiCorp Vault, Presidio
 - **Đạt khi:** Không có secret/dữ liệu thật trong lịch sử Git; có danh sách dữ liệu nào được phép gửi ra ngoài.
+- **Trong lộ trình:** Bước A7 · Đóng gói, theo dõi thực nghiệm và bảo mật dữ liệu (Cơ bản) · Bước D4 · Bảo mật, quyền và tuân thủ (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)

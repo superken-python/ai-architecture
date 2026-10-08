@@ -32,6 +32,7 @@
 - **Mở khóa:** [STAT-02](../mang/stat.md#stat-02), [STAT-04](../mang/stat.md#stat-04), [STAT-05](../mang/stat.md#stat-05), [ML-01](../mang/ml.md#ml-01)
 - **Công cụ:** numpy, scipy, statsmodels, matplotlib
 - **Đạt khi:** Giải thích được cho người ngoài ngành vì sao một model "99% chính xác" có thể không có giá trị.
+- **Trong lộ trình:** Bước A2 · SQL, xử lý bảng và thống kê mô tả (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="stat-02"></a>
 
@@ -53,6 +54,7 @@
 - **Công cụ:** scipy.stats, numpy, statsmodels
 - **Đạt khi:** Mọi bảng so sánh model/prompt đều kèm khoảng tin cậy, và quyết định chọn được giải thích bằng nó.
 - **Token & độ chính xác:** Là công cụ để chứng minh một tối ưu token "không làm giảm chất lượng" — không có nó thì chỉ là cảm giác.
+- **Trong lộ trình:** Bước A3 · Baseline và bộ đánh giá cố định (Cơ bản) · Bước D5 · Phương pháp ở quy mô team (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="stat-03"></a>
 
@@ -73,6 +75,7 @@
 - **Mở khóa:** [STAT-06](../mang/stat.md#stat-06), [OPT-04](../mang/opt.md#opt-04)
 - **Công cụ:** statsmodels, scipy, GrowthBook
 - **Đạt khi:** Thiết kế được một A/B test có cỡ mẫu, thời gian chạy và tiêu chí dừng chốt trước khi bắt đầu.
+- **Trong lộ trình:** Hướng Rủi ro & tín dụng (Cơ bản) · Hướng Cá nhân hóa & tăng trưởng (Trung cấp) · Thanh ngang chữ T · Nhóm 8 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="stat-04"></a>
 
@@ -93,6 +96,7 @@
 - **Mở khóa:** [OPT-03](../mang/opt.md#opt-03)
 - **Công cụ:** LightGBM, MAPIE, statsforecast
 - **Đạt khi:** Khoảng dự báo 80% thực sự chứa giá trị thật khoảng 80% số lần trên dữ liệu backtest.
+- **Trong lộ trình:** Hướng Dự báo & vận hành (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="stat-05"></a>
 
@@ -114,6 +118,7 @@
 - **Công cụ:** scikit-learn calibration, MAPIE
 - **Đạt khi:** Vẽ được đường coverage–accuracy và chọn được mức tự động hóa đạt độ chính xác mục tiêu trên phần tự động.
 - **Token & độ chính xác:** Kỹ năng then chốt để vừa rẻ vừa "chính xác tuyệt đối" trên phần tự động — phần nghi ngờ đi đường đắt hơn (model lớn hoặc người).
+- **Trong lộ trình:** Bước A5 · Gradient boosting, mất cân bằng và ngưỡng theo chi phí (Trung cấp) · Hướng Rủi ro & tín dụng (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="stat-06"></a>
 
@@ -134,3 +139,4 @@
 - **Mở khóa:** —
 - **Công cụ:** DoWhy, EconML, CausalML
 - **Đạt khi:** Chọn được nhóm khách "thuyết phục được" bằng uplift và chứng minh bằng thí nghiệm rằng họ mang lại lợi nhuận cao hơn nhóm điểm churn cao nhất.
+- **Trong lộ trình:** Hướng Rủi ro & tín dụng (Cơ bản) · Hướng Cá nhân hóa & tăng trưởng (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)

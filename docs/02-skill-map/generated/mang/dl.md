@@ -32,6 +32,7 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Mở khóa:** [DL-02](../mang/dl.md#dl-02), [OPS-05](../mang/ops.md#ops-05)
 - **Công cụ:** PyTorch, Lightning, TensorBoard
 - **Đạt khi:** Tự viết vòng huấn luyện cho một bài phân loại ảnh, giải thích được đường loss.
+- **Trong lộ trình:** Hướng Document AI (Trung cấp) · Hướng LLM ứng dụng & Agent (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="dl-02"></a>
 
@@ -53,6 +54,7 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Công cụ:** Hugging Face Transformers, PEFT, timm
 - **Đạt khi:** Model fine-tune nhỏ đạt chất lượng gần LLM lớn trên một tác vụ phân loại hẹp, với chi phí suy luận thấp hơn nhiều.
 - **Token & độ chính xác:** Model nhỏ fine-tune cho tác vụ hẹp, lưu lượng lớn thường rẻ hơn gọi LLM mỗi lần.
+- **Trong lộ trình:** Hướng Document AI (Trung cấp) · Hướng LLM ứng dụng & Agent (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="dl-03"></a>
 
@@ -73,6 +75,7 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Mở khóa:** [ML-07](../mang/ml.md#ml-07)
 - **Công cụ:** sentence-transformers, bge-m3, multilingual-e5, open_clip
 - **Đạt khi:** So sánh ít nhất 3 embedding trên tập truy vấn tiếng Việt thật và chọn bằng số liệu.
+- **Trong lộ trình:** Bước B3 · Văn bản tiếng Việt, embedding và truy xuất (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="dl-04"></a>
 
@@ -93,6 +96,7 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Mở khóa:** [DL-05](../mang/dl.md#dl-05)
 - **Công cụ:** Ultralytics YOLO, OpenCV, PaddleOCR, VietOCR, Label Studio
 - **Đạt khi:** Model chạy trên ảnh chụp điện thoại thật (không chỉ ảnh mẫu sạch) với độ chính xác theo trường được báo cáo riêng.
+- **Trong lộ trình:** Hướng Document AI (Trung cấp) · Thanh ngang chữ T · Nhóm 5 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="dl-05"></a>
 
@@ -114,6 +118,7 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Công cụ:** PyMuPDF, pdfplumber, Docling, PaddleOCR, VLM API
 - **Đạt khi:** Báo cáo được độ chính xác từng trường và tỷ lệ hồ sơ xử lý tự động hoàn toàn trên bộ hóa đơn thật.
 - **Token & độ chính xác:** Chỉ gửi vùng ảnh/trang cần thiết, đúng độ phân giải cần thiết; OCR + luật cho mẫu cố định, VLM chỉ cho mẫu lạ.
+- **Trong lộ trình:** Hướng Document AI (Trung cấp) · Thanh ngang chữ T · Nhóm 5 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="dl-06"></a>
 
@@ -135,3 +140,4 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Công cụ:** Whisper, faster-whisper, PhoWhisper, pyannote
 - **Đạt khi:** Đo được WER trên ghi âm thật của công ty và biết nhóm lỗi lớn nhất (tên riêng, số, giọng vùng miền).
 - **Token & độ chính xác:** VAD cắt khoảng lặng trước khi ASR giảm thời lượng xử lý; transcript ngắn gọn giảm token cho bước tóm tắt.
+- **Trong lộ trình:** Hướng LLM ứng dụng & Agent (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

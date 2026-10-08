@@ -30,6 +30,7 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 - **Mở khóa:** [PY-02](../mang/py.md#py-02), [PY-03](../mang/py.md#py-03), [PY-04](../mang/py.md#py-04), [DATA-02](../mang/data.md#data-02), [DATA-06](../mang/data.md#data-06), [DL-01](../mang/dl.md#dl-01), [DL-03](../mang/dl.md#dl-03), [LLM-01](../mang/llm.md#llm-01), [OPT-01](../mang/opt.md#opt-01)
 - **Công cụ:** Python 3.12, VS Code, JupyterLab, pydantic, typer
 - **Đạt khi:** Viết được một module xử lý dữ liệu có type hints, logging, CLI và người khác chạy được chỉ bằng README.
+- **Trong lộ trình:** Bước A1 · Python, Git và framing bài toán (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="py-02"></a>
 
@@ -50,6 +51,7 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 - **Mở khóa:** [OPS-01](../mang/ops.md#ops-01), [OPS-02](../mang/ops.md#ops-02), [OPS-03](../mang/ops.md#ops-03), [OPS-08](../mang/ops.md#ops-08), [EFF-08](../mang/eff.md#eff-08)
 - **Công cụ:** Git, GitHub, uv, pre-commit, make, DVC
 - **Đạt khi:** Clone repo sạch trên máy khác, chạy một lệnh setup là có môi trường giống hệt, mọi thay đổi đi qua PR.
+- **Trong lộ trình:** Bước A1 · Python, Git và framing bài toán (Cơ bản) · Bước A8 · Trình bày kết quả — mốc giai đoạn A (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="py-03"></a>
 
@@ -71,6 +73,7 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 - **Công cụ:** pytest, ruff, mypy hoặc pyright, hypothesis, pandera
 - **Đạt khi:** Mọi PR có test tự động; một thay đổi làm giảm chất lượng model/prompt bị CI phát hiện trước khi merge.
 - **Token & độ chính xác:** Eval-as-test là "lưới an toàn" cho mọi tối ưu token — chỉ merge khi chất lượng không giảm.
+- **Trong lộ trình:** Bước A6 · Phân tích lỗi, giải thích và kiểm thử (Trung cấp) · Bước D5 · Phương pháp ở quy mô team (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="py-04"></a>
 
@@ -92,3 +95,4 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 - **Công cụ:** httpx, asyncio, tenacity
 - **Đạt khi:** Xử lý 10.000 tài liệu qua API có giới hạn tốc độ; chạy lại sau sự cố không gọi trùng, không mất bản ghi.
 - **Token & độ chính xác:** Retry có kiểm soát + idempotency tránh trả tiền hai lần cho cùng một request.
+- **Trong lộ trình:** Bước B1 · Gọi LLM, structured output và gọi API bền vững (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)

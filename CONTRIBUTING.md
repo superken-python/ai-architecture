@@ -29,6 +29,13 @@
 4. `make catalog` — bộ kiểm tra sẽ báo **thiếu độ phủ** nếu một mảng Cốt lõi của nhóm mới chưa có kỹ năng Cốt lõi.
    Tầng của mọi kỹ năng (nền tảng/cầu nối/...) được tính lại tự động.
 
+### Sửa lộ trình học
+
+Sửa `catalog/roadmap.yaml` (giai đoạn → bước → kỹ năng + `level`), rồi `make catalog`. Bộ kiểm tra chặn: kỹ năng
+tiên quyết chưa xuất hiện ở bước trước, mức mục tiêu giảm so với bước trước, kỹ năng trong catalog không có mặt
+trong lộ trình, và trường lạ (thường do chuỗi có dấu phẩy trong `{...}` không đặt trong ngoặc kép).
+Xem lại trên web bằng `make site-serve`.
+
 ### Thêm một mảng kỹ năng mới
 
 Thêm vào `domains` trong `catalog/skills.yaml` (mã viết hoa, ngắn). Id kỹ năng của mảng phải bắt đầu bằng mã đó.
@@ -52,4 +59,5 @@ Tạo `docs/0N-<ten-giai-doan>/README.md`, rồi thêm một dòng vào bảng g
 ```bash
 make format   # tự sửa style
 make check    # lint + test + catalog-check + kiểm tra link tài liệu
+make site-test  # nếu sửa web/ hoặc dữ liệu hiển thị trên web
 ```
