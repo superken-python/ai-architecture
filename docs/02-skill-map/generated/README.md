@@ -28,6 +28,7 @@ Danh mục hiện có **65 kỹ năng** trong **10 mảng**, phủ **8 nhóm bà
 ## Các trang
 
 - [Ma trận kỹ năng × nhóm bài toán](ma-tran-ky-nang.md) — kỹ năng nào dùng cho nhóm nào, mức chia sẻ giữa các nhóm, đối chiếu với giai đoạn 1.
+- [Lộ trình theo bước](lo-trinh.md) — 4 giai đoạn, từng tuần học kỹ năng nào đến mức nào, nộp gì.
 - [Thứ tự học & kỹ năng đòn bẩy](thu-tu-hoc.md) — học gì trước, kỹ năng nào dùng được nhiều nhất.
 - [Tổ hợp kỹ năng](to-hop-ky-nang.md) — dự án ghép nhiều nhóm và kỹ năng "keo" ở điểm nối.
 - [Bảng tự đánh giá](tu-danh-gia.md) — đánh dấu từng mức của từng kỹ năng.

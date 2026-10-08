@@ -62,7 +62,8 @@ Mọi bảng trong `generated/` được sinh từ ba file YAML — **nguồn d�
 catalog/
 ├── problems.yaml       # 8 nhóm bài toán, 2 họ, ma trận giai đoạn 1
 ├── skills.yaml         # 10 mảng, 65 kỹ năng (mức, nhóm dùng, tiên quyết, công cụ, tiêu chí đạt)
-└── combinations.yaml   # 9 tổ hợp dự án ghép nhiều nhóm
+├── combinations.yaml   # 9 tổ hợp dự án ghép nhiều nhóm
+└── roadmap.yaml        # lộ trình 4 giai đoạn: từng bước, sản phẩm nộp, kỹ năng + mức mục tiêu
 ```
 
 Sửa YAML → `make catalog` (sinh lại tài liệu) → `make check`. Bộ kiểm tra tự động chặn: id trùng, tiên quyết

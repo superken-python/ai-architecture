@@ -10,6 +10,34 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-08 · Trang web lộ trình cho GitHub Pages
+
+**Đã làm**
+
+- `catalog/roadmap.yaml`: chuyển lộ trình theo tuần từ Markdown sang dữ liệu — 4 giai đoạn (A Nền tảng, B GenAI,
+  C Chuyên sâu, **D Nâng cao · Production** mới), 25 bước (việc cần làm, sản phẩm nộp, kỹ năng + mức mục tiêu),
+  5 hướng chuyên sâu, thanh ngang chữ T, thói quen xuyên suốt. Thêm câu hỏi nhận diện bài toán vào `problems.yaml`.
+- Bộ kiểm tra lộ trình: kỹ năng tiên quyết phải xuất hiện ở bước trước, mức mục tiêu không giảm, lộ trình phủ đủ
+  65/65 kỹ năng, chặn trường lạ (lỗi YAML do dấu phẩy chưa đặt trong ngoặc kép — đã gặp và sửa trong lúc làm).
+- Sinh `docs/02-skill-map/generated/lo-trinh.md`; thẻ kỹ năng có thêm dòng "Trong lộ trình"; `04-lo-trinh-hoc.md` rút
+  gọn còn nguyên tắc + liên kết.
+- `web/` + `src/aiarch/site.py`: trang một trang (HTML/CSS/JS thuần) gồm Tổng quan, Lộ trình, Nhóm bài toán (quiz 30 giây,
+  lộ trình 3 chặng mỗi nhóm), Kỹ năng (tìm không dấu, lọc), Ma trận + bản đồ nhiệt, Tổ hợp, Tiến độ (lưu trình duyệt,
+  xuất/nhập JSON); sáng/tối; vừa màn hình điện thoại.
+- `.github/workflows/pages.yml` triển khai lên Pages khi `main` đổi; CI thêm job kiểm thử trang bằng Chromium thật
+  (`scripts/smoke_site.py`, 23 trang × 2 cỡ màn hình); `make site`, `make site-serve`, `make site-test`.
+
+**Quyết định**
+
+- Không dùng framework/bundler: trang tĩnh thuần, dữ liệu nhúng vào `index.html` nên mở file trực tiếp cũng chạy.
+- Tiến độ chỉ lưu trong trình duyệt người xem (không backend); chuyển máy bằng file JSON.
+- Giai đoạn D là đề xuất thêm để có mức Nâng cao (lộ trình gốc dừng ở tháng 6) — cần chủ dự án duyệt.
+
+**Còn mở**
+
+- Bật Pages trong Settings (Source: GitHub Actions) — chỉ chủ repo làm được.
+- Review nội dung từng bước trong `catalog/roadmap.yaml`.
+
 ## 2026-10-05 · CMB-09 Data Agent OS — thiết kế v2 cho POC tối giản ([#4](https://github.com/superken-python/ai-architecture/pull/4))
 
 **Đã làm**

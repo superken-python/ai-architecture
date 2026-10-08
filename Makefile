@@ -5,7 +5,7 @@ UV ?= uv
 GROUPS := core tabular timeseries anomaly recsys vision llm agent optimization mlops
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-all $(addprefix setup-,$(GROUPS)) doctor catalog catalog-check lint format test check clean
+.PHONY: help setup setup-all $(addprefix setup-,$(GROUPS)) doctor catalog catalog-check site site-serve site-test lint format test check clean
 
 help: ## Hiện danh sách lệnh
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -33,6 +33,15 @@ catalog: ## Kiểm tra catalog/ và sinh lại docs/02-skill-map/generated/
 catalog-check: ## Báo lỗi nếu tài liệu sinh tự động đã cũ (dùng trong CI)
 	$(UV) run python -m aiarch.catalog build --check
 
+site: ## Sinh trang web (GitHub Pages) vào _site/
+	$(UV) run python -m aiarch.site build
+
+site-serve: ## Sinh trang web rồi mở http://localhost:8000
+	$(UV) run python -m aiarch.site serve
+
+site-test: ## Kiểm thử trang web bằng Chromium thật (Playwright)
+	$(UV) run --with playwright python scripts/smoke_site.py
+
 lint: ## Kiểm tra code style
 	$(UV) run ruff check .
 	$(UV) run ruff format --check .
@@ -47,5 +56,5 @@ test: ## Chạy test
 check: lint test catalog-check ## Chạy mọi kiểm tra như CI
 
 clean: ## Xóa file tạm
-	rm -rf .pytest_cache .ruff_cache
+	rm -rf .pytest_cache .ruff_cache _site
 	find . -name __pycache__ -type d -prune -exec rm -rf {} +

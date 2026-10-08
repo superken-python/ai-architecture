@@ -34,6 +34,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Mở khóa:** [EFF-02](../mang/eff.md#eff-02), [EFF-03](../mang/eff.md#eff-03), [EFF-04](../mang/eff.md#eff-04), [EFF-05](../mang/eff.md#eff-05), [EFF-06](../mang/eff.md#eff-06)
 - **Công cụ:** usage trong response API, endpoint đếm token của nhà cung cấp, Langfuse
 - **Đạt khi:** Có bảng baseline "chất lượng / chi phí mỗi tác vụ / độ trễ" trước khi áp dụng bất kỳ tối ưu nào.
+- **Trong lộ trình:** Bước B2 · Đo chi phí, tracing và golden set đầu tiên (Cơ bản) · Bước D3 · Chi phí và độ tin cậy của hệ LLM ở quy mô (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-02"></a>
 
@@ -55,6 +56,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Công cụ:** prompt caching của nhà cung cấp, Redis
 - **Đạt khi:** Tỷ lệ token đọc từ cache được đo hằng ngày; ở agent loop, phần lớn input đến từ cache.
 - **Token & độ chính xác:** Không đổi output → không ảnh hưởng độ chính xác (với cache prefix của nhà cung cấp). Semantic cache thì CÓ rủi ro, phải qua eval.
+- **Trong lộ trình:** Bước B6 · Tiết kiệm token có kiểm soát (Trung cấp) · Bước D3 · Chi phí và độ tin cậy của hệ LLM ở quy mô (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-03"></a>
 
@@ -76,6 +78,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Công cụ:** reranker, sqlglot, tokenizer
 - **Đạt khi:** Mỗi phần ngữ cảnh trong prompt đều có lý do tồn tại được chứng minh bằng ablation trên golden set.
 - **Token & độ chính xác:** Cắt ngữ cảnh CÓ thể làm giảm chính xác — luôn đo lại trên golden set; ngữ cảnh gọn thường còn tăng độ chính xác.
+- **Trong lộ trình:** Bước B6 · Tiết kiệm token có kiểm soát (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-04"></a>
 
@@ -97,6 +100,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Công cụ:** scikit-learn, PhoBERT, LLM API
 - **Đạt khi:** Đường coverage–accuracy của từng tầng được đo; tổng chi phí giảm trong khi độ chính xác chung không giảm ngoài biên sai số.
 - **Token & độ chính xác:** Rủi ro chính là tầng rẻ "tự tin sai" — ngưỡng chuyển tầng phải chọn bằng calibration (STAT-05), không chọn theo cảm giác.
+- **Trong lộ trình:** Bước B8 · Cascade và trình bày — mốc giai đoạn B (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) · Bước D3 · Chi phí và độ tin cậy của hệ LLM ở quy mô (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-05"></a>
 
@@ -117,6 +121,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Mở khóa:** —
 - **Công cụ:** structured outputs, tham số effort/reasoning của nhà cung cấp
 - **Đạt khi:** Token đầu ra trung bình mỗi tác vụ giảm mà eval không giảm; không có output bị cắt cụt.
+- **Trong lộ trình:** Bước B6 · Tiết kiệm token có kiểm soát (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-06"></a>
 
@@ -138,6 +143,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Công cụ:** Batch API của nhà cung cấp
 - **Đạt khi:** Toàn bộ eval và tác vụ offline chạy qua batch; kết quả được ghép lại theo custom_id, không theo thứ tự.
 - **Token & độ chính xác:** Cùng model, cùng prompt → cùng chất lượng, chỉ đổi độ trễ lấy giá; là tối ưu "miễn phí" về độ chính xác.
+- **Trong lộ trình:** Bước B6 · Tiết kiệm token có kiểm soát (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-07"></a>
 
@@ -159,6 +165,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Công cụ:** pydantic validators, sqlglot, regex, rapidfuzz
 - **Đạt khi:** Không có đầu ra nào được ghi vào hệ thống nghiệp vụ mà chưa qua kiểm chứng; tỷ lệ lỗi lọt được đo bằng kiểm tra mẫu định kỳ.
 - **Token & độ chính xác:** Lớp kiểm chứng cho phép dùng model rẻ hơn một cách an toàn — sai sẽ bị bắt và chuyển tầng, không lọt ra ngoài.
+- **Trong lộ trình:** Bước B5 · Đánh giá nghiêm túc và lớp kiểm chứng (Trung cấp) · Hướng Document AI (Nâng cao) · Bước D3 · Chi phí và độ tin cậy của hệ LLM ở quy mô (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="eff-08"></a>
 
@@ -179,3 +186,4 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 - **Mở khóa:** —
 - **Công cụ:** Claude Code, Cursor, GitHub Copilot, Makefile, pytest
 - **Đạt khi:** Phần lớn thay đổi do trợ lý AI tạo ra qua được test/lint ngay lần đầu.
+- **Trong lộ trình:** Thói quen xuyên suốt (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

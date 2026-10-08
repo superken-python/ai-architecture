@@ -34,6 +34,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Mở khóa:** [LLM-02](../mang/llm.md#llm-02), [LLM-06](../mang/llm.md#llm-06), [OPS-06](../mang/ops.md#ops-06), [EFF-01](../mang/eff.md#eff-01)
 - **Công cụ:** LLM API (Anthropic, OpenAI, Gemini…), Jinja2
 - **Đạt khi:** Mọi prompt nằm trong repo, có version, có golden set đi kèm và lịch sử thay đổi có số liệu.
+- **Trong lộ trình:** Bước B1 · Gọi LLM, structured output và gọi API bền vững (Cơ bản) · Thanh ngang chữ T · Nhóm 6 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-02"></a>
 
@@ -55,6 +56,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** pydantic, JSON Schema, instructor, outlines
 - **Đạt khi:** 100% output đi vào hệ thống phía sau đều qua validate; ca không hợp lệ được retry hoặc chuyển người, không bao giờ lọt.
 - **Token & độ chính xác:** Output ngắn theo schema (mã nhãn, enum) rẻ hơn văn xuôi nhiều lần và kiểm tra được tự động.
+- **Trong lộ trình:** Bước B1 · Gọi LLM, structured output và gọi API bền vững (Trung cấp) · Thanh ngang chữ T · Nhóm 6 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-03"></a>
 
@@ -76,6 +78,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** Qdrant, pgvector, BM25, cross-encoder reranker, Docling
 - **Đạt khi:** Golden set ~100 câu tiếng Việt có recall@k, faithfulness và độ đúng được đo; mọi câu trả lời có nguồn kiểm tra được.
 - **Token & độ chính xác:** Top-k nhỏ + rerank thay vì nhồi cả tài liệu; chunk sạch giảm token mà còn tăng độ chính xác.
+- **Trong lộ trình:** Bước B4 · RAG có trích dẫn (Trung cấp) · Thanh ngang chữ T · Nhóm 6 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-04"></a>
 
@@ -97,6 +100,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** pytest, Langfuse, promptfoo, Inspect
 - **Đạt khi:** Một lệnh `make eval` in ra chất lượng + chi phí + độ trễ, so với baseline, kèm khoảng tin cậy.
 - **Token & độ chính xác:** Không có eval thì không thể tối ưu token an toàn — mọi cắt giảm phải qua cổng eval.
+- **Trong lộ trình:** Bước B2 · Đo chi phí, tracing và golden set đầu tiên (Cơ bản) · Bước B5 · Đánh giá nghiêm túc và lớp kiểm chứng (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-05"></a>
 
@@ -118,6 +122,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** LangGraph, agent SDK của các hãng, MCP, Langfuse
 - **Đạt khi:** Agent báo giá chạy end-to-end, mọi hành động có log, bước gửi email luôn chờ người duyệt.
 - **Token & độ chính xác:** Workflow cố định rẻ và dễ kiểm chứng hơn agent tự chủ; ít tool, mô tả tool ngắn gọn giảm token mỗi lượt.
+- **Trong lộ trình:** Bước B7 · Tool calling, workflow và bảo mật LLM (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) · Thanh ngang chữ T · Nhóm 7 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-06"></a>
 
@@ -138,6 +143,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Mở khóa:** —
 - **Công cụ:** Presidio, guardrails, sandbox container
 - **Đạt khi:** Bộ test prompt injection nằm trong eval; agent không thể thực hiện hành động ngoài danh sách cho phép.
+- **Trong lộ trình:** Bước B7 · Tool calling, workflow và bảo mật LLM (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) · Bước D4 · Bảo mật, quyền và tuân thủ (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-07"></a>
 
@@ -159,6 +165,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** PEFT, TRL, Unsloth, vLLM
 - **Đạt khi:** Model distill đạt chất lượng trong biên sai số của model lớn trên golden set, với chi phí mỗi request thấp hơn rõ rệt.
 - **Token & độ chính xác:** Đòn bẩy chi phí mạnh nhất khi lưu lượng lớn và tác vụ ổn định — nhưng chỉ sau khi đã có eval vững.
+- **Trong lộ trình:** Hướng Document AI (Cơ bản) · Bước D3 · Chi phí và độ tin cậy của hệ LLM ở quy mô (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-08"></a>
 
@@ -180,3 +187,4 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** sqlglot, DuckDB, dbt semantic layer
 - **Đạt khi:** Trên golden set câu hỏi số liệu, kết quả truy vấn khớp 100% với đáp án ở phần được trả lời tự động; câu mơ hồ được hỏi lại.
 - **Token & độ chính xác:** Schema linking giảm mạnh token ngữ cảnh; con số do SQL tính chứ không do LLM tự "nhẩm" → chính xác tuyệt đối.
+- **Trong lộ trình:** Hướng LLM ứng dụng & Agent (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)

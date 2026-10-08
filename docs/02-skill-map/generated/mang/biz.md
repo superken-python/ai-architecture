@@ -33,6 +33,7 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 - **Công cụ:** Mẫu 1 trang framing (templates/project)
 - **Đạt khi:** Mục tiêu mơ hồ ("giảm churn") được viết lại thành bài toán đo được ("precision@500 mỗi tuần cho CSKH").
 - **Token & độ chính xác:** Framing đúng loại bỏ việc dùng LLM cho chỗ luật đơn giản làm được — khoản tiết kiệm lớn nhất là lời gọi không cần thực hiện.
+- **Trong lộ trình:** Bước A1 · Python, Git và framing bài toán (Cơ bản) · Bước C1 · Chọn hướng, hiểu nghiệp vụ và lấp khoảng trống (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="biz-02"></a>
 
@@ -53,6 +54,7 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 - **Mở khóa:** [LLM-04](../mang/llm.md#llm-04), [BIZ-03](../mang/biz.md#biz-03), [BIZ-04](../mang/biz.md#biz-04)
 - **Công cụ:** pytest, MLflow, Langfuse
 - **Đạt khi:** Ngày thứ 2 của dự án đã có con số baseline và một lệnh tái tạo nó.
+- **Trong lộ trình:** Bước A3 · Baseline và bộ đánh giá cố định (Cơ bản) · Bước C2 · Dự án chuyên sâu theo hướng đã chọn (Trung cấp) · Bước D5 · Phương pháp ở quy mô team (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="biz-03"></a>
 
@@ -74,6 +76,7 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 - **Công cụ:** Notebook, bảng tính, Label Studio, Langfuse
 - **Đạt khi:** Mỗi vòng cải tiến có bảng "nhóm lỗi – số ca – đã sửa – metric trước/sau".
 - **Token & độ chính xác:** Phân tích lỗi thường chỉ ra phần ngữ cảnh/prompt thừa — sửa đúng chỗ vừa tăng chính xác vừa giảm token.
+- **Trong lộ trình:** Bước A6 · Phân tích lỗi, giải thích và kiểm thử (Trung cấp) · Bước D5 · Phương pháp ở quy mô team (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="biz-04"></a>
 
@@ -94,6 +97,7 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 - **Mở khóa:** —
 - **Công cụ:** Streamlit, Gradio, matplotlib, slide
 - **Đạt khi:** Người ngoài ngành hiểu được kết quả và quyết định có triển khai hay không sau 10 phút trình bày.
+- **Trong lộ trình:** Bước A8 · Trình bày kết quả — mốc giai đoạn A (Cơ bản) · Bước B8 · Cascade và trình bày — mốc giai đoạn B (Trung cấp) · Bước C4 · Bảo vệ kết quả — mốc giai đoạn C (Trung cấp) · Bước D5 · Phương pháp ở quy mô team (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="biz-05"></a>
 
@@ -114,6 +118,7 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 - **Mở khóa:** —
 - **Công cụ:** Phỏng vấn người dùng, sơ đồ BPMN
 - **Đạt khi:** Người làm nghiệp vụ xác nhận sơ đồ quy trình và danh sách loại sai của bạn là đúng.
+- **Trong lộ trình:** Bước C1 · Chọn hướng, hiểu nghiệp vụ và lấp khoảng trống (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="biz-06"></a>
 
@@ -134,3 +139,4 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 - **Mở khóa:** —
 - **Công cụ:** arXiv, Papers with Code, Hugging Face
 - **Đạt khi:** Mỗi tuần một paper gắn với bài toán đang làm, có ghi chú và (khi được) kết quả tái hiện.
+- **Trong lộ trình:** Thói quen xuyên suốt (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

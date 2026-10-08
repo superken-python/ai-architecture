@@ -27,6 +27,19 @@ families:
     name: Họ dữ liệu phi cấu trúc & GenAI
     groups: [G5, G6, G7]
 
+# Nhận diện bài toán trong 30 giây (mục 1.2): đi từ trên xuống, dừng ở câu trả lời "Có" đầu tiên.
+identify:
+  questions:
+    - {q: "Cần thực hiện một chuỗi thao tác trên nhiều hệ thống (đọc, tra cứu, cập nhật, gửi)?", group: G7}
+    - {q: "Cần chọn phương án tốt nhất dưới ràng buộc, hoặc đo tác động thật của một hành động?", group: G8}
+    - {q: "Cần xếp hạng hoặc gợi ý mục phù hợp cho từng người?", group: G4}
+    - {q: "Đầu vào chính là ảnh, video hoặc tài liệu scan?", group: G5}
+    - {q: "Đầu vào là văn bản, giọng nói, hoặc cần hỏi đáp trên tài liệu?", group: G6}
+    - {q: "Cần dự báo một giá trị trong tương lai theo thời gian?", group: G2}
+    - {q: "Cần tìm điểm bất thường khi gần như không có nhãn?", group: G3}
+  fallback: G1
+  note: Dự án thực tế thường ghép nhiều nhóm — tách thành bài toán con rồi nhận diện từng phần.
+
 groups:
   - id: G1
     slug: g1-du-lieu-bang

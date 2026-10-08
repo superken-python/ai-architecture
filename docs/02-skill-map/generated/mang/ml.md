@@ -35,6 +35,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Công cụ:** scikit-learn, Optuna
 - **Đạt khi:** Có baseline trong 1–2 ngày và bảng so sánh mọi thí nghiệm trên cùng một tập đánh giá cố định.
 - **Token & độ chính xác:** TF-IDF + logistic regression phân loại văn bản gần như miễn phí — tầng đầu của cascade trước khi gọi LLM.
+- **Trong lộ trình:** Bước A3 · Baseline và bộ đánh giá cố định (Cơ bản) · Thanh ngang chữ T · Nhóm 1 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-02"></a>
 
@@ -55,6 +56,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Mở khóa:** [STAT-06](../mang/stat.md#stat-06), [ML-04](../mang/ml.md#ml-04), [ML-06](../mang/ml.md#ml-06), [ML-08](../mang/ml.md#ml-08)
 - **Công cụ:** LightGBM, XGBoost, CatBoost, TabPFN
 - **Đạt khi:** Một mô hình LightGBM vượt baseline có ý nghĩa thống kê trên backtest theo thời gian.
+- **Trong lộ trình:** Bước A5 · Gradient boosting, mất cân bằng và ngưỡng theo chi phí (Trung cấp) · Hướng Rủi ro & tín dụng (Nâng cao) · Thanh ngang chữ T · Nhóm 1 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-03"></a>
 
@@ -75,6 +77,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Mở khóa:** —
 - **Công cụ:** scikit-learn, imbalanced-learn
 - **Đạt khi:** Báo cáo metric theo đúng năng lực xử lý của đội vận hành (precision@k) thay vì accuracy.
+- **Trong lộ trình:** Bước A5 · Gradient boosting, mất cân bằng và ngưỡng theo chi phí (Trung cấp) · Hướng Rủi ro & tín dụng (Nâng cao) · Thanh ngang chữ T · Nhóm 3 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-04"></a>
 
@@ -95,6 +98,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Mở khóa:** —
 - **Công cụ:** SHAP, scikit-learn inspection, Captum
 - **Đạt khi:** Danh sách top khách cho CSKH có kèm 3 lý do dễ hiểu cho từng người.
+- **Trong lộ trình:** Bước A6 · Phân tích lỗi, giải thích và kiểm thử (Trung cấp) · Hướng Rủi ro & tín dụng (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-05"></a>
 
@@ -115,6 +119,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Mở khóa:** —
 - **Công cụ:** scikit-learn, PyOD
 - **Đạt khi:** Danh sách cảnh báo top-k có tỷ lệ đúng đủ cao để đội vận hành chấp nhận xử lý hằng ngày.
+- **Trong lộ trình:** Hướng Rủi ro & tín dụng (Trung cấp) · Thanh ngang chữ T · Nhóm 3 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-06"></a>
 
@@ -135,6 +140,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Mở khóa:** —
 - **Công cụ:** statsforecast, mlforecast, Darts, Chronos
 - **Đạt khi:** Backtest nhiều mốc cho thấy model giảm WAPE so với seasonal naive ở các mã hàng quan trọng.
+- **Trong lộ trình:** Hướng Dự báo & vận hành (Trung cấp) · Thanh ngang chữ T · Nhóm 2 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-07"></a>
 
@@ -156,6 +162,7 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Công cụ:** rank-bm25, Faiss, Qdrant, pgvector, sentence-transformers
 - **Đạt khi:** Đo được Recall@K của tầng truy xuất tách biệt với chất lượng cuối, và cải thiện từng tầng độc lập.
 - **Token & độ chính xác:** Truy xuất tốt cho phép gửi top-k nhỏ vào LLM thay vì cả tài liệu — đòn bẩy giảm token lớn nhất của RAG.
+- **Trong lộ trình:** Bước B3 · Văn bản tiếng Việt, embedding và truy xuất (Trung cấp) · Hướng Cá nhân hóa & tăng trưởng (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ml-08"></a>
 
@@ -176,3 +183,4 @@ Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuấ
 - **Mở khóa:** —
 - **Công cụ:** implicit, LightGBM LambdaRank, Faiss, RecBole
 - **Đạt khi:** ALS hoặc two-tower vượt baseline phổ biến về Recall@10 và NDCG@10 trên split theo thời gian.
+- **Trong lộ trình:** Hướng Cá nhân hóa & tăng trưởng (Trung cấp) · Thanh ngang chữ T · Nhóm 4 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

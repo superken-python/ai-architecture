@@ -33,6 +33,7 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Mở khóa:** [DATA-03](../mang/data.md#data-03), [LLM-08](../mang/llm.md#llm-08)
 - **Công cụ:** PostgreSQL, DuckDB, dbt
 - **Đạt khi:** Viết được truy vấn tạo bảng huấn luyện theo từng mốc thời gian, kết quả khớp với số liệu báo cáo chính thức.
+- **Trong lộ trình:** Bước A2 · SQL, xử lý bảng và thống kê mô tả (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="data-02"></a>
 
@@ -53,6 +54,7 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Mở khóa:** [DATA-03](../mang/data.md#data-03), [DATA-04](../mang/data.md#data-04), [DATA-05](../mang/data.md#data-05), [DATA-07](../mang/data.md#data-07), [ML-01](../mang/ml.md#ml-01)
 - **Công cụ:** pandas, polars, DuckDB, pyarrow
 - **Đạt khi:** Xử lý bảng 10 triệu dòng trên laptop trong vài phút, không sinh dòng trùng sau khi ghép.
+- **Trong lộ trình:** Bước A2 · SQL, xử lý bảng và thống kê mô tả (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="data-03"></a>
 
@@ -73,6 +75,7 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Mở khóa:** [DATA-04](../mang/data.md#data-04), [ML-06](../mang/ml.md#ml-06)
 - **Công cụ:** SQL window function, pandas merge_asof, scikit-learn TimeSeriesSplit
 - **Đạt khi:** Kết quả offline và kết quả chạy thật lệch nhau trong biên sai số đã ước lượng, không "đẹp bất thường".
+- **Trong lộ trình:** Bước A4 · Dữ liệu đúng thời điểm và feature (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="data-04"></a>
 
@@ -93,6 +96,7 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Mở khóa:** [OPS-07](../mang/ops.md#ops-07)
 - **Công cụ:** pandas, polars, Featuretools, lunardate hoặc lịch âm tự xây
 - **Đạt khi:** Feature mới cải thiện metric trên backtest theo thời gian, không chỉ trên split ngẫu nhiên.
+- **Trong lộ trình:** Bước A4 · Dữ liệu đúng thời điểm và feature (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="data-05"></a>
 
@@ -113,6 +117,7 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Mở khóa:** —
 - **Công cụ:** pandera, Great Expectations, cleanlab
 - **Đạt khi:** Pipeline tự dừng và báo lỗi rõ ràng khi dữ liệu đầu vào sai schema hoặc lệch phân phối mạnh.
+- **Trong lộ trình:** Bước A4 · Dữ liệu đúng thời điểm và feature (Cơ bản) · Bước D2 · Giám sát và vòng đời model (Nâng cao) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="data-06"></a>
 
@@ -134,6 +139,7 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Công cụ:** unicodedata, underthesea, pyvi, regex, datasketch
 - **Đạt khi:** Cùng một câu gõ bằng hai bộ gõ khác nhau cho ra cùng kết quả tìm kiếm; PII được che trước khi rời hệ thống.
 - **Token & độ chính xác:** Làm sạch boilerplate/HTML và khử trùng lặp trước khi gửi LLM giảm token đầu vào trực tiếp.
+- **Trong lộ trình:** Bước B3 · Văn bản tiếng Việt, embedding và truy xuất (Cơ bản) · Hướng LLM ứng dụng & Agent (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="data-07"></a>
 
@@ -154,3 +160,4 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 - **Mở khóa:** —
 - **Công cụ:** NetworkX, igraph, Neo4j, PyTorch Geometric
 - **Đạt khi:** Thêm đặc trưng đồ thị làm tăng precision@k của mô hình gian lận so với chỉ dùng đặc trưng bảng.
+- **Trong lộ trình:** Hướng Rủi ro & tín dụng (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)

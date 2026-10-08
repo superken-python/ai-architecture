@@ -1,4 +1,5 @@
 import copy
+import dataclasses
 
 import pytest
 
@@ -11,7 +12,7 @@ def cat() -> c.Catalog:
 
 
 def _with_skills(cat: c.Catalog, skills: list[dict]) -> c.Catalog:
-    return c.Catalog(cat.blocks, cat.families, cat.groups, cat.domains, skills, cat.combinations)
+    return dataclasses.replace(cat, skills=skills)
 
 
 def test_repo_catalog_is_valid(cat):

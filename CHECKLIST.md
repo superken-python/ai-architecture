@@ -25,7 +25,12 @@ Mã trong ngoặc (`ML-07`, `G6`, `CMB-08`) tham chiếu [danh mục kỹ năng]
 - [ ] **P1** Thử tải dữ liệu Kaggle và MovieLens theo `05-du-lieu-luyen-tap.md`.
 - [ ] **P1** Thêm mẫu issue GitHub: "Lab mới", "Dự án mới", "Tự đánh giá tuần", "Đề xuất sửa catalog".
 - [ ] **P2** Tạo GitHub Project (bảng Kanban) liên kết với checklist này.
-- [ ] **P2** Xuất bản đồ kỹ năng thành trang HTML/PDF để chia sẻ cho người không dùng GitHub.
+- [x] **P2** Xuất bản đồ kỹ năng thành trang HTML để chia sẻ cho người không dùng GitHub → trang web lộ trình (`web/`).
+- [ ] **P0** Bật GitHub Pages: Settings → Pages → Source: **GitHub Actions** (xem `web/README.md`), rồi kiểm tra trang
+      trên điện thoại và máy tính.
+- [ ] **P1** Review nội dung lộ trình theo bước (`catalog/roadmap.yaml`): việc cần làm, sản phẩm nộp, mức mục tiêu của
+      từng tuần; nội dung giai đoạn D (đề xuất mới) và 5 hướng chuyên sâu.
+- [ ] **P2** Gắn tên miền riêng hoặc thêm trang vào menu nội bộ của công ty (nếu cần).
 
 ## Giai đoạn 3 · Thư viện dùng chung `src/aiarch/` (làm song song với lab)
 
