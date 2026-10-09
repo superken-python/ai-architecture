@@ -10,6 +10,30 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-09 · Kế hoạch dự án Realtime Voice Translate (chỉ tài liệu)
+
+**Đã làm**
+
+- `projects/realtime-voice-translate/`: README (framing theo mẫu dự án) và
+  [kế hoạch triển khai chi tiết](projects/realtime-voice-translate/docs/01-ke-hoach-trien-khai.md) cho web điện thoại dịch
+  hội thoại trực tiếp Nhật ⇄ Anh ⇄ Việt: SLO, kiến trúc, chọn model cho GPU 8 GB, pipeline realtime, UI chia đôi, cấu trúc
+  thư mục theo best practice, Docker hai phần + HTTPS nội bộ, triển khai trên máy GPU, eval, kế hoạch P0–P6, rủi ro, ADR.
+
+**Quyết định** (đề xuất, chờ P0 đo)
+
+- Cascade Silero VAD → Whisper `large-v3-turbo` (LID giới hạn ja/en/vi + prior theo nửa màn hình) → Hy-MT2-1.8B qua
+  llama.cpp; ước tính 4,5–5 GB VRAM.
+- WebSocket thay vì WebRTC cho MVP: chưa phát âm thanh (TTS) nên chưa cần WebRTC.
+- Chỉ triển khai trên máy GPU (chủ dự án chốt): `make deploy` build image tại chỗ theo commit → chạy → smoke → tự
+  rollback khi lỗi; không dùng GitHub Actions để deploy.
+- Tạm bỏ ngrok (chủ dự án chốt): chỉ dùng trong mạng nội bộ; nginx phục vụ HTTPS bằng chứng chỉ mkcert vì điện thoại cần
+  HTTPS để dùng micro; giao diện, REST và WebSocket cùng một origin.
+
+**Còn mở**
+
+- Yêu cầu số 7 còn trống; GPU cụ thể; có tên miền riêng để làm HTTPS nội bộ không; có bật CI kiểm thử riêng không
+  → [CHECKLIST.md](CHECKLIST.md).
+
 ## 2026-10-08 · Trang web lộ trình cho GitHub Pages
 
 **Đã làm**
