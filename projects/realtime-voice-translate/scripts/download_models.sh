@@ -14,8 +14,9 @@ echo "======================================================"
 # 1. Download Silero VAD ONNX model
 VAD_MODEL="${MODELS_DIR}/silero_vad.onnx"
 if [[ ! -f "${VAD_MODEL}" ]]; then
-    echo "Downloading Silero VAD ONNX model (~1.8 MB)..."
-    curl -fsSL "https://raw.githubusercontent.com/snakers4/silero-vad/master/files/silero_vad.onnx" -o "${VAD_MODEL}"
+    echo "Downloading Silero VAD ONNX model (~2.3 MB)..."
+    curl -fsSL "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx" -o "${VAD_MODEL}" || \
+    curl -fsSL "https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx" -o "${VAD_MODEL}"
     echo "✓ Silero VAD downloaded: ${VAD_MODEL}"
 else
     echo "✓ Silero VAD already exists: ${VAD_MODEL}"

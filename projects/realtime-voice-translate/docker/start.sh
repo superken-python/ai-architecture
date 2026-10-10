@@ -217,8 +217,8 @@ fi
 # Ensure Silero VAD exists
 if [[ ! -f "${PROJECT_ROOT}/models/silero_vad.onnx" ]]; then
     echo -e "${CYAN}Đang chuẩn bị Silero VAD ONNX (~1.8 MB)...${NC}"
-    mkdir -p "${PROJECT_ROOT}/models"
-    curl -fsSL -o "${PROJECT_ROOT}/models/silero_vad.onnx" "https://raw.githubusercontent.com/snakers4/silero-vad/master/files/silero_vad.onnx" 2>/dev/null || true
+    curl -fsSL -o "${PROJECT_ROOT}/models/silero_vad.onnx" "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx" 2>/dev/null || \
+    curl -fsSL -o "${PROJECT_ROOT}/models/silero_vad.onnx" "https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx" 2>/dev/null || true
 fi
 
 # Execute Compose up
