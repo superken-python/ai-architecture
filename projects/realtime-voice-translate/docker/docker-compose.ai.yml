@@ -10,8 +10,7 @@ services:
       --port 8080
       -c 4096
       --parallel 4
-      --continuous-batching
-      --cache-prompt
+      -ngl 99
     volumes:
       - ../models:/models:ro
     environment:

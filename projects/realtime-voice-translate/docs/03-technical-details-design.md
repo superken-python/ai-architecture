@@ -100,8 +100,8 @@ $$\pi_{t} = (1 - \alpha)\pi_{t-1} + \alpha \mathbf{e}_{L} \quad (\alpha = 0.3)$$
 - **Engine:** `llama.cpp:server-cuda` chạy độc lập trong container `rvt_mt`.
 - **Model:** `Hy-MT2-1.8B` / `Hy-MT2-7B` định dạng GGUF (`Q4_K_M`), được huấn luyện chuyên sâu cho cặp ngôn ngữ Á Đông: Nhật, Anh, Việt.
 - **Tối ưu Hóa Server:**
-  - `--continuous-batching`: Gom nhóm động các token stream.
-  - `--cache-prompt`: Lưu cache KV của System Prompt và Glossary, giảm Time-to-First-Token (TTFT) xuống dưới 120 ms.
+  - `Continuous Batching (mặc định)`: Gom nhóm động các token stream theo luồng thực thi song song.
+  - `-ngl 99`: Offload toàn bộ các layer mô hình lên VRAM của GPU NVIDIA.
   - `--parallel 4`: Hỗ trợ 4 khe dịch song song (cho phép dịch đồng thời sang Nhật và Anh).
 - **Prompt Isolation Architecture:** Prompts được quản lý cách ly hoàn toàn qua Jinja2 template (`prompts/mt/hy-mt/default.j2`), tự động nạp ngữ cảnh 2 câu đối thoại trước đó và bảng thuật ngữ chuyên ngành (`packs/glossary/default.yaml`).
 - **Kiểm định Đầu ra & Guardrails (`MtValidator`):**
