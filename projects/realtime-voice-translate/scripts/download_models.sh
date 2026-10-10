@@ -29,13 +29,13 @@ if [[ ! -f "${MT_MODEL}" ]]; then
     echo "You can download Hy-MT2-1.8B Q4_K_M (~1.1 GB) from HuggingFace:"
     echo ""
     echo "  curl -L -o models/mt-model.gguf \\"
-    echo "    https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/main/hy-mt2-1.8b-q4_k_m.gguf"
+    echo "    https://huggingface.co/mradermacher/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B.Q4_K_M.gguf"
     echo ""
     read -p "Do you want to download Hy-MT2-1.8B GGUF now? (y/N): " -n 1 -r || true
     echo ""
     if [[ ${REPLY:-n} =~ ^[Yy]$ ]]; then
-        echo "Downloading Hy-MT2-1.8B GGUF model (~1.1 GB)..."
-        curl -L --progress-bar -o "${MT_MODEL}" "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/main/hy-mt2-1.8b-q4_k_m.gguf" || {
+        echo "Downloading Hy-MT2-1.8B GGUF model (~1.13 GB)..."
+        curl -L --fail --progress-bar -o "${MT_MODEL}" "https://huggingface.co/mradermacher/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B.Q4_K_M.gguf" || {
             echo "Failed to download from HuggingFace. You can manually copy any GGUF model to models/mt-model.gguf"
         }
     else
