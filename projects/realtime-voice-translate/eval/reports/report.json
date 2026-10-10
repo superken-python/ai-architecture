@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-10-10 02:03:38",
+  "total_test_cases": 6,
+  "valid_translations": 6,
+  "script_validation_rate": "100.0%",
+  "details": [
+    {
+      "sample_id": "golden-01",
+      "direction": "vi->ja",
+      "valid": true,
+      "latency_ms": 0,
+      "input": "Xin chào, hôm nay bạn thế nào?",
+      "output": "こんにちは、今日はお元気ですか？"
+    },
+    {
+      "sample_id": "golden-01",
+      "direction": "vi->en",
+      "valid": true,
+      "latency_ms": 0,
+      "input": "Xin chào, hôm nay bạn thế nào?",
+      "output": "Hello, how are you today?"
+    },
+    {
+      "sample_id": "golden-02",
+      "direction": "ja->vi",
+      "valid": true,
+      "latency_ms": 0,
+      "input": "今日は何時に会いましょうか？",
+      "output": "Hôm nay mình gặp nhau lúc mấy giờ?"
+    },
+    {
+      "sample_id": "golden-02",
+      "direction": "ja->en",
+      "valid": true,
+      "latency_ms": 0,
+      "input": "今日は何時に会いましょうか？",
+      "output": "What time shall we meet today?"
+    },
+    {
+      "sample_id": "golden-03",
+      "direction": "en->vi",
+      "valid": true,
+      "latency_ms": 0,
+      "input": "Could you please show me the way to the station?",
+      "output": "Bạn có thể chỉ đường cho tôi tới nhà ga được không?"
+    },
+    {
+      "sample_id": "golden-03",
+      "direction": "en->ja",
+      "valid": true,
+      "latency_ms": 0,
+      "input": "Could you please show me the way to the station?",
+      "output": "駅への道を教えていただけますか？"
+    }
+  ]
+}

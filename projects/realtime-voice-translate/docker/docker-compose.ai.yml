@@ -1,0 +1,56 @@
+services:
+  mt:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    container_name: rvt_mt
+    runtime: nvidia
+    restart: unless-stopped
+    command: >-
+      -m /models/mt-model.gguf
+      --host 0.0.0.0
+      --port 8080
+      -c 4096
+      --parallel 4
+      --continuous-batching
+      --cache-prompt
+    volumes:
+      - ../models:/models:ro
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - backend
+
+  ai:
+    build:
+      context: ../ai
+      dockerfile: Dockerfile
+    container_name: rvt_ai
+    runtime: nvidia
+    restart: unless-stopped
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - RVT_USE_FAKE=0
+      - RVT_MT_API_URL=http://mt:8080/v1
+      - RVT_PROFILE=balanced
+    volumes:
+      - ../models:/models:ro
+      - ../config:/app/config:ro
+      - ../packs:/app/packs:ro
+      - ../prompts:/app/prompts:ro
+    depends_on:
+      mt:
+        condition: service_healthy
+    networks:
+      - backend
+      - rvt_web_net
+
+networks:
+  backend:
+    name: rvt_backend_net
+    internal: true
+  rvt_web_net:
+    name: rvt_web_net

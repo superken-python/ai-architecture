@@ -1,0 +1,9 @@
+terms:
+  - source: "FastAPI"
+    target_ja: "FastAPI"
+    target_vi: "FastAPI"
+    target_en: "FastAPI"
+  - source: "WebSocket"
+    target_ja: "WebSocket"
+    target_vi: "WebSocket"
+    target_en: "WebSocket"

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#121212" />
+    <meta name="description" content="Dịch hội thoại trực tiếp Nhật ⇄ Anh ⇄ Việt trên điện thoại" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <title>Realtime Voice Translate</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #121212; overflow: hidden;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.log('SW registration error:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+name: "fake"
+description: "Fake engines for testing without model/GPU requirements"
+vad:
+  engine: "fake"
+  threshold: 0.5
+  min_speech_ms: 250
+  min_silence_ms: 500
+  speech_pad_ms: 200
+  preroll_ms: 300
+asr:
+  engine: "fake"
+  model: "fake"
+  device: "cpu"
+  compute_type: "float32"
+mt:
+  engine: "fake"
+  model: "fake"
+  temperature: 0.1
+  max_tokens: 256

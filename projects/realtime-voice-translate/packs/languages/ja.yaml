@@ -1,0 +1,8 @@
+name: "Japanese"
+code: "ja"
+native_name: "日本語"
+script_regex: "[\\p{Hiragana}\\p{Katakana}\\p{Han}]"
+hallucinations:
+  - "ご視聴ありがとうございました"
+  - "チャンネル登録よろしくお願いします"
+  - "ご覧いただきありがとうございました"

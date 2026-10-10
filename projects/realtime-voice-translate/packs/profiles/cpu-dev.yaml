@@ -1,0 +1,19 @@
+name: "cpu-dev"
+description: "CPU development profile with small real models"
+vad:
+  engine: "silero"
+  threshold: 0.5
+  min_speech_ms: 250
+  min_silence_ms: 500
+  speech_pad_ms: 200
+  preroll_ms: 300
+asr:
+  engine: "faster-whisper"
+  model: "tiny"
+  device: "cpu"
+  compute_type: "int8"
+mt:
+  engine: "llama-cpp"
+  model: "fake"
+  temperature: 0.1
+  max_tokens: 256

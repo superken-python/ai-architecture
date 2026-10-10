@@ -1,0 +1,25 @@
+models:
+  asr:
+    large-v3-turbo:
+      repo: "Systran/faster-whisper-large-v3-turbo"
+      revision: "main"
+      device: "cuda"
+      compute_type: "int8_float16"
+      license: "MIT"
+    tiny:
+      repo: "Systran/faster-whisper-tiny"
+      revision: "main"
+      device: "cpu"
+      compute_type: "int8"
+      license: "MIT"
+  vad:
+    silero:
+      repo: "snakers4/silero-vad"
+      file: "silero_vad.onnx"
+      sha256: "0c226a1beee0c184511d5cc5c4644eb9a7f5dfcd"
+      license: "MIT"
+  mt:
+    hy-mt2-1.8b:
+      repo: "tencent/Hy-MT2-1.8B-GGUF"
+      file: "hy-mt2-1.8b-q4_k_m.gguf"
+      license: "Apache-2.0"

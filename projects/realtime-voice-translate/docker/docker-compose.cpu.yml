@@ -1,0 +1,43 @@
+services:
+  ai:
+    build:
+      context: ../ai
+      dockerfile: Dockerfile
+    container_name: rvt_ai
+    restart: unless-stopped
+    environment:
+      - RVT_USE_FAKE=1
+      - RVT_PROFILE=fake
+    volumes:
+      - ../config:/app/config:ro
+      - ../packs:/app/packs:ro
+      - ../prompts:/app/prompts:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - rvt_web_net
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    container_name: rvt_web
+    restart: unless-stopped
+    ports:
+      - "8443:443"
+      - "8080:80"
+    volumes:
+      - ../config/tls:/etc/nginx/tls:ro
+    depends_on:
+      ai:
+        condition: service_started
+    networks:
+      - rvt_web_net
+
+networks:
+  rvt_web_net:
+    name: rvt_web_net

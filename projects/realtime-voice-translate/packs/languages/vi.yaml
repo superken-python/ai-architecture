@@ -1,0 +1,8 @@
+name: "Vietnamese"
+code: "vi"
+native_name: "Tiếng Việt"
+script_regex: "[a-zA-ZÀ-ỹ]"
+hallucinations:
+  - "Hãy subscribe cho kênh"
+  - "Cảm ơn các bạn đã theo dõi"
+  - "Nhớ like và chia sẻ nhé"

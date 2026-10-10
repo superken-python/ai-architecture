@@ -1,0 +1,3 @@
+{"id": "golden-01", "audio_path": "evals/vi_01.wav", "lang": "vi", "reference_text": "Xin chào, hôm nay bạn thế nào?", "translations": {"ja": "こんにちは、今日はお元気ですか？", "en": "Hello, how are you today?"}}
+{"id": "golden-02", "audio_path": "evals/ja_01.wav", "lang": "ja", "reference_text": "今日は何時に会いましょうか？", "translations": {"vi": "Hôm nay mình gặp nhau lúc mấy giờ?", "en": "What time shall we meet today?"}}
+{"id": "golden-03", "audio_path": "evals/en_01.wav", "lang": "en", "reference_text": "Could you please show me the way to the station?", "translations": {"vi": "Bạn có thể chỉ đường cho tôi tới nhà ga được không?", "ja": "駅への道を教えていただけますか？"}}

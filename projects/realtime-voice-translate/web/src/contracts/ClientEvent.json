@@ -1,0 +1,214 @@
+{
+  "$defs": {
+    "AudioConfig": {
+      "properties": {
+        "rate": {
+          "title": "Rate",
+          "type": "integer"
+        },
+        "format": {
+          "title": "Format",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rate",
+        "format"
+      ],
+      "title": "AudioConfig",
+      "type": "object"
+    },
+    "Ping": {
+      "properties": {
+        "type": {
+          "const": "ping",
+          "default": "ping",
+          "title": "Type",
+          "type": "string"
+        },
+        "t": {
+          "title": "T",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "Ping",
+      "type": "object"
+    },
+    "SessionStart": {
+      "properties": {
+        "type": {
+          "const": "session.start",
+          "default": "session.start",
+          "title": "Type",
+          "type": "string"
+        },
+        "protocol": {
+          "title": "Protocol",
+          "type": "integer"
+        },
+        "audio": {
+          "$ref": "#/$defs/AudioConfig"
+        },
+        "sides": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SideConfig"
+          },
+          "propertyNames": {
+            "enum": [
+              "A",
+              "B"
+            ]
+          },
+          "title": "Sides",
+          "type": "object"
+        }
+      },
+      "required": [
+        "protocol",
+        "audio",
+        "sides"
+      ],
+      "title": "SessionStart",
+      "type": "object"
+    },
+    "SideConfig": {
+      "properties": {
+        "lang": {
+          "title": "Lang",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lang"
+      ],
+      "title": "SideConfig",
+      "type": "object"
+    },
+    "SidesUpdate": {
+      "properties": {
+        "type": {
+          "const": "sides.update",
+          "default": "sides.update",
+          "title": "Type",
+          "type": "string"
+        },
+        "sides": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SideConfig"
+          },
+          "propertyNames": {
+            "enum": [
+              "A",
+              "B"
+            ]
+          },
+          "title": "Sides",
+          "type": "object"
+        }
+      },
+      "required": [
+        "sides"
+      ],
+      "title": "SidesUpdate",
+      "type": "object"
+    },
+    "TurnStart": {
+      "properties": {
+        "type": {
+          "const": "turn.start",
+          "default": "turn.start",
+          "title": "Type",
+          "type": "string"
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "title": "Side",
+          "type": "string"
+        }
+      },
+      "required": [
+        "side"
+      ],
+      "title": "TurnStart",
+      "type": "object"
+    },
+    "TurnStop": {
+      "properties": {
+        "type": {
+          "const": "turn.stop",
+          "default": "turn.stop",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "TurnStop",
+      "type": "object"
+    },
+    "UtteranceOverrideLang": {
+      "properties": {
+        "type": {
+          "const": "utterance.override_lang",
+          "default": "utterance.override_lang",
+          "title": "Type",
+          "type": "string"
+        },
+        "utterance_id": {
+          "title": "Utterance Id",
+          "type": "integer"
+        },
+        "lang": {
+          "enum": [
+            "ja",
+            "en",
+            "vi"
+          ],
+          "title": "Lang",
+          "type": "string"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "lang"
+      ],
+      "title": "UtteranceOverrideLang",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "ping": "#/$defs/Ping",
+      "session.start": "#/$defs/SessionStart",
+      "sides.update": "#/$defs/SidesUpdate",
+      "turn.start": "#/$defs/TurnStart",
+      "turn.stop": "#/$defs/TurnStop",
+      "utterance.override_lang": "#/$defs/UtteranceOverrideLang"
+    },
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SessionStart"
+    },
+    {
+      "$ref": "#/$defs/TurnStart"
+    },
+    {
+      "$ref": "#/$defs/TurnStop"
+    },
+    {
+      "$ref": "#/$defs/UtteranceOverrideLang"
+    },
+    {
+      "$ref": "#/$defs/SidesUpdate"
+    },
+    {
+      "$ref": "#/$defs/Ping"
+    }
+  ]
+}

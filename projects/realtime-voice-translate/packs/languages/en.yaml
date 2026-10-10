@@ -1,0 +1,8 @@
+name: "English"
+code: "en"
+native_name: "English"
+script_regex: "[a-zA-Z]"
+hallucinations:
+  - "Thank you for watching"
+  - "Please subscribe to our channel"
+  - "Don't forget to like and subscribe"

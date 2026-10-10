@@ -82,6 +82,11 @@ mlops = ["fastapi", "uvicorn", "mlflow", "evidently"]
 [tool.uv]
 default-groups = ["dev"]
 
+[tool.uv.workspace]
+members = [
+    "projects/realtime-voice-translate/ai",
+]
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"

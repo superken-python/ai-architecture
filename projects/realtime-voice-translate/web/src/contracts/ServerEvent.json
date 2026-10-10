@@ -1,0 +1,405 @@
+{
+  "$defs": {
+    "AsrFinal": {
+      "properties": {
+        "type": {
+          "const": "asr.final",
+          "default": "asr.final",
+          "title": "Type",
+          "type": "string"
+        },
+        "utterance_id": {
+          "title": "Utterance Id",
+          "type": "integer"
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "lang": {
+          "enum": [
+            "ja",
+            "en",
+            "vi"
+          ],
+          "title": "Lang",
+          "type": "string"
+        },
+        "lang_probs": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "propertyNames": {
+            "enum": [
+              "ja",
+              "en",
+              "vi"
+            ]
+          },
+          "title": "Lang Probs",
+          "type": "object"
+        },
+        "uncertain": {
+          "title": "Uncertain",
+          "type": "boolean"
+        },
+        "audio_ms": {
+          "title": "Audio Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "side",
+        "text",
+        "lang",
+        "lang_probs",
+        "uncertain",
+        "audio_ms"
+      ],
+      "title": "AsrFinal",
+      "type": "object"
+    },
+    "AsrPartial": {
+      "properties": {
+        "type": {
+          "const": "asr.partial",
+          "default": "asr.partial",
+          "title": "Type",
+          "type": "string"
+        },
+        "utterance_id": {
+          "title": "Utterance Id",
+          "type": "integer"
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "lang": {
+          "anyOf": [
+            {
+              "enum": [
+                "ja",
+                "en",
+                "vi"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lang"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "side",
+        "text"
+      ],
+      "title": "AsrPartial",
+      "type": "object"
+    },
+    "ErrorEvent": {
+      "properties": {
+        "type": {
+          "const": "error",
+          "default": "error",
+          "title": "Type",
+          "type": "string"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "utterance_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utterance Id"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "ErrorEvent",
+      "type": "object"
+    },
+    "MtDelta": {
+      "properties": {
+        "type": {
+          "const": "mt.delta",
+          "default": "mt.delta",
+          "title": "Type",
+          "type": "string"
+        },
+        "utterance_id": {
+          "title": "Utterance Id",
+          "type": "integer"
+        },
+        "target": {
+          "enum": [
+            "ja",
+            "en",
+            "vi"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "delta": {
+          "title": "Delta",
+          "type": "string"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "target",
+        "delta"
+      ],
+      "title": "MtDelta",
+      "type": "object"
+    },
+    "MtFinal": {
+      "properties": {
+        "type": {
+          "const": "mt.final",
+          "default": "mt.final",
+          "title": "Type",
+          "type": "string"
+        },
+        "utterance_id": {
+          "title": "Utterance Id",
+          "type": "integer"
+        },
+        "target": {
+          "enum": [
+            "ja",
+            "en",
+            "vi"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "target",
+        "text"
+      ],
+      "title": "MtFinal",
+      "type": "object"
+    },
+    "Pong": {
+      "properties": {
+        "type": {
+          "const": "pong",
+          "default": "pong",
+          "title": "Type",
+          "type": "string"
+        },
+        "t": {
+          "title": "T",
+          "type": "integer"
+        },
+        "server_t": {
+          "title": "Server T",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "server_t"
+      ],
+      "title": "Pong",
+      "type": "object"
+    },
+    "SessionReady": {
+      "properties": {
+        "type": {
+          "const": "session.ready",
+          "default": "session.ready",
+          "title": "Type",
+          "type": "string"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "profile": {
+          "title": "Profile",
+          "type": "string"
+        },
+        "pack_revision": {
+          "title": "Pack Revision",
+          "type": "string"
+        },
+        "models": {
+          "additionalProperties": true,
+          "title": "Models",
+          "type": "object"
+        }
+      },
+      "required": [
+        "session_id",
+        "profile",
+        "pack_revision",
+        "models"
+      ],
+      "title": "SessionReady",
+      "type": "object"
+    },
+    "UtteranceMetrics": {
+      "properties": {
+        "type": {
+          "const": "utterance.metrics",
+          "default": "utterance.metrics",
+          "title": "Type",
+          "type": "string"
+        },
+        "utterance_id": {
+          "title": "Utterance Id",
+          "type": "integer"
+        },
+        "asr_ms": {
+          "title": "Asr Ms",
+          "type": "integer"
+        },
+        "mt_ms": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "ja",
+              "en",
+              "vi"
+            ]
+          },
+          "title": "Mt Ms",
+          "type": "object"
+        },
+        "e2e_ms": {
+          "title": "E2E Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "asr_ms",
+        "mt_ms",
+        "e2e_ms"
+      ],
+      "title": "UtteranceMetrics",
+      "type": "object"
+    },
+    "Vad": {
+      "properties": {
+        "type": {
+          "const": "vad",
+          "default": "vad",
+          "title": "Type",
+          "type": "string"
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "speaking": {
+          "title": "Speaking",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "side",
+        "speaking"
+      ],
+      "title": "Vad",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "asr.final": "#/$defs/AsrFinal",
+      "asr.partial": "#/$defs/AsrPartial",
+      "error": "#/$defs/ErrorEvent",
+      "mt.delta": "#/$defs/MtDelta",
+      "mt.final": "#/$defs/MtFinal",
+      "pong": "#/$defs/Pong",
+      "session.ready": "#/$defs/SessionReady",
+      "utterance.metrics": "#/$defs/UtteranceMetrics",
+      "vad": "#/$defs/Vad"
+    },
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SessionReady"
+    },
+    {
+      "$ref": "#/$defs/Vad"
+    },
+    {
+      "$ref": "#/$defs/AsrPartial"
+    },
+    {
+      "$ref": "#/$defs/AsrFinal"
+    },
+    {
+      "$ref": "#/$defs/MtDelta"
+    },
+    {
+      "$ref": "#/$defs/MtFinal"
+    },
+    {
+      "$ref": "#/$defs/UtteranceMetrics"
+    },
+    {
+      "$ref": "#/$defs/ErrorEvent"
+    },
+    {
+      "$ref": "#/$defs/Pong"
+    }
+  ]
+}

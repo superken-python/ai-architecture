@@ -1,0 +1,19 @@
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: rvt_web
+    ports:
+      - "8443:443"
+      - "8080:80"
+    volumes:
+      - ./config/tls:/etc/nginx/tls:ro
+    depends_on:
+      - ai
+    networks:
+      - rvt_web_net
+
+networks:
+  rvt_web_net:
+    name: rvt_web_net
