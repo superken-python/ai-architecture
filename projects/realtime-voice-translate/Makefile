@@ -1,9 +1,10 @@
-.PHONY: help setup test test-e2e eval bench smoke clean tls up down pdf
+.PHONY: help setup test test-e2e eval bench smoke clean tls models up down pdf
 
 help:
 	@echo "Available commands:"
 	@echo "  make setup     - Install dependencies for ai and web"
 	@echo "  make tls       - Generate local TLS certs for nginx (requires mkcert)"
+	@echo "  make models    - Download required AI models (Silero VAD & GGUF)"
 	@echo "  make test      - Run unit & integration tests for ai and web"
 	@echo "  make test-e2e  - Run Playwright E2E browser tests for web"
 	@echo "  make eval      - Run golden set evaluation metrics"
@@ -18,6 +19,9 @@ tls:
 	mkdir -p config/tls
 	mkcert -install
 	mkcert -key-file config/tls/key.pem -cert-file config/tls/cert.pem localhost 127.0.0.1 ::1 $$(hostname -I 2>/dev/null | awk '{print $$1}' || echo "127.0.0.1")
+
+models:
+	./scripts/download_models.sh
 
 setup:
 	cd ai && uv sync

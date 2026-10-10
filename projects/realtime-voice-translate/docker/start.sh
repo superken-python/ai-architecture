@@ -177,8 +177,11 @@ fi
 
 # Check if model exists for GPU mode
 if [[ "${MODE}" == "gpu" && ! -f "${PROJECT_ROOT}/models/mt-model.gguf" ]]; then
-    echo -e "${YELLOW}[NOTE] models/mt-model.gguf not found.${NC}"
-    echo -e "${YELLOW}If mt service fails to start, download the GGUF model into models/ or use CPU/fake mode with: ./start.sh --cpu${NC}"
+    echo -e "${YELLOW}⚠️  LƯU Ý: Không tìm thấy file 'models/mt-model.gguf'!${NC}"
+    echo -e "${YELLOW}Container 'mt' (llama.cpp) cần file model GGUF để khởi động.${NC}"
+    echo -e "${CYAN}• Tải model: Chạy lệnh ${GREEN}make models${NC} ${CYAN}hoặc tải Hy-MT2 GGUF vào models/mt-model.gguf${NC}"
+    echo -e "${CYAN}• Chạy ngay không cần model nặng: Chạy ${GREEN}./start.sh --cpu${NC}${CYAN} (chế độ test/dev)${NC}"
+    echo ""
 fi
 
 # Execute Compose up
