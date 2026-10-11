@@ -99,5 +99,27 @@ describe('useStore', () => {
     expect(cleanTranslationText("Thank you. I'm sorry, I'm not sure what you mean.")).toBe("Thank you.");
     expect(cleanTranslationText("Hello! Note: This is an explanation.")).toBe("Hello!");
   });
+
+  it('removes ghost partial utterances when asr.final has empty text', () => {
+    // 1. Partial arrives
+    useStore.getState().handleServerEvent({
+      type: 'asr.partial',
+      utterance_id: 99,
+      side: 'A',
+      text: 'Âm thanh ngẫu nhiên',
+    });
+    expect(useStore.getState().utterances[99]).toBeDefined();
+
+    // 2. Final arrives with empty text (silence/noise)
+    useStore.getState().handleServerEvent({
+      type: 'asr.final',
+      utterance_id: 99,
+      side: 'A',
+      text: '',
+    });
+
+    // 3. Ghost partial must be removed completely
+    expect(useStore.getState().utterances[99]).toBeUndefined();
+  });
 });
 

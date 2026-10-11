@@ -65,6 +65,9 @@ class RVTSession:
             "B": {"vi": 0.33, "en": 0.33, "ja": 0.33},
         }
         self.utterance_id_counter = 0
+        self.last_partial_uid: int | None = None
+        self.last_partial_text: str = ""
+        self.last_partial_lang: Lang = "vi"
 
         # In-memory recent utterances audio buffer (LRU max 10) for utterance.override_lang
         self.recent_audio: OrderedDict[int, bytes] = OrderedDict()
@@ -139,15 +142,14 @@ class RVTSession:
         elif was_speaking and not self.segmenter.is_speaking and not should_final:
             logger.debug(f"[{self.session_id}] VAD: segment shorter than min_speech_ms dropped on Side {side}")
 
-        if should_partial and len(buffer) > 0:
-            uid = self.utterance_id_counter
-            asyncio.create_task(self._process_partial_audio(buffer, side, uid))
-
         if should_final and len(buffer) > 0:
             duration_ms = len(buffer) * 1000 // 32000
             logger.info(f"[{self.session_id}] ⏱️ Segmenter: Speech ended, final audio ({duration_ms}ms)")
             task = asyncio.create_task(self._process_final_audio(buffer, side, self.segmenter.last_stats))
             self.active_tasks.append(task)
+        elif should_partial and len(buffer) > 0:
+            uid = self.utterance_id_counter
+            asyncio.create_task(self._process_partial_audio(buffer, side, uid))
 
     async def handle_override_lang(self, utterance_id: int, new_lang: Lang) -> None:
         self.last_activity_time = time.time()
@@ -200,6 +202,9 @@ class RVTSession:
                 audio, force_lang=force_lang, is_final=False, session_id=self.session_id
             )
             if text and self.current_side == side:
+                self.last_partial_uid = uid
+                self.last_partial_text = text
+                self.last_partial_lang = lang
                 await self.send_event(AsrPartial(utterance_id=uid, side=side, text=text, lang=lang))
         except Exception as e:
             logger.debug(f"Partial ASR error: {e}")
@@ -221,15 +226,42 @@ class RVTSession:
         if self.sides_config[side] != "auto":
             force_lang = self.sides_config[side]
 
-        text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
-            audio, force_lang=force_lang, is_final=True, session_id=self.session_id
-        )
+        try:
+            text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
+                audio, force_lang=force_lang, is_final=True, session_id=self.session_id
+            )
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Final transcribe error: {e}")
+            text, detected_lang, asr_probs = "", "vi", {}
+
+        # Rescue from partial if final Whisper returned empty but partial had valid recognized speech
+        if (not text or not text.strip()) and self.last_partial_uid == uid and self.last_partial_text:
+            logger.info(
+                f"[{self.session_id}] Rescuing final text from previous partial for uid={uid}: "
+                f"'{self.last_partial_text}'"
+            )
+            text = self.last_partial_text
+            detected_lang = self.last_partial_lang
 
         if not text or not text.strip():
             logger.info(
                 f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping "
                 f"[side={side}, {_audio_summary(audio, stats)}]"
             )
+            # If client received a partial card for this uid, tell client to finalize with empty text
+            # so the client clears the ghost card instead of leaving it stuck
+            if self.last_partial_uid == uid:
+                await self.send_event(
+                    AsrFinal(
+                        utterance_id=uid,
+                        side=side,
+                        text="",
+                        lang=force_lang or "vi",
+                        lang_probs={},
+                        uncertain=False,
+                        audio_ms=len(audio) * 1000 // 32000,
+                    )
+                )
             return
 
         # Check for potential language mismatch (locked to one lang, but speech detected strongly as another)

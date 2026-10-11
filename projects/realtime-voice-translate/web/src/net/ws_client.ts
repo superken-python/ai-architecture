@@ -72,6 +72,12 @@ class RVTClient {
     }
   }
 
+  sendAudioChunk(data: ArrayBuffer) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(data);
+    }
+  }
+
   private workletLoaded: boolean = false;
 
   async startAudio(side: Side, source: 'mic' | 'tab' = 'mic') {

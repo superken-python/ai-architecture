@@ -33,8 +33,6 @@ HALLUCINATIONS = [
     r"subtitles by",
     r"transcribed by",
     r"amara\.org",
-    # Japanese silence hallucinations
-    r"^\s*(?:ご視聴ありがとうございました|チャンネル登録.*|お疲れ様でした)\s*$",
 ]
 
 
@@ -115,9 +113,6 @@ class FasterWhisperEngine(AsrEngine):
             if re.search(pat, text, re.IGNORECASE):
                 # If it's a polite "thank you" / "thanks", only discard if energy was low (ambient silence)
                 if re.search(r"^\s*(?:thank you|thanks)\.?\s*$", text, re.IGNORECASE) and rms >= 0.015:
-                    continue
-                # If it's Japanese polite ending, only discard if low energy
-                if re.search(r"^\s*(?:ご視聴ありがとうございました|お疲れ様でした)\s*$", text) and rms >= 0.015:
                     continue
                 logger.info(f"Discarded known Whisper hallucination: '{text}' (matched {pat})")
                 text = ""

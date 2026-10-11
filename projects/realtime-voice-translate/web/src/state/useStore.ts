@@ -116,6 +116,12 @@ export const useStore = create<AppState>((set, get) => ({
 
         case "asr.final":
           {
+            if (!event.text || !event.text.trim()) {
+              // Final audio was silence or noise; remove ghost partial utterance if it existed
+              delete newUtterances[event.utterance_id];
+              return { utterances: newUtterances };
+            }
+
             const existing = newUtterances[event.utterance_id] || {
               id: event.utterance_id,
               side: event.side as Side,
