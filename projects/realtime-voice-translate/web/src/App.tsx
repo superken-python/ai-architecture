@@ -41,8 +41,8 @@ const App: React.FC = () => {
     clearHistory
   } = useStore();
 
-  const [fontSizeA, setFontSizeA] = useState<number>(15);
-  const [fontSizeB, setFontSizeB] = useState<number>(15);
+  const [fontSizeA, setFontSizeA] = useState<number>(13);
+  const [fontSizeB, setFontSizeB] = useState<number>(13);
   const [showThirdLang, setShowThirdLang] = useState<boolean>(true);
   const [overrideModal, setOverrideModal] = useState<{ uid: number; current: string } | null>(null);
 
@@ -119,17 +119,17 @@ const App: React.FC = () => {
       return (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '20px' }}>
           {isMicActive && activeSide === side ? (
-            <div style={{ color: '#4ade80', fontStyle: 'italic', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '28px' }}>🎙️</span>
-              <span style={{ fontWeight: 600 }}>Đang lắng nghe...</span>
-              <span style={{ fontSize: '13px', color: '#86efac' }}>Nói tự nhiên, hệ thống sẽ tự ngắt câu và dịch liên tục. Nhấn DỪNG MIC khi nói xong.</span>
+            <div style={{ color: '#4ade80', fontStyle: 'italic', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '24px' }}>🎙️</span>
+              <span style={{ fontWeight: 600, fontSize: '13px' }}>Đang lắng nghe...</span>
+              <span style={{ fontSize: '11px', color: '#86efac' }}>Nói tự nhiên, hệ thống sẽ tự ngắt câu và dịch liên tục. Nhấn DỪNG MIC khi nói xong.</span>
             </div>
           ) : isMicActive && activeSide !== side ? (
-            <div style={{ color: '#60a5fa', fontStyle: 'italic' }}>
+            <div style={{ color: '#60a5fa', fontStyle: 'italic', fontSize: '12px' }}>
               <span>🎙️ Bên đối diện đang nói... Bản dịch sẽ hiển thị tại đây.</span>
             </div>
           ) : (
-            <div style={{ color: '#666', fontStyle: 'italic', fontSize: '15px' }}>
+            <div style={{ color: '#666', fontStyle: 'italic', fontSize: '12px' }}>
               Chạm vào nút <strong>BẬT MIC {side}</strong> bên dưới để bắt đầu nói...
             </div>
           )}
@@ -145,8 +145,8 @@ const App: React.FC = () => {
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
-          padding: '8px 4px',
+          gap: '8px',
+          padding: '4px 2px',
           WebkitOverflowScrolling: 'touch'
         }}
       >
@@ -178,17 +178,17 @@ const App: React.FC = () => {
               key={u.id}
               style={{
                 backgroundColor: isSpeaker ? '#1e293b' : '#18181b',
-                borderLeft: isSpeaker ? '4px solid #3b82f6' : '4px solid #10b981',
+                borderLeft: isSpeaker ? '3px solid #3b82f6' : '3px solid #10b981',
                 borderRadius: '8px',
-                padding: '12px 14px',
+                padding: '8px 12px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
+                gap: '2px',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
               }}
             >
               {/* Header row: Speaker and badges */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#94a3b8' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#94a3b8' }}>
                 <span style={{ fontWeight: 600, color: isSpeaker ? '#60a5fa' : '#34d399' }}>
                   {isSpeaker ? `Bạn (Bên ${side})` : `Đối phương (Bên ${u.side})`}
                 </span>
@@ -198,10 +198,10 @@ const App: React.FC = () => {
                       onClick={() => setOverrideModal({ uid: u.id, current: spokenLang })}
                       title="Chạm để đổi ngôn ngữ câu"
                       style={{
-                        fontSize: '11px',
+                        fontSize: '10px',
                         backgroundColor: u.uncertain ? '#ea580c' : '#2563eb',
                         color: '#fff',
-                        padding: '2px 6px',
+                        padding: '1px 5px',
                         borderRadius: '10px',
                         cursor: 'pointer',
                         userSelect: 'none'
@@ -211,7 +211,7 @@ const App: React.FC = () => {
                     </span>
                   )}
                   {!u.isFinal && (
-                    <span style={{ color: '#f59e0b', fontSize: '11px', fontStyle: 'italic' }}>
+                    <span style={{ color: '#f59e0b', fontSize: '10px', fontStyle: 'italic' }}>
                       ● đang xử lý...
                     </span>
                   )}
@@ -219,27 +219,17 @@ const App: React.FC = () => {
               </div>
 
               {/* Main Text */}
-              <div style={{ fontSize: `${fontSize}px`, fontWeight: 500, lineHeight: 1.4, wordBreak: 'break-word', color: '#f8fafc', marginTop: '2px' }}>
+              <div style={{ fontSize: `${fontSize}px`, fontWeight: 500, lineHeight: 1.35, wordBreak: 'break-word', color: '#f8fafc', marginTop: '1px' }}>
                 {mainText || (u.isSpeaking ? "… đang nghe" : "…")}
               </div>
-
-              {/* If other side spoke (listener view): show speaker language badge and original words */}
-              {!isSpeaker && u.originalText && (
-                <div style={{ marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '4px', fontSize: `${Math.max(11, fontSize - 4)}px`, color: '#94a3b8', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '4px', color: '#e2e8f0' }}>
-                    {LANG_LABELS[spokenLang] || spokenLang.toUpperCase()}
-                  </span>
-                  <span>{u.originalText}</span>
-                </div>
-              )}
             </div>
           );
         })}
 
         {/* Live listening status indicator at bottom of stream */}
         {isMicActive && activeSide === side && (
-          <div style={{ color: '#4ade80', fontSize: '13px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 8px' }}>
-            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: vadSpeaking[side] ? '#ef4444' : '#22c55e' }} />
+          <div style={{ color: '#4ade80', fontSize: '11px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 6px' }}>
+            <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: vadSpeaking[side] ? '#ef4444' : '#22c55e' }} />
             <span>{vadSpeaking[side] ? '🎙️ Đang ghi nhận giọng nói...' : '🎙️ Đang nghe... Hãy nói tiếp hoặc nhấn DỪNG MIC khi xong.'}</span>
           </div>
         )}
@@ -262,18 +252,19 @@ const App: React.FC = () => {
       )}
 
       {/* Side B - Top half (Rotated 180° for opposite person) */}
-      <div style={{ flex: 1, transform: 'rotate(180deg)', borderBottom: '2px solid #2A2A2A', padding: '12px 16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, transform: 'rotate(180deg)', borderBottom: '2px solid #2A2A2A', padding: '10px 14px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Controls Side B */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
           <button
             onClick={() => toggleMic("B")}
             style={{
-              padding: '10px 20px',
+              padding: '8px 16px',
               borderRadius: '24px',
               background: isSideBActive ? (vadSpeaking.B ? '#FF5252' : '#D32F2F') : '#263238',
               color: 'white',
               border: 'none',
               fontWeight: 600,
+              fontSize: '12px',
               boxShadow: isSideBActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
               transition: 'all 0.2s',
               cursor: 'pointer'
@@ -282,19 +273,19 @@ const App: React.FC = () => {
             {isSideBActive ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : '🎙 BẬT MIC B'}
           </button>
           
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <select
               value={sideBLang}
               onChange={(e) => handleLangChange("B", e.target.value as SupportedLang)}
-              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '4px 8px', fontSize: '13px' }}
+              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '3px 6px', fontSize: '12px' }}
             >
               <option value="en">English</option>
               <option value="vi">Tiếng Việt</option>
               <option value="ja">日本語</option>
               <option value="auto">Tự động (en)</option>
             </select>
-            <button onClick={() => setFontSizeB((s) => Math.min(24, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A+</button>
-            <button onClick={() => setFontSizeB((s) => Math.max(12, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A-</button>
+            <button onClick={() => setFontSizeB((s) => Math.min(22, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
+            <button onClick={() => setFontSizeB((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
           </div>
         </div>
 
@@ -303,9 +294,9 @@ const App: React.FC = () => {
       </div>
 
       {/* Middle Divider & Status Indicator */}
-      <div style={{ height: '32px', backgroundColor: '#1A1A1A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', fontSize: '12px', color: '#888', borderTop: '1px solid #222', borderBottom: '1px solid #222' }}>
+      <div style={{ height: '30px', backgroundColor: '#1A1A1A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 14px', fontSize: '11px', color: '#888', borderTop: '1px solid #222', borderBottom: '1px solid #222' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: connected ? '#00E676' : '#FF1744' }} />
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: connected ? '#00E676' : '#FF1744' }} />
           <span>{connected ? "WSS Sẵn sàng" : "Đang kết nối..."}</span>
         </div>
 
@@ -318,7 +309,7 @@ const App: React.FC = () => {
               border: 'none',
               color: '#94a3b8',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: '11px',
               display: 'flex',
               alignItems: 'center',
               gap: '4px'
@@ -328,42 +319,43 @@ const App: React.FC = () => {
           </button>
         )}
 
-        <div style={{ fontSize: '11px', color: '#666' }}>
+        <div style={{ fontSize: '10px', color: '#666' }}>
           {isMicActive ? `Đang nghe Bên ${activeSide}` : "Sẵn sàng (Chạm mic để nói)"}
         </div>
       </div>
 
       {/* Side A - Bottom half (Facing user A) */}
-      <div style={{ flex: 1, padding: '12px 16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Conversation Stream Side A */}
         {renderHalfContent("A", fontSizeA, scrollRefA)}
 
         {/* Controls Side A */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <select
               value={sideALang}
               onChange={(e) => handleLangChange("A", e.target.value as SupportedLang)}
-              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '4px 8px', fontSize: '13px' }}
+              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '3px 6px', fontSize: '12px' }}
             >
               <option value="vi">Tiếng Việt</option>
               <option value="en">English</option>
               <option value="ja">日本語</option>
               <option value="auto">Tự động (vi)</option>
             </select>
-            <button onClick={() => setFontSizeA((s) => Math.min(24, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A+</button>
-            <button onClick={() => setFontSizeA((s) => Math.max(12, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A-</button>
+            <button onClick={() => setFontSizeA((s) => Math.min(22, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
+            <button onClick={() => setFontSizeA((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
           </div>
 
           <button
             onClick={() => toggleMic("A")}
             style={{
-              padding: '10px 20px',
+              padding: '8px 16px',
               borderRadius: '24px',
               background: isSideAActive ? (vadSpeaking.A ? '#FF5252' : '#D32F2F') : '#007AFF',
               color: 'white',
               border: 'none',
               fontWeight: 600,
+              fontSize: '12px',
               boxShadow: isSideAActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
               transition: 'all 0.2s',
               cursor: 'pointer'
