@@ -74,7 +74,7 @@ class RVTClient {
 
   private workletLoaded: boolean = false;
 
-  async startAudio(side: Side) {
+  async startAudio(side: Side, source: 'mic' | 'tab' = 'mic') {
     try {
       // Clean up any ongoing audio stream first
       this.stopAudio();
@@ -93,22 +93,45 @@ class RVTClient {
       useStore.getState().setMicActive(true);
       useStore.getState().setActiveSide(side);
 
-      // 3. Request microphone
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
+      // 3. Request audio source (mic or tab/screen audio)
+      if (source === 'tab') {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          throw new Error("Trình duyệt không hỗ trợ chia sẻ âm thanh Tab/Màn hình (chỉ hỗ trợ trên máy tính)");
         }
-      });
+        this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: {
+            channelCount: 1,
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+        const audioTracks = this.mediaStream.getAudioTracks();
+        if (audioTracks.length === 0) {
+          this.stopAudio();
+          throw new Error("Bạn chưa tích chọn ô 'Chia sẻ âm thanh' (Share audio) của tab!");
+        }
+        audioTracks[0].onended = () => {
+          this.stopAudio();
+        };
+      } else {
+        this.mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      }
 
       if (!this.workletLoaded) {
         await this.audioContext.audioWorklet.addModule('/audio-processor.js');
         this.workletLoaded = true;
       }
 
-      const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+      const audioSourceNode = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.audioProcessor = new AudioWorkletNode(this.audioContext, 'audio-processor');
 
       let chunkCount = 0;
@@ -127,12 +150,12 @@ class RVTClient {
       // Connect through a zero-gain node to keep audio engine active without echo feedback
       const muteGain = this.audioContext.createGain();
       muteGain.gain.value = 0;
-      source.connect(this.audioProcessor);
+      audioSourceNode.connect(this.audioProcessor);
       this.audioProcessor.connect(muteGain);
       muteGain.connect(this.audioContext.destination);
     } catch (err) {
-      console.error("Microphone capture failed:", err);
-      useStore.getState().setError(`Lỗi Micro: ${(err as Error).message || "Không thể truy cập microphone"}`);
+      console.error("Audio capture failed:", err);
+      useStore.getState().setError(`Lỗi thu âm: ${(err as Error).message || "Không thể truy cập nguồn âm"}`);
       useStore.getState().setMicActive(false);
       useStore.getState().setActiveSide(null);
     }

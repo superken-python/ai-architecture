@@ -28,11 +28,15 @@ interface AppState {
   detectedSideLang: Record<Side, string>;
   utterances: Record<number, Utterance>;
   errorMessage: string | null;
+  audioSource: 'mic' | 'tab';
+  meetingMode: boolean;
 
   setConnected: (status: boolean) => void;
   setActiveSide: (side: Side | null) => void;
   setMicActive: (active: boolean) => void;
   setSideConfig: (side: Side, lang: SupportedLang) => void;
+  setAudioSource: (source: 'mic' | 'tab') => void;
+  setMeetingMode: (active: boolean) => void;
   setError: (msg: string | null) => void;
   clearError: () => void;
   clearHistory: () => void;
@@ -51,10 +55,14 @@ export const useStore = create<AppState>((set, get) => ({
   detectedSideLang: { A: "vi", B: "en" },
   utterances: {},
   errorMessage: null,
+  audioSource: 'mic',
+  meetingMode: false,
 
   setConnected: (status) => set({ connected: status }),
   setActiveSide: (side) => set({ activeSide: side }),
   setMicActive: (active) => set({ isMicActive: active }),
+  setAudioSource: (source) => set({ audioSource: source }),
+  setMeetingMode: (active) => set({ meetingMode: active }),
   
   setSideConfig: (side, lang) => {
     set((state) => {

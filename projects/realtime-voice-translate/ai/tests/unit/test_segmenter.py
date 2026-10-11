@@ -89,3 +89,12 @@ def test_force_final_returns_audio_and_stats():
     assert len(out) > 0
     assert seg.last_stats is not None and seg.last_stats.prob_max == 0.8
     assert seg.is_speaking is False
+
+
+def test_segmenter_dynamic_silence_threshold_for_long_speech():
+    # Long speech (> 4000ms) should finalize on 250ms silence instead of waiting 500ms
+    seg = Segmenter(SegmenterConfig(min_speech_ms=200, min_silence_ms=500))
+    feed(seg, 0.9, 4500)
+    # At 4.5s speech, 280ms of silence should finalize!
+    finals = [r for r in feed(seg, 0.0, 280) if r[1]]
+    assert len(finals) == 1

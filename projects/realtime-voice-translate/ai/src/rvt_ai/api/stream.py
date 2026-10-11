@@ -59,6 +59,11 @@ async def handle_websocket_connection(websocket: WebSocket):
         app_state.asr_engine = asr
         app_state.mt_engine = mt
 
+    if not hasattr(app_state, "asr_scheduler"):
+        from rvt_ai.pipeline.scheduler import AsrScheduler
+
+        app_state.asr_scheduler = AsrScheduler(app_state.asr_engine.transcribe)
+
     vad_engine = app_state.vad_engine
     asr_engine = app_state.asr_engine
     mt_engine = app_state.mt_engine
@@ -73,6 +78,7 @@ async def handle_websocket_connection(websocket: WebSocket):
         mt=mt_engine,
         send_event_cb=send_event,
         segmenter_config=segmenter_config,
+        scheduler=app_state.asr_scheduler,
     )
     active_sessions[session_id] = session
     logger.info(f"WebSocket session connected: {session_id} (total: {len(active_sessions)})")

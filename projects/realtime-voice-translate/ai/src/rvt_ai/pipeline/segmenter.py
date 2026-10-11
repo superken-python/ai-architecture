@@ -9,8 +9,8 @@ class SegmenterConfig(BaseModel):
     min_silence_ms: int = 500
     speech_pad_ms: int = 200
     preroll_ms: int = 400
-    max_ms: int = 15000
-    hard_max_ms: int = 20000
+    max_ms: int = 7000
+    hard_max_ms: int = 10000
     partial_interval_ms: int = 800
 
 
@@ -80,18 +80,22 @@ class Segmenter:
                 self.last_partial_ms = self.current_time_ms
 
             # Check for silence to trigger final
-            if (
-                self.last_speech_ms is not None
-                and self.speech_start_ms is not None
-                and (self.current_time_ms - self.last_speech_ms) >= self.config.min_silence_ms
-            ):
-                if (self.last_speech_ms - self.speech_start_ms) >= self.config.min_speech_ms:
-                    should_final = True
-                else:
-                    # Speech too short (e.g. noise/cough), drop it
-                    self.reset()
+            # 5.3: Thời gian im lặng thay đổi theo độ dài câu: 500 ms lúc ngắn, giảm còn 250 ms khi câu dài > 4 s.
+            if self.last_speech_ms is not None and self.speech_start_ms is not None:
+                silence_ms = self.current_time_ms - self.last_speech_ms
+                duration_ms = self.current_time_ms - self.speech_start_ms
+                required_silence_ms = self.config.min_silence_ms
+                if duration_ms > 4000:
+                    required_silence_ms = min(required_silence_ms, 250)
 
-            # Check for hard max (20s) or soft max (15s)
+                if silence_ms >= required_silence_ms:
+                    if (self.last_speech_ms - self.speech_start_ms) >= self.config.min_speech_ms:
+                        should_final = True
+                    else:
+                        # Speech too short (e.g. noise/cough), drop it
+                        self.reset()
+
+            # Check for hard max (10s) or soft max (7s)
             if self.speech_start_ms is not None:
                 duration_ms = self.current_time_ms - self.speech_start_ms
                 if duration_ms >= self.config.hard_max_ms or (

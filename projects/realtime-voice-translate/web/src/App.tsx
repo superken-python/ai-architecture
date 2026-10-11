@@ -38,6 +38,10 @@ const App: React.FC = () => {
     detectedSideLang,
     utterances,
     errorMessage,
+    audioSource,
+    meetingMode,
+    setAudioSource,
+    setMeetingMode,
     setSideConfig,
     clearError,
     clearHistory
@@ -50,6 +54,7 @@ const App: React.FC = () => {
 
   const scrollRefA = useRef<HTMLDivElement>(null);
   const scrollRefB = useRef<HTMLDivElement>(null);
+  const scrollRefMeeting = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -65,7 +70,7 @@ const App: React.FC = () => {
 
   const utteranceList = Object.values(utterances);
 
-  // Auto-scroll to latest message in both panels
+  // Auto-scroll to latest message in all panels
   useEffect(() => {
     if (scrollRefA.current) {
       scrollRefA.current.scrollTop = scrollRefA.current.scrollHeight;
@@ -73,13 +78,16 @@ const App: React.FC = () => {
     if (scrollRefB.current) {
       scrollRefB.current.scrollTop = scrollRefB.current.scrollHeight;
     }
+    if (scrollRefMeeting.current) {
+      scrollRefMeeting.current.scrollTop = scrollRefMeeting.current.scrollHeight;
+    }
   }, [utteranceList.length, isMicActive, vadSpeaking]);
 
   const toggleMic = (side: Side) => {
     if (activeSide === side && isMicActive) {
       rvtClient.stopAudio();
     } else {
-      rvtClient.startAudio(side);
+      rvtClient.startAudio(side, audioSource);
     }
   };
 
@@ -244,6 +252,79 @@ const App: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#121212', color: '#fff', fontFamily: 'sans-serif', userSelect: 'none', overflow: 'hidden' }}>
       
+      {/* Top Application Bar: Mode switch & Audio source toggle */}
+      <div style={{ height: '38px', backgroundColor: '#18181b', borderBottom: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', fontSize: '11px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <button
+            onClick={() => setMeetingMode(false)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: !meetingMode ? '#2563eb' : '#27272a',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: !meetingMode ? 600 : 400,
+              fontSize: '11px'
+            }}
+          >
+            👥 2 Chiều
+          </button>
+          <button
+            onClick={() => setMeetingMode(true)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: meetingMode ? '#2563eb' : '#27272a',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: meetingMode ? 600 : 400,
+              fontSize: '11px'
+            }}
+          >
+            📺 Video & Họp
+          </button>
+        </div>
+
+        {/* Audio Source Selector */}
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <span style={{ color: '#71717a', fontSize: '10px' }}>Nguồn:</span>
+          <button
+            onClick={() => setAudioSource('mic')}
+            title="Thu từ microphone thiết bị"
+            style={{
+              padding: '3px 8px',
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: audioSource === 'mic' ? '#3f3f46' : '#27272a',
+              color: audioSource === 'mic' ? '#38bdf8' : '#a1a1aa',
+              cursor: 'pointer',
+              fontSize: '10px',
+              fontWeight: audioSource === 'mic' ? 600 : 400
+            }}
+          >
+            🎙️ Mic
+          </button>
+          <button
+            onClick={() => setAudioSource('tab')}
+            title="Thu âm thanh số trực tiếp từ Tab YouTube / Video / Màn hình (không bị bộ khử vọng xóa)"
+            style={{
+              padding: '3px 8px',
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: audioSource === 'tab' ? '#3f3f46' : '#27272a',
+              color: audioSource === 'tab' ? '#38bdf8' : '#a1a1aa',
+              cursor: 'pointer',
+              fontSize: '10px',
+              fontWeight: audioSource === 'tab' ? 600 : 400
+            }}
+          >
+            💻 Tab/Video
+          </button>
+        </div>
+      </div>
+
       {/* Error banner */}
       {errorMessage && (
         <div style={{ backgroundColor: '#D32F2F', color: '#fff', padding: '8px 16px', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -252,120 +333,250 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Side B - Top half (Rotated 180° for opposite person) */}
-      <div style={{ flex: 1, transform: 'rotate(180deg)', borderBottom: '2px solid #2A2A2A', padding: '10px 14px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Controls Side B */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-          <button
-            onClick={() => toggleMic("B")}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '24px',
-              background: isSideBActive ? (vadSpeaking.B ? '#FF5252' : '#D32F2F') : '#263238',
-              color: 'white',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '12px',
-              boxShadow: isSideBActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
-              transition: 'all 0.2s',
-              cursor: 'pointer'
-            }}
-          >
-            {isSideBActive ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : '🎙 BẬT MIC B'}
-          </button>
-          
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <select
-              value={sideBLang}
-              onChange={(e) => handleLangChange("B", e.target.value as SupportedLang)}
-              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '3px 6px', fontSize: '12px' }}
-            >
-              <option value="en">English</option>
-              <option value="vi">Tiếng Việt</option>
-              <option value="ja">日本語</option>
-              <option value="auto">Tự động (en)</option>
-            </select>
-            <button onClick={() => setFontSizeB((s) => Math.min(22, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
-            <button onClick={() => setFontSizeB((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
-          </div>
-        </div>
+      {/* Mode View: Continuous Meeting / Video vs Split Screen */}
+      {meetingMode ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '10px 14px' }}>
+          {/* Controls Bar for Meeting Mode */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Nói:</span>
+              <select
+                value={sideALang}
+                onChange={(e) => handleLangChange("A", e.target.value as SupportedLang)}
+                style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '6px', padding: '3px 6px', fontSize: '12px' }}
+              >
+                <option value="auto">🌐 Tự động (LID)</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+              </select>
 
-        {/* Conversation Stream Side B */}
-        {renderHalfContent("B", fontSizeB, scrollRefB)}
-      </div>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Dịch sang:</span>
+              <select
+                value={sideBLang}
+                onChange={(e) => handleLangChange("B", e.target.value as SupportedLang)}
+                style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '6px', padding: '3px 6px', fontSize: '12px' }}
+              >
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="ja">🇯🇵 日本語</option>
+              </select>
+            </div>
 
-      {/* Middle Divider & Status Indicator */}
-      <div style={{ height: '30px', backgroundColor: '#1A1A1A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 14px', fontSize: '11px', color: '#888', borderTop: '1px solid #222', borderBottom: '1px solid #222' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: connected ? '#00E676' : '#FF1744' }} />
-          <span>{connected ? "WSS Sẵn sàng" : "Đang kết nối..."}</span>
-        </div>
-
-        {utteranceList.length > 0 && (
-          <button
-            onClick={clearHistory}
-            title="Xóa toàn bộ hội thoại hiện tại"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#94a3b8',
-              cursor: 'pointer',
-              fontSize: '11px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <span>🗑️</span> Xóa hội thoại
-          </button>
-        )}
-
-        <div style={{ fontSize: '10px', color: '#666' }}>
-          {isMicActive ? `Đang nghe Bên ${activeSide}` : "Sẵn sàng (Chạm mic để nói)"}
-        </div>
-      </div>
-
-      {/* Side A - Bottom half (Facing user A) */}
-      <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Conversation Stream Side A */}
-        {renderHalfContent("A", fontSizeA, scrollRefA)}
-
-        {/* Controls Side A */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <select
-              value={sideALang}
-              onChange={(e) => handleLangChange("A", e.target.value as SupportedLang)}
-              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '3px 6px', fontSize: '12px' }}
-            >
-              <option value="vi">Tiếng Việt</option>
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
-              <option value="auto">Tự động (vi)</option>
-            </select>
-            <button onClick={() => setFontSizeA((s) => Math.min(22, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
-            <button onClick={() => setFontSizeA((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button onClick={() => setFontSizeA((s) => Math.min(24, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
+              <button onClick={() => setFontSizeA((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
+              {utteranceList.length > 0 && (
+                <button onClick={clearHistory} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '11px' }}>🗑️ Xóa</button>
+              )}
+            </div>
           </div>
 
-          <button
-            onClick={() => toggleMic("A")}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '24px',
-              background: isSideAActive ? (vadSpeaking.A ? '#FF5252' : '#D32F2F') : '#007AFF',
-              color: 'white',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '12px',
-              boxShadow: isSideAActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
-              transition: 'all 0.2s',
-              cursor: 'pointer'
-            }}
-          >
-            {isSideAActive ? (vadSpeaking.A ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC A') : '🎙 BẬT MIC A'}
-          </button>
+          {/* Audio capture reminder */}
+          {audioSource === 'mic' ? (
+            <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', fontSize: '11px', color: '#93c5fd', marginBottom: '8px' }}>
+              💡 <strong>Lưu ý video:</strong> Nếu xem video trên chính máy này, hãy chọn nguồn <strong>💻 Tab/Video</strong> ở góc trên để tránh bị bộ khử vọng xóa âm thanh!
+            </div>
+          ) : (
+            <div style={{ backgroundColor: '#064e3b', border: '1px solid #047857', borderRadius: '6px', padding: '6px 10px', fontSize: '11px', color: '#a7f3d0', marginBottom: '8px' }}>
+              💻 <strong>Thu âm Tab/Video:</strong> Tín hiệu số trực tiếp từ tab video/họp (độ chính xác cao, không tiếng ồn phòng).
+            </div>
+          )}
+
+          {/* Subtitle feed */}
+          <div ref={scrollRefMeeting} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 2px', WebkitOverflowScrolling: 'touch' }}>
+            {utteranceList.length === 0 ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
+                <span style={{ fontSize: '32px', marginBottom: '8px' }}>📺</span>
+                <span>Bật <strong>DỊCH LIÊN TỤC</strong> bên dưới và phát video hoặc bắt đầu cuộc họp.</span>
+                <span style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>Hệ thống sẽ tự động ngắt câu linh hoạt và dịch phụ đề liên tục theo thời gian thực.</span>
+              </div>
+            ) : (
+              utteranceList.map((u) => {
+                const targetLang = sideBLang === "auto" ? "vi" : sideBLang;
+                const trans = u.translations[targetLang] ? cleanTranslationText(u.translations[targetLang]) : (u.isFinal ? "" : "… đang dịch");
+                const spokenLang = u.originalLang || (u.side === "A" ? primaryLangA : primaryLangB);
+                const conf = u.langProbs?.[spokenLang] ? ` ${Math.round(u.langProbs[spokenLang] * 100)}%` : "";
+
+                return (
+                  <div
+                    key={u.id}
+                    style={{
+                      backgroundColor: '#18181b',
+                      borderLeft: '4px solid #3b82f6',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8' }}>
+                      <span style={{ backgroundColor: '#2563eb', color: '#fff', padding: '1px 6px', borderRadius: '8px', fontWeight: 600 }}>
+                        {spokenLang.toUpperCase()}{conf}
+                      </span>
+                      {!u.isFinal && <span style={{ color: '#f59e0b', fontStyle: 'italic' }}>● đang xử lý...</span>}
+                    </div>
+
+                    <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                      {u.originalText}
+                    </div>
+
+                    <div style={{ fontSize: `${fontSizeA + 2}px`, fontWeight: 600, color: '#f8fafc', lineHeight: 1.35 }}>
+                      {trans || (u.isFinal ? u.originalText : "… đang dịch")}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Action button */}
+          <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <button
+              onClick={() => toggleMic("A")}
+              style={{
+                width: '100%',
+                maxWidth: '400px',
+                padding: '12px 24px',
+                borderRadius: '28px',
+                background: isSideAActive ? (vadSpeaking.A ? '#FF5252' : '#D32F2F') : '#007AFF',
+                color: 'white',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '14px',
+                boxShadow: isSideAActive ? '0 0 20px rgba(239,68,68,0.7)' : '0 4px 12px rgba(0,122,255,0.4)',
+                transition: 'all 0.2s',
+                cursor: 'pointer'
+              }}
+            >
+              {isSideAActive ? (vadSpeaking.A ? '🎙 ĐANG NHẬN DIỆN TIẾNG NÓI...' : '⏹ DỪNG DỊCH LIÊN TỤC') : '▶️ BẬT DỊCH LIÊN TỤC (MIC A)'}
+            </button>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>
+              {isSideAActive ? '🟢 Đang chạy liên tục. Nhấn nút trên khi muốn dừng.' : 'Hệ thống tự động cắt câu và dịch theo luồng.'}
+            </span>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Split Screen (Face-to-Face Dual Mode) */
+        <>
+          {/* Side B - Top half (Rotated 180° for opposite person) */}
+          <div style={{ flex: 1, transform: 'rotate(180deg)', borderBottom: '2px solid #2A2A2A', padding: '10px 14px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Controls Side B */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <button
+                onClick={() => toggleMic("B")}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '24px',
+                  background: isSideBActive ? (vadSpeaking.B ? '#FF5252' : '#D32F2F') : '#263238',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  boxShadow: isSideBActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
+                  transition: 'all 0.2s',
+                  cursor: 'pointer'
+                }}
+              >
+                {isSideBActive ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : '🎙 BẬT MIC B'}
+              </button>
+              
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <select
+                  value={sideBLang}
+                  onChange={(e) => handleLangChange("B", e.target.value as SupportedLang)}
+                  style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '3px 6px', fontSize: '12px' }}
+                >
+                  <option value="auto">🌐 Tự động (LID)</option>
+                  <option value="en">English</option>
+                  <option value="vi">Tiếng Việt</option>
+                  <option value="ja">日本語</option>
+                </select>
+                <button onClick={() => setFontSizeB((s) => Math.min(22, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
+                <button onClick={() => setFontSizeB((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
+              </div>
+            </div>
+
+            {/* Conversation Stream Side B */}
+            {renderHalfContent("B", fontSizeB, scrollRefB)}
+          </div>
+
+          {/* Middle Divider & Status Indicator */}
+          <div style={{ height: '30px', backgroundColor: '#1A1A1A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 14px', fontSize: '11px', color: '#888', borderTop: '1px solid #222', borderBottom: '1px solid #222' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: connected ? '#00E676' : '#FF1744' }} />
+              <span>{connected ? "WSS Sẵn sàng" : "Đang kết nối..."}</span>
+            </div>
+
+            {utteranceList.length > 0 && (
+              <button
+                onClick={clearHistory}
+                title="Xóa toàn bộ hội thoại hiện tại"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span>🗑️</span> Xóa hội thoại
+              </button>
+            )}
+
+            <div style={{ fontSize: '10px', color: '#666' }}>
+              {isMicActive ? `Đang nghe Bên ${activeSide}` : "Sẵn sàng (Chạm mic để nói)"}
+            </div>
+          </div>
+
+          {/* Side A - Bottom half (Facing user A) */}
+          <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Conversation Stream Side A */}
+            {renderHalfContent("A", fontSizeA, scrollRefA)}
+
+            {/* Controls Side A */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <select
+                  value={sideALang}
+                  onChange={(e) => handleLangChange("A", e.target.value as SupportedLang)}
+                  style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '3px 6px', fontSize: '12px' }}
+                >
+                  <option value="auto">🌐 Tự động (LID)</option>
+                  <option value="vi">Tiếng Việt</option>
+                  <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                </select>
+                <button onClick={() => setFontSizeA((s) => Math.min(22, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A+</button>
+                <button onClick={() => setFontSizeA((s) => Math.max(10, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '3px 6px', cursor: 'pointer', fontSize: '11px' }}>A-</button>
+              </div>
+
+              <button
+                onClick={() => toggleMic("A")}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '24px',
+                  background: isSideAActive ? (vadSpeaking.A ? '#FF5252' : '#D32F2F') : '#007AFF',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  boxShadow: isSideAActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
+                  transition: 'all 0.2s',
+                  cursor: 'pointer'
+                }}
+              >
+                {isSideAActive ? (vadSpeaking.A ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC A') : '🎙 BẬT MIC A'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Language Override Modal */}
       {overrideModal && (

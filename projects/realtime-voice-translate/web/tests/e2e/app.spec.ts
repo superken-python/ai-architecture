@@ -93,4 +93,29 @@ test.describe('Realtime Voice Translate UI', () => {
     await page.getByRole('button', { name: 'Hủy' }).click();
     await expect(page.locator('text=Sửa ngôn ngữ câu')).not.toBeVisible();
   });
+
+  test('switches to Video & Meeting continuous mode and toggles audio sources', async ({ page }) => {
+    await page.goto('/');
+
+    // 1. Switch to Video & Họp mode
+    const meetingBtn = page.getByRole('button', { name: '📺 Video & Họp' });
+    await expect(meetingBtn).toBeVisible();
+    await meetingBtn.click();
+
+    // 2. Verify continuous mode layout elements
+    await expect(page.locator('text=Nói:').first()).toBeVisible();
+    await expect(page.locator('text=Dịch sang:').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /BẬT DỊCH LIÊN TỤC/i })).toBeVisible();
+
+    // 3. Test Audio Source toggle
+    const tabSourceBtn = page.getByRole('button', { name: '💻 Tab/Video' });
+    await expect(tabSourceBtn).toBeVisible();
+    await tabSourceBtn.click();
+    await expect(page.locator('text=Thu âm Tab/Video:')).toBeVisible();
+
+    const micSourceBtn = page.getByRole('button', { name: '🎙️ Mic' });
+    await micSourceBtn.click();
+    await expect(page.locator('text=Lưu ý video:')).toBeVisible();
+  });
 });
+

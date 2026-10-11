@@ -1,7 +1,7 @@
 import asyncio
 import re
 import time
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from collections.abc import Awaitable, Callable
 
 import numpy as np
@@ -46,6 +46,7 @@ class RVTSession:
         mt: MtEngine,
         send_event_cb: Callable[[ServerEvent], Awaitable[None]],
         segmenter_config: SegmenterConfig | None = None,
+        scheduler: AsrScheduler | None = None,
     ):
         self.session_id = session_id
         self.vad = vad
@@ -53,7 +54,8 @@ class RVTSession:
         self.asr = asr
         self.mt = mt
         self.send_event = send_event_cb
-        self.scheduler = AsrScheduler(self.asr.transcribe)
+        self.scheduler = scheduler or AsrScheduler(self.asr.transcribe)
+        self.recent_context: deque[str] = deque(maxlen=2)
 
         self.segmenter = Segmenter(segmenter_config or SegmenterConfig())
         self.current_side: Side | None = None
@@ -194,7 +196,9 @@ class RVTSession:
     async def _process_partial_audio(self, audio: bytes, side: Side, uid: int) -> None:
         try:
             force_lang = self.sides_config[side] if self.sides_config[side] != "auto" else None
-            text, lang, _ = await self.scheduler.execute_transcribe(audio, force_lang=force_lang, is_final=False)
+            text, lang, _ = await self.scheduler.execute_transcribe(
+                audio, force_lang=force_lang, is_final=False, session_id=self.session_id
+            )
             if text and self.current_side == side:
                 await self.send_event(AsrPartial(utterance_id=uid, side=side, text=text, lang=lang))
         except Exception as e:
@@ -203,6 +207,9 @@ class RVTSession:
     async def _process_final_audio(self, audio: bytes, side: Side, stats: SegmentStats | None = None) -> None:
         uid = self.utterance_id_counter
         self.utterance_id_counter += 1
+
+        # Cancel any pending partial jobs for this session since final has arrived
+        self.scheduler.cancel_session_partials(self.session_id)
 
         # Cache in LRU buffer
         self.recent_audio[uid] = audio
@@ -215,7 +222,7 @@ class RVTSession:
             force_lang = self.sides_config[side]
 
         text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
-            audio, force_lang=force_lang, is_final=True
+            audio, force_lang=force_lang, is_final=True, session_id=self.session_id
         )
 
         if not text or not text.strip():
@@ -224,6 +231,13 @@ class RVTSession:
                 f"[side={side}, {_audio_summary(audio, stats)}]"
             )
             return
+
+        # Check for potential language mismatch (locked to one lang, but speech detected strongly as another)
+        if force_lang and detected_lang != force_lang and asr_probs.get(detected_lang, 0.0) >= 0.8:
+            logger.warning(
+                f"[{self.session_id}] ⚠️ Potential language mismatch on side {side}: channel locked to '{force_lang}', "
+                f"but speech strongly detected as '{detected_lang}' (p={asr_probs.get(detected_lang):.2f})."
+            )
 
         # 2. LID Policy
         if force_lang:
@@ -236,7 +250,9 @@ class RVTSession:
 
             # If chosen language differs from initial detected language and not uncertain, re-decode
             if final_lang != detected_lang and not uncertain and text:
-                text, _, _ = await self.scheduler.execute_transcribe(audio, force_lang=final_lang, is_final=True)
+                text, _, _ = await self.scheduler.execute_transcribe(
+                    audio, force_lang=final_lang, is_final=True, session_id=self.session_id
+                )
 
         # Update prior if confident
         if not uncertain:
@@ -277,8 +293,9 @@ class RVTSession:
 
         full_text = ""
         should_stream = True
+        context = " ".join(self.recent_context)
         try:
-            async for delta in self.mt.translate_stream(text, source, target):
+            async for delta in self.mt.translate_stream(text, source, target, context=context):
                 full_text += delta
                 lower_full = full_text.lower()
                 cutoff_markers = [
@@ -331,6 +348,7 @@ class RVTSession:
             else:
                 logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
                 mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
+                self.recent_context.append(text)
                 await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text))
         except Exception as e:
             logger.error(f"MT failed for {target}: {e}")

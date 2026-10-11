@@ -89,6 +89,7 @@ class FasterWhisperEngine(AsrEngine):
             audio_float32,
             beam_size=1,
             language=language,
+            temperature=0.0,
             vad_filter=False,
             condition_on_previous_text=False,
             without_timestamps=True,
@@ -114,6 +115,9 @@ class FasterWhisperEngine(AsrEngine):
             if re.search(pat, text, re.IGNORECASE):
                 # If it's a polite "thank you" / "thanks", only discard if energy was low (ambient silence)
                 if re.search(r"^\s*(?:thank you|thanks)\.?\s*$", text, re.IGNORECASE) and rms >= 0.015:
+                    continue
+                # If it's Japanese polite ending, only discard if low energy
+                if re.search(r"^\s*(?:ご視聴ありがとうございました|お疲れ様でした)\s*$", text) and rms >= 0.015:
                     continue
                 logger.info(f"Discarded known Whisper hallucination: '{text}' (matched {pat})")
                 text = ""
