@@ -48,7 +48,6 @@ class LlamaCppMtEngine(MtEngine):
             "frequency_penalty": 0.5,
             "presence_penalty": 0.5,
             "stop": [
-                "\n",
                 "\n\n",
                 "【",
                 "**",

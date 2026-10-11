@@ -64,9 +64,7 @@ class MtValidator:
             cleaned = re.sub(p, "", cleaned, flags=re.IGNORECASE).strip()
 
         # 4. Strip surrounding quotation marks
-        if (cleaned.startswith('"') and cleaned.endswith('"')) or (
-            cleaned.startswith("'") and cleaned.endswith("'")
-        ):
+        if (cleaned.startswith('"') and cleaned.endswith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
             cleaned = cleaned[1:-1].strip()
 
         # If multiple lines, take the first non-empty line

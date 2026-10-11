@@ -29,7 +29,7 @@ test.describe('Realtime Voice Translate UI', () => {
     await aPlusButtons.nth(1).click();
 
     // 6. Verify initial guide text
-    await expect(page.locator('text=Chạm mic để bắt đầu nói...').first()).toBeVisible();
+    await expect(page.locator('text=BẬT MIC').first()).toBeVisible();
   });
 
   test('handles live speech translation flow via state events', async ({ page }) => {
@@ -79,14 +79,14 @@ test.describe('Realtime Voice Translate UI', () => {
     });
 
     // 3. Verify transcript on Side A (bottom)
-    await expect(page.locator('text=Xin chào, hôm nay thế nào?')).toBeVisible();
-    await expect(page.locator('text=VI 98%')).toBeVisible();
+    await expect(page.locator('text=Xin chào, hôm nay thế nào?').first()).toBeVisible();
+    await expect(page.locator('text=VI 98%').first()).toBeVisible();
 
     // 4. Verify Japanese translation on Side B (top)
-    await expect(page.locator('text=こんにちは、今日はいかがですか？')).toBeVisible();
+    await expect(page.locator('text=こんにちは、今日はいかがですか？').first()).toBeVisible();
 
     // 5. Click on language badge to open override modal
-    await page.locator('text=VI 98%').click();
+    await page.locator('text=VI 98%').first().click();
     await expect(page.locator('text=Sửa ngôn ngữ câu')).toBeVisible();
 
     // 6. Cancel modal

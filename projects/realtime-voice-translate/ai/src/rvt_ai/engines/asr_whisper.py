@@ -68,9 +68,9 @@ class FasterWhisperEngine(AsrEngine):
         audio_int16 = np.frombuffer(audio, np.int16)
         audio_float32 = audio_int16.astype(np.float32) / 32768.0
 
-        # Energy floor check to avoid hallucinating on background silence
+        # Energy floor check to avoid processing pure digital silence
         rms = float(np.sqrt(np.mean(audio_float32**2))) if len(audio_float32) > 0 else 0.0
-        if rms < 0.005:
+        if rms < 0.001:
             logger.debug(f"Audio RMS energy too low ({rms:.5f}), treating as silence")
             return "", "vi", {"ja": 0.0, "en": 0.0, "vi": 0.0}
 
@@ -78,20 +78,20 @@ class FasterWhisperEngine(AsrEngine):
             audio_float32,
             beam_size=1,
             language=language,
-            vad_filter=True,
-            vad_parameters=dict(threshold=0.35, min_silence_duration_ms=400),
+            vad_filter=False,
             condition_on_previous_text=False,
             without_timestamps=True,
-            no_speech_threshold=0.4,
-            logprob_threshold=-1.0,
-            compression_ratio_threshold=2.2,
+            no_speech_threshold=0.6,
+            log_prob_threshold=-1.0,
+            compression_ratio_threshold=2.4,
         )
 
         valid_segments = []
         for s in segments:
-            if s.no_speech_prob > 0.4 or s.avg_logprob < -1.2:
+            if s.no_speech_prob > 0.8 and s.avg_logprob < -1.5:
                 logger.debug(
-                    f"Filtered silent/low-confidence segment: '{s.text}' (no_speech_prob={s.no_speech_prob:.2f})"
+                    f"Filtered silent/low-confidence segment: '{s.text}' "
+                    f"(no_speech_prob={s.no_speech_prob:.2f}, avg_logprob={s.avg_logprob:.2f})"
                 )
                 continue
             valid_segments.append(s.text.strip())
