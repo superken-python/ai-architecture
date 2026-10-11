@@ -14,10 +14,10 @@ services:
       - ../prompts:/app/prompts:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
     networks:
       - rvt_web_net
 
@@ -34,7 +34,7 @@ services:
       - ../config/tls:/etc/nginx/tls:ro
     depends_on:
       ai:
-        condition: service_started
+        condition: service_healthy
     networks:
       - rvt_web_net
 
