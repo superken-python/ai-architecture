@@ -9,7 +9,7 @@ import numpy as np
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.ports import AsrEngine, MtEngine, VadEngine
 from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
-from rvt_ai.pipeline.mt_validator import mt_validator
+from rvt_ai.pipeline.mt_validator import LATIN_REGEX, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
 from rvt_contracts.messages import (
@@ -517,17 +517,32 @@ class RVTSession:
             # Validate output
             v_res = mt_validator.validate(text, source, target, full_text)
             if not v_res.is_valid:
-                logger.warning(f"MT output validation failed: {v_res.error_reason}")
-                # Emit ErrorEvent
-                await self.send_event(
-                    ErrorEvent(
-                        code="mt_validation_failed",
-                        message=f"Translation failed validation ({v_res.error_reason})",
-                        utterance_id=uid,
-                        retryable=False,
-                    )
+                logger.warning(
+                    f"MT output validation failed for {source}->{target}: {v_res.error_reason}. Attempting quick retry..."
                 )
-                await self.send_event(MtFinal(utterance_id=uid, target=target, text=f"[Lỗi dịch {target}]"))
+                try:
+                    retry_text = ""
+                    async for delta in self.mt_engine.translate_stream(
+                        text, source, target, context=f"Strictly translate completely into {target}"
+                    ):
+                        retry_text += delta
+                    v_retry = mt_validator.validate(text, source, target, retry_text)
+                    if v_retry.is_valid:
+                        v_res = v_retry
+                        logger.info(
+                            f"[{self.session_id}] 🌐 MT Retry succeeded ({source}->{target}): '{v_res.cleaned_text}'"
+                        )
+                except Exception as e_retry:
+                    logger.warning(f"MT retry failed: {e_retry}")
+
+            if not v_res.is_valid:
+                logger.warning(f"MT output validation failed permanently: {v_res.error_reason}")
+                fallback_text = (
+                    v_res.cleaned_text
+                    if (target in ("vi", "en") and LATIN_REGEX.search(v_res.cleaned_text))
+                    else f"[Chưa dịch được {target}]"
+                )
+                await self.send_event(MtFinal(utterance_id=uid, target=target, text=fallback_text))
             else:
                 logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
                 mt_validator.cache_translation(source, target, text, v_res.cleaned_text)

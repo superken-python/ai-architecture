@@ -38,6 +38,7 @@ services:
       - ./config:/app/config:ro
       - ./packs:/app/packs:ro
       - ./prompts:/app/prompts:ro
+      - ./ai/src:/app/src:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
       interval: 3s

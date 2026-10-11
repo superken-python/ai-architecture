@@ -103,26 +103,73 @@ class LlamaCppMtEngine(MtEngine):
             "en": "English",
             "ja": "Japanese",
         }
+        src_name = lang_names.get(source_lang, source_lang)
         tgt_name = lang_names.get(target_lang, target_lang)
 
-        base_instruction = (
-            f"You are a strict, direct subtitle translator. Translate the speech directly into {tgt_name}.\n"
+        system_content = (
+            f"You are a professional, high-accuracy subtitle translator. "
+            f"Translate spoken dialogue from {src_name} directly and naturally into {tgt_name}.\n\n"
             "CRITICAL RULES:\n"
-            "1. Output ONLY the raw translated text, nothing else.\n"
-            "2. NEVER include any notes, explanations, parentheses, cultural background, comments, "
-            "or vocabulary meanings (e.g. do NOT write '(Note: ...)', '(Sensei means...)', '(Informal)', "
-            "or '(Used when...)').\n"
-            "3. NEVER explain cultural terms, titles, honorifics (like Sensei, Senpai, San, Kun, Chan), or grammar.\n"
-            "4. NEVER include preambles like 'Here is the translation:' or conversational pleasantries.\n"
-            "5. Output exactly one single line."
+            f"1. Output ONLY the raw {tgt_name} translation on a single line, nothing else.\n"
+            "2. NEVER include any explanations, notes, pronunciation, pinyin, romaji, parentheses, "
+            "cultural commentary, or conversational remarks.\n"
         )
-        if context and context.strip():
-            prompt = (
-                f"{base_instruction}\n\nPrevious speech context:\n{context.strip()}\n\nSpeech to translate:\n{text}"
+        if target_lang == "vi":
+            system_content += (
+                "3. VIETNAMESE LANGUAGE REQUIREMENTS (STRICT):\n"
+                "   - The translation MUST be 100% in natural Vietnamese using standard Latin script with diacritics (chữ Quốc ngữ).\n"
+                "   - STRICTLY FORBIDDEN: DO NOT output or retain any Chinese characters (Hanzi / 汉字 / 漢字) or Japanese characters (Kanji / Kana) in the output under any circumstances.\n"
+                "   - Translate all spoken words, colloquialisms, idioms, and fantasy/anime dialogue (including abilities, titles, and creatures) completely into Vietnamese.\n"
             )
-        else:
-            prompt = f"{base_instruction}\n\nSpeech to translate:\n{text}"
-        messages = [{"role": "user", "content": prompt}]
+        elif target_lang == "ja":
+            system_content += (
+                "3. JAPANESE LANGUAGE REQUIREMENTS (STRICT):\n"
+                "   - The translation MUST be natural spoken Japanese script (Kanji, Hiragana, Katakana).\n"
+                "   - STRICTLY FORBIDDEN: Do not output English or Latin characters.\n"
+            )
+        elif target_lang == "en":
+            system_content += (
+                "3. ENGLISH LANGUAGE REQUIREMENTS (STRICT):\n"
+                "   - The translation MUST be natural spoken English.\n"
+                "   - STRICTLY FORBIDDEN: Do not output Chinese or Japanese characters.\n"
+            )
+
+        # Few-shot guidance to anchor Qwen 2.5 behavior for key language pairs
+        if source_lang == "ja" and target_lang == "vi":
+            system_content += (
+                "\nFEW-SHOT EXAMPLES:\n"
+                "Input: あのフクロウはおそらく、幾幾の実を組んだ育成フクロウじゃろ！\n"
+                "Output: Con cú đó có lẽ là con cú được nuôi dưỡng kết hợp năng lực trái Kiki đấy!\n"
+                "Input: 巨人の国にぶっつけた能力じゃな。\n"
+                "Output: Đó là năng lực đã được đưa vào vương quốc của người khổng lồ nhỉ.\n"
+                "Input: 無機物限り巨大化できる。\n"
+                "Output: Có thể khổng lồ hóa miễn là vật vô cơ.\n"
+            )
+        elif source_lang == "vi" and target_lang == "ja":
+            system_content += (
+                "\nFEW-SHOT EXAMPLES:\n"
+                "Input: Xin chào, hôm nay bạn thấy thế nào?\n"
+                "Output: こんにちは、今日の気分はどうですか？\n"
+                "Input: Cảm ơn bạn rất nhiều nhé!\n"
+                "Output: どうもありがとうございます！\n"
+            )
+        elif source_lang == "ja" and target_lang == "en":
+            system_content += (
+                "\nFEW-SHOT EXAMPLES:\n"
+                "Input: おはようございます！\n"
+                "Output: Good morning!\n"
+                "Input: あのフクロウはおそらく育成フクロウじゃろ！\n"
+                "Output: That owl is probably a trained owl!\n"
+            )
+
+        user_content = f"Translate from {src_name} to {tgt_name}:\n{text}"
+        if context and context.strip():
+            user_content = f"Previous context: {context.strip()}\n\nTranslate from {src_name} to {tgt_name}:\n{text}"
+
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ]
 
         # Dynamic max_tokens scaled with source text length:
         # Non-spaced languages (Japanese) scale by char count, others by word count
@@ -190,6 +237,10 @@ class LlamaCppMtEngine(MtEngine):
                 "As an AI",
                 "This is the most",
                 "ご質問",
+                "翻译",
+                "翻译为",
+                "翻译成",
+                "意思是",
             ],
         }
 

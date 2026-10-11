@@ -62,6 +62,8 @@ class MtValidator:
             r"^Câu\s+dịch:?\s*",
             r"^Dịch:?\s*",
             r"^翻訳:?\s*",
+            r"^翻译(?:成|为)?(?:越南语|英语|日语)?:?\s*",
+            r"^意思是:?\s*",
             r"^Input:\s*.*?\s*Translation:\s*",
         ]
         for p in preambles:
@@ -144,6 +146,8 @@ class MtValidator:
             r"説明:?.*",
             r"注意:?.*",
             r"補足:?.*",
+            r"翻译[为成][:：].*",
+            r"意思[是为][:：].*",
         ]
         for marker in note_markers:
             cleaned = re.sub(marker, "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
@@ -307,8 +311,16 @@ class MtValidator:
             # Target ja should contain kana or kanji if source has letters
             if any(c.isalpha() for c in original_text) and not JA_REGEX.search(cleaned):
                 return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Missing Japanese script")
-        elif target_lang in ("vi", "en") and not LATIN_REGEX.search(cleaned):
-            return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Missing Latin script")
+        elif target_lang in ("vi", "en"):
+            if not LATIN_REGEX.search(cleaned):
+                return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Missing Latin script")
+            if target_lang == "vi" and JA_REGEX.search(cleaned):
+                return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Contains CJK characters in Vietnamese output")
+            elif target_lang == "en":
+                cjk_matches = JA_REGEX.findall(cleaned)
+                latin_matches = LATIN_REGEX.findall(cleaned)
+                if len(cjk_matches) >= len(latin_matches):
+                    return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Predominantly CJK characters in English output")
 
         return ValidationResult(is_valid=True, cleaned_text=cleaned)
 

@@ -36,6 +36,8 @@ export const cleanTranslationText = (
     /^Câu\s+dịch:?\s*/i,
     /^Dịch:?\s*/i,
     /^翻訳:?\s*/i,
+    /^翻译(?:成|为)?(?:越南语|英语|日语)?:?\s*/i,
+    /^意思是:?\s*/i,
     /^Input:\s*.*?\s*Translation:\s*/is,
   ];
   for (const p of preambles) {
@@ -59,7 +61,7 @@ export const cleanTranslationText = (
     /\b(I['’]m not sure what you mean|I am not sure what you mean|I don['’]t understand what you mean|I do not understand what you mean|Could you please (?:clarify|explain|repeat)|Can you please (?:clarify|explain|repeat)|Would you please (?:clarify|explain|repeat)|Please clarify|Please explain|What do you mean by|As an AI|As a language model|This is the most important thing|They are very friendly|No notes|No note|Note:|Notes:|Explanation:|Meaning:|Literal\s+translation:|Ghi chú:|Lưu ý:|Giải thích:|Ý nghĩa:).*/is,
     /[—【].*/s,
     /\*\*.*/s,
-    /(申し訳ありませんが、.*(?:分かりかねます|質問|理解)|ご質問の意味が|説明:|注意:|補足:).*/is,
+    /(申し訳ありませんが、.*(?:分かりかねます|質問|理解)|ご質問の意味が|説明:|注意:|補足:|翻译[为成][:：]|意思[是为][:：]).*/is,
   ];
   for (const m of markers) {
     cleaned = cleaned.replace(m, "").trim();
