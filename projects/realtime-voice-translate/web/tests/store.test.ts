@@ -98,6 +98,40 @@ describe('useStore', () => {
     // Hallucinations and chatter should be stripped
     expect(cleanTranslationText("Thank you. I'm sorry, I'm not sure what you mean.")).toBe("Thank you.");
     expect(cleanTranslationText("Hello! Note: This is an explanation.")).toBe("Hello!");
+
+    // Parenthetical English explanations (cultural terms, honorifics, etc.)
+    expect(
+      cleanTranslationText("Thưa thầy, em mang bài tập đến rồi. (Sensei means teacher in Japanese)")
+    ).toBe("Thưa thầy, em mang bài tập đến rồi.");
+    expect(
+      cleanTranslationText("Thưa thầy, em mang bài tập đến rồi. (Sensei có nghĩa là thầy giáo)")
+    ).toBe("Thưa thầy, em mang bài tập đến rồi.");
+    expect(cleanTranslationText("Chào bạn! (Informal)")).toBe("Chào bạn!");
+    expect(cleanTranslationText("Tôi hiểu rồi. (Used when expressing agreement)")).toBe("Tôi hiểu rồi.");
+
+    // Trailing explanation sentences
+    expect(
+      cleanTranslationText("Thưa thầy, em mang bài tập đến rồi. Sensei means teacher in Japanese.")
+    ).toBe("Thưa thầy, em mang bài tập đến rồi.");
+    expect(
+      cleanTranslationText("Thưa thầy, em mang bài tập đến rồi. This sentence is spoken politely.")
+    ).toBe("Thưa thầy, em mang bài tập đến rồi.");
+
+    // Multi-line and preambles
+    expect(
+      cleanTranslationText("Thưa thầy.\nNote: In Japanese culture, Sensei is an honorific title.")
+    ).toBe("Thưa thầy.");
+    expect(
+      cleanTranslationText("Here is the translation into Vietnamese: Chào buổi sáng.")
+    ).toBe("Chào buổi sáng.");
+    expect(
+      cleanTranslationText("Thưa thầy - Sensei refers to a teacher.")
+    ).toBe("Thưa thầy");
+
+    // Japanese target with Latin
+    expect(
+      cleanTranslationText("せんせい。(Sensei is teacher)", "", "ja")
+    ).toBe("せんせい。");
   });
 
   it('removes ghost partial utterances when asr.final has empty text', () => {

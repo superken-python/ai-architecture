@@ -457,13 +457,37 @@ class RVTSession:
                     "**",
                     "【",
                     "—",
+                    "\n",
+                    "\n\n",
+                    "(note",
+                    "(explanation",
+                    "(meaning",
+                    "(context",
+                    "(literal",
+                    "(informal",
+                    "(formal",
+                    "(polite",
+                    "(sensei",
+                    "(used",
                     "note:",
                     "notes:",
                     "explanation:",
-                    "\n\n",
+                    "meaning:",
+                    "literal translation:",
                     "alright, let's",
                     "no notes",
                     "translate the following",
+                    "this means",
+                    "this sentence means",
+                    "the speaker is",
+                    "the word ",
+                    "sensei means",
+                    "here is the translation",
+                    "here's the translation",
+                    "ghi chú:",
+                    "lưu ý:",
+                    "giải thích:",
+                    "ý nghĩa:",
                     "i'm not sure what you mean",
                     "i’m not sure what you mean",
                     "i don't understand what you mean",
@@ -481,7 +505,11 @@ class RVTSession:
                 ]
                 if any(m in lower_full for m in cutoff_markers):
                     should_stream = False
-                if target == "ja" and re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF].*[a-zA-Z]{4,}", full_text):
+                if target in ("vi", "ja") and re.search(
+                    r"([.!?。！？])\s*(?:this\s|the\s|sensei\s|it\s|in\s|meaning:|note:)", lower_full
+                ):
+                    should_stream = False
+                if target == "ja" and re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF].*[a-zA-Z]{3,}", full_text):
                     should_stream = False
                 if should_stream:
                     await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))

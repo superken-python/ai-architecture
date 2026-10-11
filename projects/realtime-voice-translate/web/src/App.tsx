@@ -9,23 +9,8 @@ const LANG_LABELS: Record<string, string> = {
   en: "English"
 };
 
-export const cleanTranslationText = (text: string): string => {
-  if (!text) return "";
-  let cleaned = text;
-  const markers = [
-    /\bI['’]m sorry,\s*(?:I['’]m not sure|I don['’]t understand|could you|can you|what do you|as an AI|please clarify|but I).*/is,
-    /\bI am sorry,\s*(?:I am not sure|I do not understand|could you|can you|what do you|as an AI|please clarify|but I).*/is,
-    /\b(I['’]m not sure what you mean|I am not sure what you mean|I don['’]t understand what you mean|I do not understand what you mean|Could you please (?:clarify|explain|repeat)|Can you please (?:clarify|explain|repeat)|Please clarify|Please explain|What do you mean by|As an AI|As a language model|Note:|Notes:|Explanation:|Ghi chú:).*/is,
-    /([.!?。！？])\s*(I['’]m sorry|I am sorry|Could you|Can you|Please|What do you|As an AI).*/is,
-    /[—【].*/s,
-    /\*\*.*/s,
-    /(申し訳ありませんが、.*(?:分かりかねます|質問|理解)|ご質問の意味が|説明:|注意:).*/is,
-  ];
-  for (const m of markers) {
-    cleaned = cleaned.replace(m, (match, p1) => (p1 && /[.!?。！？]/.test(p1) ? p1 : "")).trim();
-  }
-  return cleaned;
-};
+import { cleanTranslationText } from './utils/cleanText';
+export { cleanTranslationText };
 
 interface MeetingUtteranceCardProps {
   u: Utterance;

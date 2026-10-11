@@ -104,3 +104,69 @@ def test_mt_validator_preserves_genuine_apologies():
     res_vi_ja = mt_validator.validate("Xin lỗi bạn.", "vi", "ja", "申し訳ありません。")
     assert res_vi_ja.is_valid is True
     assert res_vi_ja.cleaned_text == "申し訳ありません。"
+
+
+def test_mt_validator_strip_parenthetical_english_explanations():
+    # 1. Cultural term parenthetical note (Sensei)
+    orig = "先生、宿題を持ってきました。"
+    raw1 = "Thưa thầy, em mang bài tập về nhà đến rồi. (Sensei means teacher in Japanese)"
+    res1 = mt_validator.validate(orig, "ja", "vi", raw1)
+    assert res1.is_valid is True
+    assert res1.cleaned_text == "Thưa thầy, em mang bài tập về nhà đến rồi."
+
+    # 2. Vietnamese parenthetical note
+    raw2 = "Thưa thầy, em mang bài tập về nhà đến rồi. (Sensei có nghĩa là thầy giáo)"
+    res2 = mt_validator.validate(orig, "ja", "vi", raw2)
+    assert res2.is_valid is True
+    assert res2.cleaned_text == "Thưa thầy, em mang bài tập về nhà đến rồi."
+
+    # 3. Formality / usage parentheticals
+    res3 = mt_validator.validate("やあ", "ja", "vi", "Chào bạn! (Informal)")
+    assert res3.is_valid is True
+    assert res3.cleaned_text == "Chào bạn!"
+
+    res4 = mt_validator.validate("了解", "ja", "vi", "Tôi hiểu rồi. (Used when expressing agreement)")
+    assert res4.is_valid is True
+    assert res4.cleaned_text == "Tôi hiểu rồi."
+
+
+def test_mt_validator_strip_trailing_english_sentences():
+    orig = "先生、宿題を持ってきました。"
+    # Trailing sentence explaining the term
+    raw1 = "Thưa thầy, em mang bài tập về nhà đến rồi. Sensei means teacher in Japanese."
+    res1 = mt_validator.validate(orig, "ja", "vi", raw1)
+    assert res1.is_valid is True
+    assert res1.cleaned_text == "Thưa thầy, em mang bài tập về nhà đến rồi."
+
+    # Trailing sentence starting with 'This sentence means...'
+    raw2 = "Thưa thầy, em mang bài tập về nhà đến rồi. This sentence is spoken politely to a teacher."
+    res2 = mt_validator.validate(orig, "ja", "vi", raw2)
+    assert res2.is_valid is True
+    assert res2.cleaned_text == "Thưa thầy, em mang bài tập về nhà đến rồi."
+
+    # Trailing sentence starting with 'The speaker...'
+    raw3 = "Thưa thầy, em mang bài tập về nhà đến rồi. The speaker is addressing their instructor respectfully."
+    res3 = mt_validator.validate(orig, "ja", "vi", raw3)
+    assert res3.is_valid is True
+    assert res3.cleaned_text == "Thưa thầy, em mang bài tập về nhà đến rồi."
+
+
+def test_mt_validator_strip_multiline_and_preambles():
+    # Multi-line note
+    orig = "先生"
+    raw_multi = "Thưa thầy.\nNote: In Japanese culture, Sensei is an honorific title."
+    res_multi = mt_validator.validate(orig, "ja", "vi", raw_multi)
+    assert res_multi.is_valid is True
+    assert res_multi.cleaned_text == "Thưa thầy."
+
+    # Preamble: 'Here is the translation into Vietnamese:'
+    raw_preamble = "Here is the translation into Vietnamese: Chào buổi sáng."
+    res_preamble = mt_validator.validate("Good morning", "en", "vi", raw_preamble)
+    assert res_preamble.is_valid is True
+    assert res_preamble.cleaned_text == "Chào buổi sáng."
+
+    # Hyphen explanation
+    raw_dash = "Thưa thầy - Sensei refers to a teacher or doctor."
+    res_dash = mt_validator.validate("先生", "ja", "vi", raw_dash)
+    assert res_dash.is_valid is True
+    assert res_dash.cleaned_text == "Thưa thầy"

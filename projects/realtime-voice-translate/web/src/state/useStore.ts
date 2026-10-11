@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ServerEvent } from '../contracts/ServerEvent';
+import { cleanTranslationText } from '../utils/cleanText';
 
 export type Side = "A" | "B";
 export type SupportedLang = "auto" | "vi" | "en" | "ja";
@@ -151,11 +152,14 @@ export const useStore = create<AppState>((set, get) => ({
         case "mt.delta":
           if (newUtterances[event.utterance_id]) {
             const current = newUtterances[event.utterance_id].translations[event.target as string] || "";
+            const orig = newUtterances[event.utterance_id].originalText || "";
+            const tgt = event.target as string;
+            const updated = current + (event.delta as string);
             newUtterances[event.utterance_id] = {
               ...newUtterances[event.utterance_id],
               translations: {
                 ...newUtterances[event.utterance_id].translations,
-                [event.target as string]: current + (event.delta as string)
+                [tgt]: cleanTranslationText(updated, orig, tgt)
               }
             };
           }
@@ -163,11 +167,14 @@ export const useStore = create<AppState>((set, get) => ({
 
         case "mt.final":
           if (newUtterances[event.utterance_id]) {
+            const raw = event.text as string;
+            const orig = newUtterances[event.utterance_id].originalText || "";
+            const tgt = event.target as string;
             newUtterances[event.utterance_id] = {
               ...newUtterances[event.utterance_id],
               translations: {
                 ...newUtterances[event.utterance_id].translations,
-                [event.target as string]: event.text as string
+                [tgt]: cleanTranslationText(raw, orig, tgt)
               }
             };
           }

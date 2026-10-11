@@ -1,4 +1,5 @@
 import json
+import re
 from collections.abc import AsyncGenerator
 
 import httpx
@@ -55,6 +56,31 @@ class LlamaCppMtEngine(MtEngine):
             "explanation:",
             "note:",
             "notes:",
+            "meaning:",
+            "literal translation:",
+            "(note",
+            "(explanation",
+            "(meaning",
+            "(context",
+            "(literal",
+            "(informal",
+            "(formal",
+            "(polite",
+            "(sensei",
+            "(used ",
+            "this means that",
+            "this sentence means",
+            "this phrase means",
+            "this means ",
+            "the speaker is",
+            "the word ",
+            "sensei means",
+            "here is the translation",
+            "here's the translation",
+            "ghi chú:",
+            "lưu ý:",
+            "giải thích:",
+            "ý nghĩa:",
             "ご質問の意味が",
         ]
         if any(b in lower for b in babble_markers):
@@ -64,7 +90,10 @@ class LlamaCppMtEngine(MtEngine):
             words = text.split()
             if any(len(w) >= 4 and w.isascii() and w.isalpha() for w in words):
                 return True
-        return False
+        return bool(
+            target_lang in ("vi", "ja")
+            and re.search(r"([.!?。！？])\s*(?:this\s|the\s|sensei\s|it\s|in\s|meaning:|note:)", lower)
+        )
 
     async def translate_stream(
         self, text: str, source_lang: Lang, target_lang: Lang, context: str = ""
@@ -77,9 +106,15 @@ class LlamaCppMtEngine(MtEngine):
         tgt_name = lang_names.get(target_lang, target_lang)
 
         base_instruction = (
-            f"Translate the speech directly into {tgt_name}. "
-            "Output ONLY the translated sentence, without any conversational response, "
-            "questions, notes, or explanations."
+            f"You are a strict, direct subtitle translator. Translate the speech directly into {tgt_name}.\n"
+            "CRITICAL RULES:\n"
+            "1. Output ONLY the raw translated text, nothing else.\n"
+            "2. NEVER include any notes, explanations, parentheses, cultural background, comments, "
+            "or vocabulary meanings (e.g. do NOT write '(Note: ...)', '(Sensei means...)', '(Informal)', "
+            "or '(Used when...)').\n"
+            "3. NEVER explain cultural terms, titles, honorifics (like Sensei, Senpai, San, Kun, Chan), or grammar.\n"
+            "4. NEVER include preambles like 'Here is the translation:' or conversational pleasantries.\n"
+            "5. Output exactly one single line."
         )
         if context and context.strip():
             prompt = (
@@ -103,18 +138,50 @@ class LlamaCppMtEngine(MtEngine):
             "temperature": 0.1,
             "top_p": 0.7,
             "stop": [
+                "\n",
                 "\n\n",
                 "【",
                 "**",
                 "—",
+                "(Note",
+                " (Note",
+                "(note",
+                " (note",
+                "(Explanation",
+                " (Explanation",
+                "(Meaning",
+                " (Meaning",
+                "(Literal",
+                " (Literal",
+                "(Context",
+                " (Context",
+                "(Informal",
+                " (Informal",
+                "(Formal",
+                " (Formal",
+                "(Polite",
+                " (Polite",
+                "(Sensei",
+                " (Sensei",
+                "(Used",
+                " (Used",
                 "Note:",
                 "Notes:",
                 "Explanation:",
+                "Meaning:",
                 "Input:",
                 "Translation:",
                 "Text:",
                 "Translate the",
                 "No notes",
+                "This means",
+                " This means",
+                "This sentence",
+                " This sentence",
+                "The speaker",
+                " The speaker",
+                "Sensei means",
+                " Sensei means",
                 "I'm not sure what you mean",
                 "I’m not sure what you mean",
                 "Could you please clarify",
