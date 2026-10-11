@@ -30,11 +30,48 @@ class MtValidator:
             key = (source_lang, target_lang, text.strip().lower())
             self._exact_cache[key] = translation.strip()
 
-    def clean(self, raw_translation: str, original_text: str = "") -> str:
+    def clean(self, raw_translation: str, original_text: str = "", target_lang: Lang = "en") -> str:
         cleaned = raw_translation.strip()
 
-        # 1. Remove note / explanation / reasoning suffixes and special brackets
+        # 1. Remove note / explanation / reasoning suffixes and conversational chatbot responses
         note_markers = [
+            r"I['’]m sorry.*",
+            r"I am sorry.*",
+            r"Sorry,?.*",
+            r"I['’]m not sure.*",
+            r"I am not sure.*",
+            r"I don['’]t understand.*",
+            r"I do not understand.*",
+            r"I don['’]t know.*",
+            r"I do not know.*",
+            r"Could you please.*",
+            r"Could you clarify.*",
+            r"Could you explain.*",
+            r"Can you please.*",
+            r"Can you clarify.*",
+            r"Can you explain.*",
+            r"Would you please.*",
+            r"Please clarify.*",
+            r"Please explain.*",
+            r"Please repeat.*",
+            r"Please tell me.*",
+            r"Please provide.*",
+            r"What do you mean.*",
+            r"What would you like.*",
+            r"How can I help.*",
+            r"How may I help.*",
+            r"How may I assist.*",
+            r"As an AI.*",
+            r"As a language model.*",
+            r"Let me know if.*",
+            r"Is there anything.*",
+            r"Feel free to.*",
+            r"This means.*",
+            r"This translates to.*",
+            r"In other words.*",
+            r"Meaning:?.*",
+            r"This is the most important thing.*",
+            r"They are very friendly.*",
             r"No notes.*",
             r"No note.*",
             r"【.*",
@@ -42,19 +79,41 @@ class MtValidator:
             r"\*\*.*",
             r"Translate the following.*",
             r"Note:?.*",
+            r"Notes:?.*",
             r"Explanation:?.*",
             r"Ghi chú:?.*",
             r"Alright, let's translate.*",
             r"Sure, here is.*",
             r"Here's the translation:?.*",
+            r"Tôi xin lỗi.*",
+            r"Tôi không hiểu.*",
+            r"Bạn có thể giải thích.*",
+            r"Ý bạn là gì.*",
+            r"申し訳ありません.*",
+            r"ご質問.*",
+            r"これが最も重要.*",
+            r"という意味.*",
+            r"分かりかねます.*",
+            r"説明:?.*",
+            r"注意:?.*",
+            r"補足:?.*",
         ]
         for marker in note_markers:
             cleaned = re.sub(marker, "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
 
-        # 2. Remove prefix like "Input: ... Translation: ..."
+        # 2. For Japanese target: if Latin text appears after Japanese script, cut off Latin babble
+        if target_lang == "ja":
+            m_ja = re.search(
+                r"([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF][\s\.\?!。！？]*)([a-zA-Z]{3,}.*)",
+                cleaned,
+            )
+            if m_ja:
+                cleaned = cleaned[: m_ja.start(2)].strip()
+
+        # 3. Remove prefix like "Input: ... Translation: ..."
         cleaned = re.sub(r"^Input:\s*.*?\s*Translation:\s*", "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
 
-        # 3. Remove common preambles
+        # 4. Remove common preambles
         preambles = [
             r"^Here is the translation:?\s*",
             r"^Translation:?\s*",
@@ -65,20 +124,20 @@ class MtValidator:
         for p in preambles:
             cleaned = re.sub(p, "", cleaned, flags=re.IGNORECASE).strip()
 
-        # 4. Strip surrounding quotation marks
+        # 5. Strip surrounding quotation marks
         if (cleaned.startswith('"') and cleaned.endswith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
             cleaned = cleaned[1:-1].strip()
 
-        # 5. Strip original text echo if model echoed the source input
+        # 6. Strip original text echo if model echoed the source input
         if original_text and len(original_text.strip()) > 3:
             cleaned = re.sub(re.escape(original_text.strip()), "", cleaned, flags=re.IGNORECASE).strip()
 
-        # 6. Collapse contiguous repetition loop pattern: (X)(X)+
+        # 7. Collapse contiguous repetition loop pattern: (X)(X)+
         m = re.match(r"^(.{3,}?)\1+", cleaned)
         if m:
             cleaned = m.group(1).strip()
 
-        # 7. Deduplicate consecutive identical sentences/phrases
+        # 8. Deduplicate consecutive identical sentences/phrases
         parts = re.split(r"([.!?。！？\n])", cleaned)
         sentences: list[str] = []
         curr = ""
@@ -90,10 +149,29 @@ class MtValidator:
                 curr = ""
         if curr.strip() and (not sentences or sentences[-1].strip().lower() != curr.strip().lower()):
             sentences.append(curr.strip())
+        joiner = "" if target_lang == "ja" else " "
         if sentences:
-            cleaned = " ".join(sentences)
+            cleaned = joiner.join(sentences)
 
-        # 8. Final loop collapse check
+        # 9. Cap excessive sentences if original text was short
+        if original_text and len(original_text.strip()) > 0:
+            orig_enders = len(re.findall(r"[.!?。！？]", original_text)) or 1
+            max_allowed = 2 if orig_enders == 1 else orig_enders
+            c_parts = re.split(r"([.!?。！？])", cleaned)
+            if len(c_parts) > max_allowed * 2:
+                reconstructed = []
+                c_count = 0
+                for i in range(0, len(c_parts) - 1, 2):
+                    sent = c_parts[i] + c_parts[i + 1]
+                    if sent.strip():
+                        c_count += 1
+                        reconstructed.append(sent.strip())
+                        if c_count >= max_allowed:
+                            break
+                if reconstructed:
+                    cleaned = joiner.join(reconstructed)
+
+        # 10. Final loop collapse check
         m2 = re.match(r"^(.{4,}?)\1+$", cleaned)
         if m2:
             cleaned = m2.group(1).strip()
@@ -108,7 +186,7 @@ class MtValidator:
     def validate(
         self, original_text: str, source_lang: Lang, target_lang: Lang, raw_translation: str
     ) -> ValidationResult:
-        cleaned = self.clean(raw_translation, original_text=original_text)
+        cleaned = self.clean(raw_translation, original_text=original_text, target_lang=target_lang)
 
         # 1. Non-empty check
         if not cleaned:

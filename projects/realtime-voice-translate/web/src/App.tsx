@@ -9,6 +9,22 @@ const LANG_LABELS: Record<string, string> = {
   en: "English"
 };
 
+const cleanTranslationText = (text: string): string => {
+  if (!text) return "";
+  let cleaned = text;
+  const markers = [
+    /\b(I['’]m sorry|I am sorry|I['’]m not sure|I am not sure|I don['’]t understand|I do not understand|Could you please|Can you please|Please clarify|Please explain|What do you mean|As an AI|Note:|Notes:|Explanation:|Ghi chú:).*/is,
+    /([.!?。！？])\s*(I['’]m|Could you|Can you|Please|What do you|As an AI).*/is,
+    /[—【].*/s,
+    /\*\*.*/s,
+    /(申し訳ありません|ご質問|説明:|注意:).*/s,
+  ];
+  for (const m of markers) {
+    cleaned = cleaned.replace(m, (match, p1) => (p1 && /[.!?。！？]/.test(p1) ? p1 : "")).trim();
+  }
+  return cleaned;
+};
+
 const App: React.FC = () => {
   const {
     connected,
@@ -153,7 +169,8 @@ const App: React.FC = () => {
             if (u.uncertain) badgeText += " ❓";
           } else {
             // Other side spoke: main text is translation into this side's language
-            mainText = u.translations[primaryLang] || (u.isFinal ? u.originalText : "… đang dịch");
+            const rawTrans = u.translations[primaryLang];
+            mainText = rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? u.originalText : "… đang dịch");
           }
 
           return (

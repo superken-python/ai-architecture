@@ -1,4 +1,5 @@
 import asyncio
+import re
 import time
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable
@@ -264,13 +265,36 @@ class RVTSession:
                     "【",
                     "—",
                     "note:",
+                    "notes:",
                     "explanation:",
                     "\n\n",
                     "alright, let's",
                     "no notes",
                     "translate the",
+                    "i'm sorry",
+                    "i’m sorry",
+                    "i'm not sure",
+                    "i’m not sure",
+                    "i don't understand",
+                    "i don’t understand",
+                    "could you please",
+                    "could you clarify",
+                    "can you please",
+                    "please clarify",
+                    "please explain",
+                    "what do you mean",
+                    "as an ai",
+                    "how can i help",
+                    "this is the most",
+                    "they are very friendly",
+                    "申し訳ありません",
+                    "ご質問",
+                    "tôi xin lỗi",
+                    "ý bạn là gì",
                 ]
                 if any(m in lower_full for m in cutoff_markers):
+                    should_stream = False
+                if target == "ja" and re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF].*[a-zA-Z]{4,}", full_text):
                     should_stream = False
                 if should_stream:
                     await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))

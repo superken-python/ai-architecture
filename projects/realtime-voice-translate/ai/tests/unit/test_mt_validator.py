@@ -63,3 +63,27 @@ def test_mt_validator_repetition_collapse():
     res3 = mt_validator.validate("Châu đang ăn cơm", "vi", "ja", raw_ja_loop)
     assert res3.is_valid is True
     assert res3.cleaned_text == "チャウがご飯を食べています"
+
+
+def test_mt_validator_strip_chatbot_responses_and_explanations():
+    orig = "Alo, tôi đang nghe, tôi đang nói nè. Có ai nghe không?"
+    raw = (
+        "Alo, I'm listening, I'm talking now. Is anyone listening? "
+        "I'm sorry, I'm not sure what you mean by \"I'm not sure what you mean by "
+        "'Could you please clarify your question? I'm sorry, I'm not sure what you mean by "
+        "\"I'm not sure what you mean by 'Could you please explain it better?"
+    )
+    res = mt_validator.validate(orig, "vi", "en", raw)
+    assert res.is_valid is True
+    assert res.cleaned_text == "Alo, I'm listening, I'm talking now. Is anyone listening?"
+
+
+def test_mt_validator_strip_japanese_latin_leak():
+    orig = "Alo, tôi đang nghe, tôi đang nói nè. Có ai nghe không?"
+    raw_ja = (
+        "アロ、聞いてるよ、話してるんだ。誰か聞いてる？"
+        "Alo, I'm listening now. Is anyone listening? This is the most important thing..."
+    )
+    res = mt_validator.validate(orig, "vi", "ja", raw_ja)
+    assert res.is_valid is True
+    assert res.cleaned_text == "アロ、聞いてるよ、話してるんだ。誰か聞いてる？"

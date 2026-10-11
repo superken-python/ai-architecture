@@ -31,6 +31,45 @@ class LlamaCppMtEngine(MtEngine):
                     return True
         return False
 
+    @staticmethod
+    def _is_babble(text: str, target_lang: Lang) -> bool:
+        lower = text.lower()
+        babble_markers = [
+            "i'm sorry",
+            "i’m sorry",
+            "i am sorry",
+            "i'm not sure",
+            "i’m not sure",
+            "i don't understand",
+            "i don’t understand",
+            "could you please",
+            "could you clarify",
+            "can you please",
+            "please clarify",
+            "please explain",
+            "what do you mean",
+            "as an ai",
+            "how can i help",
+            "this is the most important",
+            "they are very friendly",
+            "no notes",
+            "translate the",
+            "explanation:",
+            "note:",
+            "notes:",
+            "申し訳ありません",
+            "ご質問",
+            "tôi xin lỗi",
+        ]
+        if any(b in lower for b in babble_markers):
+            return True
+        if target_lang == "ja" and any(c in text for c in "abcdefghijklmnopqrstuvwxyz"):
+            # If Japanese translation has a long Latin word/phrase, it's likely leaked English babble
+            words = text.split()
+            if any(len(w) >= 4 and w.isascii() and w.isalpha() for w in words):
+                return True
+        return False
+
     async def translate_stream(
         self, text: str, source_lang: Lang, target_lang: Lang, context: str = ""
     ) -> AsyncGenerator[str, None]:
@@ -42,8 +81,9 @@ class LlamaCppMtEngine(MtEngine):
         tgt_name = lang_names.get(target_lang, target_lang)
 
         prompt = (
-            f"Translate the following text into {tgt_name}, only output the translation result, "
-            f"no extra explanation:\n\n{text}"
+            f"Translate the following speech directly into {tgt_name}. "
+            f"Output ONLY the translated sentence, without any conversational response, "
+            f"questions, notes, or explanations:\n\n{text}"
         )
         messages = [{"role": "user", "content": prompt}]
 
@@ -59,12 +99,24 @@ class LlamaCppMtEngine(MtEngine):
                 "**",
                 "—",
                 "Note:",
+                "Notes:",
                 "Explanation:",
                 "Input:",
                 "Translation:",
                 "Text:",
                 "Translate the",
                 "No notes",
+                "I'm sorry",
+                "I’m sorry",
+                "I'm not sure",
+                "I’m not sure",
+                "I don't",
+                "I don’t",
+                "Could you please",
+                "Can you please",
+                "This is the most",
+                "申し訳ありません",
+                "ご質問",
             ],
         }
 
@@ -85,7 +137,7 @@ class LlamaCppMtEngine(MtEngine):
                                     delta = choices[0].get("delta", {}).get("content", "")
                                     if delta:
                                         accumulated += delta
-                                        if self._is_repeating(accumulated):
+                                        if self._is_repeating(accumulated) or self._is_babble(accumulated, target_lang):
                                             break
                                         yield delta
                             except json.JSONDecodeError:
