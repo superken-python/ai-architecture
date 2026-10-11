@@ -82,8 +82,8 @@ test.describe('Realtime Voice Translate UI', () => {
     await expect(page.locator('text=Xin chào, hôm nay thế nào?').first()).toBeVisible();
     await expect(page.locator('text=VI 98%').first()).toBeVisible();
 
-    // 4. Verify Japanese translation on Side B (top)
-    await expect(page.locator('text=こんにちは、今日はいかがですか？').first()).toBeVisible();
+    // 4. Verify English translation on Side B (top)
+    await expect(page.locator('text=Hello, how are you today?').first()).toBeVisible();
 
     // 5. Click on language badge to open override modal
     await page.locator('text=VI 98%').first().click();

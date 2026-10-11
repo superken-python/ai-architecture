@@ -25,8 +25,8 @@ const App: React.FC = () => {
     clearHistory
   } = useStore();
 
-  const [fontSizeA, setFontSizeA] = useState<number>(20);
-  const [fontSizeB, setFontSizeB] = useState<number>(20);
+  const [fontSizeA, setFontSizeA] = useState<number>(15);
+  const [fontSizeB, setFontSizeB] = useState<number>(15);
   const [showThirdLang, setShowThirdLang] = useState<boolean>(true);
   const [overrideModal, setOverrideModal] = useState<{ uid: number; current: string } | null>(null);
 
@@ -206,29 +206,10 @@ const App: React.FC = () => {
                 {mainText || (u.isSpeaking ? "… đang nghe" : "…")}
               </div>
 
-              {/* Translations for speaker, or original text for listener */}
-              {isSpeaker ? (
-                <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {u.translations[otherLang] && (
-                    <div style={{ fontSize: `${Math.max(13, fontSize - 4)}px`, color: '#60a5fa', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(59,130,246,0.2)', padding: '2px 6px', borderRadius: '4px', color: '#93c5fd' }}>
-                        {LANG_LABELS[otherLang]}
-                      </span>
-                      <span>{u.translations[otherLang]}</span>
-                    </div>
-                  )}
-                  {showThirdLang && u.translations[thirdLangA] && thirdLangA !== otherLang && (
-                    <div style={{ fontSize: `${Math.max(12, fontSize - 6)}px`, color: '#94a3b8', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(148,163,184,0.15)', padding: '2px 6px', borderRadius: '4px', color: '#cbd5e1' }}>
-                        {LANG_LABELS[thirdLangA]}
-                      </span>
-                      <span>{u.translations[thirdLangA]}</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '6px', fontSize: `${Math.max(12, fontSize - 6)}px`, color: '#94a3b8', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', color: '#e2e8f0' }}>
+              {/* If other side spoke (listener view): show speaker language badge and original words */}
+              {!isSpeaker && u.originalText && (
+                <div style={{ marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '4px', fontSize: `${Math.max(11, fontSize - 4)}px`, color: '#94a3b8', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '4px', color: '#e2e8f0' }}>
                     {LANG_LABELS[spokenLang] || spokenLang.toUpperCase()}
                   </span>
                   <span>{u.originalText}</span>
@@ -288,15 +269,15 @@ const App: React.FC = () => {
             <select
               value={sideBLang}
               onChange={(e) => handleLangChange("B", e.target.value as SupportedLang)}
-              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '4px 8px' }}
+              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '4px 8px', fontSize: '13px' }}
             >
-              <option value="auto">Tự động (ja)</option>
-              <option value="ja">日本語</option>
               <option value="en">English</option>
               <option value="vi">Tiếng Việt</option>
+              <option value="ja">日本語</option>
+              <option value="auto">Tự động (en)</option>
             </select>
-            <button onClick={() => setFontSizeB((s) => Math.min(32, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A+</button>
-            <button onClick={() => setFontSizeB((s) => Math.max(14, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A-</button>
+            <button onClick={() => setFontSizeB((s) => Math.min(24, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A+</button>
+            <button onClick={() => setFontSizeB((s) => Math.max(12, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A-</button>
           </div>
         </div>
 
@@ -346,15 +327,15 @@ const App: React.FC = () => {
             <select
               value={sideALang}
               onChange={(e) => handleLangChange("A", e.target.value as SupportedLang)}
-              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '4px 8px' }}
+              style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '8px', padding: '4px 8px', fontSize: '13px' }}
             >
-              <option value="auto">Tự động (vi)</option>
               <option value="vi">Tiếng Việt</option>
               <option value="en">English</option>
               <option value="ja">日本語</option>
+              <option value="auto">Tự động (vi)</option>
             </select>
-            <button onClick={() => setFontSizeA((s) => Math.min(32, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A+</button>
-            <button onClick={() => setFontSizeA((s) => Math.max(14, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A-</button>
+            <button onClick={() => setFontSizeA((s) => Math.min(24, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A+</button>
+            <button onClick={() => setFontSizeA((s) => Math.max(12, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}>A-</button>
           </div>
 
           <button

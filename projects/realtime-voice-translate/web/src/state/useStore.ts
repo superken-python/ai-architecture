@@ -46,9 +46,9 @@ export const useStore = create<AppState>((set, get) => ({
   activeSide: null,
   isMicActive: false,
   vadSpeaking: { A: false, B: false },
-  sideALang: "auto",
-  sideBLang: "auto",
-  detectedSideLang: { A: "vi", B: "ja" },
+  sideALang: "vi",
+  sideBLang: "en",
+  detectedSideLang: { A: "vi", B: "en" },
   utterances: {},
   errorMessage: null,
 

@@ -30,11 +30,13 @@ class MtValidator:
             key = (source_lang, target_lang, text.strip().lower())
             self._exact_cache[key] = translation.strip()
 
-    def clean(self, raw_translation: str) -> str:
+    def clean(self, raw_translation: str, original_text: str = "") -> str:
         cleaned = raw_translation.strip()
 
         # 1. Remove note / explanation / reasoning suffixes and special brackets
         note_markers = [
+            r"No notes.*",
+            r"No note.*",
             r"【.*",
             r"—.*",
             r"\*\*.*",
@@ -67,6 +69,35 @@ class MtValidator:
         if (cleaned.startswith('"') and cleaned.endswith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
             cleaned = cleaned[1:-1].strip()
 
+        # 5. Strip original text echo if model echoed the source input
+        if original_text and len(original_text.strip()) > 3:
+            cleaned = re.sub(re.escape(original_text.strip()), "", cleaned, flags=re.IGNORECASE).strip()
+
+        # 6. Collapse contiguous repetition loop pattern: (X)(X)+
+        m = re.match(r"^(.{3,}?)\1+", cleaned)
+        if m:
+            cleaned = m.group(1).strip()
+
+        # 7. Deduplicate consecutive identical sentences/phrases
+        parts = re.split(r"([.!?。！？\n])", cleaned)
+        sentences: list[str] = []
+        curr = ""
+        for p in parts:
+            curr += p
+            if p in ".!?。！？\n":
+                if curr.strip() and (not sentences or sentences[-1].strip().lower() != curr.strip().lower()):
+                    sentences.append(curr.strip())
+                curr = ""
+        if curr.strip() and (not sentences or sentences[-1].strip().lower() != curr.strip().lower()):
+            sentences.append(curr.strip())
+        if sentences:
+            cleaned = " ".join(sentences)
+
+        # 8. Final loop collapse check
+        m2 = re.match(r"^(.{4,}?)\1+$", cleaned)
+        if m2:
+            cleaned = m2.group(1).strip()
+
         # If multiple lines, take the first non-empty line
         lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
         if lines:
@@ -77,7 +108,7 @@ class MtValidator:
     def validate(
         self, original_text: str, source_lang: Lang, target_lang: Lang, raw_translation: str
     ) -> ValidationResult:
-        cleaned = self.clean(raw_translation)
+        cleaned = self.clean(raw_translation, original_text=original_text)
 
         # 1. Non-empty check
         if not cleaned:

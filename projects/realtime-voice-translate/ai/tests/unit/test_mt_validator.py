@@ -46,3 +46,20 @@ def test_mt_validator_note_and_input_stripping():
     res_ja = mt_validator.validate("Xin chào xin chào", "vi", "ja", raw_ja)
     assert res_ja.is_valid is True
     assert res_ja.cleaned_text == "こんにちは、こんにちは"
+
+
+def test_mt_validator_repetition_collapse():
+    raw_en_loop = "Châu is eating riceChâu is eating riceChâu is eating rice"
+    res1 = mt_validator.validate("Châu đang ăn cơm", "vi", "en", raw_en_loop)
+    assert res1.is_valid is True
+    assert res1.cleaned_text == "Châu is eating rice"
+
+    raw_scared = "Too scared, too scared.Sợ quá, sợ quá.Too scared, too scared.No notes, just the translation."
+    res2 = mt_validator.validate("Sợ quá, sợ quá.", "vi", "en", raw_scared)
+    assert res2.is_valid is True
+    assert res2.cleaned_text == "Too scared, too scared."
+
+    raw_ja_loop = "チャウがご飯を食べていますChâu đang ăn cơmチャウがご飯を食べています"
+    res3 = mt_validator.validate("Châu đang ăn cơm", "vi", "ja", raw_ja_loop)
+    assert res3.is_valid is True
+    assert res3.cleaned_text == "チャウがご飯を食べています"

@@ -132,8 +132,8 @@ test.describe('Realtime Voice Translate - Remote Regression Suite', () => {
     // Verify transcript appears on Side A (Bottom)
     await expect(page.locator('text=Xin chào bạn, tôi cần hỗ trợ dịch thuật trực tiếp.').first()).toBeVisible();
 
-    // Verify translation appears on Side B (Top)
-    await expect(page.locator('text=こんにちは、リアルタイム通訳のサポートが必要です。').first()).toBeVisible();
+    // Verify English translation appears on Side B (Top)
+    await expect(page.locator('text=Hello, I need direct interpretation support.').first()).toBeVisible();
 
     // Verify NO unwanted YouTube subtitle credit hallucinations
     await expect(page.locator('text=ghiền mì gõ')).not.toBeVisible();
