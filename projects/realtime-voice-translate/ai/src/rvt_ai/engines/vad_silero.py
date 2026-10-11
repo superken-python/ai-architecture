@@ -24,10 +24,33 @@ class SileroVadEngine(VadEngine):
         model_path = os.path.join(model_dir, "silero_vad.onnx")
 
         if not os.path.exists(model_path):
-            os.makedirs(model_dir, exist_ok=True)
-            url = "https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx"
-            logger.info(f"Downloading Silero VAD model to {model_path}...")
-            urllib.request.urlretrieve(url, model_path)
+            fallback_path = "/tmp/silero_vad.onnx"
+            if os.path.exists(fallback_path):
+                model_path = fallback_path
+            else:
+                urls = [
+                    "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx",
+                    "https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx",
+                ]
+                target_dest = model_path
+                try:
+                    os.makedirs(model_dir, exist_ok=True)
+                except OSError:
+                    target_dest = fallback_path
+
+                downloaded = False
+                for u in urls:
+                    try:
+                        logger.info(f"Downloading Silero VAD model from {u}...")
+                        urllib.request.urlretrieve(u, target_dest)
+                        model_path = target_dest
+                        downloaded = True
+                        break
+                    except Exception as err:
+                        logger.warning(f"Download failed from {u}: {err}")
+
+                if not downloaded:
+                    raise FileNotFoundError(f"Could not download Silero VAD model to {target_dest}")
 
         self.session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
         self.window_size = 512  # 32ms at 16kHz

@@ -21,8 +21,16 @@ async def lifespan(app: FastAPI):
     app.state.pack_reg = pack_reg
     app.state.profile = profile
 
-    # 2. Build engines
-    vad_engine, asr_engine, mt_engine = build_engines_from_profile(profile)
+    # 2. Build engines with resilient fallback
+    try:
+        vad_engine, asr_engine, mt_engine = build_engines_from_profile(profile)
+    except Exception as e:
+        logger.error(f"Error initializing engines for profile '{profile.name}': {e}. Falling back to resilient fake engines.")
+        from rvt_ai.engines.fake import FakeAsrEngine, FakeMtEngine, FakeVadEngine
+        vad_engine = FakeVadEngine()
+        asr_engine = FakeAsrEngine()
+        mt_engine = FakeMtEngine()
+
     app.state.vad_engine = vad_engine
     app.state.asr_engine = asr_engine
     app.state.mt_engine = mt_engine

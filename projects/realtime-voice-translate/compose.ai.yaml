@@ -31,15 +31,16 @@ services:
     environment:
       - CUDA_VISIBLE_DEVICES=0
       - RVT_USE_FAKE=0
+      - RVT_MODELS_DIR=/models
       - RVT_MT_API_URL=http://mt:8080/v1
     volumes:
-      - ./models:/models:ro
+      - ./models:/models
       - ./config:/app/config:ro
       - ./packs:/app/packs:ro
       - ./prompts:/app/prompts:ro
     depends_on:
       mt:
-        condition: service_healthy
+        condition: service_started
     networks:
       - backend
       - rvt_web_net

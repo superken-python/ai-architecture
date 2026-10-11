@@ -3,6 +3,7 @@ import os
 import numpy as np
 from faster_whisper import WhisperModel
 
+from rvt_ai.core.config import settings
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.ports import AsrEngine
 from rvt_contracts.messages import Lang
@@ -14,6 +15,14 @@ class FasterWhisperEngine(AsrEngine):
         self.device = device
         self.compute_type = compute_type
 
+        # Persistent whisper download directory
+        whisper_dir = os.path.join(settings.MODELS_DIR, "whisper")
+        try:
+            os.makedirs(whisper_dir, exist_ok=True)
+            download_root = whisper_dir
+        except OSError:
+            download_root = None
+
         # Verify CUDA availability if requested
         if device == "cuda" and not os.path.exists("/dev/nvidia0") and not os.environ.get("CUDA_VISIBLE_DEVICES"):
             logger.warning("No NVIDIA GPU device found, selecting CPU execution")
@@ -22,12 +31,16 @@ class FasterWhisperEngine(AsrEngine):
 
         try:
             logger.info(f"Loading faster-whisper model '{model_size}' on {self.device} ({self.compute_type})...")
-            self.model = WhisperModel(model_size, device=self.device, compute_type=self.compute_type)
+            self.model = WhisperModel(model_size, device=self.device, compute_type=self.compute_type, download_root=download_root)
         except Exception as e:
             logger.warning(f"Failed to load model on {self.device}: {e}. Falling back to CPU int8.")
             self.device = "cpu"
             self.compute_type = "int8"
-            self.model = WhisperModel(model_size, device="cpu", compute_type="int8")
+            try:
+                self.model = WhisperModel(model_size, device="cpu", compute_type="int8", download_root=download_root)
+            except Exception as e2:
+                logger.error(f"Failed to load faster-whisper model '{model_size}' on CPU: {e2}")
+                raise e2
 
     def transcribe(self, audio: bytes, language: Lang | None = None) -> tuple[str, Lang, dict[Lang, float]]:
         # Convert 16bit PCM to float32 normalized [-1, 1]

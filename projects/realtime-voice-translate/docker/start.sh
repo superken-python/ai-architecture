@@ -239,7 +239,7 @@ MAX_ATTEMPTS=20
 SUCCESS=0
 
 while [[ ${ATTEMPTS} -lt ${MAX_ATTEMPTS} ]]; do
-    if curl -sk https://localhost:8443/api/health/live >/dev/null 2>&1 || curl -s http://localhost:8080 >/dev/null 2>&1; then
+    if curl -sk -f https://localhost:8443/api/health/live >/dev/null 2>&1 || docker exec rvt_ai curl -s -f http://localhost:8000/api/health/live >/dev/null 2>&1; then
         SUCCESS=1
         break
     fi
@@ -248,6 +248,13 @@ while [[ ${ATTEMPTS} -lt ${MAX_ATTEMPTS} ]]; do
     echo -n "."
 done
 echo ""
+
+if [[ ${SUCCESS} -eq 0 ]]; then
+    echo -e "${YELLOW}[Notice] AI service is still starting up or loading models. Current container status:${NC}"
+    docker compose -f "${COMPOSE_FILE}" ps
+    echo -e "${CYAN}Recent AI service logs:${NC}"
+    docker logs --tail 15 rvt_ai 2>&1 || true
+fi
 
 echo -e "\n${BLUE}======================================================${NC}"
 if [[ ${SUCCESS} -eq 1 ]]; then
