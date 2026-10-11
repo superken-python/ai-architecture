@@ -52,6 +52,7 @@ class RVTClient {
         if (typeof event.data === "string") {
           try {
             const payload = JSON.parse(event.data);
+            console.log("📩 [Server Event]", payload.type, payload);
             useStore.getState().handleServerEvent(payload);
           } catch (e) {
             console.error("Failed to parse server message:", e);
@@ -66,6 +67,7 @@ class RVTClient {
 
   send(data: object) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      console.log("📤 [Client Send]", (data as any).type || "raw", data);
       this.ws.send(JSON.stringify(data));
     }
   }
@@ -75,6 +77,12 @@ class RVTClient {
       // Clean up any ongoing audio stream first
       this.stopAudio();
 
+      // 1. Notify backend immediately that turn started
+      this.send({ type: "turn.start", side });
+      useStore.getState().setMicActive(true);
+      useStore.getState().setActiveSide(side);
+
+      // 2. Request microphone
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -101,6 +109,8 @@ class RVTClient {
           chunkCount++;
           if (chunkCount === 1) {
             console.log("🎙 First audio chunk sent successfully to WebSocket server");
+          } else if (chunkCount % 25 === 0) {
+            console.log(`🎙 Đang gửi audio: ${chunkCount} chunks (${(chunkCount * 0.04).toFixed(1)}s)`);
           }
         }
       };
@@ -111,12 +121,6 @@ class RVTClient {
       source.connect(this.audioProcessor);
       this.audioProcessor.connect(muteGain);
       muteGain.connect(this.audioContext.destination);
-
-      useStore.getState().setMicActive(true);
-      useStore.getState().setActiveSide(side);
-
-      // Notify backend that turn started
-      this.send({ type: "turn.start", side });
     } catch (err) {
       console.error("Microphone capture failed:", err);
       useStore.getState().setError(`Lỗi Micro: ${(err as Error).message || "Không thể truy cập microphone"}`);

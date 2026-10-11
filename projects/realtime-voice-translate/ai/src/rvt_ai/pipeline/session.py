@@ -94,6 +94,7 @@ class RVTSession:
 
     async def handle_turn_start(self, side: Side) -> None:
         self.last_activity_time = time.time()
+        logger.info(f"[{self.session_id}] 🎙️ Turn START on Side {side}")
         if self.current_side != side:
             await self._flush_segmenter()
         self.current_side = side
@@ -101,6 +102,7 @@ class RVTSession:
 
     async def handle_turn_stop(self) -> None:
         self.last_activity_time = time.time()
+        logger.info(f"[{self.session_id}] ⏹️ Turn STOP on Side {self.current_side}")
         await self._flush_segmenter()
         self.current_side = None
 
@@ -109,8 +111,12 @@ class RVTSession:
         if not self.current_side:
             return
 
+        was_speaking = self.segmenter.is_speaking
         has_speech = self.vad.process(chunk, self.vad_state)
         await self.send_event(Vad(side=self.current_side, speaking=has_speech))
+
+        if has_speech and not was_speaking:
+            logger.info(f"[{self.session_id}] 🗣️ VAD: Speech DETECTED on Side {self.current_side}")
 
         should_partial, should_final, buffer = self.segmenter.add_chunk(chunk, has_speech)
 
@@ -120,6 +126,8 @@ class RVTSession:
             asyncio.create_task(self._process_partial_audio(buffer, side, uid))
 
         if should_final and len(buffer) > 0:
+            duration_ms = len(buffer) * 1000 // 32000
+            logger.info(f"[{self.session_id}] ⏱️ Segmenter: Speech ended, final audio ({duration_ms}ms)")
             await self._process_final_audio(buffer, self.current_side)
 
     async def handle_override_lang(self, utterance_id: int, new_lang: Lang) -> None:
@@ -209,6 +217,7 @@ class RVTSession:
             self.sides_prior[side] = update_side_prior(self.sides_prior[side], final_lang)
 
         # 3. Emit ASR Final
+        logger.info(f"[{self.session_id}] 📝 ASR Final: '{text}' [lang={final_lang}, probs={asr_probs}]")
         await self.send_event(
             AsrFinal(
                 utterance_id=uid,
@@ -258,6 +267,7 @@ class RVTSession:
                 )
                 await self.send_event(MtFinal(utterance_id=uid, target=target, text=f"[Lỗi dịch {target}]"))
             else:
+                logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
                 mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
                 await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text))
         except Exception as e:

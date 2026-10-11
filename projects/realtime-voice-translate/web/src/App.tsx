@@ -85,6 +85,13 @@ const App: React.FC = () => {
   // Render content for a side according to Section 7.2 display rules
   const renderHalfContent = (side: Side, fontSize: number) => {
     if (!currentU) {
+      if (isMicActive && activeSide === side) {
+        return (
+          <div style={{ color: '#4ade80', fontStyle: 'italic', margin: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🎙️</span> Đang lắng nghe... Hãy nói vào microphone.
+          </div>
+        );
+      }
       return (
         <div style={{ color: '#555', fontStyle: 'italic', margin: 'auto' }}>
           Chạm mic để bắt đầu nói...
