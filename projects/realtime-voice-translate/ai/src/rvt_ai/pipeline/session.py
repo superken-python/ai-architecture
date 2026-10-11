@@ -4,12 +4,14 @@ import time
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 
+import numpy as np
+
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.ports import AsrEngine, MtEngine, VadEngine
 from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
-from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig
+from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
 from rvt_contracts.messages import (
     AsrFinal,
     AsrPartial,
@@ -23,6 +25,16 @@ from rvt_contracts.messages import (
     SidesUpdate,
     Vad,
 )
+
+
+def _audio_summary(audio: bytes, stats: SegmentStats | None) -> str:
+    """Mức âm và thống kê VAD của một câu — đọc log để biết câu bị rơi vì nhỏ hay vì VAD (docs/04 §7.2)."""
+    samples = np.frombuffer(audio, np.int16).astype(np.float32) / 32768.0
+    rms = float(np.sqrt(np.mean(samples**2))) if len(samples) else 0.0
+    summary = f"audio={len(audio) * 1000 // 32000}ms level={20 * np.log10(max(rms, 1e-9)):.1f}dBFS"
+    if stats:
+        summary += f" speech={stats.speech_ms}ms vad_mean={stats.prob_mean:.2f} vad_max={stats.prob_max:.2f}"
+    return summary
 
 
 class RVTSession:
@@ -112,24 +124,27 @@ class RVTSession:
         if not self.current_side:
             return
 
+        side = self.current_side
         was_speaking = self.segmenter.is_speaking
-        has_speech = self.vad.process(chunk, self.vad_state)
-        await self.send_event(Vad(side=self.current_side, speaking=has_speech))
+        speech_prob = self.vad.process(chunk, self.vad_state)
+        should_partial, should_final, buffer = self.segmenter.add_chunk(chunk, speech_prob)
 
-        if has_speech and not was_speaking:
-            logger.info(f"[{self.session_id}] 🗣️ VAD: Speech DETECTED on Side {self.current_side}")
+        # "Đang nói" lấy theo segmenter (đã có hysteresis), không theo kết quả thô của từng chunk
+        await self.send_event(Vad(side=side, speaking=self.segmenter.is_speaking))
 
-        should_partial, should_final, buffer = self.segmenter.add_chunk(chunk, has_speech)
+        if self.segmenter.is_speaking and not was_speaking:
+            logger.info(f"[{self.session_id}] 🗣️ VAD: Speech DETECTED on Side {side} (p={speech_prob:.2f})")
+        elif was_speaking and not self.segmenter.is_speaking and not should_final:
+            logger.debug(f"[{self.session_id}] VAD: segment shorter than min_speech_ms dropped on Side {side}")
 
         if should_partial and len(buffer) > 0:
             uid = self.utterance_id_counter
-            side = self.current_side
             asyncio.create_task(self._process_partial_audio(buffer, side, uid))
 
         if should_final and len(buffer) > 0:
             duration_ms = len(buffer) * 1000 // 32000
             logger.info(f"[{self.session_id}] ⏱️ Segmenter: Speech ended, final audio ({duration_ms}ms)")
-            task = asyncio.create_task(self._process_final_audio(buffer, self.current_side))
+            task = asyncio.create_task(self._process_final_audio(buffer, side, self.segmenter.last_stats))
             self.active_tasks.append(task)
 
     async def handle_override_lang(self, utterance_id: int, new_lang: Lang) -> None:
@@ -174,7 +189,7 @@ class RVTSession:
             if len(buf) > 0:
                 duration_ms = len(buf) * 1000 // 32000
                 logger.info(f"[{self.session_id}] ⏱️ Flush on turn stop: processing final audio ({duration_ms}ms)")
-                await self._process_final_audio(buf, self.current_side)
+                await self._process_final_audio(buf, self.current_side, self.segmenter.last_stats)
 
     async def _process_partial_audio(self, audio: bytes, side: Side, uid: int) -> None:
         try:
@@ -185,7 +200,7 @@ class RVTSession:
         except Exception as e:
             logger.debug(f"Partial ASR error: {e}")
 
-    async def _process_final_audio(self, audio: bytes, side: Side) -> None:
+    async def _process_final_audio(self, audio: bytes, side: Side, stats: SegmentStats | None = None) -> None:
         uid = self.utterance_id_counter
         self.utterance_id_counter += 1
 
@@ -204,7 +219,10 @@ class RVTSession:
         )
 
         if not text or not text.strip():
-            logger.info(f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping")
+            logger.info(
+                f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping "
+                f"[side={side}, {_audio_summary(audio, stats)}]"
+            )
             return
 
         # 2. LID Policy
@@ -225,7 +243,10 @@ class RVTSession:
             self.sides_prior[side] = update_side_prior(self.sides_prior[side], final_lang)
 
         # 3. Emit ASR Final
-        logger.info(f"[{self.session_id}] 📝 ASR Final: '{text}' [lang={final_lang}, probs={asr_probs}]")
+        logger.info(
+            f"[{self.session_id}] 📝 ASR Final: '{text}' [lang={final_lang}, probs={asr_probs}, side={side}, "
+            f"{_audio_summary(audio, stats)}]"
+        )
         await self.send_event(
             AsrFinal(
                 utterance_id=uid,

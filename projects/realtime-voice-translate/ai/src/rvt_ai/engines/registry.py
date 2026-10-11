@@ -13,7 +13,7 @@ def build_engines_from_profile(profile: ProfileConfig) -> tuple[VadEngine, AsrEn
 
     # 1. VAD Engine
     if profile.vad.engine == "silero" and not settings.USE_FAKE:
-        vad_engine: VadEngine = SileroVadEngine(model_dir=settings.MODELS_DIR, threshold=profile.vad.threshold)
+        vad_engine: VadEngine = SileroVadEngine(model_dir=settings.MODELS_DIR)
     else:
         vad_engine = FakeVadEngine()
 

@@ -2,11 +2,14 @@ name: "quality"
 description: "Quality profile using 7B model"
 vad:
   engine: "silero"
-  threshold: 0.25
-  min_speech_ms: 120
+  # Silero mặc định 0.5/0.35; tạm hạ còn 0.4/0.25 vì chưa có AGC ở server (đợt 2) — mô phỏng mức thu thấp ở 2 m:
+  # 48% → 69% câu được ghi nhận, không tăng bắt nhầm nhiễu. Chỉnh lại sau khi đo thu xa (docs/04 §7).
+  threshold: 0.4
+  neg_threshold: 0.25
+  min_speech_ms: 200
   min_silence_ms: 500
   speech_pad_ms: 200
-  preroll_ms: 800
+  preroll_ms: 400
 asr:
   engine: "faster-whisper"
   model: "large-v3-turbo"

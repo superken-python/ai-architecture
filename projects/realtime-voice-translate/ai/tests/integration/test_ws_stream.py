@@ -3,7 +3,19 @@ import time
 
 from fastapi.testclient import TestClient
 
+from rvt_ai.api.stream import active_sessions
 from rvt_ai.main import app
+
+
+def test_websocket_session_uses_profile_vad_config():
+    # Trước đây stream.py tạo RVTSession không truyền segmenter_config → profile chỉ đổi được threshold
+    with TestClient(app) as client, client.websocket_connect("/ws", subprotocols=["rvt.v1"]) as ws:
+        ready = json.loads(ws.receive_text())
+        config = active_sessions[ready["session_id"]].segmenter.config
+        profile_vad = app.state.profile.vad
+        assert (config.threshold, config.neg_threshold) == (profile_vad.threshold, profile_vad.neg_threshold)
+        assert (config.min_speech_ms, config.min_silence_ms) == (profile_vad.min_speech_ms, profile_vad.min_silence_ms)
+        assert config.preroll_ms == profile_vad.preroll_ms
 
 
 def test_websocket_end_to_end_flow():

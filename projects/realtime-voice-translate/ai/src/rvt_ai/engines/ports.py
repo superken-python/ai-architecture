@@ -11,8 +11,8 @@ class VadState(Protocol):
 class VadEngine(Protocol):
     def create_state(self) -> VadState: ...
 
-    def process(self, chunk: bytes, state: VadState) -> bool:
-        """Returns True if speech is detected in the chunk"""
+    def process(self, chunk: bytes, state: VadState) -> float:
+        """Returns the highest speech probability (0..1) in the chunk"""
         ...
 
 

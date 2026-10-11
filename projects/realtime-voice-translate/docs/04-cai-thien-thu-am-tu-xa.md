@@ -6,15 +6,16 @@ WebSocket → VAD → cắt câu → Whisper; phần dịch (MT) giữ nguyên. 
 ngồi cách khoảng 1 m trở lên thì hệ thống gần như không ghi nhận câu nói.
 
 Số liệu ở mục 4 là **mô phỏng**, chạy bằng chính code VAD và cắt câu của dự án. Chưa có số đo trên điện thoại thật; mục 7
-mô tả cách đo để chốt các giá trị mặc định.
+mô tả cách đo để chốt các giá trị mặc định. Các link tới dòng code trỏ vào commit `e32ba78`, tức trạng thái trước khi
+sửa. **Đợt 1 đã được triển khai** — xem trạng thái ở mục 8.
 
 ## 1. Kết luận
 
 1. **Nguyên nhân chính là lỗi phần mềm, không phải do micro điện thoại yếu.**
-   [vad_silero.py](../ai/src/rvt_ai/engines/vad_silero.py#L82-L107) gọi Silero VAD (v5 trở lên) với cửa sổ 512 mẫu nhưng
-   **thiếu 64 mẫu ngữ cảnh** mà model yêu cầu. Vì vậy xác suất có tiếng nói luôn xấp xỉ 0: trên 60 s tiếng nói sạch, giá trị lớn
-   nhất đo được chỉ 0,0077. VAD thực chất chỉ còn luật năng lượng `rms > 0.04`, tức mỗi khung 40 ms phải to hơn khoảng
-   −28 dBFS. Chỉ tiếng nói sát máy mới đạt mức này.
+   [vad_silero.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/vad_silero.py#L82-L107) gọi Silero VAD (v5 trở lên) với cửa sổ 512 mẫu nhưng
+   **thiếu 64 mẫu ngữ cảnh** mà model yêu cầu. Với bản model đang tải từ nhánh `master` (v6.2), xác suất có tiếng nói
+   luôn xấp xỉ 0: trên 60 s tiếng nói sạch, giá trị lớn nhất đo được chỉ 0,0077. VAD thực chất chỉ còn luật năng lượng
+   `rms > 0.04`, tức mỗi khung 40 ms phải to hơn khoảng −28 dBFS. Chỉ tiếng nói sát máy mới đạt mức này.
 2. **Các lần chỉnh ngưỡng gần đây đều là bù cho lỗi này.** Lịch sử commit đổi luật năng lượng từ `rms > 0.03` sang
    `0.02` rồi `0.04`. Lần cuối (f06d9f3, nhằm bớt bắt tiếng ồn) nâng ngưỡng thêm 6 dB, nên người dùng càng phải nói sát.
 3. **Theo mô phỏng ở mục 4** (phòng họp, mức thu bình thường), tỉ lệ tiếng nói được ghi nhận là 98% ở 0,3 m, nhưng chỉ
@@ -56,13 +57,13 @@ flowchart TB
 
 | # | Cổng | Code | Làm rơi tiếng nói khi | Ảnh hưởng tới giọng ở xa | Mức |
 |---|---|---|---|---|---|
-| ① | Xử lý âm thanh kiểu cuộc gọi | [ws_client.ts](../web/src/net/ws_client.ts#L97-L104) | bộ lọc ồn của cuộc gọi coi giọng nhỏ, có vang là nhiễu | mất mức âm và SNR ngay từ máy | P1, cần đo |
-| ② | Hạ mẫu 48 → 16 kHz | [audio-processor.js](../web/public/audio-processor.js#L37-L60) | nhiễu 8–24 kHz bị gập vào dải tiếng nói | SNR giảm 0,7–4,8 dB | P2 |
-| ③ | Silero VAD | [vad_silero.py](../ai/src/rvt_ai/engines/vad_silero.py#L82-L107) | xác suất ≈ 0, chỉ còn `rms > 0.04` | khung nào nhỏ hơn −28 dBFS đều không được tính là tiếng nói | **P0** |
-| ④ | Cắt câu | [segmenter.py](../ai/src/rvt_ai/pipeline/segmenter.py#L45-L70) | dưới 200 ms "có tiếng" thì bỏ; 500 ms không vượt ngưỡng thì chốt câu | câu bị cắt vụn hoặc bị bỏ hẳn | P1 |
-| ⑤ | Cổng năng lượng trước Whisper | [asr_whisper.py](../ai/src/rvt_ai/engines/asr_whisper.py#L81-L85) | RMS của cả đoạn < 0,003 (≈ −50 dBFS); đoạn này gồm cả 800 ms preroll và 500 ms im lặng cuối | rơi khi máy thu nhỏ | P1 |
-| ⑥ | Lọc `no_speech` | [asr_whisper.py](../ai/src/rvt_ai/engines/asr_whisper.py#L99-L104) | `no_speech_prob > 0.6`, kể cả khi Whisper đọc ra chữ với độ tin cậy cao | giọng nhỏ, ở xa thường có `no_speech_prob` cao hơn | P1 |
-| ⑦ | Lọc "thank you" | [asr_whisper.py](../ai/src/rvt_ai/engines/asr_whisper.py#L111-L113) | `rms < 0.015` (ngưỡng tuyệt đối) | lời cảm ơn thật nói từ xa bị xóa | P2 |
+| ① | Xử lý âm thanh kiểu cuộc gọi | [ws_client.ts](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/web/src/net/ws_client.ts#L97-L104) | bộ lọc ồn của cuộc gọi coi giọng nhỏ, có vang là nhiễu | mất mức âm và SNR ngay từ máy | P1, cần đo |
+| ② | Hạ mẫu 48 → 16 kHz | [audio-processor.js](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/web/public/audio-processor.js#L37-L60) | nhiễu 8–24 kHz bị gập vào dải tiếng nói | SNR giảm 0,7–4,8 dB | P2 |
+| ③ | Silero VAD | [vad_silero.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/vad_silero.py#L82-L107) | xác suất ≈ 0, chỉ còn `rms > 0.04` | khung nào nhỏ hơn −28 dBFS đều không được tính là tiếng nói | **P0** |
+| ④ | Cắt câu | [segmenter.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/segmenter.py#L45-L70) | dưới 200 ms "có tiếng" thì bỏ; 500 ms không vượt ngưỡng thì chốt câu | câu bị cắt vụn hoặc bị bỏ hẳn | P1 |
+| ⑤ | Cổng năng lượng trước Whisper | [asr_whisper.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L81-L85) | RMS của cả đoạn < 0,003 (≈ −50 dBFS); đoạn này gồm cả 800 ms preroll và 500 ms im lặng cuối | rơi khi máy thu nhỏ | P1 |
+| ⑥ | Lọc `no_speech` | [asr_whisper.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L99-L104) | `no_speech_prob > 0.6`, kể cả khi Whisper đọc ra chữ với độ tin cậy cao | giọng nhỏ, ở xa thường có `no_speech_prob` cao hơn | P1 |
+| ⑦ | Lọc "thank you" | [asr_whisper.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L111-L113) | `rms < 0.015` (ngưỡng tuyệt đối) | lời cảm ơn thật nói từ xa bị xóa | P2 |
 
 ## 3. Nguyên nhân chi tiết
 
@@ -70,12 +71,12 @@ flowchart TB
 
 **Bằng chứng**
 
-- Vòng lặp ở [vad_silero.py#L82-L95](../ai/src/rvt_ai/engines/vad_silero.py#L82-L95) mỗi lần chỉ đưa vào model đúng
+- Vòng lặp ở [vad_silero.py#L82-L95](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/vad_silero.py#L82-L95) mỗi lần chỉ đưa vào model đúng
   512 mẫu (`input_data = np.expand_dims(window, axis=0)  # [1, 512]`). Wrapper chính thức của silero-vad (`OnnxWrapper`
   trong `utils_vad.py`) ở 16 kHz thì ghép 64 mẫu cuối của cửa sổ trước vào đầu cửa sổ mới
   (`x = torch.cat([self._context, x], dim=1)`). Như vậy model nhận **576 mẫu** mỗi lần, và 64 mẫu cuối được giữ lại làm
   ngữ cảnh cho lần gọi sau.
-- Đo với đúng file model mà [download_models.sh](../scripts/download_models.sh#L18) tải về (nhánh `master` của
+- Đo với đúng file model mà [download_models.sh](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/scripts/download_models.sh#L18) tải về (nhánh `master` của
   silero-vad), trên 60 s tiếng nói sạch:
 
   | Cách gọi model | p trung bình | p lớn nhất | % cửa sổ có p > 0,25 |
@@ -83,8 +84,20 @@ flowchart TB
   | Như code hiện tại (512 mẫu) | 0,0006 | 0,0077 | 0% |
   | Có 64 mẫu ngữ cảnh (576 mẫu) | 0,78 | 1,00 | 79% |
 
+- Mức hỏng phụ thuộc phiên bản model. File trên `master` hiện trùng SHA-256 với tag v6.2/v6.2.1. Trên cùng 60 s tiếng
+  nói, tỉ lệ cửa sổ có p > 0,5 khi gọi thiếu và đủ ngữ cảnh như sau:
+
+  | Bản model | Thiếu ngữ cảnh (như code hiện tại) | Đủ ngữ cảnh |
+  |---|---|---|
+  | v5.1.x | 77% | 78% |
+  | v6.0 | 27% | 75% |
+  | v6.2 / v6.2.1 (`master`) | 0% | 77% |
+
+  Vì vậy cùng một đoạn code có thể chạy ổn với model cũ nhưng hỏng hẳn với bản v6.2 đang tải từ `master`. Kiểm tra
+  SHA-256 của `models/silero_vad.onnx` trên máy chủ để biết đang chạy bản nào.
+
 - Vì `prob` luôn xấp xỉ 0, hai vế đầu của điều kiện ở
-  [dòng 107](../ai/src/rvt_ai/engines/vad_silero.py#L107) không bao giờ đúng, nên VAD chỉ còn `rms > 0.04`. RMS 0,04
+  [dòng 107](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/vad_silero.py#L107) không bao giờ đúng, nên VAD chỉ còn `rms > 0.04`. RMS 0,04
   (≈ −28 dBFS) trên cả khung 40 ms là mức của giọng nói to ở gần. Trong mô phỏng với mức nói sát −26 dBFS, chỉ khoảng 40%
   số khung có tiếng vượt được ngưỡng này, nên câu bị cắt vụn: ra 23 đoạn thay vì 8–9 câu tự nhiên.
 - Lịch sử của [vad_silero.py](../ai/src/rvt_ai/engines/vad_silero.py):
@@ -95,14 +108,14 @@ flowchart TB
 
   Profile `balanced` cũng hạ `threshold` từ 0,5 xuống 0,25 và tăng `preroll_ms` từ 300 lên 800. Tất cả đều là triệu
   chứng của một VAD "không nghe thấy gì".
-- Test không phát hiện được lỗi: [test_vad_silero.py](../ai/tests/unit/test_vad_silero.py#L18-L21) chỉ kiểm tra im lặng
+- Test không phát hiện được lỗi: [test_vad_silero.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/tests/unit/test_vad_silero.py#L18-L21) chỉ kiểm tra im lặng
   trả về `False`, không có ca nào kiểm tra tiếng nói thật trả về `True`.
 
 **Cách sửa:** xem mục 6.1.
 
 ### 3.2 [P1] Trình duyệt đang thu âm ở chế độ cuộc gọi
 
-[ws_client.ts#L97-L104](../web/src/net/ws_client.ts#L97-L104) xin quyền micro với `echoCancellation`,
+[ws_client.ts#L97-L104](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/web/src/net/ws_client.ts#L97-L104) xin quyền micro với `echoCancellation`,
 `noiseSuppression` và `autoGainControl` đều bằng `true`. Đây là cấu hình cho cuộc gọi video, khi người nói ở gần và loa
 đang phát tiếng.
 
@@ -122,16 +135,16 @@ flowchart TB
 
 ### 3.3 [P1] Các cổng chặn theo mức tuyệt đối trước và trong Whisper
 
-- [asr_whisper.py#L81-L85](../ai/src/rvt_ai/engines/asr_whisper.py#L81-L85) tính RMS của **cả đoạn** gửi sang Whisper,
+- [asr_whisper.py#L81-L85](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L81-L85) tính RMS của **cả đoạn** gửi sang Whisper,
   gồm 800 ms preroll, phần nói và 500 ms im lặng cuối, rồi bỏ đoạn nếu RMS < 0,003 (≈ −50 dBFS). Với giọng xa và máy thu
   nhỏ, phần im lặng kéo RMS trung bình xuống dưới ngưỡng dù phần nói vẫn nghe rõ. Hiện cổng này chưa lộ ra vì VAD (3.1)
   đã chặn từ trước. Sửa VAD xong thì cổng này thành nút thắt: kịch bản C ở mục 4 bị rơi 3–4 đoạn trong 60 s ở khoảng cách
   2–3 m.
-- [asr_whisper.py#L99-L104](../ai/src/rvt_ai/engines/asr_whisper.py#L99-L104) bỏ segment nếu `no_speech_prob > 0.6`.
+- [asr_whisper.py#L99-L104](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L99-L104) bỏ segment nếu `no_speech_prob > 0.6`.
   Bản thân faster-whisper **đã** bỏ segment khi `no_speech_prob > no_speech_threshold` **và**
   `avg_logprob < log_prob_threshold` ([transcribe.py][fw-skip]). Điều kiện riêng của dự án bỏ thêm những segment mà
   Whisper đọc ra chữ với độ tin cậy cao nhưng `no_speech_prob` vẫn cao, đúng là kiểu của giọng nhỏ hoặc ở xa.
-- [asr_whisper.py#L111-L113](../ai/src/rvt_ai/engines/asr_whisper.py#L111-L113): luật "thank you" chỉ giữ câu khi
+- [asr_whisper.py#L111-L113](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L111-L113): luật "thank you" chỉ giữ câu khi
   `rms >= 0.015` (≈ −36 dBFS). Một lời cảm ơn thật nói từ 1,5 m sẽ bị xóa.
 - Các ngưỡng tuyệt đối phụ thuộc vào máy, ốp lưng và cấu hình xử lý âm thanh của trình duyệt. Ngưỡng nên so với **nền
   ồn đo được trong chính phiên đó** (tức SNR) thay vì một con số cố định.
@@ -139,21 +152,21 @@ flowchart TB
 ### 3.4 [P1] Segmenter dùng một ngưỡng, không có hysteresis và bỏ qua cấu hình profile
 
 - Quyết định "đang nói" dựa trên **một ngưỡng cho mỗi khung**
-  ([segmenter.py#L45-L49](../ai/src/rvt_ai/pipeline/segmenter.py#L45-L49)), không có hysteresis. Silero chuẩn vào trạng
+  ([segmenter.py#L45-L49](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/segmenter.py#L45-L49)), không có hysteresis. Silero chuẩn vào trạng
   thái nói khi p ≥ `threshold` và chỉ coi là im lặng khi p < `threshold − 0,15`. Xác suất của giọng xa dao động quanh
   ngưỡng, nên câu bị chốt giữa chừng.
 - Đoạn mà khung "có tiếng" đầu và cuối cách nhau dưới 200 ms bị bỏ
-  ([segmenter.py#L61-L70](../ai/src/rvt_ai/pipeline/segmenter.py#L61-L70)). Với VAD theo năng lượng, giọng xa chỉ lóe lên
+  ([segmenter.py#L61-L70](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/segmenter.py#L61-L70)). Với VAD theo năng lượng, giọng xa chỉ lóe lên
   vài khung nên bị bỏ hẳn: mô phỏng ghi nhận 13–18 lần bỏ trong 60 s ở khoảng cách 0,6–1,5 m.
-- Cấu hình profile không được áp dụng. [stream.py#L66](../ai/src/rvt_ai/api/stream.py#L66) tạo `RVTSession` mà không
-  truyền `segmenter_config`, nên [session.py#L46](../ai/src/rvt_ai/pipeline/session.py#L46) dùng `SegmenterConfig()` mặc
-  định. Profile chỉ truyền `threshold` vào VAD ([registry.py#L16](../ai/src/rvt_ai/engines/registry.py#L16)). Do đó
-  `min_speech_ms: 120` trong [balanced.yaml](../packs/profiles/balanced.yaml#L3-L9) không có tác dụng, còn
+- Cấu hình profile không được áp dụng. [stream.py#L66](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/api/stream.py#L66) tạo `RVTSession` mà không
+  truyền `segmenter_config`, nên [session.py#L46](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/session.py#L46) dùng `SegmenterConfig()` mặc
+  định. Profile chỉ truyền `threshold` vào VAD ([registry.py#L16](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/registry.py#L16)). Do đó
+  `min_speech_ms: 120` trong [balanced.yaml](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/packs/profiles/balanced.yaml#L3-L9) không có tác dụng, còn
   `speech_pad_ms` không được dùng ở đâu cả.
 
 ### 3.5 [P2] Hạ mẫu 48 → 16 kHz không lọc chống aliasing
 
-- Ở [audio-processor.js#L22-L60](../web/public/audio-processor.js#L22-L60), với 48 kHz (tần số mặc định của đa số điện
+- Ở [audio-processor.js#L22-L60](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/web/public/audio-processor.js#L22-L60), với 48 kHz (tần số mặc định của đa số điện
   thoại) thì `ratio = 3`. Vị trí đọc luôn là số nguyên, nên phép "nội suy tuyến tính" thực chất là **lấy 1 trong 3 mẫu,
   không lọc**. Mọi âm trong dải 8–24 kHz (tiếng xì của mic, quạt, máy lạnh) bị gập vào dải 0–8 kHz mà Whisper dùng.
   Thiết kế 01 §6.1 đã yêu cầu "lọc thông thấp + hạ mẫu".
@@ -164,7 +177,7 @@ flowchart TB
 ### 3.6 [P2] Người dùng không biết mình đang ở quá xa
 
 Giao diện không có đồng hồ mức âm. Khi một câu bị bỏ vì rỗng hoặc chỉ có nhiễu, server chỉ ghi log `🔇 … skipping`
-([session.py#L206-L208](../ai/src/rvt_ai/pipeline/session.py#L206-L208)) và giao diện không báo gì. Người dùng chỉ thấy
+([session.py#L206-L208](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/session.py#L206-L208)) và giao diện không báo gì. Người dùng chỉ thấy
 "không ăn", và không biết nên nói to hơn hay ngồi lại gần.
 
 ## 4. Số đo mô phỏng
@@ -308,7 +321,7 @@ class SileroVadEngine(VadEngine):
         return max_prob
 ```
 
-Đổi kiểu trả về của `VadEngine.process` trong [ports.py](../ai/src/rvt_ai/engines/ports.py#L14-L16) thành `float`, và sửa
+Đổi kiểu trả về của `VadEngine.process` trong [ports.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/ports.py#L14-L16) thành `float`, và sửa
 `FakeVadEngine` cho khớp (trả `1.0` hoặc `0.0`). **Bỏ hẳn** hai vế `rms` ở dòng 107: chúng là phần bù cho lỗi, và chính
 chúng để lọt tiếng gõ bàn (bảng D).
 
@@ -330,35 +343,54 @@ class Segmenter:
 
 # ai/src/rvt_ai/api/stream.py — thay dòng 66
 seg_cfg = SegmenterConfig(**app_state.profile.vad.model_dump(exclude={"engine"}))
-session = RVTSession(session_id=session_id, vad=vad_engine, asr=asr_engine, mt=mt_engine,
-                     send_event_cb=send_event, segmenter_config=seg_cfg)
+session = RVTSession(
+    session_id=session_id,
+    vad=vad_engine,
+    asr=asr_engine,
+    mt=mt_engine,
+    send_event_cb=send_event,
+    segmenter_config=seg_cfg,
+)
 ```
 
 Trong `RVTSession.handle_audio_chunk`, gửi event `vad` theo `self.segmenter.is_speaking` (trạng thái đã có hysteresis)
 thay cho kết quả thô của từng chunk. Thêm `neg_threshold` vào `VadConfig` trong
-[loader.py](../ai/src/rvt_ai/packs/loader.py#L11-L20), rồi đặt profile như sau (giá trị chốt sau khi đo ở mục 7):
+[loader.py](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/packs/loader.py#L11-L20), rồi đặt profile như sau (giá trị chốt sau khi đo ở mục 7):
 
 ```yaml
 # packs/profiles/balanced.yaml
 vad:
   engine: "silero"
-  threshold: 0.5        # mặc định của Silero; thử 0.35–0.5 trên bộ đo thu xa
-  neg_threshold: 0.35
+  threshold: 0.4        # Silero mặc định 0.5/0.35; tạm 0.4/0.25 tới khi có AGC ở server (6.2)
+  neg_threshold: 0.25
   min_speech_ms: 200    # đủ cho câu rất ngắn như "Dạ", "はい"
   min_silence_ms: 500
   speech_pad_ms: 200
   preroll_ms: 400       # VAD đúng thì không cần 800 ms; preroll dài chỉ đưa thêm nhiễu vào Whisper
 ```
 
+Ngưỡng 0,4/0,25 được chọn bằng mô phỏng với chính code sau khi sửa. Ở mức thu bình thường (kịch bản B), mọi ngưỡng từ
+0,35 tới 0,5 đều đạt 100% tới 3 m. Ở mức thu thấp (kịch bản C), tỉ lệ ghi nhận như sau:
+
+| Ngưỡng vào/ra | 1,5 m | 2 m | 3 m |
+|---|---|---|---|
+| 0,5/0,35 | 87% | 48% | 32% |
+| 0,4/0,25 | 97% | 69% | 52% |
+| 0,35/0,2 | 98% | 86% | 56% |
+
+Không ngưỡng nào bắt nhầm nhiễu hồng, nhiễu trắng hay tiếng gõ bàn. Trên nhạc tổng hợp, tỉ lệ khung vượt ngưỡng chỉ
+0,5–0,9%. Ngưỡng thấp hơn nữa dễ bắt cả tiếng nói chuyện nhỏ ở bàn bên, nên tạm chọn mức giữa. Chỉnh lại sau khi có AGC
+và bộ đo thu xa.
+
 **c) Chống tái phát**
 
 - Thêm test VAD bằng **tiếng nói thật**, ví dụ 1–2 câu FLEURS 16 kHz (CC-BY 4.0) đặt trong `ai/tests/fixtures/`. Test
   kiểm tra: hơn 50% số khung có tiếng có p > 0,5, và các khung im lặng hoặc chỉ có nhiễu hồng có p < 0,1. Với code hiện
   tại, test này báo đỏ ngay (0%).
-- Ghim phiên bản model. [download_models.sh](../scripts/download_models.sh#L18) đang tải từ nhánh `master`.
-  [config/models.yaml](../config/models.yaml#L15-L20) có trường `sha256` nhưng giá trị chỉ dài 40 ký tự (không phải
-  SHA-256) và không được kiểm tra ở đâu. Nên ghi lại tag/commit cùng SHA-256 thật và kiểm tra khi tải. File tải từ
-  `master` ngày 2026-10-11 có SHA-256 là `1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3`.
+- Ghim phiên bản model. Trước đợt 1, `download_models.sh` tải từ nhánh `master`, còn `config/models.yaml` có trường
+  `sha256` nhưng giá trị chỉ dài 40 ký tự (không phải SHA-256) và không được kiểm tra ở đâu. Đợt 1 đã ghim tag
+  **v6.2.1**, SHA-256 `1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3` (trùng file trên `master` ngày
+  2026-10-11), và kiểm tra checksum khi tải.
 
 ### 6.2 Tiền xử lý ở server: lọc thông cao và AGC số
 
@@ -413,7 +445,7 @@ class AudioFrontEnd:
 
 ### 6.3 Cổng trước và trong Whisper
 
-- **Bỏ cổng RMS tuyệt đối** ở [asr_whisper.py#L81-L85](../ai/src/rvt_ai/engines/asr_whisper.py#L81-L85). Thay bằng cổng
+- **Bỏ cổng RMS tuyệt đối** ở [asr_whisper.py#L81-L85](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L81-L85). Thay bằng cổng
   SNR ở session:
   - segmenter ghi lại `level_db` (trước gain) của các khung đang nói;
   - khi chốt câu, tính `snr_db = mức tiếng nói − frontend.noise_db`;
@@ -430,7 +462,7 @@ class AudioFrontEnd:
       valid_segments.append(s.text.strip())
   ```
 
-- **Luật "thank you"** ([dòng 112](../ai/src/rvt_ai/engines/asr_whisper.py#L112)): thay `rms >= 0.015` bằng
+- **Luật "thank you"** ([dòng 112](https://github.com/superken-python/ai-architecture/blob/e32ba786455c5d326a80acb342c1795a2e9a8dcd/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L112)): thay `rms >= 0.015` bằng
   `snr_db >= 15`. Có thể chuyển cả bộ lọc ảo giác lên pipeline (ví dụ `pipeline/hallucination.py`), là nơi đã có sẵn
   SNR, `no_speech_prob` và `avg_logprob`.
 - Thêm event `utterance.dropped` (`side`, `reason`: `low_snr` | `no_speech` | `hallucination` | `too_short`,
@@ -611,6 +643,26 @@ Kết quả từng vòng ghi vào bảng "3 · CHÍNH XÁC — các vòng cải 
 | 5 · Tùy chọn | mic ngoài; khử ồn, khử vang bằng model; tự nhận phía A/B | theo nhu cầu | WER giảm có ý nghĩa trên bộ thu xa |
 
 Đợt 1 là thay đổi nhỏ nhất nhưng có tác động lớn nhất. Nên deploy riêng đợt này trước, rồi thử ngay trên máy thật.
+
+### Trạng thái (2026-10-11): đợt 1 đã xong
+
+- **Code:**
+  - VAD ghép 64 mẫu ngữ cảnh, trả về xác suất và bỏ hai luật RMS tuyệt đối;
+  - segmenter có hysteresis; session dùng cấu hình VAD trong profile; event `vad` đi theo trạng thái của segmenter;
+  - profile `balanced`, `quality`, `cpu-dev` dùng ngưỡng 0,4/0,25 và preroll 400 ms (lý do ở 6.1).
+- **Model:** ghim Silero v6.2.1 kèm SHA-256 ở cả code tự tải lẫn `scripts/download_models.sh`. Khi khởi động, server log
+  SHA-256 của model và cảnh báo nếu không phải bản đã ghim.
+- **Log theo câu:** mỗi câu chốt có mức âm (dBFS), thời lượng tiếng nói và p VAD trung bình/lớn nhất. Lý do Whisper bỏ đoạn
+  (RMS thấp, `no_speech_prob`) nay ghi ở mức INFO.
+- **Test:** thêm 11 test, tổng 35/35 pass. Các test mới đều fail trên code cũ, gồm:
+  - VAD với tiếng nói thật, giọng giảm 26 dB và nhiễu trắng;
+  - hysteresis và thống kê câu;
+  - cấu hình profile được áp dụng qua WebSocket;
+  - session với VAD thật nhận được giọng ở xa.
+- **Mô phỏng với code mới:** kịch bản B đạt 100% tới 3 m. Kịch bản C đạt 97% / 69% / 52% ở 1,5 / 2 / 3 m. Không gửi
+  đoạn nhiễu nào sang Whisper.
+- **Còn lại:** khi máy thu nhỏ, độ phủ ở 2–3 m vẫn thấp. Việc này cần đợt 2 (AGC server, cổng SNR) và đợt 3 (chế độ thu xa
+  trên trình duyệt); cuối cùng đo trên máy thật ở đợt 4.
 
 ## 9. Rủi ro và đánh đổi
 

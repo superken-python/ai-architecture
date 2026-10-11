@@ -15,8 +15,9 @@ models:
   vad:
     silero:
       repo: "snakers4/silero-vad"
+      revision: "v6.2.1"  # ghim cùng SILERO_VAD_VERSION trong vad_silero.py và scripts/download_models.sh
       file: "silero_vad.onnx"
-      sha256: "0c226a1beee0c184511d5cc5c4644eb9a7f5dfcd"
+      sha256: "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
       license: "MIT"
   mt:
     hy-mt2-1.8b:

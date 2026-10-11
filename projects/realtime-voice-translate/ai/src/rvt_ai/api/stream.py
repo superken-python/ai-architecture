@@ -8,6 +8,7 @@ from pydantic import TypeAdapter, ValidationError
 from rvt_ai.core.config import settings
 from rvt_ai.core.logging import logger
 from rvt_ai.core.security import verify_session_token
+from rvt_ai.pipeline.segmenter import SegmenterConfig
 from rvt_ai.pipeline.session import RVTSession
 from rvt_contracts.messages import ClientEvent, ErrorEvent, Pong, ServerEvent
 
@@ -63,7 +64,16 @@ async def handle_websocket_connection(websocket: WebSocket):
     mt_engine = app_state.mt_engine
     pack_reg = app_state.pack_reg
 
-    session = RVTSession(session_id=session_id, vad=vad_engine, asr=asr_engine, mt=mt_engine, send_event_cb=send_event)
+    # Ngưỡng VAD, preroll, min_speech/min_silence... lấy từ profile của pack, không dùng mặc định trong code
+    segmenter_config = SegmenterConfig(**app_state.profile.vad.model_dump(exclude={"engine"}))
+    session = RVTSession(
+        session_id=session_id,
+        vad=vad_engine,
+        asr=asr_engine,
+        mt=mt_engine,
+        send_event_cb=send_event,
+        segmenter_config=segmenter_config,
+    )
     active_sessions[session_id] = session
     logger.info(f"WebSocket session connected: {session_id} (total: {len(active_sessions)})")
 

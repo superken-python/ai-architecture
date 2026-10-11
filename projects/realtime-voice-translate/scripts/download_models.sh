@@ -11,15 +11,37 @@ echo "======================================================"
 echo "    📦 Realtime Voice Translate - Model Downloader   "
 echo "======================================================"
 
-# 1. Download Silero VAD ONNX model
+sha256_of() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | cut -d' ' -f1
+    else
+        shasum -a 256 "$1" | cut -d' ' -f1
+    fi
+}
+
+# 1. Download Silero VAD ONNX model — pinned version (keep in sync with ai/src/rvt_ai/engines/vad_silero.py)
+SILERO_VAD_VERSION="v6.2.1"
+SILERO_VAD_SHA256="1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
+SILERO_VAD_URL="https://raw.githubusercontent.com/snakers4/silero-vad/${SILERO_VAD_VERSION}/src/silero_vad/data/silero_vad.onnx"
 VAD_MODEL="${MODELS_DIR}/silero_vad.onnx"
 if [[ ! -f "${VAD_MODEL}" ]]; then
-    echo "Downloading Silero VAD ONNX model (~2.3 MB)..."
-    curl -fsSL "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx" -o "${VAD_MODEL}" || \
-    curl -fsSL "https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx" -o "${VAD_MODEL}"
-    echo "✓ Silero VAD downloaded: ${VAD_MODEL}"
+    echo "Downloading Silero VAD ${SILERO_VAD_VERSION} ONNX model (~2.3 MB)..."
+    if curl -fsSL "${SILERO_VAD_URL}" -o "${VAD_MODEL}"; then
+        if [[ "$(sha256_of "${VAD_MODEL}")" != "${SILERO_VAD_SHA256}" ]]; then
+            rm -f "${VAD_MODEL}"
+            echo "✗ Silero VAD checksum mismatch for ${SILERO_VAD_URL}" >&2
+            exit 1
+        fi
+        echo "✓ Silero VAD ${SILERO_VAD_VERSION} downloaded and verified: ${VAD_MODEL}"
+    else
+        echo "⚠ GitHub download failed, falling back to the unverified HuggingFace copy" >&2
+        curl -fsSL "https://huggingface.co/onnx-community/silero-vad/resolve/main/onnx/model.onnx" -o "${VAD_MODEL}"
+        echo "✓ Silero VAD downloaded (unverified): ${VAD_MODEL}"
+    fi
+elif [[ "$(sha256_of "${VAD_MODEL}")" != "${SILERO_VAD_SHA256}" ]]; then
+    echo "⚠ ${VAD_MODEL} is not the pinned Silero VAD ${SILERO_VAD_VERSION}; delete it and re-run this script to update"
 else
-    echo "✓ Silero VAD already exists: ${VAD_MODEL}"
+    echo "✓ Silero VAD ${SILERO_VAD_VERSION} already exists: ${VAD_MODEL}"
 fi
 
 # 2. Check or download MT GGUF model

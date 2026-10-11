@@ -3,6 +3,7 @@ description: "Fake engines for testing without model/GPU requirements"
 vad:
   engine: "fake"
   threshold: 0.5
+  neg_threshold: 0.35
   min_speech_ms: 250
   min_silence_ms: 500
   speech_pad_ms: 200

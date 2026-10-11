@@ -81,7 +81,8 @@ class FasterWhisperEngine(AsrEngine):
         # Energy floor check to avoid processing pure digital silence or faint ambient room noise
         rms = float(np.sqrt(np.mean(audio_float32**2))) if len(audio_float32) > 0 else 0.0
         if rms < 0.003:
-            logger.debug(f"Audio RMS energy too low ({rms:.5f}), treating as silence")
+            level_dbfs = 20 * np.log10(max(rms, 1e-9))
+            logger.info(f"Audio RMS energy too low ({rms:.5f} ≈ {level_dbfs:.1f} dBFS < 0.003), treating as silence")
             return "", "vi", {"ja": 0.0, "en": 0.0, "vi": 0.0}
 
         segments, info = self.model.transcribe(
@@ -99,7 +100,10 @@ class FasterWhisperEngine(AsrEngine):
         valid_segments = []
         for s in segments:
             if s.no_speech_prob > 0.6:
-                logger.debug(f"Filtered silent/no-speech segment: '{s.text}' (no_speech_prob={s.no_speech_prob:.2f})")
+                logger.info(
+                    f"Filtered silent/no-speech segment: '{s.text}' "
+                    f"(no_speech_prob={s.no_speech_prob:.2f}, avg_logprob={s.avg_logprob:.2f})"
+                )
                 continue
             valid_segments.append(s.text.strip())
 

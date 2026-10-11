@@ -13,9 +13,9 @@ class FakeVadEngine:
     def create_state(self) -> FakeVadState:
         return FakeVadState()
 
-    def process(self, chunk: bytes, state: FakeVadState) -> bool:
+    def process(self, chunk: bytes, state: FakeVadState) -> float:
         # If chunk has non-zero bytes, it's speech
-        return any(b != 0 for b in chunk)
+        return 1.0 if any(b != 0 for b in chunk) else 0.0
 
 
 class FakeAsrEngine:
