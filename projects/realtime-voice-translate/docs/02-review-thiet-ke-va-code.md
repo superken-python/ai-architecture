@@ -15,7 +15,7 @@
 | Import `ClientEvent`, kiểm `hasattr(ClientEvent, 'model_validate')` | **False** | Lệnh text WebSocket hiện bị bắt lỗi và bỏ qua. Thử `TestClient` với `turn.start` ghi log `Invalid message: 'types.UnionType' object has no attribute 'model_validate'`. |
 | Kiểm các route FastAPI | Chỉ `/api/health/live`, `/ws` và OpenAPI mặc định | REST theo thiết kế, `/health/ready`, `/metrics` chưa có. |
 
-**Chưa kiểm chứng:** build image/chạy Compose đầy đủ, ASR/MT trên GPU NVIDIA 8 GB, HTTPS trên điện thoại, model MT (đã nâng cấp lên Qwen2.5-3B), số liệu SLO. Máy review là macOS, không có model GGUF, certificate hay golden set trong thư mục dự án. Vì vậy các kết luận hiệu năng và độ chính xác dưới đây là **chưa có bằng chứng đạt**, không phải số đo thất bại. Một số rủi ro tương thích model/runtime cần thử trên máy GPU sau khi sửa đường chạy.
+**Chưa kiểm chứng:** build image/chạy Compose đầy đủ, ASR/MT trên GPU NVIDIA 8 GB, HTTPS trên điện thoại, model MT (đã nâng cấp lên Qwen2.5-7B), số liệu SLO. Máy review là macOS, không có model GGUF, certificate hay golden set trong thư mục dự án. Vì vậy các kết luận hiệu năng và độ chính xác dưới đây là **chưa có bằng chứng đạt**, không phải số đo thất bại. Một số rủi ro tương thích model/runtime cần thử trên máy GPU sau khi sửa đường chạy.
 
 ### Mức ưu tiên dùng trong tài liệu
 
@@ -103,7 +103,7 @@
 
 ### P1-07 · Prompt và model MT chưa khớp thiết kế
 
-[mt_llama.py](../ai/src/rvt_ai/engines/mt_llama.py) dùng prompt subtitle translator đã được chuẩn hoá (chống rò rỉ chú thích, stop tokens tức thì, nhiệt độ tối ưu). Model MT đã được chuyển sang `Qwen2.5-3B-Instruct` GGUF để tối ưu vượt trội cặp tiếng Nhật – Việt. [compose.ai.yaml](../compose.ai.yaml) hỗ trợ `-ngl 99`, parallel 4. Đã bổ sung bộ kiểm định `MtValidator` và cache.
+[mt_llama.py](../ai/src/rvt_ai/engines/mt_llama.py) dùng prompt subtitle translator đã được chuẩn hoá (chống rò rỉ chú thích, stop tokens tức thì, nhiệt độ tối ưu). Model MT đã được chuyển sang `Qwen2.5-7B-Instruct` GGUF để tối ưu vượt trội cặp tiếng Nhật – Việt. [compose.ai.yaml](../compose.ai.yaml) hỗ trợ `-ngl 99`, parallel 4. Đã bổ sung bộ kiểm định `MtValidator` và cache.
 
 ### P1-08 · Chọn profile/model chưa vận hành theo thiết kế 8 GB
 

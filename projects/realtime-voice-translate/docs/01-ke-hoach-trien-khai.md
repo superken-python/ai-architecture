@@ -41,7 +41,7 @@ nào → ghi lại câu nói → dịch ngay sang **hai tiếng còn lại**. Mo
   chạm mic ở nửa của mình. Nửa đó hiện câu gốc để người nói tự kiểm tra; nửa đối diện hiện bản dịch bằng tiếng của người
   nghe, bản dịch sang tiếng thứ ba hiện nhỏ bên dưới.
 - **Pipeline (cascade):** micro → `AudioWorklet` 16 kHz PCM16 → WebSocket → **Silero VAD** chốt câu → **Whisper
-  `large-v3-turbo`** (faster-whisper) nhận dạng và phân biệt ngôn ngữ, giới hạn trong {ja, en, vi} → **Qwen2.5-3B-Instruct**
+  `large-v3-turbo`** (faster-whisper) nhận dạng và phân biệt ngôn ngữ, giới hạn trong {ja, en, vi} → **Qwen2.5-7B-Instruct**
   (llama.cpp, tối ưu chất lượng dịch Nhật-Việt) dịch song song sang 2 tiếng còn lại, stream từng chữ về giao diện.
 - **Vừa GPU 8 GB:** profile mặc định `balanced` ước tính 4,5–5 GB VRAM. Phần còn trống dành cho profile `quality` hoặc
   các ứng viên khác (Qwen3-ASR, TranslateGemma) mà P0 sẽ benchmark.
@@ -210,10 +210,10 @@ với dịch vụ qua hợp đồng đó.
 |---|---|---|---|---|---|---|
 | VAD | Silero VAD | onnxruntime (CPU) | ONNX | 0 — chạy CPU, < 1 ms mỗi cửa sổ 32 ms | MIT | phổ biến, nhẹ, chạy streaming |
 | ASR + LID | Whisper `large-v3-turbo` | faster-whisper (CTranslate2) | `int8_float16` | ~1,5 GB (số đo cộng đồng: int8, beam 5) | MIT | một model đủ ja/en/vi, có sẵn xác suất ngôn ngữ, nhanh hơn `large-v3` khoảng 2,7 lần, tooling chín |
-| Dịch (MT) | **Qwen2.5-3B-Instruct** (Alibaba) | llama.cpp server | GGUF `Q4_K_M` (~2.16 GB) | ~2,8–3,2 GB kể cả KV cache | Apache-2.0 | mô hình pretrained dồi dào dữ liệu Á Đông, dịch Nhật - Anh - Việt chuẩn ngữ pháp và vai vế, 50-60 t/s |
+| Dịch (MT) | **Qwen2.5-7B-Instruct** (Alibaba) | llama.cpp server | GGUF `Q4_K_M` (~4.68 GB) | ~5,5–6,2 GB kể cả KV cache | Apache-2.0 | mô hình pretrained dồi dào dữ liệu Á Đông, dịch Nhật - Anh - Việt chuẩn ngữ pháp và vai vế, 40-50 t/s |
 
-Qwen2.5-3B-Instruct thay thế Hy-MT2-1.8B để giải quyết triệt để vấn đề dịch Nhật ➔ Việt bị lủng củng và rò rỉ giải thích tiếng Anh.
-Phương án dự phòng: Qwen2.5-7B-Instruct (cho máy GPU > 12 GB) hoặc Qwen2.5-1.5B (cho máy GPU 4-6 GB).
+Qwen2.5-7B-Instruct thay thế Qwen2.5-3B / Hy-MT2-1.8B để mang lại độ chính xác dịch Nhật ➔ Việt cao nhất, hạn chế tối đa rò rỉ giải thích tiếng Anh.
+Phương án dự phòng: Qwen2.5-3B-Instruct (cho máy GPU 8 GB tiết kiệm VRAM) hoặc Qwen2.5-1.5B (cho máy GPU 4-6 GB).
 
 ### 5.3 Ứng viên benchmark ở P0
 
@@ -222,7 +222,7 @@ Phương án dự phòng: Qwen2.5-7B-Instruct (cho máy GPU > 12 GB) hoặc Qwen
 | ASR | **Qwen3-ASR-0.6B** (01/2026, Apache-2.0) | thắng Whisper turbo về LID câu ngắn, CER ja, WER vi hoặc độ trễ | 30 ngôn ngữ + 22 phương ngữ tiếng Trung, có ja/vi; LID và streaming trong cùng một model; chạy qua vLLM (`qwen-asr[vllm]`) — vLLM giữ trước VRAM theo `gpu_memory_utilization`, phải đặt nhỏ để chạy chung với MT |
 | ASR | Whisper `large-v3`, `int8` (~3 GB) | turbo kém rõ ở vi/ja | chậm hơn turbo khoảng 2,7 lần |
 | ASR | PhoWhisper (vi), kotoba-whisper (ja) | lỗi dồn vào một tiếng | thêm model là thêm VRAM; định tuyến theo ngôn ngữ sau LID (`EFF-04`) |
-| MT | Qwen2.5-7B-Instruct, GGUF `Q4_K_M` | cần dịch chuẩn sắc thái văn học hoặc kính ngữ cao cấp | profile `quality`, cần GPU ≥ 12 GB VRAM |
+| MT | Qwen2.5-7B-Instruct, GGUF `Q4_K_M` | cần dịch chuẩn sắc thái văn học hoặc kính ngữ cao cấp | model mặc định chất lượng cao |
 | MT | TranslateGemma-4B (01/2026) | phương án đối sánh của Google | dựa trên Gemma 3, 55 ngôn ngữ; tải cần chấp nhận Gemma Terms (`HF_TOKEN`) |
 | MT | Hy-MT2-1.8B / 7B | model chuyên dịch của Tencent | tốc độ nhanh nhưng dịch Nhật-Việt còn hạn chế |
 
@@ -245,8 +245,8 @@ Phương án dự phòng: Qwen2.5-7B-Instruct (cho máy GPU > 12 GB) hoặc Qwen
 | `fake` | engine kịch bản | engine kịch bản | 0 | làm FE trên máy không GPU (Mac/Colima), unit test, E2E trong CI |
 | `cpu-dev` | Whisper `base` int8 (CPU) | Qwen2.5-1.5B `Q4_K_M` (CPU) | 0 | integration test, chạy thử trên máy không GPU; chậm (vài giây mỗi câu) |
 | `fast` | turbo `int8_float16` | Qwen2.5-1.5B `Q4_K_M` | ~4 GB | ưu tiên độ trễ tối đa |
-| **`balanced`** (mặc định) | turbo `int8_float16` | Qwen2.5-3B-Instruct `Q4_K_M` | ~5.0 GB | dùng hằng ngày, tối ưu xuất sắc Nhật - Anh - Việt |
-| `quality` (thử nghiệm) | turbo `int8_float16`, beam 1 | Qwen2.5-7B `Q4_K_M` | ~7,5 GB | chỉ khi GPU không gánh màn hình và đã đo; cần GPU 12GB+ |
+| **`balanced`** (mặc định) | turbo `int8_float16` | Qwen2.5-7B-Instruct `Q4_K_M` | ~6.8–7.5 GB | dùng hằng ngày, tối ưu xuất sắc Nhật - Anh - Việt |
+| `quality` | turbo `int8_float16`, beam 1 | Qwen2.5-7B `Q4_K_M` | ~7,5 GB | chất lượng dịch cao nhất |
 
 Cách cộng: mỗi tiến trình CUDA (`ai`, `mt`) tốn ~0,3–0,5 GB cho context; ASR ~1,5 GB; MT = trọng số + KV cache + buffer
 tính toán. P0 đo bằng NVML khi 2 phiên chạy song song.

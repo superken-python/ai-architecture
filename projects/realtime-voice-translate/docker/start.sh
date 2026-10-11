@@ -183,17 +183,18 @@ else
 fi
 
 # Check if model exists for GPU mode
-if [[ "${MODE}" == "gpu" && ! -f "${PROJECT_ROOT}/models/mt-model.gguf" ]]; then
+MT_MODEL_FILE="${PROJECT_ROOT}/models/qwen2.5-7b-instruct-q4_k_m.gguf"
+if [[ "${MODE}" == "gpu" && ! -f "${MT_MODEL_FILE}" ]]; then
     echo -e "${YELLOW}======================================================${NC}"
-    echo -e "${YELLOW}⚠️  THIẾU MODEL DỊCH: Chưa có file 'models/mt-model.gguf'!${NC}"
+    echo -e "${YELLOW}⚠️  THIẾU MODEL DỊCH: Chưa có file 'models/qwen2.5-7b-instruct-q4_k_m.gguf'!${NC}"
     echo -e "${YELLOW}======================================================${NC}"
     echo -e "${CYAN}Container 'mt' (llama.cpp) yêu cầu file model GGUF để khởi động trên GPU.${NC}"
     
-    DOWNLOAD_URL="https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf"
+    DOWNLOAD_URL="https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf"
     DO_DOWNLOAD=0
 
     if [ -t 0 ]; then
-        echo -e "${CYAN}Bạn có muốn tự động tải model Qwen2.5-3B-Instruct GGUF (~2.16 GB) từ HuggingFace ngay bây giờ? [Y/n]${NC}"
+        echo -e "${CYAN}Bạn có muốn tự động tải model Qwen2.5-7B-Instruct GGUF (~4.68 GB) từ HuggingFace ngay bây giờ? [Y/n]${NC}"
         read -r -p "Lựa chọn (mặc định Y): " USER_CHOICE || USER_CHOICE="y"
         if [[ -z "${USER_CHOICE}" || "${USER_CHOICE}" =~ ^[Yy]$ ]]; then
             DO_DOWNLOAD=1
@@ -201,21 +202,21 @@ if [[ "${MODE}" == "gpu" && ! -f "${PROJECT_ROOT}/models/mt-model.gguf" ]]; then
     fi
 
     if [[ ${DO_DOWNLOAD} -eq 1 ]]; then
-        echo -e "${CYAN}Đang tải model Qwen2.5-3B-Instruct GGUF (~2.16 GB)...${NC}"
+        echo -e "${CYAN}Đang tải model Qwen2.5-7B-Instruct GGUF (~4.68 GB)...${NC}"
         echo -e "URL: ${DOWNLOAD_URL}"
         mkdir -p "${PROJECT_ROOT}/models"
-        if curl -L --fail --progress-bar -o "${PROJECT_ROOT}/models/mt-model.gguf" "${DOWNLOAD_URL}"; then
-            echo -e "${GREEN}✓ Đã tải thành công model vào models/mt-model.gguf!${NC}"
+        if curl -L --fail --progress-bar -o "${MT_MODEL_FILE}" "${DOWNLOAD_URL}"; then
+            echo -e "${GREEN}✓ Đã tải thành công model vào models/qwen2.5-7b-instruct-q4_k_m.gguf!${NC}"
         else
             echo -e "${RED}❌ Tải thất bại từ HuggingFace.${NC}"
-            echo -e "${YELLOW}Tự tải sau bằng lệnh: ${GREEN}make models${NC}"
+            echo -e "${YELLOW}Tự tải sau bằng lệnh: ${GREEN}make models${NC} hoặc ${GREEN}./scripts/switch_to_qwen7b.sh${NC}"
             echo -e "${YELLOW}Tạm thời chuyển sang chế độ CPU/dev để hệ thống khởi động không bị lỗi crash...${NC}"
             MODE="cpu"
             COMPOSE_FILE="docker/docker-compose.cpu.yml"
         fi
     else
         echo -e "${YELLOW}Chưa có model GGUF. Tự động chuyển sang chế độ CPU/dev mode để hệ thống khởi động mượt mà không crash container mt!${NC}"
-        echo -e "${CYAN}(Sau khi tải model bằng 'make models', bạn có thể khởi động lại GPU bằng './start.sh --gpu')${NC}"
+        echo -e "${CYAN}(Sau khi tải model bằng './scripts/switch_to_qwen7b.sh', bạn có thể khởi động lại GPU bằng './start.sh --gpu')${NC}"
         MODE="cpu"
         COMPOSE_FILE="docker/docker-compose.cpu.yml"
     fi

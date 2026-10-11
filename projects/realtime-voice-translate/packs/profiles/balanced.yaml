@@ -20,7 +20,7 @@ asr:
   compute_type: "int8_float16"
 mt:
   engine: "llama-cpp"
-  model: "qwen2.5-3b-instruct-q4_k_m"
+  model: "qwen2.5-7b-instruct-q4_k_m"
   temperature: 0.1
   top_p: 0.7
   max_tokens: 384

@@ -4,7 +4,7 @@ services:
     container_name: rvt_mt
     runtime: nvidia
     command: >-
-      -m /models/mt-model.gguf
+      -m /models/qwen2.5-7b-instruct-q4_k_m.gguf
       --host 0.0.0.0
       --port 8080
       -c 4096

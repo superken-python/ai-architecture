@@ -22,7 +22,7 @@ Nền tảng cấu trúc: [best practice dự án Python AI](../python-ai-projec
 |---|---|---|
 | Tách câu | Silero VAD (CPU) | — |
 | Nhận dạng + phân biệt ngôn ngữ | Whisper `large-v3-turbo` qua faster-whisper, `int8_float16` (~1,5 GB) | Qwen3-ASR-0.6B · Whisper `large-v3` |
-| Dịch | Qwen2.5-3B-Instruct qua llama.cpp, `Q4_K_M` (~2.16 GB, tối ưu Nhật - Anh - Việt) | Qwen2.5-7B-Instruct · Hy-MT2-1.8B · TranslateGemma-4B |
+| Dịch | Qwen2.5-7B-Instruct qua llama.cpp, `Q4_K_M` (~4.68 GB, tối ưu xuất sắc Nhật - Anh - Việt) | Qwen2.5-3B-Instruct · Hy-MT2-1.8B · TranslateGemma-4B |
 | Giao thức | WebSocket + PCM16 16 kHz | WebRTC khi thêm đọc to bản dịch |
 | Triển khai | Docker Compose ngay trên máy GPU: `ai` + `mt` (phần AI), `web` (phần FE, HTTPS nội bộ); `make deploy` | ngrok/tunnel khi cần truy cập từ xa |
 
@@ -43,7 +43,7 @@ Nền tảng cấu trúc: [best practice dự án Python AI](../python-ai-projec
 
 - Bộ đánh giá: `golden-v0` — FLEURS ja/en/vi (câu song song) + hội thoại tự thu trên điện thoại + đoạn nhiễu để đo ảo
   giác; đóng băng ở P0 (chi tiết ở mục 11.2 của kế hoạch).
-- Baseline: Whisper `large-v3-turbo` + Qwen2.5-3B-Instruct → kết quả: <điền sau P0>
+- Baseline: Whisper `large-v3-turbo` + Qwen2.5-7B-Instruct → kết quả: <điền sau P0>
 - Lệnh tái tạo: `make eval`
 
 ## 3 · CHÍNH XÁC — các vòng cải tiến
