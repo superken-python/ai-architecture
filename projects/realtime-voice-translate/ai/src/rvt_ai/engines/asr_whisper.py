@@ -1,4 +1,5 @@
 import os
+import re
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -7,6 +8,24 @@ from rvt_ai.core.config import settings
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.ports import AsrEngine
 from rvt_contracts.messages import Lang
+
+VI_HALLUCINATIONS = [
+    r"ghiền mì gõ",
+    r"mì gõ",
+    r"subscribe cho kênh",
+    r"đăng ký kênh",
+    r"nhấn chuông",
+    r"like và share",
+    r"cảm ơn các bạn đã xem",
+    r"cảm ơn các bạn đã theo dõi",
+    r"hẹn gặp lại các bạn",
+    r"những video hấp dẫn",
+    r"nhà bếp mẫu",
+    r"cái nhà bếp",
+    r"subtitles by",
+    r"transcribed by",
+    r"amara\.org",
+]
 
 
 class FasterWhisperEngine(AsrEngine):
@@ -49,16 +68,42 @@ class FasterWhisperEngine(AsrEngine):
         audio_int16 = np.frombuffer(audio, np.int16)
         audio_float32 = audio_int16.astype(np.float32) / 32768.0
 
+        # Energy floor check to avoid hallucinating on background silence
+        rms = float(np.sqrt(np.mean(audio_float32**2))) if len(audio_float32) > 0 else 0.0
+        if rms < 0.005:
+            logger.debug(f"Audio RMS energy too low ({rms:.5f}), treating as silence")
+            return "", "vi", {"ja": 0.0, "en": 0.0, "vi": 0.0}
+
         segments, info = self.model.transcribe(
             audio_float32,
             beam_size=1,
             language=language,
-            vad_filter=False,
+            vad_filter=True,
+            vad_parameters=dict(threshold=0.35, min_silence_duration_ms=400),
             condition_on_previous_text=False,
             without_timestamps=True,
+            no_speech_threshold=0.4,
+            logprob_threshold=-1.0,
+            compression_ratio_threshold=2.2,
         )
 
-        text = "".join([s.text for s in segments]).strip()
+        valid_segments = []
+        for s in segments:
+            if s.no_speech_prob > 0.4 or s.avg_logprob < -1.2:
+                logger.debug(
+                    f"Filtered silent/low-confidence segment: '{s.text}' (no_speech_prob={s.no_speech_prob:.2f})"
+                )
+                continue
+            valid_segments.append(s.text.strip())
+
+        text = " ".join(valid_segments).strip()
+
+        # Filter out known YouTube subtitle credit hallucinations
+        for pat in VI_HALLUCINATIONS:
+            if re.search(pat, text, re.IGNORECASE):
+                logger.info(f"Discarded known Whisper hallucination: '{text}' (matched {pat})")
+                text = ""
+                break
 
         detected_lang: Lang = "vi"
         if info.language in ("ja", "en", "vi"):

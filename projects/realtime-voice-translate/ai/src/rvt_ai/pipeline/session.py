@@ -259,7 +259,7 @@ class RVTSession:
             async for delta in self.mt.translate_stream(text, source, target):
                 full_text += delta
                 lower_full = full_text.lower()
-                if any(m in lower_full for m in ["**note", "note:", "explanation:", "\n\n", "alright, let's"]):
+                if any(m in lower_full for m in ["**", "【", "—", "note:", "explanation:", "\n\n", "alright, let's"]):
                     should_stream = False
                 if should_stream:
                     await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))

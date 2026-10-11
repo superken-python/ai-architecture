@@ -33,9 +33,12 @@ class MtValidator:
     def clean(self, raw_translation: str) -> str:
         cleaned = raw_translation.strip()
 
-        # 1. Remove note / explanation / reasoning suffixes
+        # 1. Remove note / explanation / reasoning suffixes and special brackets
         note_markers = [
-            r"\*\*Note:?\*\*.*",
+            r"【.*",
+            r"—.*",
+            r"\*\*.*",
+            r"Translate the following.*",
             r"Note:?.*",
             r"Explanation:?.*",
             r"Ghi chú:?.*",

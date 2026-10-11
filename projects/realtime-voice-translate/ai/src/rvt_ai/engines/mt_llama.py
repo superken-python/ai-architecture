@@ -18,21 +18,25 @@ class LlamaCppMtEngine(MtEngine):
     async def translate_stream(
         self, text: str, source_lang: Lang, target_lang: Lang, context: str = ""
     ) -> AsyncGenerator[str, None]:
-        prompt = self.prompt_loader.render(
-            "mt/hy-mt/default.j2", source_lang=source_lang, target_lang=target_lang, text=text, context=context
-        )
+        lang_names = {
+            "vi": "Vietnamese",
+            "en": "English",
+            "ja": "Japanese",
+        }
+        src_name = lang_names.get(source_lang, source_lang)
+        tgt_name = lang_names.get(target_lang, target_lang)
 
         messages = [
             {
                 "role": "system",
                 "content": (
-                    "You are a professional real-time voice translator for live speech conversation. "
-                    "Translate directly and naturally from the source language to the target language. "
-                    "CRITICAL: Output ONLY the translated sentence. "
-                    "NEVER output explanations, notes, preambles, greetings, or the original text."
+                    f"You are a professional spoken language interpreter. "
+                    f"Translate the following speech directly from {src_name} to {tgt_name}. "
+                    f"CRITICAL: Output ONLY the translated sentence in {tgt_name}. "
+                    f"Never provide notes, explanations, preambles, or formatting."
                 ),
             },
-            {"role": "user", "content": prompt},
+            {"role": "user", "content": text},
         ]
 
         payload = {
@@ -41,17 +45,19 @@ class LlamaCppMtEngine(MtEngine):
             "max_tokens": 128,
             "temperature": 0.0,
             "top_p": 0.9,
+            "frequency_penalty": 0.5,
+            "presence_penalty": 0.5,
             "stop": [
+                "\n",
                 "\n\n",
-                "\nNote:",
-                "\n**Note",
-                "**Note",
+                "【",
+                "**",
+                "—",
                 "Note:",
-                "\nExplanation:",
                 "Explanation:",
                 "Input:",
-                "\nInput:",
                 "Translation:",
+                "Text:",
             ],
         }
 

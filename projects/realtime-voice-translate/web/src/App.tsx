@@ -139,7 +139,6 @@ const App: React.FC = () => {
           const spokenLang = u.originalLang || (u.side === "A" ? primaryLangA : primaryLangB);
 
           let mainText = "";
-          let subText = "";
           let isOriginal = false;
           let badgeText = "";
 
@@ -152,19 +151,9 @@ const App: React.FC = () => {
               : "";
             badgeText = (spokenLang.toUpperCase() + conf).trim();
             if (u.uncertain) badgeText += " ❓";
-
-            // Sub text: translation for the other person
-            if (u.translations[otherLang]) {
-              subText = `${LANG_LABELS[otherLang]}: ${u.translations[otherLang]}`;
-            }
-            if (showThirdLang && u.translations[thirdLangA] && thirdLangA !== otherLang) {
-              subText += subText ? `  |  ${LANG_LABELS[thirdLangA]}: ${u.translations[thirdLangA]}` : `${LANG_LABELS[thirdLangA]}: ${u.translations[thirdLangA]}`;
-            }
           } else {
             // Other side spoke: main text is translation into this side's language
             mainText = u.translations[primaryLang] || (u.isFinal ? u.originalText : "… đang dịch");
-            // Sub text: other person's original words
-            subText = `Gốc (${spokenLang.toUpperCase()}): ${u.originalText}`;
           }
 
           return (
@@ -217,10 +206,32 @@ const App: React.FC = () => {
                 {mainText || (u.isSpeaking ? "… đang nghe" : "…")}
               </div>
 
-              {/* Sub Text */}
-              {subText && (
-                <div style={{ fontSize: `${Math.max(12, fontSize - 6)}px`, color: '#94a3b8', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '4px', wordBreak: 'break-word' }}>
-                  {subText}
+              {/* Translations for speaker, or original text for listener */}
+              {isSpeaker ? (
+                <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {u.translations[otherLang] && (
+                    <div style={{ fontSize: `${Math.max(13, fontSize - 4)}px`, color: '#60a5fa', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(59,130,246,0.2)', padding: '2px 6px', borderRadius: '4px', color: '#93c5fd' }}>
+                        {LANG_LABELS[otherLang]}
+                      </span>
+                      <span>{u.translations[otherLang]}</span>
+                    </div>
+                  )}
+                  {showThirdLang && u.translations[thirdLangA] && thirdLangA !== otherLang && (
+                    <div style={{ fontSize: `${Math.max(12, fontSize - 6)}px`, color: '#94a3b8', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(148,163,184,0.15)', padding: '2px 6px', borderRadius: '4px', color: '#cbd5e1' }}>
+                        {LANG_LABELS[thirdLangA]}
+                      </span>
+                      <span>{u.translations[thirdLangA]}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '6px', fontSize: `${Math.max(12, fontSize - 6)}px`, color: '#94a3b8', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', color: '#e2e8f0' }}>
+                    {LANG_LABELS[spokenLang] || spokenLang.toUpperCase()}
+                  </span>
+                  <span>{u.originalText}</span>
                 </div>
               )}
             </div>
