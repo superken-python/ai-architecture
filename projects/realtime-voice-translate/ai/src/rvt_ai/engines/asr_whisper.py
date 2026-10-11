@@ -9,7 +9,15 @@ from rvt_ai.core.logging import logger
 from rvt_ai.engines.ports import AsrEngine
 from rvt_contracts.messages import Lang
 
-VI_HALLUCINATIONS = [
+HALLUCINATIONS = [
+    # English silence / background noise hallucinations
+    r"^\s*(?:you|you\.)\s*$",
+    r"^\s*(?:thank you|thank you\.|thanks|thanks\.|thank you very much)\s*$",
+    r"^\s*(?:thanks for watching|thank you for watching|thank you so much)[!.]*\s*$",
+    r"^\s*(?:bye|goodbye|bye bye|bye-bye)\s*[\.!\?]*$",
+    r"^\s*(?:please subscribe|subscribe|like and subscribe)\s*[\.!\?]*$",
+    r"^\s*(?:silence|\[silence\]|\(silence\)|\.\.\.|\—)\s*$",
+    # Vietnamese subtitle credits
     r"ghiền mì gõ",
     r"mì gõ",
     r"subscribe cho kênh",
@@ -25,6 +33,8 @@ VI_HALLUCINATIONS = [
     r"subtitles by",
     r"transcribed by",
     r"amara\.org",
+    # Japanese silence hallucinations
+    r"^\s*(?:ご視聴ありがとうございました|チャンネル登録.*|お疲れ様でした)\s*$",
 ]
 
 
@@ -68,9 +78,9 @@ class FasterWhisperEngine(AsrEngine):
         audio_int16 = np.frombuffer(audio, np.int16)
         audio_float32 = audio_int16.astype(np.float32) / 32768.0
 
-        # Energy floor check to avoid processing pure digital silence
+        # Energy floor check to avoid processing pure digital silence or faint ambient room noise
         rms = float(np.sqrt(np.mean(audio_float32**2))) if len(audio_float32) > 0 else 0.0
-        if rms < 0.001:
+        if rms < 0.003:
             logger.debug(f"Audio RMS energy too low ({rms:.5f}), treating as silence")
             return "", "vi", {"ja": 0.0, "en": 0.0, "vi": 0.0}
 
@@ -88,19 +98,19 @@ class FasterWhisperEngine(AsrEngine):
 
         valid_segments = []
         for s in segments:
-            if s.no_speech_prob > 0.8 and s.avg_logprob < -1.5:
-                logger.debug(
-                    f"Filtered silent/low-confidence segment: '{s.text}' "
-                    f"(no_speech_prob={s.no_speech_prob:.2f}, avg_logprob={s.avg_logprob:.2f})"
-                )
+            if s.no_speech_prob > 0.6:
+                logger.debug(f"Filtered silent/no-speech segment: '{s.text}' (no_speech_prob={s.no_speech_prob:.2f})")
                 continue
             valid_segments.append(s.text.strip())
 
         text = " ".join(valid_segments).strip()
 
-        # Filter out known YouTube subtitle credit hallucinations
-        for pat in VI_HALLUCINATIONS:
+        # Filter out known Whisper hallucinations
+        for pat in HALLUCINATIONS:
             if re.search(pat, text, re.IGNORECASE):
+                # If it's a polite "thank you" / "thanks", only discard if energy was low (ambient silence)
+                if re.search(r"^\s*(?:thank you|thanks)\.?\s*$", text, re.IGNORECASE) and rms >= 0.015:
+                    continue
                 logger.info(f"Discarded known Whisper hallucination: '{text}' (matched {pat})")
                 text = ""
                 break

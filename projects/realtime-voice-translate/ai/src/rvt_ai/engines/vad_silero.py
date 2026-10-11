@@ -104,7 +104,7 @@ class SileroVadEngine(VadEngine):
                 out, state.h, state.c = ort_outs
 
             prob = float(out[0][0])
-            if prob > self.threshold or (prob > 0.10 and rms > 0.003) or rms > 0.02:
+            if prob > self.threshold or (prob > 0.35 and rms > 0.012) or rms > 0.04:
                 has_speech = True
 
         state.audio_remainder = audio[idx:]
