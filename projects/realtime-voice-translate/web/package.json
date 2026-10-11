@@ -15,7 +15,9 @@
     "test:e2e": "playwright test tests/e2e/app.spec.ts",
     "test:regression": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/regression-remote.spec.ts",
     "test:video-stream": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/video-japanese-stream.spec.ts",
-    "test:anime": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/anime-fast-speech.spec.ts"
+    "test:anime": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/anime-fast-speech.spec.ts",
+    "test:golden": "playwright test tests/e2e/naruto-golden.spec.ts",
+    "test:golden:remote": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/naruto-golden.spec.ts"
   },
   "keywords": [],
   "author": "",
