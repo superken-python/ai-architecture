@@ -397,7 +397,7 @@ Sandbox 4 nhân: CPU cho VAD của một phiên giảm từ 268% xuống 3%; m�
   - Thiết lập watchdog timer (mỗi 3 giây) kiểm tra `audioContext.state === 'running'`, nếu bị browser suspend do im lặng thì lập tức đánh thức lại.
   - Lắng nghe `onunmute` trên `MediaStreamTrack` để đồng bộ phục hồi `AudioContext` ngay khi mic/thiết bị âm thanh mở lại.
 - **WebSocket Heartbeat (Ping/Pong):**
-  - Client gửi event `ping` mỗi 10 giây qua WebSocket để giữ ấm kết nối, ngăn router/NAT/Nginx ngắt kết nối do idle.
+  - Client gửi event `ping` mỗi 3 giây qua WebSocket để giữ ấm kết nối, ngăn router/NAT/Nginx ngắt kết nối do idle.
   - Server trong `stream.py` cập nhật `session.last_activity_time = time.time()` khi nhận `ping`, ngăn đóng nhầm phiên do `SESSION_IDLE_TIMEOUT`.
 - **Tự động tiếp tục thu âm khi WebSocket Reconnect:**
   - Trong `ws.onclose`, nếu `isMicActive` đang bật (người dùng chưa chủ động bấm Dừng), **không gọi `stopAudio()` hủy luồng media**.

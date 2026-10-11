@@ -46,7 +46,7 @@ class RVTClient {
           this.send({ type: "turn.start", side: store.activeSide });
         }
 
-        // Heartbeat ping every 10s to keep connection alive through long pauses/silence
+        // Heartbeat ping every 3s to keep connection alive through long pauses/silence
         if (this.pingInterval) {
           clearInterval(this.pingInterval);
         }
@@ -54,7 +54,7 @@ class RVTClient {
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.send({ type: "ping", t: Date.now() });
           }
-        }, 10000);
+        }, 3000);
       };
 
       this.ws.onclose = () => {
