@@ -452,6 +452,7 @@ class RVTSession:
             return
 
         full_text = ""
+        should_stream = True
         # Collect prior context without duplicating the current utterance text
         prev_history = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()]
         context = " ".join(prev_history[-2:])
@@ -529,7 +530,7 @@ class RVTSession:
                 )
                 try:
                     retry_text = ""
-                    async for delta in self.mt_engine.translate_stream(
+                    async for delta in self.mt.translate_stream(
                         text, source, target, context=f"Strictly translate completely into {target}"
                     ):
                         retry_text += delta

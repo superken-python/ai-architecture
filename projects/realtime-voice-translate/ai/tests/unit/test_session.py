@@ -8,7 +8,7 @@ import pytest
 from rvt_ai.engines.fake import FakeAsrEngine, FakeMtEngine, FakeVadEngine
 from rvt_ai.engines.vad_silero import SileroVadEngine
 from rvt_ai.pipeline.session import RVTSession
-from rvt_contracts.messages import AsrFinal, MtFinal, Vad
+from rvt_contracts.messages import AsrFinal, MtDelta, MtFinal, Vad
 
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../models"))
 SPEECH_WAV = os.path.join(os.path.dirname(__file__), "../fixtures/speech_16k.wav")
@@ -133,3 +133,24 @@ async def test_session_turn_stop_flushes_audio():
     asr_finals = [e for e in events if isinstance(e, AsrFinal)]
     assert len(asr_finals) == 1
     assert asr_finals[0].side == "A"
+
+
+@pytest.mark.asyncio
+async def test_session_run_mt_stream_and_deltas():
+    from rvt_ai.pipeline.mt_validator import mt_validator
+
+    mt_validator._exact_cache.clear()
+
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    session = RVTSession("test-mt", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    await session._run_mt(uid=1, text="こんにちは", source="ja", target="vi")
+
+    deltas = [e for e in events if isinstance(e, MtDelta)]
+    finals = [e for e in events if isinstance(e, MtFinal)]
+    assert len(deltas) > 0
+    assert len(finals) == 1
+    assert finals[0].text == "Hôm nay thời tiết rất đẹp."
