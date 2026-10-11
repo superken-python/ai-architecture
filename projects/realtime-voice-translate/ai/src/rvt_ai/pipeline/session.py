@@ -254,10 +254,15 @@ class RVTSession:
             return
 
         full_text = ""
+        should_stream = True
         try:
             async for delta in self.mt.translate_stream(text, source, target):
                 full_text += delta
-                await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))
+                lower_full = full_text.lower()
+                if any(m in lower_full for m in ["**note", "note:", "explanation:", "\n\n", "alright, let's"]):
+                    should_stream = False
+                if should_stream:
+                    await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))
 
             # Validate output
             v_res = mt_validator.validate(text, source, target, full_text)

@@ -238,6 +238,9 @@ const App: React.FC = () => {
     );
   };
 
+  const isSideAActive = isMicActive && activeSide === "A";
+  const isSideBActive = isMicActive && activeSide === "B";
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#121212', color: '#fff', fontFamily: 'sans-serif', userSelect: 'none', overflow: 'hidden' }}>
       
@@ -258,16 +261,16 @@ const App: React.FC = () => {
             style={{
               padding: '10px 20px',
               borderRadius: '24px',
-              background: activeSide === "B" ? (vadSpeaking.B ? '#FF5252' : '#D32F2F') : '#263238',
+              background: isSideBActive ? (vadSpeaking.B ? '#FF5252' : '#D32F2F') : '#263238',
               color: 'white',
               border: 'none',
               fontWeight: 600,
-              boxShadow: activeSide === "B" ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
+              boxShadow: isSideBActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
               transition: 'all 0.2s',
               cursor: 'pointer'
             }}
           >
-            {activeSide === "B" ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : '🎙 BẬT MIC B'}
+            {isSideBActive ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : '🎙 BẬT MIC B'}
           </button>
           
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -317,7 +320,7 @@ const App: React.FC = () => {
         )}
 
         <div style={{ fontSize: '11px', color: '#666' }}>
-          {isMicActive ? `Đang nghe Bên ${activeSide}` : "Chế độ liên tục"}
+          {isMicActive ? `Đang nghe Bên ${activeSide}` : "Sẵn sàng (Chạm mic để nói)"}
         </div>
       </div>
 
@@ -348,16 +351,16 @@ const App: React.FC = () => {
             style={{
               padding: '10px 20px',
               borderRadius: '24px',
-              background: activeSide === "A" ? (vadSpeaking.A ? '#FF5252' : '#D32F2F') : '#007AFF',
+              background: isSideAActive ? (vadSpeaking.A ? '#FF5252' : '#D32F2F') : '#007AFF',
               color: 'white',
               border: 'none',
               fontWeight: 600,
-              boxShadow: activeSide === "A" ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
+              boxShadow: isSideAActive ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
               transition: 'all 0.2s',
               cursor: 'pointer'
             }}
           >
-            {activeSide === "A" ? (vadSpeaking.A ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC A') : '🎙 BẬT MIC A'}
+            {isSideAActive ? (vadSpeaking.A ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC A') : '🎙 BẬT MIC A'}
           </button>
         </div>
       </div>

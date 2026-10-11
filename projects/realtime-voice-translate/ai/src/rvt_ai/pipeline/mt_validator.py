@@ -30,15 +30,53 @@ class MtValidator:
             key = (source_lang, target_lang, text.strip().lower())
             self._exact_cache[key] = translation.strip()
 
+    def clean(self, raw_translation: str) -> str:
+        cleaned = raw_translation.strip()
+
+        # 1. Remove note / explanation / reasoning suffixes
+        note_markers = [
+            r"\*\*Note:?\*\*.*",
+            r"Note:?.*",
+            r"Explanation:?.*",
+            r"Ghi chú:?.*",
+            r"Alright, let's translate.*",
+            r"Sure, here is.*",
+            r"Here's the translation:?.*",
+        ]
+        for marker in note_markers:
+            cleaned = re.sub(marker, "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+
+        # 2. Remove prefix like "Input: ... Translation: ..."
+        cleaned = re.sub(r"^Input:\s*.*?\s*Translation:\s*", "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+
+        # 3. Remove common preambles
+        preambles = [
+            r"^Here is the translation:?\s*",
+            r"^Translation:?\s*",
+            r"^Bản dịch:?\s*",
+            r"^翻訳:?\s*",
+            r"^The translation is:?\s*",
+        ]
+        for p in preambles:
+            cleaned = re.sub(p, "", cleaned, flags=re.IGNORECASE).strip()
+
+        # 4. Strip surrounding quotation marks
+        if (cleaned.startswith('"') and cleaned.endswith('"')) or (
+            cleaned.startswith("'") and cleaned.endswith("'")
+        ):
+            cleaned = cleaned[1:-1].strip()
+
+        # If multiple lines, take the first non-empty line
+        lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
+        if lines:
+            cleaned = lines[0]
+
+        return cleaned
+
     def validate(
         self, original_text: str, source_lang: Lang, target_lang: Lang, raw_translation: str
     ) -> ValidationResult:
-        cleaned = raw_translation.strip()
-
-        # Remove common preambles
-        preambles = [r"^Here is the translation:?\s*", r"^Translation:?\s*", r"^Bản dịch:?\s*", r"^翻訳:?\s*"]
-        for p in preambles:
-            cleaned = re.sub(p, "", cleaned, flags=re.IGNORECASE).strip()
+        cleaned = self.clean(raw_translation)
 
         # 1. Non-empty check
         if not cleaned:

@@ -1,5 +1,6 @@
-Translate the following text from {{ source_lang }} to {{ target_lang }}.
+Translate the following speech directly from {{ source_lang }} to {{ target_lang }}.
+Output ONLY the direct translation. Do NOT provide notes, explanations, preambles, or formatting.
 {% if context %}Context: {{ context }}
 {% endif %}{% if glossary %}Glossary: {{ glossary }}
-{% endif %}Input: {{ text }}
+{% endif %}Text: {{ text }}
 Translation:

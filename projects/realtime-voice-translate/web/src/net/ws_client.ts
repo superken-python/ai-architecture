@@ -154,6 +154,7 @@ class RVTClient {
     }
 
     useStore.getState().setMicActive(false);
+    useStore.getState().setActiveSide(null);
 
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.send({ type: "turn.stop" });

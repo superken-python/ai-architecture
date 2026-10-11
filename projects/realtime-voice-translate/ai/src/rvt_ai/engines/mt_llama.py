@@ -22,9 +22,38 @@ class LlamaCppMtEngine(MtEngine):
             "mt/hy-mt/default.j2", source_lang=source_lang, target_lang=target_lang, text=text, context=context
         )
 
-        messages = [{"role": "user", "content": prompt}]
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a professional real-time voice translator for live speech conversation. "
+                    "Translate directly and naturally from the source language to the target language. "
+                    "CRITICAL: Output ONLY the translated sentence. "
+                    "NEVER output explanations, notes, preambles, greetings, or the original text."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ]
 
-        payload = {"messages": messages, "stream": True, "max_tokens": 256, "temperature": 0.1, "top_p": 0.95}
+        payload = {
+            "messages": messages,
+            "stream": True,
+            "max_tokens": 128,
+            "temperature": 0.0,
+            "top_p": 0.9,
+            "stop": [
+                "\n\n",
+                "\nNote:",
+                "\n**Note",
+                "**Note",
+                "Note:",
+                "\nExplanation:",
+                "Explanation:",
+                "Input:",
+                "\nInput:",
+                "Translation:",
+            ],
+        }
 
         async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
             try:

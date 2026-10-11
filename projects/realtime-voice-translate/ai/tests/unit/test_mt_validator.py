@@ -28,3 +28,21 @@ def test_mt_validator_caching():
     mt_validator.cache_translation("en", "vi", "Thank you", "Cảm ơn")
     cached = mt_validator.get_cached("en", "vi", "Thank you")
     assert cached == "Cảm ơn"
+
+
+def test_mt_validator_note_and_input_stripping():
+    raw_en = (
+        "Input: Xin chào xin chào Translation: Hello, hello"
+        "**Note:** The translation provided above is a direct translation."
+    )
+    res = mt_validator.validate("Xin chào xin chào", "vi", "en", raw_en)
+    assert res.is_valid is True
+    assert res.cleaned_text == "Hello, hello"
+
+    raw_ja = (
+        "Input: Xin chào xin chào Translation: こんにちは、こんにちは"
+        "Alright, let's translate that into Japanese. Translation: こんにちは、こんにちは**Note:** Explanation..."
+    )
+    res_ja = mt_validator.validate("Xin chào xin chào", "vi", "ja", raw_ja)
+    assert res_ja.is_valid is True
+    assert res_ja.cleaned_text == "こんにちは、こんにちは"
