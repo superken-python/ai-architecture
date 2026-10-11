@@ -439,6 +439,11 @@ class RVTSession:
             mt_tasks.append(task)
 
     async def _run_mt(self, uid: int, text: str, source: Lang, target: Lang) -> None:
+        # Sanitize text: collapse excessive repeated characters (e.g. scream loop うおおおお... 500 times)
+        text = re.sub(r'(.)\1{7,}', r'\1\1\1\1\1', text).strip()
+        text = re.sub(r'(.{2,6}?)\1{5,}', r'\1\1\1', text).strip()
+        if not text:
+            return
 
         # Check exact cache first
         cached = mt_validator.get_cached(source, target, text)

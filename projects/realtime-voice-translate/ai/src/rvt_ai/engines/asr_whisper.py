@@ -108,6 +108,11 @@ class FasterWhisperEngine(AsrEngine):
 
         text = " ".join(valid_segments).strip()
 
+        # Collapse excessive repeating character screams or loop hallucinations (e.g. うおおおお... 500 times)
+        if text:
+            text = re.sub(r'(.)\1{7,}', r'\1\1\1\1\1', text).strip()
+            text = re.sub(r'(.{2,6}?)\1{5,}', r'\1\1\1', text).strip()
+
         # Filter out known Whisper hallucinations
         for pat in HALLUCINATIONS:
             if re.search(pat, text, re.IGNORECASE):

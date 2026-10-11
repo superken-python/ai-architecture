@@ -181,8 +181,8 @@ export const useStore = create<AppState>((set, get) => ({
           break;
 
         case "error":
-          if (event.code === "mt_validation_failed") {
-            console.warn("MT validation warning:", event.message);
+          if (event.code === "mt_validation_failed" || event.code === "mt_failed") {
+            console.warn("MT warning:", event.code, event.message);
             return {};
           }
           return {

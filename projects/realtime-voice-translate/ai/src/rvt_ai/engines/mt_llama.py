@@ -162,6 +162,12 @@ class LlamaCppMtEngine(MtEngine):
                 "Output: That owl is probably a trained owl!\n"
             )
 
+        # Collapse excessive repetitive characters in input text (e.g. scream loop うおおおお... 500 times)
+        text = re.sub(r'(.)\1{7,}', r'\1\1\1\1\1', text).strip()
+        text = re.sub(r'(.{2,6}?)\1{5,}', r'\1\1\1', text).strip()
+        if not text:
+            return
+
         user_content = f"Translate from {src_name} to {tgt_name}:\n{text}"
         if context and context.strip():
             user_content = f"Previous context: {context.strip()}\n\nTranslate from {src_name} to {tgt_name}:\n{text}"
@@ -171,12 +177,11 @@ class LlamaCppMtEngine(MtEngine):
             {"role": "user", "content": user_content},
         ]
 
-        # Dynamic max_tokens scaled with source text length:
-        # Non-spaced languages (Japanese) scale by char count, others by word count
+        # Dynamic max_tokens scaled with source text length, capped at 256 for subtitle stability:
         if source_lang == "ja" or len(text.split()) <= 1:
-            dynamic_max_tokens = max(128, min(512, len(text) * 3))
+            dynamic_max_tokens = max(64, min(256, max(len(text), 1) * 2))
         else:
-            dynamic_max_tokens = max(128, min(512, max(len(text.split()), 1) * 4))
+            dynamic_max_tokens = max(64, min(256, max(len(text.split()), 1) * 3))
 
         payload = {
             "messages": messages,
@@ -266,6 +271,12 @@ class LlamaCppMtEngine(MtEngine):
                                         yield delta
                             except json.JSONDecodeError:
                                 pass
+            except httpx.HTTPStatusError as e:
+                err_body = await e.response.aread()
+                logger.error(
+                    f"MT request error to {self.api_url}: HTTP {e.response.status_code} - {err_body.decode('utf-8', errors='ignore')}"
+                )
+                raise
             except httpx.HTTPError as e:
                 logger.error(f"MT request error to {self.api_url}: {e}")
                 raise

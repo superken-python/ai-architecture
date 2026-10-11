@@ -7,7 +7,7 @@ services:
       -m /models/qwen2.5-7b-instruct-q4_k_m.gguf
       --host 0.0.0.0
       --port 8080
-      -c 4096
+      -c 8192
       --parallel 4
       -ngl 99
     volumes:
