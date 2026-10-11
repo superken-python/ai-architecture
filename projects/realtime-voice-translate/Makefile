@@ -17,8 +17,7 @@ help:
 tls:
 	@echo "Generating local TLS certificates..."
 	mkdir -p config/tls
-	mkcert -install
-	mkcert -key-file config/tls/key.pem -cert-file config/tls/cert.pem localhost 127.0.0.1 ::1 $$(hostname -I 2>/dev/null | awk '{print $$1}' || echo "127.0.0.1")
+	mkcert -key-file config/tls/key.pem -cert-file config/tls/cert.pem localhost 127.0.0.1 ::1 $$( (hostname -I 2>/dev/null || ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $$2}') | tr '\n' ' ')
 
 models:
 	./scripts/download_models.sh

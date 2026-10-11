@@ -390,18 +390,30 @@ Sandbox 4 nhân: CPU cho VAD của một phiên giảm từ 268% xuống 3%; m�
 - **Tên nhân vật:** `packs/glossary/default.yaml` có sẵn nhưng prompt dịch chưa dùng. Thêm thuật ngữ (ルフィ → Luffy,
   ゾロ → Zoro…) giúp bản dịch ổn định hơn; không ảnh hưởng tốc độ.
 
-### 5.9 Giữ luồng âm thanh và kết nối sau khoảng lặng lâu (Audio Keep-alive & WebSocket Heartbeat)
+### 5.10 Khắc phục Safari ngừng nhận diện khi video anime nói lúc có lúc không (WebKit AudioWorklet Sleep & Silent Destination Pruning)
 
-- **AudioContext Watchdog & Tự động phục hồi:**
-  - Lắng nghe sự kiện `audioContext.onstatechange`: nếu `AudioContext` chuyển sang `suspended` hoặc `interrupted` trong lúc `isMicActive` đang bật, tự động gọi `audioContext.resume()`.
-  - Thiết lập watchdog timer (mỗi 3 giây) kiểm tra `audioContext.state === 'running'`, nếu bị browser suspend do im lặng thì lập tức đánh thức lại.
-  - Lắng nghe `onunmute` trên `MediaStreamTrack` để đồng bộ phục hồi `AudioContext` ngay khi mic/thiết bị âm thanh mở lại.
-- **WebSocket Heartbeat (Ping/Pong):**
-  - Client gửi event `ping` mỗi 3 giây qua WebSocket để giữ ấm kết nối, ngăn router/NAT/Nginx ngắt kết nối do idle.
-  - Server trong `stream.py` cập nhật `session.last_activity_time = time.time()` khi nhận `ping`, ngăn đóng nhầm phiên do `SESSION_IDLE_TIMEOUT`.
-- **Tự động tiếp tục thu âm khi WebSocket Reconnect:**
-  - Trong `ws.onclose`, nếu `isMicActive` đang bật (người dùng chưa chủ động bấm Dừng), **không gọi `stopAudio()` hủy luồng media**.
-  - Giữ nguyên AudioContext và MediaStream. Khi WebSocket kết nối lại thành công (`ws.onopen`), tự động gửi lại `session.start` và `turn.start` cho bên đang thu âm, bảo đảm người dùng không cần phải bấm lại từ đầu.
+- **Hiện tượng:** Trên Safari (iOS/macOS), bật video anime hoặc họp có lúc nói lúc không, app chỉ nhận được 2–3 câu đầu, sau một đoạn nghỉ/khoảng lặng thì máy không nhận các câu tiếp theo nữa, phải bấm Dừng rồi Bật lại mic từ đầu mới nhận.
+- **Nguyên nhân cốt lõi:**
+  1. *WebKit Silent Pruning:* Khi nối `audioProcessor -> muteGain (gain = 0) -> destination`, WebKit phân tích cây đồ thị Web Audio. Sau vài giây im lặng, WebKit thấy nhánh này chỉ sinh số 0 tuyệt đối ra loa nên tự động tạm dừng chu kỳ kết xuất (`render quantum`) của `AudioWorkletProcessor` để tiết kiệm pin. Khi nhân vật anime nói lại, vì `muteGain` vẫn bằng 0, WebKit không bao giờ đánh thức lại worklet, dẫn tới `process()` ngừng chạy và không còn audio chunk nào được gửi lên server.
+  2. *VAD State Reset Race Condition:* Trong `session.py`, `_process_final_audio` chạy ngầm sau khi cắt câu và gọi `self.vad_state.reset()`. Vì lệnh này chạy trễ 300–800 ms (sau khi Whisper xong), nó xóa sạch bộ nhớ ẩn ONNX của Silero VAD v6.2 ngay giữa lúc câu thoại anime tiếp theo đang ùa vào, khiến Silero VAD trả về xác suất ≈ 0 cho câu thoại sau.
+- **Giải pháp triệt để:**
+  1. Trong `ws_client.ts`: đổi `muteGain.gain.value = 0.00001` (-100 dB, tai người không thể nghe thấy nhưng về mặt toán học là khác 0), ngăn WebKit tối ưu cắt tỉa nhánh render quantum.
+  2. Trong `audio-processor.js`: ghi dither siêu nhỏ (`1e-6`) vào `outputs[0]` và lắng nghe sự kiện trên `port.onmessage` để giữ worker luôn ở trạng thái tích cực trong luồng âm thanh trình duyệt.
+  3. *Live Chunk Watchdog:* Kiểm tra `lastChunkTime`. Nếu mic đang bật mà quá 2 giây không có audio chunk nào sinh ra từ worklet, tự động `audioContext.resume()` và gửi ping port đánh thức worklet.
+  4. Bỏ hoàn toàn `self.vad_state.reset()` trong `_process_final_audio`. VAD state chỉ reset khi bắt đầu một phiên nói mới (`handle_turn_start`).
+
+### 5.11 Khắc phục Chrome không tải được website (Chrome LAN HTTPS & Port 8080 Fallback)
+
+- **Hiện tượng:** Mở `https://192.168.2.69:8443` trên Chrome bị lỗi cảnh báo chứng chỉ (`NET::ERR_CERT_COMMON_NAME_INVALID` / `NET::ERR_CERT_AUTHORITY_INVALID`) và Chrome giấu nút "Tiếp tục truy cập" (Proceed), dẫn tới không tải được giao diện web.
+- **Nguyên nhân:**
+  1. Chứng chỉ do `mkcert` tạo trong `docker/start.sh` trước đây chỉ chứa `localhost 127.0.0.1` mà thiếu IP LAN (`192.168.2.69`).
+  2. Nginx cổng 443 chưa có cấu hình `error_page 497 =301` để tự động nâng cấp nếu người dùng gõ nhầm HTTP sang cổng 8443.
+  3. Cổng 80 (8080) trước đây ép redirect 301 sang HTTPS 8443 nên Chrome không thể vào bằng HTTP thay thế.
+- **Giải pháp:**
+  1. Cập nhật `docker/start.sh` và `Makefile` tự động quét danh sách IP LAN của host và truyền vào Subject Alternative Names (SAN) cho cả `mkcert` và OpenSSL.
+  2. Thêm `error_page 497 =301 https://$host:8443$request_uri;` trong Nginx để tự chuyển tiếp HTTP gửi nhầm sang cổng SSL 8443.
+  3. Cấu hình Nginx cổng 80 (map sang 8080 trên host) phục vụ trực tiếp SPA và proxy WebSocket/API, cho phép người dùng mở trực tiếp qua `http://<IP LAN>:8080` mà không bị bất kỳ cảnh báo SSL nào làm phiền.
+  4. Thêm fallback chẩn đoán trong `index.html` và `ErrorBoundary` trong React: hiển thị rõ hướng dẫn bypass Chrome desktop (click vào trang lỗi và gõ chữ `thisisunsafe`).
 
 ## 6. Đo trên server nội bộ
 

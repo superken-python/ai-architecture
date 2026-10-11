@@ -1,19 +1,61 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name localhost;
+    server_name _;
 
-    # Redirect all HTTP requests to HTTPS
-    return 301 https://$host:8443$request_uri;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Serve HTTP directly as fallback for LAN browsers (e.g. Chrome without root CA)
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+    }
+
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    location /ws {
+        proxy_pass http://ai:8000/ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_buffering off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    location /v1/stream {
+        proxy_pass http://ai:8000/v1/stream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_buffering off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    location /api/ {
+        proxy_pass http://ai:8000/api/;
+        proxy_set_header Host $host;
+    }
 }
 
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name localhost;
+    server_name _;
 
     ssl_certificate /etc/nginx/tls/cert.pem;
     ssl_certificate_key /etc/nginx/tls/key.pem;
+
+    # Gracefully redirect plain HTTP requests sent to HTTPS port 8443
+    error_page 497 =301 https://$host:8443$request_uri;
 
     root /usr/share/nginx/html;
     index index.html;

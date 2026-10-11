@@ -118,12 +118,12 @@ KEY_FILE="${PROJECT_ROOT}/config/tls/key.pem"
 
 if [[ ! -f "${CERT_FILE}" || ! -f "${KEY_FILE}" ]]; then
     echo -e "${YELLOW}[TLS] Certificate files not found in config/tls. Generating self-signed certificates...${NC}"
+    HOST_IPS=$( (hostname -I 2>/dev/null || ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}') | tr '\n' ' ')
     if command -v mkcert &>/dev/null; then
-        echo -e "${CYAN}Using mkcert for trusted local certificates...${NC}"
-        mkcert -key-file "${KEY_FILE}" -cert-file "${CERT_FILE}" localhost 127.0.0.1 ::1
+        echo -e "${CYAN}Using mkcert for trusted local certificates with LAN IPs: ${HOST_IPS}...${NC}"
+        mkcert -key-file "${KEY_FILE}" -cert-file "${CERT_FILE}" localhost 127.0.0.1 ::1 ${HOST_IPS}
     elif command -v openssl &>/dev/null; then
         echo -e "${CYAN}Using OpenSSL for self-signed certificates with LAN IP support...${NC}"
-        HOST_IPS=$( (hostname -I 2>/dev/null || ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}') | tr '\n' ' ')
         SAN="DNS:localhost,IP:127.0.0.1"
         for ip in ${HOST_IPS}; do
             if [[ "${ip}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

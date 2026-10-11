@@ -323,7 +323,9 @@ class RVTSession:
         self.committed_offset = 0
         self.committed_sentences = []
         self.prev_partial_text = ""
-        self.vad_state.reset()
+        # NOTE: Do NOT reset self.vad_state here! _process_final_audio runs asynchronously
+        # while subsequent chunks are already streaming into handle_audio_chunk. Resetting VAD
+        # state mid-stream causes Silero VAD v6.2 to lose recurrent context and miss subsequent speech.
 
         if committed_to_clean and text:
             clean_text = text.strip()

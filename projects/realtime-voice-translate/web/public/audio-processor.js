@@ -6,9 +6,20 @@ class AudioProcessor extends AudioWorkletProcessor {
     this.buffer = new Int16Array(this.bufferSize);
     this.bufferIndex = 0;
     this.resamplePhase = 0.0;
+
+    // Listen on port to keep worklet alive and respond to main thread watchdog pings
+    this.port.onmessage = () => {
+      // Keep worker alive
+    };
   }
 
   process(inputs, outputs, parameters) {
+    // Keep output faintly non-zero (1e-6) so WebKit/Safari does not mark this node as dead/silent
+    const output = outputs[0];
+    if (output && output[0]) {
+      output[0].fill(1e-6);
+    }
+
     const input = inputs[0];
     if (!input || input.length === 0) {
       return true;

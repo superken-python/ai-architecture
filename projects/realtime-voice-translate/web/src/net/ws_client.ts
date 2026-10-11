@@ -119,10 +119,13 @@ class RVTClient {
 
   private workletLoaded: boolean = false;
 
+  private lastChunkTime: number = 0;
+
   async startAudio(side: Side, source: 'mic' | 'tab' = 'mic') {
     try {
       // Clean up any ongoing audio stream first
       this.stopAudio();
+      this.lastChunkTime = 0;
 
       // 1. Initialize AudioContext immediately on user gesture (required for iOS Safari)
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -142,7 +145,7 @@ class RVTClient {
         }
       };
 
-      // Periodic watchdog (every 2.5s) to guarantee AudioContext doesn't stay suspended during silence
+      // Periodic watchdog (every 1.5s) to guarantee AudioContext and Worklet don't sleep during silence in Safari
       if (this.audioWatchdog) {
         clearInterval(this.audioWatchdog);
       }
@@ -153,8 +156,18 @@ class RVTClient {
             console.log("Watchdog: waking up suspended AudioContext after silence...");
             this.audioContext.resume().catch(() => {});
           }
+
+          // Safari keep-alive: check if audio chunks stalled during quiet scene
+          const now = Date.now();
+          if (this.lastChunkTime > 0 && now - this.lastChunkTime > 2000) {
+            console.warn("Watchdog: audio chunks stalled during quiet period. Pinging worklet & resuming AudioContext...");
+            this.audioContext.resume().catch(() => {});
+            try {
+              this.audioProcessor?.port.postMessage('ping');
+            } catch (_) {}
+          }
         }
-      }, 2500);
+      }, 1500);
 
       // 2. Notify backend immediately that turn started
       this.send({ type: "turn.start", side });
@@ -214,6 +227,7 @@ class RVTClient {
 
       let chunkCount = 0;
       this.audioProcessor.port.onmessage = (event) => {
+        this.lastChunkTime = Date.now();
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
           this.ws.send(event.data); // ArrayBuffer PCM16 LE 40ms
           chunkCount++;
@@ -225,9 +239,9 @@ class RVTClient {
         }
       };
 
-      // Connect through a zero-gain node to keep audio engine active without echo feedback
+      // Connect through a near-zero node (0.00001 = -100dB) to prevent WebKit from pruning the render quantum on silence
       const muteGain = this.audioContext.createGain();
-      muteGain.gain.value = 0;
+      muteGain.gain.value = 0.00001;
       audioSourceNode.connect(this.audioProcessor);
       this.audioProcessor.connect(muteGain);
       muteGain.connect(this.audioContext.destination);

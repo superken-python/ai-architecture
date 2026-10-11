@@ -66,6 +66,9 @@ class Segmenter:
                 self.is_speaking = True
                 self.speech_start_ms = max(0, self.current_time_ms - chunk_ms)
                 self.frame_probs = []
+                self._prob_sum = 0.0
+                self._prob_count = 0
+                self._prob_max = 0.0
             self.last_speech_ms = self.current_time_ms
             self._prob_sum += speech_prob
             self._prob_count += 1

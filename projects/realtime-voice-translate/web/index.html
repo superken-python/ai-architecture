@@ -43,6 +43,25 @@
           }
         });
       }
+
+      // Fallback screen if bundle fails to load (e.g. untrusted SSL certificate or Chrome LAN blocking)
+      window.addEventListener('error', function(e) {
+        var root = document.getElementById('root');
+        if (root && root.children.length === 0) {
+          root.innerHTML = '<div style="padding:28px;font-family:system-ui,-apple-system,sans-serif;color:#ef4444;background:#121212;height:100vh;box-sizing:border-box;">' +
+            '<h2 style="margin-top:0;font-size:20px;">⚠️ Không thể tải giao diện</h2>' +
+            '<p style="color:#fca5a5;font-size:14px;">' + (e.message || 'Lỗi nạp script hoặc kết nối mạng') + '</p>' +
+            '<div style="margin-top:20px;padding:16px;background:#18181b;border:1px solid #334155;border-radius:8px;color:#cbd5e1;font-size:13px;line-height:1.6;">' +
+            '<p style="margin-top:0;font-weight:600;color:#38bdf8;">💡 Cách xử lý trên Google Chrome:</p>' +
+            '<ul style="margin:8px 0;padding-left:20px;">' +
+            '<li>Nếu thấy cảnh báo <i>"Kết nối không an toàn / Your connection is not private"</i>: Nhấp chuột vào khoảng trống bất kỳ trên trang và gõ chữ: <b style="color:#facc15">thisisunsafe</b></li>' +
+            '<li>Hoặc truy cập bằng cổng HTTP 8080: <a href="http://' + window.location.hostname + ':8080" style="color:#60a5fa;text-decoration:underline;">http://' + window.location.hostname + ':8080</a></li>' +
+            '</ul>' +
+            '</div>' +
+            '<button onclick="window.location.reload()" style="margin-top:20px;padding:10px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🔄 Tải lại trang</button>' +
+            '</div>';
+        }
+      });
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
