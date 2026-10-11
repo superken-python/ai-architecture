@@ -315,12 +315,18 @@ class MtValidator:
             if not LATIN_REGEX.search(cleaned):
                 return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Missing Latin script")
             if target_lang == "vi" and JA_REGEX.search(cleaned):
-                return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Contains CJK characters in Vietnamese output")
+                return ValidationResult(
+                    is_valid=False, cleaned_text=cleaned, error_reason="Contains CJK characters in Vietnamese output"
+                )
             elif target_lang == "en":
                 cjk_matches = JA_REGEX.findall(cleaned)
                 latin_matches = LATIN_REGEX.findall(cleaned)
                 if len(cjk_matches) >= len(latin_matches):
-                    return ValidationResult(is_valid=False, cleaned_text=cleaned, error_reason="Predominantly CJK characters in English output")
+                    return ValidationResult(
+                        is_valid=False,
+                        cleaned_text=cleaned,
+                        error_reason="Predominantly CJK characters in English output",
+                    )
 
         return ValidationResult(is_valid=True, cleaned_text=cleaned)
 

@@ -117,9 +117,12 @@ class LlamaCppMtEngine(MtEngine):
         if target_lang == "vi":
             system_content += (
                 "3. VIETNAMESE LANGUAGE REQUIREMENTS (STRICT):\n"
-                "   - The translation MUST be 100% in natural Vietnamese using standard Latin script with diacritics (chữ Quốc ngữ).\n"
-                "   - STRICTLY FORBIDDEN: DO NOT output or retain any Chinese characters (Hanzi / 汉字 / 漢字) or Japanese characters (Kanji / Kana) in the output under any circumstances.\n"
-                "   - Translate all spoken words, colloquialisms, idioms, and fantasy/anime dialogue (including abilities, titles, and creatures) completely into Vietnamese.\n"
+                "   - The translation MUST be 100% in natural Vietnamese using standard Latin script"
+                " with diacritics (chữ Quốc ngữ).\n"
+                "   - STRICTLY FORBIDDEN: DO NOT output or retain any Chinese characters (Hanzi / 汉字 / 漢字) or"
+                " Japanese characters (Kanji / Kana) in the output under any circumstances.\n"
+                "   - Translate all spoken words, colloquialisms, idioms, and fantasy/anime dialogue"
+                " (including abilities, titles, and creatures) completely into Vietnamese.\n"
             )
         elif target_lang == "ja":
             system_content += (
@@ -163,8 +166,8 @@ class LlamaCppMtEngine(MtEngine):
             )
 
         # Collapse excessive repetitive characters in input text (e.g. scream loop うおおおお... 500 times)
-        text = re.sub(r'(.)\1{7,}', r'\1\1\1\1\1', text).strip()
-        text = re.sub(r'(.{2,6}?)\1{5,}', r'\1\1\1', text).strip()
+        text = re.sub(r"(.)\1{7,}", r"\1\1\1\1\1", text).strip()
+        text = re.sub(r"(.{2,6}?)\1{5,}", r"\1\1\1", text).strip()
         if not text:
             return
 
@@ -273,9 +276,8 @@ class LlamaCppMtEngine(MtEngine):
                                 pass
             except httpx.HTTPStatusError as e:
                 err_body = await e.response.aread()
-                logger.error(
-                    f"MT request error to {self.api_url}: HTTP {e.response.status_code} - {err_body.decode('utf-8', errors='ignore')}"
-                )
+                err_str = err_body.decode("utf-8", errors="ignore")
+                logger.error(f"MT request error to {self.api_url}: HTTP {e.response.status_code} - {err_str}")
                 raise
             except httpx.HTTPError as e:
                 logger.error(f"MT request error to {self.api_url}: {e}")

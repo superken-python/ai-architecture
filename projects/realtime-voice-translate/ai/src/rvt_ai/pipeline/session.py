@@ -440,8 +440,8 @@ class RVTSession:
 
     async def _run_mt(self, uid: int, text: str, source: Lang, target: Lang) -> None:
         # Sanitize text: collapse excessive repeated characters (e.g. scream loop うおおおお... 500 times)
-        text = re.sub(r'(.)\1{7,}', r'\1\1\1\1\1', text).strip()
-        text = re.sub(r'(.{2,6}?)\1{5,}', r'\1\1\1', text).strip()
+        text = re.sub(r"(.)\1{7,}", r"\1\1\1\1\1", text).strip()
+        text = re.sub(r"(.{2,6}?)\1{5,}", r"\1\1\1", text).strip()
         if not text:
             return
 
@@ -452,8 +452,9 @@ class RVTSession:
             return
 
         full_text = ""
-        should_stream = True
-        context = " ".join(self.recent_context)
+        # Collect prior context without duplicating the current utterance text
+        prev_history = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()]
+        context = " ".join(prev_history[-2:])
         try:
             async for delta in self.mt.translate_stream(text, source, target, context=context):
                 full_text += delta
@@ -523,7 +524,8 @@ class RVTSession:
             v_res = mt_validator.validate(text, source, target, full_text)
             if not v_res.is_valid:
                 logger.warning(
-                    f"MT output validation failed for {source}->{target}: {v_res.error_reason}. Attempting quick retry..."
+                    f"MT output validation failed for {source}->{target}: {v_res.error_reason}. "
+                    "Attempting quick retry..."
                 )
                 try:
                     retry_text = ""
