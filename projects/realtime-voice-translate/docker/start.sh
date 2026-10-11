@@ -122,12 +122,19 @@ if [[ ! -f "${CERT_FILE}" || ! -f "${KEY_FILE}" ]]; then
         echo -e "${CYAN}Using mkcert for trusted local certificates...${NC}"
         mkcert -key-file "${KEY_FILE}" -cert-file "${CERT_FILE}" localhost 127.0.0.1 ::1
     elif command -v openssl &>/dev/null; then
-        echo -e "${CYAN}Using OpenSSL for self-signed certificates...${NC}"
+        echo -e "${CYAN}Using OpenSSL for self-signed certificates with LAN IP support...${NC}"
+        HOST_IPS=$( (hostname -I 2>/dev/null || ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}') | tr '\n' ' ')
+        SAN="DNS:localhost,IP:127.0.0.1"
+        for ip in ${HOST_IPS}; do
+            if [[ "${ip}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                SAN="${SAN},IP:${ip}"
+            fi
+        done
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout "${KEY_FILE}" \
             -out "${CERT_FILE}" \
             -subj "/C=VN/ST=HCM/L=HCM/O=RVT/CN=localhost" \
-            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" 2>/dev/null
+            -addext "subjectAltName=${SAN}" 2>/dev/null
     else
         echo -e "${RED}[ERROR] Neither mkcert nor openssl is installed. Cannot generate TLS certificates.${NC}"
         exit 1

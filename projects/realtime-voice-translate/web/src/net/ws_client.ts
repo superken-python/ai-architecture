@@ -45,6 +45,7 @@ class RVTClient {
 
       this.ws.onerror = (err) => {
         console.error("WebSocket error:", err);
+        useStore.getState().setError("Lỗi kết nối WebSocket tới máy chủ. Vui lòng kiểm tra lại chứng chỉ SSL hoặc kết nối mạng.");
       };
 
       this.ws.onmessage = (event) => {
@@ -59,6 +60,7 @@ class RVTClient {
       };
     } catch (e) {
       console.error("WebSocket connection failure:", e);
+      useStore.getState().setError(`Lỗi kết nối: ${(e as Error).message}`);
     }
   }
 
@@ -82,20 +84,33 @@ class RVTClient {
         }
       });
 
-      this.audioContext = new AudioContext(); // Will be resampled in worklet if not 16000
+      this.audioContext = new AudioContext();
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
       await this.audioContext.audioWorklet.addModule('/audio-processor.js');
 
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.audioProcessor = new AudioWorkletNode(this.audioContext, 'audio-processor');
 
+      let chunkCount = 0;
       this.audioProcessor.port.onmessage = (event) => {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
           this.ws.send(event.data); // ArrayBuffer PCM16 LE 40ms
+          chunkCount++;
+          if (chunkCount === 1) {
+            console.log("🎙 First audio chunk sent successfully to WebSocket server");
+          }
         }
       };
 
+      // Connect through a zero-gain node to keep audio engine active without echo feedback
+      const muteGain = this.audioContext.createGain();
+      muteGain.gain.value = 0;
       source.connect(this.audioProcessor);
-      this.audioProcessor.connect(this.audioContext.destination);
+      this.audioProcessor.connect(muteGain);
+      muteGain.connect(this.audioContext.destination);
 
       useStore.getState().setMicActive(true);
       useStore.getState().setActiveSide(side);
@@ -104,6 +119,7 @@ class RVTClient {
       this.send({ type: "turn.start", side });
     } catch (err) {
       console.error("Microphone capture failed:", err);
+      useStore.getState().setError(`Lỗi Micro: ${(err as Error).message || "Không thể truy cập microphone"}`);
       useStore.getState().setMicActive(false);
       useStore.getState().setActiveSide(null);
     }

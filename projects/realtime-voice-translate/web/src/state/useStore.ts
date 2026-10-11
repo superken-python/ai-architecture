@@ -33,6 +33,7 @@ interface AppState {
   setActiveSide: (side: Side | null) => void;
   setMicActive: (active: boolean) => void;
   setSideConfig: (side: Side, lang: SupportedLang) => void;
+  setError: (msg: string | null) => void;
   clearError: () => void;
   clearHistory: () => void;
   handleServerEvent: (event: ServerEvent) => void;
@@ -62,6 +63,7 @@ export const useStore = create<AppState>((set, get) => ({
     });
   },
 
+  setError: (msg) => set({ errorMessage: msg }),
   clearError: () => set({ errorMessage: null }),
   clearHistory: () => set({ utterances: {} }),
 
