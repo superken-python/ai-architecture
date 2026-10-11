@@ -25,8 +25,11 @@ async def lifespan(app: FastAPI):
     try:
         vad_engine, asr_engine, mt_engine = build_engines_from_profile(profile)
     except Exception as e:
-        logger.error(f"Error initializing engines for profile '{profile.name}': {e}. Falling back to resilient fake engines.")
+        logger.error(
+            f"Error initializing engines for profile '{profile.name}': {e}. Falling back to resilient fake engines."
+        )
         from rvt_ai.engines.fake import FakeAsrEngine, FakeMtEngine, FakeVadEngine
+
         vad_engine = FakeVadEngine()
         asr_engine = FakeAsrEngine()
         mt_engine = FakeMtEngine()

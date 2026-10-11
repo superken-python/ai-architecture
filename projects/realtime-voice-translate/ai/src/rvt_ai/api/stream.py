@@ -90,6 +90,10 @@ async def handle_websocket_connection(websocket: WebSocket):
                 break
 
             data = await websocket.receive()
+            if data.get("type") == "websocket.disconnect":
+                logger.info(f"WebSocket client disconnected: {session_id}")
+                break
+
             if data.get("bytes"):
                 await session.handle_audio_chunk(data["bytes"])
             elif data.get("text"):

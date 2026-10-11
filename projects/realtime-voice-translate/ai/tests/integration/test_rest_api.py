@@ -1,4 +1,5 @@
 import io
+
 from fastapi.testclient import TestClient
 
 from rvt_ai.main import app
@@ -46,10 +47,7 @@ def test_rest_session_and_translate():
 
         # 3. Speech-translate endpoint
         fake_wav = io.BytesIO(b"\x01" * 3200)
-        res_st = client.post(
-            "/api/v1/speech-translate",
-            files={"file": ("test.wav", fake_wav, "audio/wav")}
-        )
+        res_st = client.post("/api/v1/speech-translate", files={"file": ("test.wav", fake_wav, "audio/wav")})
         assert res_st.status_code == 200
         data_st = res_st.json()
         assert "text" in data_st

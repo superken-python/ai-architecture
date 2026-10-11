@@ -31,7 +31,9 @@ class FasterWhisperEngine(AsrEngine):
 
         try:
             logger.info(f"Loading faster-whisper model '{model_size}' on {self.device} ({self.compute_type})...")
-            self.model = WhisperModel(model_size, device=self.device, compute_type=self.compute_type, download_root=download_root)
+            self.model = WhisperModel(
+                model_size, device=self.device, compute_type=self.compute_type, download_root=download_root
+            )
         except Exception as e:
             logger.warning(f"Failed to load model on {self.device}: {e}. Falling back to CPU int8.")
             self.device = "cpu"

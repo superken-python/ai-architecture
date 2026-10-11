@@ -9,12 +9,16 @@ from rvt_ai.engines.ports import VadEngine
 
 
 class SileroVadState:
-    def __init__(self):
+    def __init__(self, is_v5: bool = True):
+        self.is_v5 = is_v5
         self.reset()
 
     def reset(self) -> None:
-        self.h = np.zeros((2, 1, 64), dtype=np.float32)
-        self.c = np.zeros((2, 1, 64), dtype=np.float32)
+        if self.is_v5:
+            self.state = np.zeros((2, 1, 128), dtype=np.float32)
+        else:
+            self.h = np.zeros((2, 1, 64), dtype=np.float32)
+            self.c = np.zeros((2, 1, 64), dtype=np.float32)
         self.audio_remainder = np.empty(0, dtype=np.float32)
 
 
@@ -53,10 +57,13 @@ class SileroVadEngine(VadEngine):
                     raise FileNotFoundError(f"Could not download Silero VAD model to {target_dest}")
 
         self.session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
+        self.input_names = [x.name for x in self.session.get_inputs()]
+        self.is_v5 = "state" in self.input_names
+        logger.info(f"Loaded Silero VAD ({'v5' if self.is_v5 else 'v4'}) from {model_path}")
         self.window_size = 512  # 32ms at 16kHz
 
     def create_state(self) -> SileroVadState:
-        return SileroVadState()
+        return SileroVadState(is_v5=self.is_v5)
 
     def process(self, chunk: bytes, state: SileroVadState) -> bool:
         # Convert 16bit PCM to float32 normalized [-1, 1]
@@ -76,10 +83,25 @@ class SileroVadEngine(VadEngine):
             idx += self.window_size
 
             input_data = np.expand_dims(window, axis=0)  # [1, 512]
-            ort_inputs = {"input": input_data, "sr": np.array([16000], dtype=np.int64), "h": state.h, "c": state.c}
 
-            ort_outs = self.session.run(None, ort_inputs)
-            out, state.h, state.c = ort_outs
+            if self.is_v5:
+                ort_inputs = {
+                    "input": input_data,
+                    "state": state.state,
+                    "sr": np.array(16000, dtype=np.int64),
+                }
+                ort_outs = self.session.run(None, ort_inputs)
+                out, state.state = ort_outs
+            else:
+                ort_inputs = {
+                    "input": input_data,
+                    "sr": np.array([16000], dtype=np.int64),
+                    "h": state.h,
+                    "c": state.c,
+                }
+                ort_outs = self.session.run(None, ort_inputs)
+                out, state.h, state.c = ort_outs
+
             prob = float(out[0][0])
             if prob > self.threshold:
                 has_speech = True
