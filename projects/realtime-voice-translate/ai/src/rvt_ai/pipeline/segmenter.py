@@ -9,8 +9,8 @@ class SegmenterConfig(BaseModel):
     min_silence_ms: int = 500
     speech_pad_ms: int = 200
     preroll_ms: int = 400
-    max_ms: int = 7000
-    hard_max_ms: int = 10000
+    max_ms: int = 4000  # 4s max cho video nói liền/anime
+    hard_max_ms: int = 6000  # 6s cắt cứng
     partial_interval_ms: int = 800
 
 
@@ -34,6 +34,7 @@ class Segmenter:
         self.current_time_ms: int = 0
         self.last_partial_ms: int = 0
         self.last_stats: SegmentStats | None = None
+        self.frame_probs: list[float] = []
         self._prob_sum = 0.0
         self._prob_count = 0
         self._prob_max = 0.0
@@ -57,7 +58,6 @@ class Segmenter:
             self.buffer.extend(chunk)
 
         # Hysteresis: bắt đầu câu khi p >= threshold, nhưng đang nói thì p >= neg_threshold vẫn tính là tiếng nói.
-        # Giọng ở xa có p dao động quanh ngưỡng — một ngưỡng duy nhất sẽ chốt câu giữa chừng.
         threshold = self.config.neg_threshold if self.is_speaking else self.config.threshold
         has_speech = speech_prob >= threshold
 
@@ -65,25 +65,32 @@ class Segmenter:
             if not self.is_speaking:
                 self.is_speaking = True
                 self.speech_start_ms = max(0, self.current_time_ms - chunk_ms)
+                self.frame_probs = []
             self.last_speech_ms = self.current_time_ms
             self._prob_sum += speech_prob
             self._prob_count += 1
             self._prob_max = max(self._prob_max, speech_prob)
 
+        if self.is_speaking:
+            self.frame_probs.append(speech_prob)
+
         should_partial = False
         should_final = False
 
-        if self.is_speaking:
-            # Check for partial interval
-            if self.current_time_ms - self.last_partial_ms >= self.config.partial_interval_ms:
+        if self.is_speaking and self.speech_start_ms is not None:
+            duration_ms = self.current_time_ms - self.speech_start_ms
+
+            # Chỉ nhận dạng tạm khi đã có ít nhất min(interval, 1000)ms audio và đủ chu kỳ
+            min_partial_duration = min(self.config.partial_interval_ms, 1000)
+            if duration_ms >= min_partial_duration and (
+                self.current_time_ms - self.last_partial_ms >= self.config.partial_interval_ms
+            ):
                 should_partial = True
                 self.last_partial_ms = self.current_time_ms
 
             # Check for silence to trigger final
-            # 5.3: Thời gian im lặng thay đổi theo độ dài câu: 500 ms lúc ngắn, giảm còn 250 ms khi câu dài > 4 s.
-            if self.last_speech_ms is not None and self.speech_start_ms is not None:
+            if self.last_speech_ms is not None:
                 silence_ms = self.current_time_ms - self.last_speech_ms
-                duration_ms = self.current_time_ms - self.speech_start_ms
                 required_silence_ms = self.config.min_silence_ms
                 if duration_ms > 4000:
                     required_silence_ms = min(required_silence_ms, 250)
@@ -95,15 +102,32 @@ class Segmenter:
                         # Speech too short (e.g. noise/cough), drop it
                         self.reset()
 
-            # Check for hard max (10s) or soft max (7s)
-            if self.speech_start_ms is not None:
-                duration_ms = self.current_time_ms - self.speech_start_ms
-                if duration_ms >= self.config.hard_max_ms or (
-                    duration_ms >= self.config.max_ms
-                    and self.last_speech_ms is not None
-                    and (self.current_time_ms - self.last_speech_ms) >= 200
-                ):
-                    should_final = True
+            # Check for max_ms và cắt ở chỗ lặng nhất (Mục 5.1 docs 06)
+            if not should_final and duration_ms >= self.config.max_ms:
+                chunk_bytes = (self.config.sample_rate * 2 * chunk_ms) // 1000
+                preroll_bytes = min(
+                    len(self.buffer),
+                    (self.config.preroll_ms * self.config.sample_rate * 2) // 1000,
+                )
+                n = len(self.frame_probs)
+                window_frames = max(1, 1500 // chunk_ms)
+                tail_frames = max(1, 200 // chunk_ms)
+                start_idx = max(0, n - window_frames)
+                end_idx = max(start_idx + 1, n - tail_frames)
+
+                k = min(range(start_idx, end_idx), key=self.frame_probs.__getitem__)
+                if self.frame_probs[k] < self.config.neg_threshold or duration_ms >= self.config.hard_max_ms:
+                    cut = preroll_bytes + (k + 1) * chunk_bytes
+                    cut = min(cut, len(self.buffer))
+                    final_audio = bytes(self.buffer[:cut])
+                    self.buffer = self.buffer[cut:]
+                    self.frame_probs = self.frame_probs[k + 1 :]
+                    self.speech_start_ms = self.current_time_ms - len(self.frame_probs) * chunk_ms
+                    self.last_speech_ms = self.current_time_ms
+                    self.last_partial_ms = self.current_time_ms
+                    stats = self._stats()
+                    self.last_stats = stats
+                    return should_partial, True, final_audio
 
         buffer_out = bytes(self.buffer)
         if should_final:
@@ -127,6 +151,7 @@ class Segmenter:
         self.last_speech_ms = None
         self.last_partial_ms = self.current_time_ms
         self.last_stats = None
+        self.frame_probs = []
         self._prob_sum = 0.0
         self._prob_count = 0
         self._prob_max = 0.0

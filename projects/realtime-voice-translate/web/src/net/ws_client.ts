@@ -23,6 +23,10 @@ class RVTClient {
         useStore.getState().setConnected(true);
         // Send session.start
         const store = useStore.getState();
+        const targets = store.meetingMode && store.sideBLang !== 'auto'
+          ? [store.sideBLang]
+          : undefined;
+
         this.send({
           type: "session.start",
           protocol: 1,
@@ -30,7 +34,8 @@ class RVTClient {
           sides: {
             A: { lang: store.sideALang },
             B: { lang: store.sideBLang }
-          }
+          },
+          targets
         });
       };
 
@@ -48,11 +53,15 @@ class RVTClient {
         useStore.getState().setError("Lỗi kết nối WebSocket tới máy chủ. Vui lòng kiểm tra lại chứng chỉ SSL hoặc kết nối mạng.");
       };
 
+      const isDebug = typeof window !== 'undefined' && window.location.search.includes('debug=1');
+
       this.ws.onmessage = (event) => {
         if (typeof event.data === "string") {
           try {
             const payload = JSON.parse(event.data);
-            console.log("📩 [Server Event]", payload.type, payload);
+            if (isDebug) {
+              console.log("📩 [Server Event]", payload.type, payload);
+            }
             useStore.getState().handleServerEvent(payload);
           } catch (e) {
             console.error("Failed to parse server message:", e);
@@ -67,7 +76,10 @@ class RVTClient {
 
   send(data: object) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      console.log("📤 [Client Send]", (data as any).type || "raw", data);
+      const isDebug = typeof window !== 'undefined' && window.location.search.includes('debug=1');
+      if (isDebug) {
+        console.log("📤 [Client Send]", (data as any).type || "raw", data);
+      }
       this.ws.send(JSON.stringify(data));
     }
   }
@@ -191,12 +203,18 @@ class RVTClient {
   }
 
   updateSides(sideA: SupportedLang, sideB: SupportedLang) {
+    const store = useStore.getState();
+    const targets = store.meetingMode && sideB !== 'auto'
+      ? [sideB]
+      : undefined;
+
     this.send({
       type: "sides.update",
       sides: {
         A: { lang: sideA },
         B: { lang: sideB }
-      }
+      },
+      targets
     });
   }
 

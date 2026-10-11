@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test tests/e2e/app.spec.ts",
     "test:regression": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/regression-remote.spec.ts",
-    "test:video-stream": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/video-japanese-stream.spec.ts"
+    "test:video-stream": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/video-japanese-stream.spec.ts",
+    "test:anime": "TARGET_URL=https://192.168.2.69:8443 playwright test tests/e2e/anime-fast-speech.spec.ts"
   },
   "keywords": [],
   "author": "",

@@ -83,7 +83,10 @@ class SileroVadEngine(VadEngine):
                 "delete it and run scripts/download_models.sh to get the pinned version"
             )
 
-        self.session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = 1
+        opts.inter_op_num_threads = 1
+        self.session = ort.InferenceSession(model_path, sess_options=opts, providers=["CPUExecutionProvider"])
         self.input_names = [x.name for x in self.session.get_inputs()]
         self.is_v5 = "state" in self.input_names
         logger.info(

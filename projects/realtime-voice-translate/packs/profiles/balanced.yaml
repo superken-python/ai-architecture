@@ -10,6 +10,9 @@ vad:
   min_silence_ms: 500
   speech_pad_ms: 200
   preroll_ms: 400
+  max_ms: 4000
+  hard_max_ms: 6000
+  partial_interval_ms: 800
 asr:
   engine: "faster-whisper"
   model: "large-v3-turbo"

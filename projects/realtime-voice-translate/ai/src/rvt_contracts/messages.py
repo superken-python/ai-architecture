@@ -23,6 +23,7 @@ class SessionStart(BaseModel):
     protocol: int = 1
     audio: AudioConfig = Field(default_factory=AudioConfig)
     sides: dict[Side, SideConfig] = Field(default_factory=lambda: {"A": SideConfig(), "B": SideConfig()})
+    targets: list[Lang] | None = None
 
 
 class TurnStart(BaseModel):
@@ -43,6 +44,7 @@ class UtteranceOverrideLang(BaseModel):
 class SidesUpdate(BaseModel):
     type: Literal["sides.update"] = "sides.update"
     sides: dict[Side, SideConfig]
+    targets: list[Lang] | None = None
 
 
 class Ping(BaseModel):

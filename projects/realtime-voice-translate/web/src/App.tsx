@@ -27,6 +27,51 @@ export const cleanTranslationText = (text: string): string => {
   return cleaned;
 };
 
+interface MeetingUtteranceCardProps {
+  u: Utterance;
+  targetLang: string;
+  primaryLang: string;
+  fontSize: number;
+}
+
+const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetLang, primaryLang, fontSize }) => {
+  const rawTrans = u.translations[targetLang];
+  const trans = rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? "" : "… đang dịch");
+  const spokenLang = u.originalLang || primaryLang;
+  const conf = u.langProbs?.[spokenLang] ? ` ${Math.round(u.langProbs[spokenLang] * 100)}%` : "";
+
+  return (
+    <div
+      key={u.id}
+      style={{
+        backgroundColor: '#18181b',
+        borderLeft: '4px solid #3b82f6',
+        borderRadius: '8px',
+        padding: '8px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8' }}>
+        <span style={{ backgroundColor: '#2563eb', color: '#fff', padding: '1px 6px', borderRadius: '8px', fontWeight: 600 }}>
+          {spokenLang.toUpperCase()}{conf}
+        </span>
+        {!u.isFinal && <span style={{ color: '#f59e0b', fontStyle: 'italic' }}>● đang xử lý...</span>}
+      </div>
+
+      <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+        {u.originalText}
+      </div>
+
+      <div style={{ fontSize: `${fontSize + 2}px`, fontWeight: 600, color: '#f8fafc', lineHeight: 1.35 }}>
+        {trans || (u.isFinal ? u.originalText : "… đang dịch")}
+      </div>
+    </div>
+  );
+});
+
 const App: React.FC = () => {
   const {
     connected,
@@ -392,41 +437,17 @@ const App: React.FC = () => {
                 <span style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>Hệ thống sẽ tự động ngắt câu linh hoạt và dịch phụ đề liên tục theo thời gian thực.</span>
               </div>
             ) : (
-              utteranceList.map((u) => {
+              utteranceList.slice(-150).map((u) => {
                 const targetLang = sideBLang === "auto" ? "vi" : sideBLang;
-                const trans = u.translations[targetLang] ? cleanTranslationText(u.translations[targetLang]) : (u.isFinal ? "" : "… đang dịch");
-                const spokenLang = u.originalLang || (u.side === "A" ? primaryLangA : primaryLangB);
-                const conf = u.langProbs?.[spokenLang] ? ` ${Math.round(u.langProbs[spokenLang] * 100)}%` : "";
-
+                const primaryLang = u.side === "A" ? primaryLangA : primaryLangB;
                 return (
-                  <div
+                  <MeetingUtteranceCard
                     key={u.id}
-                    style={{
-                      backgroundColor: '#18181b',
-                      borderLeft: '4px solid #3b82f6',
-                      borderRadius: '8px',
-                      padding: '8px 12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8' }}>
-                      <span style={{ backgroundColor: '#2563eb', color: '#fff', padding: '1px 6px', borderRadius: '8px', fontWeight: 600 }}>
-                        {spokenLang.toUpperCase()}{conf}
-                      </span>
-                      {!u.isFinal && <span style={{ color: '#f59e0b', fontStyle: 'italic' }}>● đang xử lý...</span>}
-                    </div>
-
-                    <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
-                      {u.originalText}
-                    </div>
-
-                    <div style={{ fontSize: `${fontSizeA + 2}px`, fontWeight: 600, color: '#f8fafc', lineHeight: 1.35 }}>
-                      {trans || (u.isFinal ? u.originalText : "… đang dịch")}
-                    </div>
-                  </div>
+                    u={u}
+                    targetLang={targetLang}
+                    primaryLang={primaryLang}
+                    fontSize={fontSizeA}
+                  />
                 );
               })
             )}

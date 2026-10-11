@@ -16,8 +16,8 @@ class VadConfig(BaseModel):
     min_silence_ms: int = 500
     speech_pad_ms: int = 200
     preroll_ms: int = 400
-    max_ms: int = 7000
-    hard_max_ms: int = 10000
+    max_ms: int = 4000
+    hard_max_ms: int = 6000
     partial_interval_ms: int = 800
 
 

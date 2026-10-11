@@ -76,23 +76,25 @@ class LlamaCppMtEngine(MtEngine):
         }
         tgt_name = lang_names.get(target_lang, target_lang)
 
+        base_instruction = (
+            f"Translate the speech directly into {tgt_name}. "
+            "Output ONLY the translated sentence, without any conversational response, "
+            "questions, notes, or explanations."
+        )
         if context and context.strip():
             prompt = (
-                f"Previous speech context:\n{context.strip()}\n\n"
-                f"Translate the following speech directly into {tgt_name}. "
-                f"Output ONLY the translated sentence, without any conversational response, "
-                f"questions, notes, or explanations:\n\n{text}"
+                f"{base_instruction}\n\nPrevious speech context:\n{context.strip()}\n\nSpeech to translate:\n{text}"
             )
         else:
-            prompt = (
-                f"Translate the following speech directly into {tgt_name}. "
-                f"Output ONLY the translated sentence, without any conversational response, "
-                f"questions, notes, or explanations:\n\n{text}"
-            )
+            prompt = f"{base_instruction}\n\nSpeech to translate:\n{text}"
         messages = [{"role": "user", "content": prompt}]
 
-        # Dynamic max_tokens scaled with source text length, bounded between 128 and 512
-        dynamic_max_tokens = max(128, min(512, max(len(text.split()), 1) * 4))
+        # Dynamic max_tokens scaled with source text length:
+        # Non-spaced languages (Japanese) scale by char count, others by word count
+        if source_lang == "ja" or len(text.split()) <= 1:
+            dynamic_max_tokens = max(128, min(512, len(text) * 3))
+        else:
+            dynamic_max_tokens = max(128, min(512, max(len(text.split()), 1) * 4))
 
         payload = {
             "messages": messages,

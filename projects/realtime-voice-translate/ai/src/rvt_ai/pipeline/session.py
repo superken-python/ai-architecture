@@ -26,6 +26,23 @@ from rvt_contracts.messages import (
     Vad,
 )
 
+SENTENCE_END_RE = re.compile(r"[。！？!?]")
+
+
+def find_stable_prefix(prev: str, curr: str, committed: int) -> int:
+    """
+    Vị trí hết câu hoàn chỉnh cuối cùng mà hai lần nhận dạng tạm liên tiếp cùng có,
+    không lùi so với committed (LocalAgreement - Mục 5.2 docs 06).
+    """
+    common = 0
+    limit = min(len(prev), len(curr))
+    while common < limit and prev[common] == curr[common]:
+        common += 1
+
+    matches = [m.end() for m in SENTENCE_END_RE.finditer(curr[:common])]
+    valid = [end for end in matches if end > committed]
+    return max(valid) if valid else committed
+
 
 def _audio_summary(audio: bytes, stats: SegmentStats | None) -> str:
     """Mức âm và thống kê VAD của một câu — đọc log để biết câu bị rơi vì nhỏ hay vì VAD (docs/04 §7.2)."""
@@ -55,7 +72,8 @@ class RVTSession:
         self.mt = mt
         self.send_event = send_event_cb
         self.scheduler = scheduler or AsrScheduler(self.asr.transcribe)
-        self.recent_context: deque[str] = deque(maxlen=2)
+        self.recent_context: deque[str] = deque(maxlen=3)
+        self.targets: list[Lang] | None = None
 
         self.segmenter = Segmenter(segmenter_config or SegmenterConfig())
         self.current_side: Side | None = None
@@ -68,6 +86,11 @@ class RVTSession:
         self.last_partial_uid: int | None = None
         self.last_partial_text: str = ""
         self.last_partial_lang: Lang = "vi"
+
+        # Early commit tracking for fast continuous speech (LocalAgreement)
+        self.prev_partial_text: str = ""
+        self.committed_offset: int = 0
+        self.committed_sentences: list[str] = []
 
         # In-memory recent utterances audio buffer (LRU max 10) for utterance.override_lang
         self.recent_audio: OrderedDict[int, bytes] = OrderedDict()
@@ -102,13 +125,17 @@ class RVTSession:
         if "A" in event.sides and "B" in event.sides:
             self.sides_config["A"] = event.sides["A"].lang
             self.sides_config["B"] = event.sides["B"].lang
+        if event.targets is not None:
+            self.targets = event.targets
         return True
 
     async def handle_sides_update(self, event: SidesUpdate) -> None:
         self.last_activity_time = time.time()
         for side, cfg in event.sides.items():
             self.sides_config[side] = cfg.lang
-        logger.info(f"[{self.session_id}] Sides updated: {self.sides_config}")
+        if event.targets is not None:
+            self.targets = event.targets
+        logger.info(f"[{self.session_id}] Sides updated: {self.sides_config}, targets: {self.targets}")
 
     async def handle_turn_start(self, side: Side) -> None:
         self.last_activity_time = time.time()
@@ -134,8 +161,9 @@ class RVTSession:
         speech_prob = self.vad.process(chunk, self.vad_state)
         should_partial, should_final, buffer = self.segmenter.add_chunk(chunk, speech_prob)
 
-        # "Đang nói" lấy theo segmenter (đã có hysteresis), không theo kết quả thô của từng chunk
-        await self.send_event(Vad(side=side, speaking=self.segmenter.is_speaking))
+        # Chỉ gửi event vad khi trạng thái nói thay đổi (Mục 5.4 docs 06: giảm từ 25 event/s xuống vài event/phút)
+        if self.segmenter.is_speaking != was_speaking:
+            await self.send_event(Vad(side=side, speaking=self.segmenter.is_speaking))
 
         if self.segmenter.is_speaking and not was_speaking:
             logger.info(f"[{self.session_id}] 🗣️ VAD: Speech DETECTED on Side {side} (p={speech_prob:.2f})")
@@ -201,11 +229,67 @@ class RVTSession:
             text, lang, _ = await self.scheduler.execute_transcribe(
                 audio, force_lang=force_lang, is_final=False, session_id=self.session_id
             )
-            if text and self.current_side == side:
-                self.last_partial_uid = uid
+            if not text or self.current_side != side:
+                return
+
+            text = text.strip()
+
+            # Early commit stable complete sentences (LocalAgreement - Mục 5.2 docs 06)
+            if self.prev_partial_text and text:
+                stable_end = find_stable_prefix(self.prev_partial_text, text, self.committed_offset)
+                if stable_end > self.committed_offset:
+                    stable_sentence = text[self.committed_offset : stable_end].strip()
+                    if stable_sentence:
+                        commit_uid = self.utterance_id_counter
+                        self.utterance_id_counter += 1
+                        logger.info(
+                            f"[{self.session_id}] ⚡ Early-commit stable sentence: "
+                            f"'{stable_sentence}' (uid={commit_uid})"
+                        )
+                        self.recent_context.append(stable_sentence)
+                        self.committed_sentences.append(stable_sentence)
+                        self.committed_offset = stable_end
+
+                        # Emit asr.final for the early committed sentence
+                        await self.send_event(
+                            AsrFinal(
+                                utterance_id=commit_uid,
+                                side=side,
+                                text=stable_sentence,
+                                lang=lang,
+                                lang_probs={},
+                                uncertain=False,
+                                audio_ms=0,
+                            )
+                        )
+
+                        # Trigger MT immediately for the early committed sentence
+                        if self.targets:
+                            mt_targets = [tgt for tgt in self.targets if tgt != lang]
+                        else:
+                            mt_targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != lang]
+                        for tgt in mt_targets:
+                            task = asyncio.create_task(self._run_mt(commit_uid, stable_sentence, lang, tgt))
+                            self.active_tasks.append(task)
+
+            self.prev_partial_text = text
+
+            # Partials remaining for user view (the uncommitted portion)
+            remaining_partial = text[self.committed_offset :].strip() if self.committed_offset < len(text) else ""
+            active_partial_uid = self.utterance_id_counter
+
+            if remaining_partial:
+                self.last_partial_uid = active_partial_uid
+                self.last_partial_text = remaining_partial
+                self.last_partial_lang = lang
+                await self.send_event(
+                    AsrPartial(utterance_id=active_partial_uid, side=side, text=remaining_partial, lang=lang)
+                )
+            elif not self.committed_sentences:
+                self.last_partial_uid = active_partial_uid
                 self.last_partial_text = text
                 self.last_partial_lang = lang
-                await self.send_event(AsrPartial(utterance_id=uid, side=side, text=text, lang=lang))
+                await self.send_event(AsrPartial(utterance_id=active_partial_uid, side=side, text=text, lang=lang))
         except Exception as e:
             logger.debug(f"Partial ASR error: {e}")
 
@@ -234,8 +318,36 @@ class RVTSession:
             logger.error(f"[{self.session_id}] Final transcribe error: {e}")
             text, detected_lang, asr_probs = "", "vi", {}
 
+        # Remove already committed sentences from final text (Mục 5.2 docs 06)
+        committed_to_clean = self.committed_sentences[:]
+        self.committed_offset = 0
+        self.committed_sentences = []
+        self.prev_partial_text = ""
+
+        if committed_to_clean and text:
+            clean_text = text.strip()
+            for cs in committed_to_clean:
+                cs_clean = cs.strip()
+                if clean_text.startswith(cs_clean):
+                    clean_text = clean_text[len(cs_clean) :].strip()
+                elif clean_text.replace(" ", "").startswith(cs_clean.replace(" ", "")):
+                    idx = 0
+                    cs_no_space = cs_clean.replace(" ", "")
+                    matched_chars = 0
+                    while idx < len(clean_text) and matched_chars < len(cs_no_space):
+                        if clean_text[idx] != " ":
+                            matched_chars += 1
+                        idx += 1
+                    clean_text = clean_text[idx:].strip()
+            text = clean_text
+
         # Rescue from partial if final Whisper returned empty but partial had valid recognized speech
-        if (not text or not text.strip()) and self.last_partial_uid == uid and self.last_partial_text:
+        if (
+            (not text or not text.strip())
+            and not committed_to_clean
+            and self.last_partial_uid == uid
+            and self.last_partial_text
+        ):
             logger.info(
                 f"[{self.session_id}] Rescuing final text from previous partial for uid={uid}: "
                 f"'{self.last_partial_text}'"
@@ -244,6 +356,10 @@ class RVTSession:
             detected_lang = self.last_partial_lang
 
         if not text or not text.strip():
+            if committed_to_clean:
+                logger.info(f"[{self.session_id}] All speech in segment was already committed early, segment complete.")
+                return
+
             logger.info(
                 f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping "
                 f"[side={side}, {_audio_summary(audio, stats)}]"
@@ -295,6 +411,7 @@ class RVTSession:
             f"[{self.session_id}] 📝 ASR Final: '{text}' [lang={final_lang}, probs={asr_probs}, side={side}, "
             f"{_audio_summary(audio, stats)}]"
         )
+        self.recent_context.append(text)
         await self.send_event(
             AsrFinal(
                 utterance_id=uid,
@@ -307,8 +424,11 @@ class RVTSession:
             )
         )
 
-        # 4. Trigger MT for the other two languages
-        targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != final_lang]
+        # 4. Trigger MT for targets
+        if self.targets:
+            targets = [tgt for tgt in self.targets if tgt != final_lang]
+        else:
+            targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != final_lang]
         mt_tasks = []
         for tgt in targets:
             task = asyncio.create_task(self._run_mt(uid, text, final_lang, tgt))
@@ -380,7 +500,6 @@ class RVTSession:
             else:
                 logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
                 mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
-                self.recent_context.append(text)
                 await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text))
         except Exception as e:
             logger.error(f"MT failed for {target}: {e}")
