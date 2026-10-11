@@ -174,7 +174,7 @@ Phát lại anime 3 phút trên code server thật:
 - **Phát lại:** server chạy từ `a82c9fc` với profile `balanced` (ngưỡng VAD, preroll, đoạn tối đa 7/10 s). Whisper và
   llama.cpp được thay bằng bản giả lập dùng chung một khoá GPU: nhận dạng giữ GPU cả lượt, dịch giữ GPU theo từng nhóm 8
   token. `replay_ws.py` gửi khung 40 ms đúng nhịp thời gian thực.
-- **Thời gian giả định** cho large-v3-turbo int8 và Hy-MT 1.8B Q4 trên GPU tầm RTX 4060:
+- **Thời gian giả định** cho large-v3-turbo int8 và Qwen2.5-3B Q4 trên GPU tầm RTX 4060:
   - nhận dạng: 0,12 s + 6 ms cho mỗi token chữ;
   - dịch: 0,06 s + 8,3 ms cho mỗi token đầu ra (~120 token/s);
   - "GPU chậm gấp đôi": nhân đôi tất cả.

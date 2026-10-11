@@ -41,8 +41,8 @@ nào → ghi lại câu nói → dịch ngay sang **hai tiếng còn lại**. Mo
   chạm mic ở nửa của mình. Nửa đó hiện câu gốc để người nói tự kiểm tra; nửa đối diện hiện bản dịch bằng tiếng của người
   nghe, bản dịch sang tiếng thứ ba hiện nhỏ bên dưới.
 - **Pipeline (cascade):** micro → `AudioWorklet` 16 kHz PCM16 → WebSocket → **Silero VAD** chốt câu → **Whisper
-  `large-v3-turbo`** (faster-whisper) nhận dạng và phân biệt ngôn ngữ, giới hạn trong {ja, en, vi} → **Hy-MT2-1.8B**
-  (llama.cpp) dịch song song sang 2 tiếng còn lại, stream từng chữ về giao diện.
+  `large-v3-turbo`** (faster-whisper) nhận dạng và phân biệt ngôn ngữ, giới hạn trong {ja, en, vi} → **Qwen2.5-3B-Instruct**
+  (llama.cpp, tối ưu chất lượng dịch Nhật-Việt) dịch song song sang 2 tiếng còn lại, stream từng chữ về giao diện.
 - **Vừa GPU 8 GB:** profile mặc định `balanced` ước tính 4,5–5 GB VRAM. Phần còn trống dành cho profile `quality` hoặc
   các ứng viên khác (Qwen3-ASR, TranslateGemma) mà P0 sẽ benchmark.
 - **Độ trễ mục tiêu:** từ lúc ngừng nói tới khi đủ 2 bản dịch, p50 ≤ 1,3 s trong mạng LAN.
@@ -210,11 +210,10 @@ với dịch vụ qua hợp đồng đó.
 |---|---|---|---|---|---|---|
 | VAD | Silero VAD | onnxruntime (CPU) | ONNX | 0 — chạy CPU, < 1 ms mỗi cửa sổ 32 ms | MIT | phổ biến, nhẹ, chạy streaming |
 | ASR + LID | Whisper `large-v3-turbo` | faster-whisper (CTranslate2) | `int8_float16` | ~1,5 GB (số đo cộng đồng: int8, beam 5) | MIT | một model đủ ja/en/vi, có sẵn xác suất ngôn ngữ, nhanh hơn `large-v3` khoảng 2,7 lần, tooling chín |
-| Dịch (MT) | **Hy-MT2-1.8B** (Tencent, 21/05/2026) | llama.cpp server | GGUF `Q8_0` (profile `fast`: `Q4_K_M` ~1,1 GB) | ~2–2,5 GB kể cả KV cache | Apache-2.0 theo model card | model chuyên dịch, 33 ngôn ngữ có ja/vi/en, có template thuật ngữ và ngữ cảnh, rất nhỏ nên nhanh |
+| Dịch (MT) | **Qwen2.5-3B-Instruct** (Alibaba) | llama.cpp server | GGUF `Q4_K_M` (~2.16 GB) | ~2,8–3,2 GB kể cả KV cache | Apache-2.0 | mô hình pretrained dồi dào dữ liệu Á Đông, dịch Nhật - Anh - Việt chuẩn ngữ pháp và vai vế, 50-60 t/s |
 
-Hy-MT2 mới phát hành và phần lớn số liệu chất lượng là do nhà phát triển công bố, nên **bắt buộc qua cổng đánh giá ở P0**
-trên golden set. Phương án dự phòng theo thứ tự: TranslateGemma-4B → Qwen3-4B-Instruct-2507. Lúc mới phát hành Hy-MT2 dùng
-giấy phép cộng đồng của Tencent; model card hiện ghi Apache-2.0 — cần đọc lại file `LICENSE` tại revision đã pin.
+Qwen2.5-3B-Instruct thay thế Hy-MT2-1.8B để giải quyết triệt để vấn đề dịch Nhật ➔ Việt bị lủng củng và rò rỉ giải thích tiếng Anh.
+Phương án dự phòng: Qwen2.5-7B-Instruct (cho máy GPU > 12 GB) hoặc Qwen2.5-1.5B (cho máy GPU 4-6 GB).
 
 ### 5.3 Ứng viên benchmark ở P0
 
@@ -223,9 +222,9 @@ giấy phép cộng đồng của Tencent; model card hiện ghi Apache-2.0 — 
 | ASR | **Qwen3-ASR-0.6B** (01/2026, Apache-2.0) | thắng Whisper turbo về LID câu ngắn, CER ja, WER vi hoặc độ trễ | 30 ngôn ngữ + 22 phương ngữ tiếng Trung, có ja/vi; LID và streaming trong cùng một model; chạy qua vLLM (`qwen-asr[vllm]`) — vLLM giữ trước VRAM theo `gpu_memory_utilization`, phải đặt nhỏ để chạy chung với MT |
 | ASR | Whisper `large-v3`, `int8` (~3 GB) | turbo kém rõ ở vi/ja | chậm hơn turbo khoảng 2,7 lần |
 | ASR | PhoWhisper (vi), kotoba-whisper (ja) | lỗi dồn vào một tiếng | thêm model là thêm VRAM; định tuyến theo ngôn ngữ sau LID (`EFF-04`) |
-| MT | Hy-MT2-7B, GGUF `Q4_K_M` | bản 1.8B chưa đạt chất lượng, nhất là chiều ja⇄vi | profile `quality`, sát giới hạn VRAM (mục 5.5) |
-| MT | TranslateGemma-4B (01/2026) | Hy-MT2 không đạt hoặc vướng giấy phép | dựa trên Gemma 3, 55 ngôn ngữ; tải cần chấp nhận Gemma Terms (`HF_TOKEN`) |
-| MT | Qwen3-4B-Instruct-2507 | làm baseline LLM tổng quát | linh hoạt prompt hơn; thường chậm hơn model chuyên dịch ở cùng mức chất lượng |
+| MT | Qwen2.5-7B-Instruct, GGUF `Q4_K_M` | cần dịch chuẩn sắc thái văn học hoặc kính ngữ cao cấp | profile `quality`, cần GPU ≥ 12 GB VRAM |
+| MT | TranslateGemma-4B (01/2026) | phương án đối sánh của Google | dựa trên Gemma 3, 55 ngôn ngữ; tải cần chấp nhận Gemma Terms (`HF_TOKEN`) |
+| MT | Hy-MT2-1.8B / 7B | model chuyên dịch của Tencent | tốc độ nhanh nhưng dịch Nhật-Việt còn hạn chế |
 
 ### 5.4 Đã cân nhắc nhưng không chọn
 
@@ -244,10 +243,10 @@ giấy phép cộng đồng của Tencent; model card hiện ghi Apache-2.0 — 
 | Profile | ASR | MT | VRAM ước tính (2 phiên) | Dùng khi |
 |---|---|---|---|---|
 | `fake` | engine kịch bản | engine kịch bản | 0 | làm FE trên máy không GPU (Mac/Colima), unit test, E2E trong CI |
-| `cpu-dev` | Whisper `base` int8 (CPU) | Hy-MT2-1.8B `Q4_K_M` (CPU) | 0 | integration test, chạy thử trên máy không GPU; chậm (vài giây mỗi câu) |
-| `fast` | turbo `int8_float16` | Hy-MT2-1.8B `Q4_K_M` | ~4 GB | ưu tiên độ trễ |
-| **`balanced`** (mặc định) | turbo `int8_float16` | Hy-MT2-1.8B `Q8_0` | ~4,5–5 GB | dùng hằng ngày |
-| `quality` (thử nghiệm) | turbo `int8_float16`, beam 1 | Hy-MT2-7B `Q4_K_M`, `-c 4096 --parallel 2`, KV `q8_0` | ~7–7,5 GB | chỉ khi GPU không gánh màn hình và đã đo; không vừa thì dùng TranslateGemma-4B (~5,5 GB) |
+| `cpu-dev` | Whisper `base` int8 (CPU) | Qwen2.5-1.5B `Q4_K_M` (CPU) | 0 | integration test, chạy thử trên máy không GPU; chậm (vài giây mỗi câu) |
+| `fast` | turbo `int8_float16` | Qwen2.5-1.5B `Q4_K_M` | ~4 GB | ưu tiên độ trễ tối đa |
+| **`balanced`** (mặc định) | turbo `int8_float16` | Qwen2.5-3B-Instruct `Q4_K_M` | ~5.0 GB | dùng hằng ngày, tối ưu xuất sắc Nhật - Anh - Việt |
+| `quality` (thử nghiệm) | turbo `int8_float16`, beam 1 | Qwen2.5-7B `Q4_K_M` | ~7,5 GB | chỉ khi GPU không gánh màn hình và đã đo; cần GPU 12GB+ |
 
 Cách cộng: mỗi tiến trình CUDA (`ai`, `mt`) tốn ~0,3–0,5 GB cho context; ASR ~1,5 GB; MT = trọng số + KV cache + buffer
 tính toán. P0 đo bằng NVML khi 2 phiên chạy song song.

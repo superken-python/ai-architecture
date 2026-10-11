@@ -44,21 +44,23 @@ else
     echo "✓ Silero VAD ${SILERO_VAD_VERSION} already exists: ${VAD_MODEL}"
 fi
 
-# 2. Check or download MT GGUF model
+# 2. Check or download MT GGUF model (Qwen2.5-3B-Instruct Q4_K_M)
 MT_MODEL="${MODELS_DIR}/mt-model.gguf"
+QWEN_URL="https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf"
+
 if [[ ! -f "${MT_MODEL}" ]]; then
     echo ""
     echo "Notice: Machine Translation GGUF model not found at ${MT_MODEL}"
-    echo "You can download Hy-MT2-1.8B Q4_K_M (~1.1 GB) from HuggingFace:"
+    echo "Recommended model: Qwen2.5-3B-Instruct Q4_K_M (~2.16 GB) from HuggingFace:"
     echo ""
     echo "  curl -L -o models/mt-model.gguf \\"
-    echo "    https://huggingface.co/mradermacher/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B.Q4_K_M.gguf"
+    echo "    ${QWEN_URL}"
     echo ""
-    read -p "Do you want to download Hy-MT2-1.8B GGUF now? (y/N): " -n 1 -r || true
+    read -p "Do you want to download Qwen2.5-3B-Instruct GGUF now? (y/N): " -n 1 -r || true
     echo ""
     if [[ ${REPLY:-n} =~ ^[Yy]$ ]]; then
-        echo "Downloading Hy-MT2-1.8B GGUF model (~1.13 GB)..."
-        curl -L --fail --progress-bar -o "${MT_MODEL}" "https://huggingface.co/mradermacher/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B.Q4_K_M.gguf" || {
+        echo "Downloading Qwen2.5-3B-Instruct GGUF model (~2.16 GB)..."
+        curl -L --fail --progress-bar -o "${MT_MODEL}" "${QWEN_URL}" || {
             echo "Failed to download from HuggingFace. You can manually copy any GGUF model to models/mt-model.gguf"
         }
     else

@@ -189,11 +189,11 @@ if [[ "${MODE}" == "gpu" && ! -f "${PROJECT_ROOT}/models/mt-model.gguf" ]]; then
     echo -e "${YELLOW}======================================================${NC}"
     echo -e "${CYAN}Container 'mt' (llama.cpp) yêu cầu file model GGUF để khởi động trên GPU.${NC}"
     
-    DOWNLOAD_URL="https://huggingface.co/mradermacher/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B.Q4_K_M.gguf"
+    DOWNLOAD_URL="https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf"
     DO_DOWNLOAD=0
 
     if [ -t 0 ]; then
-        echo -e "${CYAN}Bạn có muốn tự động tải model Hy-MT2-1.8B GGUF (~1.13 GB) từ HuggingFace ngay bây giờ? [Y/n]${NC}"
+        echo -e "${CYAN}Bạn có muốn tự động tải model Qwen2.5-3B-Instruct GGUF (~2.16 GB) từ HuggingFace ngay bây giờ? [Y/n]${NC}"
         read -r -p "Lựa chọn (mặc định Y): " USER_CHOICE || USER_CHOICE="y"
         if [[ -z "${USER_CHOICE}" || "${USER_CHOICE}" =~ ^[Yy]$ ]]; then
             DO_DOWNLOAD=1
@@ -201,7 +201,7 @@ if [[ "${MODE}" == "gpu" && ! -f "${PROJECT_ROOT}/models/mt-model.gguf" ]]; then
     fi
 
     if [[ ${DO_DOWNLOAD} -eq 1 ]]; then
-        echo -e "${CYAN}Đang tải model Hy-MT2-1.8B GGUF (~1.13 GB)...${NC}"
+        echo -e "${CYAN}Đang tải model Qwen2.5-3B-Instruct GGUF (~2.16 GB)...${NC}"
         echo -e "URL: ${DOWNLOAD_URL}"
         mkdir -p "${PROJECT_ROOT}/models"
         if curl -L --fail --progress-bar -o "${PROJECT_ROOT}/models/mt-model.gguf" "${DOWNLOAD_URL}"; then

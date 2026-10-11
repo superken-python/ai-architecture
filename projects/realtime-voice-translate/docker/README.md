@@ -92,7 +92,7 @@ make status     # Kiểm tra trạng thái
                                 v
 +-----------------------------------------------------------------+
 |                      rvt_mt (llama.cpp)                         |
-|   - Hy-MT2 GGUF Translation Engine                              |
+|   - Qwen2.5-3B-Instruct GGUF Translation Engine                 |
 |   - Port 8080 CHỈ mở trong internal network                     |
 +-----------------------------------------------------------------+
 ```

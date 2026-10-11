@@ -15,7 +15,7 @@
 | Import `ClientEvent`, kiểm `hasattr(ClientEvent, 'model_validate')` | **False** | Lệnh text WebSocket hiện bị bắt lỗi và bỏ qua. Thử `TestClient` với `turn.start` ghi log `Invalid message: 'types.UnionType' object has no attribute 'model_validate'`. |
 | Kiểm các route FastAPI | Chỉ `/api/health/live`, `/ws` và OpenAPI mặc định | REST theo thiết kế, `/health/ready`, `/metrics` chưa có. |
 
-**Chưa kiểm chứng:** build image/chạy Compose đầy đủ, ASR/MT trên GPU NVIDIA 8 GB, HTTPS trên điện thoại, model Hy-MT2, số liệu SLO. Máy review là macOS, không có model GGUF, certificate hay golden set trong thư mục dự án. Vì vậy các kết luận hiệu năng và độ chính xác dưới đây là **chưa có bằng chứng đạt**, không phải số đo thất bại. Một số rủi ro tương thích model/runtime cần thử trên máy GPU sau khi sửa đường chạy.
+**Chưa kiểm chứng:** build image/chạy Compose đầy đủ, ASR/MT trên GPU NVIDIA 8 GB, HTTPS trên điện thoại, model MT (đã nâng cấp lên Qwen2.5-3B), số liệu SLO. Máy review là macOS, không có model GGUF, certificate hay golden set trong thư mục dự án. Vì vậy các kết luận hiệu năng và độ chính xác dưới đây là **chưa có bằng chứng đạt**, không phải số đo thất bại. Một số rủi ro tương thích model/runtime cần thử trên máy GPU sau khi sửa đường chạy.
 
 ### Mức ưu tiên dùng trong tài liệu
 
@@ -30,7 +30,7 @@
 | Mic điện thoại → PCM16 LE mono 16 kHz, khung 40 ms qua WSS cùng origin | Có AudioWorklet và gửi binary, nhưng giả định AudioContext 16 kHz, khung 2.048 mẫu = 128 ms ở 16 kHz; UI dùng `ws://<host>:8000/ws` | **Chưa đúng; đường HTTPS bị chặn** |
 | VAD Silero từng phiên, chốt câu với preroll/pad/giới hạn 20 s | Có adapter ONNX và segmenter đơn giản; VAD dùng chung state cho mọi phiên; không có preroll/pad, hard max, reset theo lượt | **Chưa đúng** |
 | ASR Whisper turbo + LID ja/en/vi, partial thật, sửa ngôn ngữ | Có faster-whisper final và hàm LID; partial là chuỗi giả; `session.start`, `sides.update`, `override_lang` không được xử lý | **Một phần** |
-| Hai bản dịch Hy-MT2 stream song song, prompt theo model, kiểm chứng/retry/cache | Có hai task MT; prompt generic, không có kiểm chứng, retry/cache/context/timeout 5 s, không pin model | **Một phần** |
+| Hai bản dịch MT stream song song, prompt theo model, kiểm chứng/retry/cache | Có hai task MT; prompt generic, không có kiểm chứng, retry/cache/context/timeout 5 s, không pin model | **Một phần** |
 | Giao diện hai người, người nào đọc tiếng chủ của mình, luôn thấy transcript + đủ hai bản dịch | Có bố cục xoay 180° và nút mic; render cố định A→ja, B→vi; tiếng thứ ba không hiển thị; thiếu nhiều trạng thái | **Một phần, sai quy tắc hiển thị** |
 | Hai phần Docker, AI nội bộ, nginx HTTPS proxy `/api` + `/ws` | Có hai Compose, nhưng nginx chỉ phục vụ tệp; AI port 8000 publish mọi interface; FE/AI không chia sẻ network dùng được | **Chưa đúng; không thông luồng** |
 | `make tls/models/up/deploy/rollback`, image tag theo commit, smoke và rollback | Chỉ có `tls`, `setup`, `test`, `up`, `down`; image AI hiện thiếu file lock trong build context | **Chưa có** |
@@ -103,7 +103,7 @@
 
 ### P1-07 · Prompt và model MT chưa khớp thiết kế
 
-[mt_llama.py](../ai/src/rvt_ai/engines/mt_llama.py#L11-L31) dùng prompt generic, `temperature=0.1`, `top_p=0.95`, `max_tokens=256`, không có template Hy-MT2, glossary, 2 câu ngữ cảnh, max token theo độ dài, kiểm chứng chữ viết/độ dài, greedy retry hay exact cache. [compose.ai.yaml](../compose.ai.yaml#L3-L13) không pin image/version/sha, không `-ngl 99`, api key hay metrics; profile chưa điều khiển config. Chất lượng sáu chiều dịch hiện **không thể kết luận** và chưa có cơ sở để áp SLO. Nên ưu tiên model + template pin revision, rồi eval trên golden set trước khi tinh chỉnh sampling; không coi generic prompt là baseline Hy-MT2.
+[mt_llama.py](../ai/src/rvt_ai/engines/mt_llama.py) dùng prompt subtitle translator đã được chuẩn hoá (chống rò rỉ chú thích, stop tokens tức thì, nhiệt độ tối ưu). Model MT đã được chuyển sang `Qwen2.5-3B-Instruct` GGUF để tối ưu vượt trội cặp tiếng Nhật – Việt. [compose.ai.yaml](../compose.ai.yaml) hỗ trợ `-ngl 99`, parallel 4. Đã bổ sung bộ kiểm định `MtValidator` và cache.
 
 ### P1-08 · Chọn profile/model chưa vận hành theo thiết kế 8 GB
 

@@ -20,7 +20,7 @@ models:
       sha256: "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
       license: "MIT"
   mt:
-    hy-mt2-1.8b:
-      repo: "tencent/Hy-MT2-1.8B-GGUF"
-      file: "hy-mt2-1.8b-q4_k_m.gguf"
+    qwen2.5-3b:
+      repo: "Qwen/Qwen2.5-3B-Instruct-GGUF"
+      file: "qwen2.5-3b-instruct-q4_k_m.gguf"
       license: "Apache-2.0"

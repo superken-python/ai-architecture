@@ -22,6 +22,9 @@ tls:
 models:
 	./scripts/download_models.sh
 
+switch-qwen3b:
+	./scripts/switch_to_qwen3b.sh
+
 setup:
 	cd ai && uv sync
 	cd web && npm install

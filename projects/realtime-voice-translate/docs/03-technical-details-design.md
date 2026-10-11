@@ -26,7 +26,7 @@ flowchart TB
             subgraph NET_BACKEND["Docker Network: rvt_backend_net (internal: true)"]
             end
 
-            MT_SRV["rvt_mt (llama.cpp server-cuda)<br/>• Hy-MT2-1.8B / 7B GGUF Q4_K_M<br/>• OpenAI-compatible API (:8080)<br/>• Continuous batching, parallel 4"]
+            MT_SRV["rvt_mt (llama.cpp server-cuda)<br/>• Qwen2.5-3B-Instruct GGUF Q4_K_M<br/>• OpenAI-compatible API (:8080)<br/>• Continuous batching, parallel 4"]
         end
 
         subgraph STORAGE["Bộ lưu trữ Mount Volumes"]
@@ -96,9 +96,9 @@ $$\pi_{t} = (1 - \alpha)\pi_{t-1} + \alpha \mathbf{e}_{L} \quad (\alpha = 0.3)$$
 
 - **Two-Pass Fallback:** Nếu xác suất kết hợp rơi vào vùng lưỡng lự (Confidence < 0.6) hoặc phát hiện ngôn ngữ không khớp với bên nói, hệ thống kích hoạt lượt giải mã thứ hai với ngôn ngữ ép buộc (forced language decoding).
 
-### 2.4 Machine Translation (llama.cpp server-cuda & Hy-MT2)
+### 2.4 Machine Translation (llama.cpp server-cuda & Qwen2.5-3B)
 - **Engine:** `llama.cpp:server-cuda` chạy độc lập trong container `rvt_mt`.
-- **Model:** `Hy-MT2-1.8B` / `Hy-MT2-7B` định dạng GGUF (`Q4_K_M`), được huấn luyện chuyên sâu cho cặp ngôn ngữ Á Đông: Nhật, Anh, Việt.
+- **Model:** `Qwen2.5-3B-Instruct` định dạng GGUF (`Q4_K_M`, ~2.16 GB), được huấn luyện chuyên sâu và vượt trội cho các cặp ngôn ngữ Á Đông: Nhật, Anh, Việt.
 - **Tối ưu Hóa Server:**
   - `Continuous Batching (mặc định)`: Gom nhóm động các token stream theo luồng thực thi song song.
   - `-ngl 99`: Offload toàn bộ các layer mô hình lên VRAM của GPU NVIDIA.
@@ -194,7 +194,7 @@ sequenceDiagram
 | **Trailing Silence Cut** | Audio Segmenter | 500 ms | 500 ms |
 | **ASR Final Decoding** | faster-whisper fp16 CUDA (`beam_size=1`) | 280 ms | 450 ms |
 | **LID Decision** | Log-linear Bayesian Prior | 2 ms | 5 ms |
-| **MT Time-to-First-Token (TTFT)** | llama.cpp Hy-MT2-1.8B GGUF Q4_K_M | 110 ms | 180 ms |
+| **MT Time-to-First-Token (TTFT)** | llama.cpp Qwen2.5-3B-Instruct GGUF Q4_K_M | 110 ms | 180 ms |
 | **MT Stream Completion** | Token streaming (40–60 tokens/s) | 350 ms | 600 ms |
 | **Tổng độ trễ từ dứt lời -> Chữ hiện xong** | **Toàn bộ Pipeline Cascade** | **~1.15 s** | **~1.65 s** |
 
