@@ -35,41 +35,28 @@ class MtValidator:
 
         # 1. Remove note / explanation / reasoning suffixes and conversational chatbot responses
         note_markers = [
-            r"I['’]m sorry.*",
-            r"I am sorry.*",
-            r"Sorry,?.*",
-            r"I['’]m not sure.*",
-            r"I am not sure.*",
-            r"I don['’]t understand.*",
-            r"I do not understand.*",
-            r"I don['’]t know.*",
-            r"I do not know.*",
-            r"Could you please.*",
-            r"Could you clarify.*",
-            r"Could you explain.*",
-            r"Can you please.*",
-            r"Can you clarify.*",
-            r"Can you explain.*",
-            r"Would you please.*",
-            r"Please clarify.*",
-            r"Please explain.*",
-            r"Please repeat.*",
-            r"Please tell me.*",
-            r"Please provide.*",
-            r"What do you mean.*",
-            r"What would you like.*",
-            r"How can I help.*",
-            r"How may I help.*",
-            r"How may I assist.*",
+            (
+                r"I['’]m sorry,\s*(?:I['’]m not sure|I don['’]t understand|could you|"
+                r"can you|what do you|as an AI|please clarify|but I).*"
+            ),
+            (
+                r"I am sorry,\s*(?:I am not sure|I do not understand|could you|"
+                r"can you|what do you|as an AI|please clarify|but I).*"
+            ),
+            r"I['’]m not sure what you mean.*",
+            r"I am not sure what you mean.*",
+            r"I don['’]t understand what you mean.*",
+            r"I do not understand what you mean.*",
+            r"Could you please (?:clarify|explain|repeat).*",
+            r"Can you please (?:clarify|explain|repeat).*",
+            r"Would you please (?:clarify|explain|repeat).*",
+            r"Please clarify (?:your question|what you mean).*",
+            r"Please explain (?:what you mean|it better).*",
+            r"What do you mean by.*",
+            r"How can I help you today.*",
+            r"How may I assist you today.*",
             r"As an AI.*",
             r"As a language model.*",
-            r"Let me know if.*",
-            r"Is there anything.*",
-            r"Feel free to.*",
-            r"This means.*",
-            r"This translates to.*",
-            r"In other words.*",
-            r"Meaning:?.*",
             r"This is the most important thing.*",
             r"They are very friendly.*",
             r"No notes.*",
@@ -85,21 +72,31 @@ class MtValidator:
             r"Alright, let's translate.*",
             r"Sure, here is.*",
             r"Here's the translation:?.*",
-            r"Tôi xin lỗi.*",
-            r"Tôi không hiểu.*",
-            r"Bạn có thể giải thích.*",
+            r"Tôi xin lỗi, tôi không hiểu.*",
+            r"Tôi không hiểu ý bạn.*",
+            r"Bạn có thể giải thích rõ hơn.*",
             r"Ý bạn là gì.*",
-            r"申し訳ありません.*",
-            r"ご質問.*",
+            r"申し訳ありませんが、.*(?:分かりかねます|質問|理解).*",
+            r"ご質問の意味が.*",
             r"これが最も重要.*",
             r"という意味.*",
-            r"分かりかねます.*",
             r"説明:?.*",
             r"注意:?.*",
             r"補足:?.*",
         ]
         for marker in note_markers:
             cleaned = re.sub(marker, "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+
+        # Strip appended chatbot apologies after end-of-sentence punctuation if not an apology source
+        is_source_apology = bool(
+            re.search(r"(?:xin lỗi|xin loi|sorry|すみません|すいません|ごめん|申し訳)", original_text, re.IGNORECASE)
+        )
+        if not is_source_apology:
+            cleaned = re.sub(r"([.!?。！？])\s*I['’]m sorry.*", r"\1", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+            cleaned = re.sub(r"([.!?。！？])\s*I am sorry.*", r"\1", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+            cleaned = re.sub(
+                r"([.!?。！？])\s*申し訳ありません.*", r"\1", cleaned, flags=re.IGNORECASE | re.DOTALL
+            ).strip()
 
         # 2. For Japanese target: if Latin text appears after Japanese script, cut off Latin babble
         if target_lang == "ja":

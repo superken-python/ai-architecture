@@ -9,15 +9,17 @@ const LANG_LABELS: Record<string, string> = {
   en: "English"
 };
 
-const cleanTranslationText = (text: string): string => {
+export const cleanTranslationText = (text: string): string => {
   if (!text) return "";
   let cleaned = text;
   const markers = [
-    /\b(I['’]m sorry|I am sorry|I['’]m not sure|I am not sure|I don['’]t understand|I do not understand|Could you please|Can you please|Please clarify|Please explain|What do you mean|As an AI|Note:|Notes:|Explanation:|Ghi chú:).*/is,
-    /([.!?。！？])\s*(I['’]m|Could you|Can you|Please|What do you|As an AI).*/is,
+    /\bI['’]m sorry,\s*(?:I['’]m not sure|I don['’]t understand|could you|can you|what do you|as an AI|please clarify|but I).*/is,
+    /\bI am sorry,\s*(?:I am not sure|I do not understand|could you|can you|what do you|as an AI|please clarify|but I).*/is,
+    /\b(I['’]m not sure what you mean|I am not sure what you mean|I don['’]t understand what you mean|I do not understand what you mean|Could you please (?:clarify|explain|repeat)|Can you please (?:clarify|explain|repeat)|Please clarify|Please explain|What do you mean by|As an AI|As a language model|Note:|Notes:|Explanation:|Ghi chú:).*/is,
+    /([.!?。！？])\s*(I['’]m sorry|I am sorry|Could you|Can you|Please|What do you|As an AI).*/is,
     /[—【].*/s,
     /\*\*.*/s,
-    /(申し訳ありません|ご質問|説明:|注意:).*/s,
+    /(申し訳ありませんが、.*(?:分かりかねます|質問|理解)|ご質問の意味が|説明:|注意:).*/is,
   ];
   for (const m of markers) {
     cleaned = cleaned.replace(m, (match, p1) => (p1 && /[.!?。！？]/.test(p1) ? p1 : "")).trim();
@@ -145,7 +147,7 @@ const App: React.FC = () => {
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
+          gap: '6px',
           padding: '4px 2px',
           WebkitOverflowScrolling: 'touch'
         }}
@@ -173,6 +175,8 @@ const App: React.FC = () => {
             mainText = rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? u.originalText : "… đang dịch");
           }
 
+          const hasBadge = (isOriginal && !!badgeText) || !u.isFinal;
+
           return (
             <div
               key={u.id}
@@ -180,29 +184,26 @@ const App: React.FC = () => {
                 backgroundColor: isSpeaker ? '#1e293b' : '#18181b',
                 borderLeft: isSpeaker ? '3px solid #3b82f6' : '3px solid #10b981',
                 borderRadius: '8px',
-                padding: '8px 12px',
+                padding: '6px 10px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '2px',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
               }}
             >
-              {/* Header row: Speaker and badges */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#94a3b8' }}>
-                <span style={{ fontWeight: 600, color: isSpeaker ? '#60a5fa' : '#34d399' }}>
-                  {isSpeaker ? `Bạn (Bên ${side})` : `Đối phương (Bên ${u.side})`}
-                </span>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              {/* Badges row: Right aligned, no redundant speaker labels */}
+              {hasBadge && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
                   {isOriginal && badgeText && (
                     <span
                       onClick={() => setOverrideModal({ uid: u.id, current: spokenLang })}
                       title="Chạm để đổi ngôn ngữ câu"
                       style={{
-                        fontSize: '10px',
+                        fontSize: '9px',
                         backgroundColor: u.uncertain ? '#ea580c' : '#2563eb',
                         color: '#fff',
                         padding: '1px 5px',
-                        borderRadius: '10px',
+                        borderRadius: '8px',
                         cursor: 'pointer',
                         userSelect: 'none'
                       }}
@@ -216,10 +217,10 @@ const App: React.FC = () => {
                     </span>
                   )}
                 </div>
-              </div>
+              )}
 
               {/* Main Text */}
-              <div style={{ fontSize: `${fontSize}px`, fontWeight: 500, lineHeight: 1.35, wordBreak: 'break-word', color: '#f8fafc', marginTop: '1px' }}>
+              <div style={{ fontSize: `${fontSize}px`, fontWeight: 500, lineHeight: 1.35, wordBreak: 'break-word', color: '#f8fafc' }}>
                 {mainText || (u.isSpeaking ? "… đang nghe" : "…")}
               </div>
             </div>

@@ -87,4 +87,17 @@ describe('useStore', () => {
     u = useStore.getState().utterances[1];
     expect(u.translations['ja']).toBe('皆さん、こんにちは');
   });
+
+  it('cleanTranslationText preserves genuine apologies and strips hallucinations', async () => {
+    const { cleanTranslationText } = await import('../src/App');
+    // Genuine apologies must be preserved
+    expect(cleanTranslationText("I'm sorry.")).toBe("I'm sorry.");
+    expect(cleanTranslationText("Xin lỗi bạn.")).toBe("Xin lỗi bạn.");
+    expect(cleanTranslationText("申し訳ありません。")).toBe("申し訳ありません。");
+
+    // Hallucinations and chatter should be stripped
+    expect(cleanTranslationText("Thank you. I'm sorry, I'm not sure what you mean.")).toBe("Thank you.");
+    expect(cleanTranslationText("Hello! Note: This is an explanation.")).toBe("Hello!");
+  });
 });
+

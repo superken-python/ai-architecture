@@ -87,3 +87,20 @@ def test_mt_validator_strip_japanese_latin_leak():
     res = mt_validator.validate(orig, "vi", "ja", raw_ja)
     assert res.is_valid is True
     assert res.cleaned_text == "アロ、聞いてるよ、話してるんだ。誰か聞いてる？"
+
+
+def test_mt_validator_preserves_genuine_apologies():
+    # Japanese apology to English
+    res_ja_en = mt_validator.validate("すみません。", "ja", "en", "I'm sorry.")
+    assert res_ja_en.is_valid is True
+    assert res_ja_en.cleaned_text == "I'm sorry."
+
+    # Vietnamese apology to English
+    res_vi_en = mt_validator.validate("Tôi xin lỗi.", "vi", "en", "I'm sorry.")
+    assert res_vi_en.is_valid is True
+    assert res_vi_en.cleaned_text == "I'm sorry."
+
+    # Vietnamese apology to Japanese
+    res_vi_ja = mt_validator.validate("Xin lỗi bạn.", "vi", "ja", "申し訳ありません。")
+    assert res_vi_ja.is_valid is True
+    assert res_vi_ja.cleaned_text == "申し訳ありません。"
