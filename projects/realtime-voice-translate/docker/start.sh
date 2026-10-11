@@ -190,7 +190,7 @@ if [[ "${MODE}" == "gpu" && ! -f "${MT_MODEL_FILE}" ]]; then
     echo -e "${YELLOW}======================================================${NC}"
     echo -e "${CYAN}Container 'mt' (llama.cpp) yêu cầu file model GGUF để khởi động trên GPU.${NC}"
     
-    DOWNLOAD_URL="https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf"
+    DOWNLOAD_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
     DO_DOWNLOAD=0
 
     if [ -t 0 ]; then
@@ -205,7 +205,8 @@ if [[ "${MODE}" == "gpu" && ! -f "${MT_MODEL_FILE}" ]]; then
         echo -e "${CYAN}Đang tải model Qwen2.5-7B-Instruct GGUF (~4.68 GB)...${NC}"
         echo -e "URL: ${DOWNLOAD_URL}"
         mkdir -p "${PROJECT_ROOT}/models"
-        if curl -L --fail --progress-bar -o "${MT_MODEL_FILE}" "${DOWNLOAD_URL}"; then
+        if curl -L --fail --progress-bar -C - -o "${MT_MODEL_FILE}" "${DOWNLOAD_URL}"; then
+            ln -sf "qwen2.5-7b-instruct-q4_k_m.gguf" "${PROJECT_ROOT}/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf" 2>/dev/null || true
             echo -e "${GREEN}✓ Đã tải thành công model vào models/qwen2.5-7b-instruct-q4_k_m.gguf!${NC}"
         else
             echo -e "${RED}❌ Tải thất bại từ HuggingFace.${NC}"

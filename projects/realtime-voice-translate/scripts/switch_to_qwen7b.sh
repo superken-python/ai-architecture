@@ -11,8 +11,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 MODELS_DIR="${PROJECT_ROOT}/models"
 
-QWEN_URL="https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf"
+QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
 TARGET_FILE="${MODELS_DIR}/qwen2.5-7b-instruct-q4_k_m.gguf"
+SYMLINK_FILE="${MODELS_DIR}/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
 
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -115,7 +116,8 @@ fi
 
 if [[ "${DO_DOWNLOAD}" =~ ^[Yy]$ ]]; then
     echo -e "\n${CYAN}⏳ Đang tải file... (~4.68 GB, vui lòng đợi vài phút tuỳ thuộc tốc độ mạng)${NC}"
-    if curl -L --fail --progress-bar -o "${TARGET_FILE}" "${QWEN_URL}"; then
+    if curl -L --fail --progress-bar -C - -o "${TARGET_FILE}" "${QWEN_URL}"; then
+        ln -sf "qwen2.5-7b-instruct-q4_k_m.gguf" "${SYMLINK_FILE}" 2>/dev/null || true
         FILE_SIZE=$(du -h "${TARGET_FILE}" | cut -f1)
         echo -e "\n${GREEN}🎉 TẢI THÀNH CÔNG MODEL QWEN 2.5 - 7B! (${FILE_SIZE})${NC}"
         echo -e "   File đích: ${TARGET_FILE}"
@@ -125,7 +127,7 @@ if [[ "${DO_DOWNLOAD}" =~ ^[Yy]$ ]]; then
     fi
 else
     echo -e "\n${YELLOW}Bỏ qua bước tải model. Bạn có thể tải sau bằng lệnh:${NC}"
-    echo -e "  curl -L -o models/qwen2.5-7b-instruct-q4_k_m.gguf ${QWEN_URL}"
+    echo -e "  curl -L -C - -o models/qwen2.5-7b-instruct-q4_k_m.gguf ${QWEN_URL}"
 fi
 
 echo -e "\n${CYAN}==================================================================${NC}"
