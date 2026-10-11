@@ -128,6 +128,7 @@ async def handle_websocket_connection(websocket: WebSocket):
                     elif event.type == "utterance.override_lang":
                         await session.handle_override_lang(event.utterance_id, event.lang)
                     elif event.type == "ping":
+                        session.last_activity_time = time.time()
                         server_t = int(time.time() * 1000)
                         await send_event(Pong(t=event.t, server_t=server_t))
 

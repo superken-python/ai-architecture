@@ -6,6 +6,8 @@ class RVTClient {
   private mediaStream: MediaStream | null = null;
   private audioProcessor: AudioWorkletNode | null = null;
   private reconnectTimer: any = null;
+  private pingInterval: any = null;
+  private audioWatchdog: any = null;
   private url: string = "";
 
   async connect(url: string) {
@@ -37,11 +39,36 @@ class RVTClient {
           },
           targets
         });
+
+        // If mic/turn was active before reconnect, re-register turn immediately
+        if (store.isMicActive && store.activeSide) {
+          console.log(`🎙️ WebSocket reconnected: re-issuing turn.start on Side ${store.activeSide}`);
+          this.send({ type: "turn.start", side: store.activeSide });
+        }
+
+        // Heartbeat ping every 10s to keep connection alive through long pauses/silence
+        if (this.pingInterval) {
+          clearInterval(this.pingInterval);
+        }
+        this.pingInterval = setInterval(() => {
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.send({ type: "ping", t: Date.now() });
+          }
+        }, 10000);
       };
 
       this.ws.onclose = () => {
         useStore.getState().setConnected(false);
-        this.stopAudio();
+        if (this.pingInterval) {
+          clearInterval(this.pingInterval);
+          this.pingInterval = null;
+        }
+
+        // Do NOT destroy audio capture if mic is still active; allow seamless reconnect
+        if (!useStore.getState().isMicActive) {
+          this.stopAudio();
+        }
+
         // Auto-reconnect with 2s backoff
         this.reconnectTimer = setTimeout(() => {
           this.connect(this.url);
@@ -106,6 +133,29 @@ class RVTClient {
         await this.audioContext.resume();
       }
 
+      // Auto-resume AudioContext if browser suspends it during silence/inactivity
+      this.audioContext.onstatechange = () => {
+        const state = this.audioContext?.state;
+        if (useStore.getState().isMicActive && (state === 'suspended' || (state as any) === 'interrupted')) {
+          console.log("AudioContext suspended/interrupted during silence, auto-resuming...");
+          this.audioContext?.resume().catch((e) => console.warn("Failed to auto-resume AudioContext:", e));
+        }
+      };
+
+      // Periodic watchdog (every 2.5s) to guarantee AudioContext doesn't stay suspended during silence
+      if (this.audioWatchdog) {
+        clearInterval(this.audioWatchdog);
+      }
+      this.audioWatchdog = setInterval(() => {
+        if (useStore.getState().isMicActive && this.audioContext) {
+          const state = this.audioContext.state;
+          if (state === 'suspended' || (state as any) === 'interrupted') {
+            console.log("Watchdog: waking up suspended AudioContext after silence...");
+            this.audioContext.resume().catch(() => {});
+          }
+        }
+      }, 2500);
+
       // 2. Notify backend immediately that turn started
       this.send({ type: "turn.start", side });
       useStore.getState().setMicActive(true);
@@ -144,6 +194,16 @@ class RVTClient {
         });
       }
 
+      // Ensure AudioContext wakes up if hardware track un-mutes
+      this.mediaStream.getTracks().forEach((track) => {
+        track.onunmute = () => {
+          console.log("Audio track unmuted, ensuring AudioContext running...");
+          if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume().catch(() => {});
+          }
+        };
+      });
+
       if (!this.workletLoaded) {
         await this.audioContext.audioWorklet.addModule('/audio-processor.js');
         this.workletLoaded = true;
@@ -180,6 +240,10 @@ class RVTClient {
   }
 
   stopAudio() {
+    if (this.audioWatchdog) {
+      clearInterval(this.audioWatchdog);
+      this.audioWatchdog = null;
+    }
     if (this.audioProcessor) {
       this.audioProcessor.disconnect();
       this.audioProcessor = null;

@@ -323,6 +323,7 @@ class RVTSession:
         self.committed_offset = 0
         self.committed_sentences = []
         self.prev_partial_text = ""
+        self.vad_state.reset()
 
         if committed_to_clean and text:
             clean_text = text.strip()

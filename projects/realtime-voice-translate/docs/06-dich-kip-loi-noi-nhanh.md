@@ -145,6 +145,10 @@ Phát lại anime 3 phút trên code server thật:
   Với 2 đích và `maxlen=2`, ngữ cảnh chỉ còn câu ngay trước, lặp hai lần.
 - **Ngữ cảnh đứng trước lời dặn trong prompt** ([mt_llama.py#L79-L91][c-mt-prompt]). Phần đầu prompt đổi theo từng câu,
   nên llama.cpp không dùng lại được cache của phần lời dặn cố định. Lợi ích của việc đổi thứ tự là nhỏ.
+- **Mất nhận diện giọng sau khoảng lặng lâu (video có đoạn nghỉ / meeting không ai nói):** Khi video có đoạn nhạc/khoảng lặng dài hoặc cuộc họp im lặng trong 10s – vài phút, khi có người nói lại thì hệ thống không còn nhận giọng nữa, người dùng buộc phải bấm dừng rồi bật mic lại từ đầu. Nguyên nhân gồm:
+  1. *AudioContext bị browser tạm ngưng:* Chrome/Safari tự động đưa `AudioContext` vào trạng thái `suspended` khi chạy ngầm hoặc không có âm thanh thực sự phát ra loa (do `muteGain` bằng 0). Khi bị suspended, `AudioWorkletProcessor.process()` ngưng chạy hoàn toàn, client không gửi thêm audio chunk nào lên server; client thiếu cơ chế lắng nghe `onstatechange` và watchdog tự động `resume()`.
+  2. *WebSocket bị idle timeout và hàm `onclose` tự hủy mic:* Khi không có audio gửi lên, server hoặc router/NAT đóng kết nối idle. Hàm `ws.onclose` trong `ws_client.ts` lập tức gọi `this.stopAudio()` hủy luồng media và tắt mic (`isMicActive = false`). Khi WebSocket tự reconnect 2s sau đó, mic đã bị tắt ngấm từ trước, bắt người dùng phải bấm mic lại từ đầu.
+  3. *Thiếu heartbeat ping/pong định kỳ:* Client không định kỳ gửi ping giữ ấm socket, và server khi nhận ping cũng không cập nhật `last_activity_time`, khiến session dễ bị hủy nhầm khi im lặng.
 
 ## 3. Mục tiêu cho video nói nhanh
 
@@ -386,6 +390,19 @@ Sandbox 4 nhân: CPU cho VAD của một phiên giảm từ 268% xuống 3%; m�
 - **Tên nhân vật:** `packs/glossary/default.yaml` có sẵn nhưng prompt dịch chưa dùng. Thêm thuật ngữ (ルフィ → Luffy,
   ゾロ → Zoro…) giúp bản dịch ổn định hơn; không ảnh hưởng tốc độ.
 
+### 5.9 Giữ luồng âm thanh và kết nối sau khoảng lặng lâu (Audio Keep-alive & WebSocket Heartbeat)
+
+- **AudioContext Watchdog & Tự động phục hồi:**
+  - Lắng nghe sự kiện `audioContext.onstatechange`: nếu `AudioContext` chuyển sang `suspended` hoặc `interrupted` trong lúc `isMicActive` đang bật, tự động gọi `audioContext.resume()`.
+  - Thiết lập watchdog timer (mỗi 3 giây) kiểm tra `audioContext.state === 'running'`, nếu bị browser suspend do im lặng thì lập tức đánh thức lại.
+  - Lắng nghe `onunmute` trên `MediaStreamTrack` để đồng bộ phục hồi `AudioContext` ngay khi mic/thiết bị âm thanh mở lại.
+- **WebSocket Heartbeat (Ping/Pong):**
+  - Client gửi event `ping` mỗi 10 giây qua WebSocket để giữ ấm kết nối, ngăn router/NAT/Nginx ngắt kết nối do idle.
+  - Server trong `stream.py` cập nhật `session.last_activity_time = time.time()` khi nhận `ping`, ngăn đóng nhầm phiên do `SESSION_IDLE_TIMEOUT`.
+- **Tự động tiếp tục thu âm khi WebSocket Reconnect:**
+  - Trong `ws.onclose`, nếu `isMicActive` đang bật (người dùng chưa chủ động bấm Dừng), **không gọi `stopAudio()` hủy luồng media**.
+  - Giữ nguyên AudioContext và MediaStream. Khi WebSocket kết nối lại thành công (`ws.onopen`), tự động gửi lại `session.start` và `turn.start` cho bên đang thu âm, bảo đảm người dùng không cần phải bấm lại từ đầu.
+
 ## 6. Đo trên server nội bộ
 
 ### 6.1 Chuẩn bị audio
@@ -466,7 +483,7 @@ video.
 | Bước | Nội dung | Tầng | Công | Xong khi |
 |---|---|---|---|---|
 | 0 · Đo | mục 6 với 2 video; thử đoạn tối đa 4/6 s bằng profile | vận hành | 0,5 ngày | có số thật trước và sau |
-| 1 · Nhanh, ít rủi ro | 5.1 (cắt ở chỗ lặng nhất), 5.3, 5.4, 5.5, 5.6 | server + web | 3–4 ngày | anime: p95 ≤ 5 s; GPU ≤ 45%; giao diện đạt mục 3 |
+| 1 · Nhanh, ít rủi ro | 5.1 (cắt ở chỗ lặng nhất), 5.3, 5.4, 5.5, 5.6, 5.9 (keep-alive sau khoảng lặng) | server + web | 3–4 ngày | anime: p95 ≤ 5 s; GPU ≤ 45%; giao diện đạt mục 3 |
 | 2 · Chốt sớm từng câu | 5.2; chế độ phụ đề (5.8) | server + web | 3–5 ngày | anime: p50 ≤ 2 s; mỗi câu thoại một dòng |
 | 3 · Streaming | 5.7 | server | 1–2 tuần | p95 ≤ 3,5 s; CER không xấu hơn |
 
