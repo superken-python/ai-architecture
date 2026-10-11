@@ -69,6 +69,7 @@ class SileroVadEngine(VadEngine):
         # Convert 16bit PCM to float32 normalized [-1, 1]
         audio_int16 = np.frombuffer(chunk, np.int16)
         audio_float32 = audio_int16.astype(np.float32) / 32768.0
+        rms = float(np.sqrt(np.mean(audio_float32**2))) if len(audio_float32) > 0 else 0.0
 
         # Prepend leftover from previous chunk
         if len(state.audio_remainder) > 0:
@@ -103,7 +104,7 @@ class SileroVadEngine(VadEngine):
                 out, state.h, state.c = ort_outs
 
             prob = float(out[0][0])
-            if prob > self.threshold:
+            if prob > self.threshold or (prob > 0.10 and rms > 0.005) or rms > 0.03:
                 has_speech = True
 
         state.audio_remainder = audio[idx:]

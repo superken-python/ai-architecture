@@ -2,11 +2,11 @@ name: "quality"
 description: "Quality profile using 7B model"
 vad:
   engine: "silero"
-  threshold: 0.5
-  min_speech_ms: 250
+  threshold: 0.25
+  min_speech_ms: 120
   min_silence_ms: 500
   speech_pad_ms: 200
-  preroll_ms: 300
+  preroll_ms: 800
 asr:
   engine: "faster-whisper"
   model: "large-v3-turbo"

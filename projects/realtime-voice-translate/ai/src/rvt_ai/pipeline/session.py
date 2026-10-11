@@ -128,7 +128,8 @@ class RVTSession:
         if should_final and len(buffer) > 0:
             duration_ms = len(buffer) * 1000 // 32000
             logger.info(f"[{self.session_id}] ⏱️ Segmenter: Speech ended, final audio ({duration_ms}ms)")
-            await self._process_final_audio(buffer, self.current_side)
+            task = asyncio.create_task(self._process_final_audio(buffer, self.current_side))
+            self.active_tasks.append(task)
 
     async def handle_override_lang(self, utterance_id: int, new_lang: Lang) -> None:
         self.last_activity_time = time.time()
@@ -167,9 +168,11 @@ class RVTSession:
             self.active_tasks.append(task)
 
     async def _flush_segmenter(self) -> None:
-        if self.current_side and self.segmenter.is_speaking:
+        if self.current_side:
             buf = self.segmenter.force_final()
             if len(buf) > 0:
+                duration_ms = len(buf) * 1000 // 32000
+                logger.info(f"[{self.session_id}] ⏱️ Flush on turn stop: processing final audio ({duration_ms}ms)")
                 await self._process_final_audio(buf, self.current_side)
 
     async def _process_partial_audio(self, audio: bytes, side: Side, uid: int) -> None:
@@ -198,6 +201,10 @@ class RVTSession:
         text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
             audio, force_lang=force_lang, is_final=True
         )
+
+        if not text or not text.strip():
+            logger.info(f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping")
+            return
 
         # 2. LID Policy
         if force_lang:

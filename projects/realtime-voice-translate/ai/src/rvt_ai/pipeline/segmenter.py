@@ -3,10 +3,10 @@ from pydantic import BaseModel
 
 class SegmenterConfig(BaseModel):
     sample_rate: int = 16000
-    min_speech_ms: int = 250
+    min_speech_ms: int = 120
     min_silence_ms: int = 500
     speech_pad_ms: int = 200
-    preroll_ms: int = 300
+    preroll_ms: int = 800
     max_ms: int = 15000
     hard_max_ms: int = 20000
     partial_interval_ms: int = 800
@@ -93,13 +93,7 @@ class Segmenter:
         self.last_partial_ms = self.current_time_ms
 
     def force_final(self) -> bytes:
-        if (
-            self.speech_start_ms is not None
-            and self.last_speech_ms is not None
-            and (self.last_speech_ms - self.speech_start_ms) >= self.config.min_speech_ms
-        ):
-            out = bytes(self.buffer)
-        else:
-            out = b""
+        min_bytes = (self.config.sample_rate * 2 * 120) // 1000
+        out = bytes(self.buffer) if len(self.buffer) >= min_bytes else b""
         self.reset()
         return out

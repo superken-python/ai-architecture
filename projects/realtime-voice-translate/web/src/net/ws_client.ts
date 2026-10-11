@@ -72,17 +72,28 @@ class RVTClient {
     }
   }
 
+  private workletLoaded: boolean = false;
+
   async startAudio(side: Side) {
     try {
       // Clean up any ongoing audio stream first
       this.stopAudio();
 
-      // 1. Notify backend immediately that turn started
+      // 1. Initialize AudioContext immediately on user gesture (required for iOS Safari)
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!this.audioContext || this.audioContext.state === 'closed') {
+        this.audioContext = new AudioCtx();
+      }
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      // 2. Notify backend immediately that turn started
       this.send({ type: "turn.start", side });
       useStore.getState().setMicActive(true);
       useStore.getState().setActiveSide(side);
 
-      // 2. Request microphone
+      // 3. Request microphone
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -92,12 +103,10 @@ class RVTClient {
         }
       });
 
-      this.audioContext = new AudioContext();
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
+      if (!this.workletLoaded) {
+        await this.audioContext.audioWorklet.addModule('/audio-processor.js');
+        this.workletLoaded = true;
       }
-
-      await this.audioContext.audioWorklet.addModule('/audio-processor.js');
 
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.audioProcessor = new AudioWorkletNode(this.audioContext, 'audio-processor');
@@ -141,6 +150,7 @@ class RVTClient {
     if (this.audioContext) {
       this.audioContext.close().catch(() => {});
       this.audioContext = null;
+      this.workletLoaded = false;
     }
 
     useStore.getState().setMicActive(false);

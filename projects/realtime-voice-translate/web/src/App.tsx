@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStore, Side, SupportedLang, Utterance } from './state/useStore';
 import { rvtClient } from './net/ws_client';
 
@@ -21,13 +21,17 @@ const App: React.FC = () => {
     utterances,
     errorMessage,
     setSideConfig,
-    clearError
+    clearError,
+    clearHistory
   } = useStore();
 
-  const [fontSizeA, setFontSizeA] = useState<number>(22);
-  const [fontSizeB, setFontSizeB] = useState<number>(22);
+  const [fontSizeA, setFontSizeA] = useState<number>(20);
+  const [fontSizeB, setFontSizeB] = useState<number>(20);
   const [showThirdLang, setShowThirdLang] = useState<boolean>(true);
   const [overrideModal, setOverrideModal] = useState<{ uid: number; current: string } | null>(null);
+
+  const scrollRefA = useRef<HTMLDivElement>(null);
+  const scrollRefB = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -40,6 +44,18 @@ const App: React.FC = () => {
       return cleanupWakeLock;
     });
   }, []);
+
+  const utteranceList = Object.values(utterances);
+
+  // Auto-scroll to latest message in both panels
+  useEffect(() => {
+    if (scrollRefA.current) {
+      scrollRefA.current.scrollTop = scrollRefA.current.scrollHeight;
+    }
+    if (scrollRefB.current) {
+      scrollRefB.current.scrollTop = scrollRefB.current.scrollHeight;
+    }
+  }, [utteranceList.length, isMicActive, vadSpeaking]);
 
   const toggleMic = (side: Side) => {
     if (activeSide === side && isMicActive) {
@@ -78,90 +94,144 @@ const App: React.FC = () => {
   const thirdLangA = allLangs.find((l) => l !== primaryLangA && l !== primaryLangB) || "en";
   const thirdLangB = thirdLangA;
 
-  // Latest utterance
-  const utteranceList = Object.values(utterances);
-  const currentU: Utterance | undefined = utteranceList[utteranceList.length - 1];
+  // Render conversation content for one side
+  const renderHalfContent = (side: Side, fontSize: number, scrollRef: React.RefObject<HTMLDivElement | null>) => {
+    const primaryLang = side === "A" ? primaryLangA : primaryLangB;
+    const otherLang = side === "A" ? primaryLangB : primaryLangA;
 
-  // Render content for a side according to Section 7.2 display rules
-  const renderHalfContent = (side: Side, fontSize: number) => {
-    if (!currentU) {
-      if (isMicActive && activeSide === side) {
-        return (
-          <div style={{ color: '#4ade80', fontStyle: 'italic', margin: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>🎙️</span> Đang lắng nghe... Hãy nói vào microphone.
-          </div>
-        );
-      }
+    if (utteranceList.length === 0) {
       return (
-        <div style={{ color: '#555', fontStyle: 'italic', margin: 'auto' }}>
-          Chạm mic để bắt đầu nói...
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '20px' }}>
+          {isMicActive && activeSide === side ? (
+            <div style={{ color: '#4ade80', fontStyle: 'italic', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '28px' }}>🎙️</span>
+              <span style={{ fontWeight: 600 }}>Đang lắng nghe...</span>
+              <span style={{ fontSize: '13px', color: '#86efac' }}>Nói tự nhiên, hệ thống sẽ tự ngắt câu và dịch liên tục. Nhấn DỪNG MIC khi nói xong.</span>
+            </div>
+          ) : isMicActive && activeSide !== side ? (
+            <div style={{ color: '#60a5fa', fontStyle: 'italic' }}>
+              <span>🎙️ Bên đối diện đang nói... Bản dịch sẽ hiển thị tại đây.</span>
+            </div>
+          ) : (
+            <div style={{ color: '#666', fontStyle: 'italic', fontSize: '15px' }}>
+              Chạm vào nút <strong>BẬT MIC {side}</strong> bên dưới để bắt đầu nói...
+            </div>
+          )}
         </div>
       );
     }
 
-    const primaryLang = side === "A" ? primaryLangA : primaryLangB;
-    const otherSide: Side = side === "A" ? "B" : "A";
-    const speakerSide = currentU.side;
-    const spokenLang = currentU.originalLang || (speakerSide === "A" ? primaryLangA : primaryLangB);
-
-    let mainText = "";
-    let subText = "";
-    let isOriginal = false;
-    let badgeText = "";
-
-    if (spokenLang === primaryLang) {
-      // Spoken language matches this half's primary language
-      if (speakerSide === side) {
-        // This half spoke: show original text in main
-        mainText = currentU.originalText;
-        isOriginal = true;
-        const conf = currentU.langProbs?.[spokenLang]
-          ? ` ${Math.round(currentU.langProbs[spokenLang] * 100)}%`
-          : "";
-        badgeText = (spokenLang.toUpperCase() + conf).trim();
-        if (currentU.uncertain) badgeText += " ❓";
-
-        // Show third language as subText
-        if (showThirdLang && currentU.translations[thirdLangA]) {
-          subText = `${LANG_LABELS[thirdLangA]}: ${currentU.translations[thirdLangA]}`;
-        }
-      } else {
-        // Other half spoke in our language
-        mainText = currentU.translations[primaryLang] || currentU.originalText;
-      }
-    } else {
-      // Spoken language differs from this half's primary language: show translation
-      mainText = currentU.translations[primaryLang] || (currentU.isFinal ? "..." : "");
-      if (showThirdLang && currentU.translations[thirdLangA] && thirdLangA !== primaryLang) {
-        subText = `${LANG_LABELS[thirdLangA]}: ${currentU.translations[thirdLangA]}`;
-      }
-    }
-
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontSize: `${fontSize}px`, fontWeight: 500, lineHeight: 1.4, wordBreak: 'break-word' }}>
-          {mainText || (currentU.isSpeaking ? "… đang nghe" : "…")}
-          {isOriginal && badgeText && (
-            <span
-              onClick={() => setOverrideModal({ uid: currentU.id, current: spokenLang })}
+      <div
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          padding: '8px 4px',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        {utteranceList.map((u: Utterance) => {
+          const isSpeaker = u.side === side;
+          const spokenLang = u.originalLang || (u.side === "A" ? primaryLangA : primaryLangB);
+
+          let mainText = "";
+          let subText = "";
+          let isOriginal = false;
+          let badgeText = "";
+
+          if (isSpeaker) {
+            // This side spoke: main text is original spoken text
+            mainText = u.originalText;
+            isOriginal = true;
+            const conf = u.langProbs?.[spokenLang]
+              ? ` ${Math.round(u.langProbs[spokenLang] * 100)}%`
+              : "";
+            badgeText = (spokenLang.toUpperCase() + conf).trim();
+            if (u.uncertain) badgeText += " ❓";
+
+            // Sub text: translation for the other person
+            if (u.translations[otherLang]) {
+              subText = `${LANG_LABELS[otherLang]}: ${u.translations[otherLang]}`;
+            }
+            if (showThirdLang && u.translations[thirdLangA] && thirdLangA !== otherLang) {
+              subText += subText ? `  |  ${LANG_LABELS[thirdLangA]}: ${u.translations[thirdLangA]}` : `${LANG_LABELS[thirdLangA]}: ${u.translations[thirdLangA]}`;
+            }
+          } else {
+            // Other side spoke: main text is translation into this side's language
+            mainText = u.translations[primaryLang] || (u.isFinal ? u.originalText : "… đang dịch");
+            // Sub text: other person's original words
+            subText = `Gốc (${spokenLang.toUpperCase()}): ${u.originalText}`;
+          }
+
+          return (
+            <div
+              key={u.id}
               style={{
-                marginLeft: '8px',
-                fontSize: '12px',
-                backgroundColor: currentU.uncertain ? '#E65100' : '#1976D2',
-                padding: '3px 8px',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                verticalAlign: 'middle',
-                display: 'inline-block'
+                backgroundColor: isSpeaker ? '#1e293b' : '#18181b',
+                borderLeft: isSpeaker ? '4px solid #3b82f6' : '4px solid #10b981',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
               }}
             >
-              {badgeText}
-            </span>
-          )}
-        </div>
-        {subText && (
-          <div style={{ fontSize: `${Math.max(13, fontSize - 8)}px`, color: '#888', marginTop: '8px' }}>
-            {subText}
+              {/* Header row: Speaker and badges */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#94a3b8' }}>
+                <span style={{ fontWeight: 600, color: isSpeaker ? '#60a5fa' : '#34d399' }}>
+                  {isSpeaker ? `Bạn (Bên ${side})` : `Đối phương (Bên ${u.side})`}
+                </span>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  {isOriginal && badgeText && (
+                    <span
+                      onClick={() => setOverrideModal({ uid: u.id, current: spokenLang })}
+                      title="Chạm để đổi ngôn ngữ câu"
+                      style={{
+                        fontSize: '11px',
+                        backgroundColor: u.uncertain ? '#ea580c' : '#2563eb',
+                        color: '#fff',
+                        padding: '2px 6px',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        userSelect: 'none'
+                      }}
+                    >
+                      {badgeText}
+                    </span>
+                  )}
+                  {!u.isFinal && (
+                    <span style={{ color: '#f59e0b', fontSize: '11px', fontStyle: 'italic' }}>
+                      ● đang xử lý...
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Main Text */}
+              <div style={{ fontSize: `${fontSize}px`, fontWeight: 500, lineHeight: 1.4, wordBreak: 'break-word', color: '#f8fafc', marginTop: '2px' }}>
+                {mainText || (u.isSpeaking ? "… đang nghe" : "…")}
+              </div>
+
+              {/* Sub Text */}
+              {subText && (
+                <div style={{ fontSize: `${Math.max(12, fontSize - 6)}px`, color: '#94a3b8', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '4px', wordBreak: 'break-word' }}>
+                  {subText}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Live listening status indicator at bottom of stream */}
+        {isMicActive && activeSide === side && (
+          <div style={{ color: '#4ade80', fontSize: '13px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 8px' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: vadSpeaking[side] ? '#ef4444' : '#22c55e' }} />
+            <span>{vadSpeaking[side] ? '🎙️ Đang ghi nhận giọng nói...' : '🎙️ Đang nghe... Hãy nói tiếp hoặc nhấn DỪNG MIC khi xong.'}</span>
           </div>
         )}
       </div>
@@ -169,7 +239,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#121212', color: '#fff', fontFamily: 'sans-serif', userSelect: 'none' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#121212', color: '#fff', fontFamily: 'sans-serif', userSelect: 'none', overflow: 'hidden' }}>
       
       {/* Error banner */}
       {errorMessage && (
@@ -180,9 +250,9 @@ const App: React.FC = () => {
       )}
 
       {/* Side B - Top half (Rotated 180° for opposite person) */}
-      <div style={{ flex: 1, transform: 'rotate(180deg)', borderBottom: '2px solid #2A2A2A', padding: '16px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, transform: 'rotate(180deg)', borderBottom: '2px solid #2A2A2A', padding: '12px 16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Controls Side B */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <button
             onClick={() => toggleMic("B")}
             style={{
@@ -192,11 +262,12 @@ const App: React.FC = () => {
               color: 'white',
               border: 'none',
               fontWeight: 600,
-              boxShadow: activeSide === "B" && vadSpeaking.B ? '0 0 16px #FF5252' : 'none',
-              transition: 'all 0.2s'
+              boxShadow: activeSide === "B" ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
+              transition: 'all 0.2s',
+              cursor: 'pointer'
             }}
           >
-            {activeSide === "B" ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : 'MIC B'}
+            {activeSide === "B" ? (vadSpeaking.B ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC B') : '🎙 BẬT MIC B'}
           </button>
           
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -210,28 +281,53 @@ const App: React.FC = () => {
               <option value="en">English</option>
               <option value="vi">Tiếng Việt</option>
             </select>
-            <button onClick={() => setFontSizeB((s) => Math.min(36, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px' }}>A+</button>
-            <button onClick={() => setFontSizeB((s) => Math.max(16, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px' }}>A-</button>
+            <button onClick={() => setFontSizeB((s) => Math.min(32, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A+</button>
+            <button onClick={() => setFontSizeB((s) => Math.max(14, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A-</button>
           </div>
         </div>
 
-        {/* Content Side B */}
-        {renderHalfContent("B", fontSizeB)}
+        {/* Conversation Stream Side B */}
+        {renderHalfContent("B", fontSizeB, scrollRefB)}
       </div>
 
       {/* Middle Divider & Status Indicator */}
-      <div style={{ height: '28px', backgroundColor: '#1A1A1A', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#777' }}>
-        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: connected ? '#00E676' : '#FF1744' }} />
-        <span>{connected ? "WSS Sẵn sàng" : "Đang kết nối..."}</span>
+      <div style={{ height: '32px', backgroundColor: '#1A1A1A', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', fontSize: '12px', color: '#888', borderTop: '1px solid #222', borderBottom: '1px solid #222' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: connected ? '#00E676' : '#FF1744' }} />
+          <span>{connected ? "WSS Sẵn sàng" : "Đang kết nối..."}</span>
+        </div>
+
+        {utteranceList.length > 0 && (
+          <button
+            onClick={clearHistory}
+            title="Xóa toàn bộ hội thoại hiện tại"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span>🗑️</span> Xóa hội thoại
+          </button>
+        )}
+
+        <div style={{ fontSize: '11px', color: '#666' }}>
+          {isMicActive ? `Đang nghe Bên ${activeSide}` : "Chế độ liên tục"}
+        </div>
       </div>
 
       {/* Side A - Bottom half (Facing user A) */}
-      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column' }}>
-        {/* Content Side A */}
-        {renderHalfContent("A", fontSizeA)}
+      <div style={{ flex: 1, padding: '12px 16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Conversation Stream Side A */}
+        {renderHalfContent("A", fontSizeA, scrollRefA)}
 
         {/* Controls Side A */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <select
               value={sideALang}
@@ -243,8 +339,8 @@ const App: React.FC = () => {
               <option value="en">English</option>
               <option value="ja">日本語</option>
             </select>
-            <button onClick={() => setFontSizeA((s) => Math.min(36, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px' }}>A+</button>
-            <button onClick={() => setFontSizeA((s) => Math.max(16, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px' }}>A-</button>
+            <button onClick={() => setFontSizeA((s) => Math.min(32, s + 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A+</button>
+            <button onClick={() => setFontSizeA((s) => Math.max(14, s - 2))} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}>A-</button>
           </div>
 
           <button
@@ -256,11 +352,12 @@ const App: React.FC = () => {
               color: 'white',
               border: 'none',
               fontWeight: 600,
-              boxShadow: activeSide === "A" && vadSpeaking.A ? '0 0 16px #FF5252' : 'none',
-              transition: 'all 0.2s'
+              boxShadow: activeSide === "A" ? '0 0 16px rgba(239,68,68,0.6)' : 'none',
+              transition: 'all 0.2s',
+              cursor: 'pointer'
             }}
           >
-            {activeSide === "A" ? (vadSpeaking.A ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC A') : 'MIC A'}
+            {activeSide === "A" ? (vadSpeaking.A ? '🎙 ĐANG NÓI...' : '⏹ DỪNG MIC A') : '🎙 BẬT MIC A'}
           </button>
         </div>
       </div>
@@ -268,13 +365,13 @@ const App: React.FC = () => {
       {/* Language Override Modal */}
       {overrideModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#222', padding: '20px', borderRadius: '12px', minWidth: '260px', textAlign: 'center' }}>
+          <div style={{ backgroundColor: '#222', padding: '20px', borderRadius: '12px', minWidth: '260px', textAlign: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
             <h3 style={{ marginTop: 0, fontSize: '16px' }}>Sửa ngôn ngữ câu</h3>
             <p style={{ color: '#aaa', fontSize: '13px' }}>Nhận dạng lại và dịch lại sang 2 tiếng còn lại:</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-              <button onClick={() => handleOverride("vi")} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none' }}>Tiếng Việt (VI)</button>
-              <button onClick={() => handleOverride("ja")} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none' }}>日本語 (JA)</button>
-              <button onClick={() => handleOverride("en")} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none' }}>English (EN)</button>
+              <button onClick={() => handleOverride("vi")} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none', cursor: 'pointer' }}>Tiếng Việt (VI)</button>
+              <button onClick={() => handleOverride("ja")} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none', cursor: 'pointer' }}>日本語 (JA)</button>
+              <button onClick={() => handleOverride("en")} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none', cursor: 'pointer' }}>English (EN)</button>
             </div>
             <button onClick={() => setOverrideModal(null)} style={{ marginTop: '16px', background: 'none', color: '#888', border: 'none', cursor: 'pointer' }}>Hủy</button>
           </div>

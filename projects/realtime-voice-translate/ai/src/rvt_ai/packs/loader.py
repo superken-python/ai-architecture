@@ -10,11 +10,11 @@ from rvt_ai.core.logging import logger
 
 class VadConfig(BaseModel):
     engine: str = "fake"
-    threshold: float = 0.5
-    min_speech_ms: int = 250
+    threshold: float = 0.25
+    min_speech_ms: int = 120
     min_silence_ms: int = 500
     speech_pad_ms: int = 200
-    preroll_ms: int = 300
+    preroll_ms: int = 800
     max_ms: int = 15000
     hard_max_ms: int = 20000
     partial_interval_ms: int = 800

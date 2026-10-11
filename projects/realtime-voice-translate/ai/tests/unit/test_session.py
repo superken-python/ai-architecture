@@ -52,3 +52,31 @@ async def test_session_basic_flow():
     targets = [e.target for e in mt_finals]
     assert "en" in targets
     assert "ja" in targets
+
+
+@pytest.mark.asyncio
+async def test_session_turn_stop_flushes_audio():
+    vad = FakeVadEngine()
+    asr = FakeAsrEngine()
+    mt = FakeMtEngine()
+
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    session = RVTSession("test-2", vad, asr, mt, mock_send_event)
+
+    await session.handle_turn_start("A")
+    # Add 400ms of speech without adding silence
+    chunk_speech = b"\x01" * int(16000 * 2 * 0.4)
+    await session.handle_audio_chunk(chunk_speech)
+
+    # Immediately stop turn before any silence detection occurs
+    await session.handle_turn_stop()
+
+    await asyncio.sleep(0.5)
+
+    asr_finals = [e for e in events if isinstance(e, AsrFinal)]
+    assert len(asr_finals) == 1
+    assert asr_finals[0].side == "A"
