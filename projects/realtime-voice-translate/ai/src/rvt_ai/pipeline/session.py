@@ -145,6 +145,7 @@ class RVTSession:
         self.last_activity_time = time.time()
         self.recent_asr_history: deque[tuple[float, str]] = deque(maxlen=5)
         self.pending_tail_fragment: str = ""
+        self._pending_tail_task: asyncio.Task | None = None
 
     async def handle_session_start(self, event: SessionStart) -> bool:
         self.last_activity_time = time.time()
@@ -260,6 +261,14 @@ class RVTSession:
             self.active_tasks.append(task)
 
     async def _flush_segmenter(self) -> None:
+        if self._pending_tail_task and not self._pending_tail_task.done():
+            self._pending_tail_task.cancel()
+        if self.pending_tail_fragment and self.current_side:
+            tail = self.pending_tail_fragment
+            self.pending_tail_fragment = ""
+            tail_uid = self.utterance_id_counter
+            self.utterance_id_counter += 1
+            await self._emit_final_and_mt(tail_uid, self.current_side, tail, "vi", {"vi": 1.0}, False, 0)
         if self.current_side:
             buf = self.segmenter.force_final()
             if len(buf) > 0:
@@ -436,6 +445,8 @@ class RVTSession:
             return
 
         # Prepend pending tail fragment if one exists (Mục 6.1 docs 07)
+        if self._pending_tail_task and not self._pending_tail_task.done():
+            self._pending_tail_task.cancel()
         if self.pending_tail_fragment:
             text = self.pending_tail_fragment + " " + text
             self.pending_tail_fragment = ""
@@ -468,34 +479,77 @@ class RVTSession:
         if not uncertain:
             self.sides_prior[side] = update_side_prior(self.sides_prior[side], final_lang)
 
-        # 3. Emit ASR Final
+        # Section 6.1 docs 07: Tách phần đuôi sau dấu kết câu cuối cùng nếu có câu hoàn chỉnh trước đó
+        sentence_matches = list(SENTENCE_END_RE.finditer(text))
+        if sentence_matches:
+            last_end = sentence_matches[-1].end()
+            if last_end < len(text):
+                complete_part = text[:last_end].strip()
+                tail_part = text[last_end:].strip()
+                if complete_part and tail_part and len(tail_part) <= 30:
+                    logger.info(
+                        f"[{self.session_id}] ✂️ Holding trailing fragment '{tail_part}' to merge with next segment "
+                        f"(emitting complete part: '{complete_part}')"
+                    )
+                    self.pending_tail_fragment = tail_part
+                    text = complete_part
+                    if self._pending_tail_task and not self._pending_tail_task.done():
+                        self._pending_tail_task.cancel()
+                    self._pending_tail_task = asyncio.create_task(
+                        self._flush_pending_tail_timer(tail_part, side, final_lang)
+                    )
+
+        # 3. Emit ASR Final & MT
         logger.info(
             f"[{self.session_id}] 📝 ASR Final: '{text}' [lang={final_lang}, probs={asr_probs}, side={side}, "
             f"{_audio_summary(audio, stats)}]"
         )
+        audio_ms = len(audio) * 1000 // 32000
+        await self._emit_final_and_mt(uid, side, text, final_lang, asr_probs, uncertain, audio_ms)
+
+    async def _emit_final_and_mt(
+        self,
+        uid: int,
+        side: Side,
+        text: str,
+        lang: Lang,
+        asr_probs: dict[Lang, float],
+        uncertain: bool,
+        audio_ms: int,
+    ) -> None:
         self.recent_context.append(text)
         await self.send_event(
             AsrFinal(
                 utterance_id=uid,
                 side=side,
                 text=text,
-                lang=final_lang,
+                lang=lang,
                 lang_probs=asr_probs,
                 uncertain=uncertain,
-                audio_ms=len(audio) * 1000 // 32000,
+                audio_ms=audio_ms,
             )
         )
 
         # 4. Trigger MT for targets
         if self.targets:
-            targets = [tgt for tgt in self.targets if tgt != final_lang]
+            targets = [tgt for tgt in self.targets if tgt != lang]
         else:
-            targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != final_lang]
-        mt_tasks = []
+            targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != lang]
         for tgt in targets:
-            task = asyncio.create_task(self._run_mt(uid, text, final_lang, tgt))
+            task = asyncio.create_task(self._run_mt(uid, text, lang, tgt))
             self.active_tasks.append(task)
-            mt_tasks.append(task)
+
+    async def _flush_pending_tail_timer(self, tail: str, side: Side, lang: Lang) -> None:
+        try:
+            await asyncio.sleep(1.5)
+            if self.pending_tail_fragment == tail:
+                self.pending_tail_fragment = ""
+                uid = self.utterance_id_counter
+                self.utterance_id_counter += 1
+                logger.info(f"[{self.session_id}] ⏱️ Flushing pending tail fragment standalone after 1.5s: '{tail}'")
+                await self._emit_final_and_mt(uid, side, tail, lang, {lang: 1.0}, False, 0)
+        except asyncio.CancelledError:
+            pass
 
     async def _run_mt(self, uid: int, text: str, source: Lang, target: Lang) -> None:
         # Sanitize text: collapse excessive repeated characters (e.g. scream loop うおおおお... 500 times)
@@ -624,6 +678,8 @@ class RVTSession:
 
     async def close(self) -> None:
         logger.info(f"Closing session {self.session_id}...")
+        if self._pending_tail_task and not self._pending_tail_task.done():
+            self._pending_tail_task.cancel()
         for task in self.active_tasks:
             if not task.done():
                 task.cancel()

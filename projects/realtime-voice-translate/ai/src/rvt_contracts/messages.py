@@ -53,6 +53,16 @@ class Ping(BaseModel):
     t: int
 
 
+class ClientHealth(BaseModel):
+    type: Literal["client.health"] = "client.health"
+    audio_context_state: str = "running"
+    track_muted: bool = False
+    track_ended: bool = False
+    rms_dbfs: float | None = None
+    chunks_sent: int = 0
+    document_visible: bool = True
+
+
 # Server -> Client
 
 
@@ -179,7 +189,8 @@ class MetricsResponse(BaseModel):
 
 
 ClientEvent = Annotated[
-    SessionStart | TurnStart | TurnStop | UtteranceOverrideLang | SidesUpdate | Ping, Field(discriminator="type")
+    SessionStart | TurnStart | TurnStop | UtteranceOverrideLang | SidesUpdate | Ping | ClientHealth,
+    Field(discriminator="type"),
 ]
 
 ServerEvent = Annotated[

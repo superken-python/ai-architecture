@@ -3,6 +3,7 @@ import json
 import os
 import time
 
+import numpy as np
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import TypeAdapter, ValidationError
 
@@ -102,6 +103,9 @@ async def handle_websocket_connection(websocket: WebSocket):
 
     client_event_adapter = TypeAdapter(ClientEvent)
 
+    last_chunk_time: float = 0.0
+    zero_chunk_count: int = 0
+
     try:
         while True:
             # Idle timeout check
@@ -116,7 +120,25 @@ async def handle_websocket_connection(websocket: WebSocket):
                 break
 
             if data.get("bytes"):
-                await session.handle_audio_chunk(data["bytes"])
+                chunk_bytes = data["bytes"]
+                now = time.time()
+                if last_chunk_time > 0 and (now - last_chunk_time) > 1.0:
+                    logger.warning(
+                        f"[{session_id}] Audio chunk arrival delay: {now - last_chunk_time:.2f}s (> 1.0s gap)"
+                    )
+                last_chunk_time = now
+
+                pcm16 = np.frombuffer(chunk_bytes, dtype=np.int16)
+                if np.all(pcm16 == 0):
+                    zero_chunk_count += 1
+                    if zero_chunk_count == 50:
+                        logger.warning(
+                            f"[{session_id}] Received 2s continuous digital zeros (silence or muted hardware track)"
+                        )
+                else:
+                    zero_chunk_count = 0
+
+                await session.handle_audio_chunk(chunk_bytes)
             elif data.get("text"):
                 try:
                     payload = json.loads(data["text"])
@@ -145,6 +167,12 @@ async def handle_websocket_connection(websocket: WebSocket):
                         session.last_activity_time = time.time()
                         server_t = int(time.time() * 1000)
                         await send_event(Pong(t=event.t, server_t=server_t))
+                    elif event.type == "client.health":
+                        session.last_activity_time = time.time()
+                        logger.debug(
+                            f"[{session_id}] 🩺 Client health: state={event.audio_context_state}, "
+                            f"muted={event.track_muted}, chunks={event.chunks_sent}, visible={event.document_visible}"
+                        )
 
                 except ValidationError as ve:
                     logger.warning(f"ClientEvent validation error from {session_id}: {ve}")

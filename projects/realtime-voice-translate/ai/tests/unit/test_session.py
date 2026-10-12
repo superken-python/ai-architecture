@@ -197,3 +197,43 @@ async def test_session_all_committed_closes_ghost_card():
     # Must emit AsrFinal with text="" for uid=42 to clear the card
     empty_finals = [e for e in events if isinstance(e, AsrFinal) and e.utterance_id == 42 and e.text == ""]
     assert len(empty_finals) == 1
+
+
+@pytest.mark.asyncio
+async def test_session_tail_fragment_merging():
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    session = RVTSession("test-tail", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+
+    # First segment: has a sentence ending '。' and dangling tail '少しは'
+    class MockAsr1:
+        def transcribe(self, *args, **kwargs):
+            return "私だって知らないわ。少しは", "ja", {"ja": 1.0}
+
+    session.scheduler = AsrScheduler(MockAsr1().transcribe)
+    stats = SegmentStats(speech_ms=2000, prob_mean=0.8, prob_max=0.9)
+    await session._process_final_audio(b"\x01" * 3200, "A", stats)
+
+    # Complete part should be emitted immediately
+    asr_finals = [e for e in events if isinstance(e, AsrFinal)]
+    assert len(asr_finals) == 1
+    assert asr_finals[0].text == "私だって知らないわ。"
+    assert session.pending_tail_fragment == "少しは"
+
+    # Second segment arrives: '我慢しなさい'
+    class MockAsr2:
+        def transcribe(self, *args, **kwargs):
+            return "我慢しなさい", "ja", {"ja": 1.0}
+
+    session.scheduler = AsrScheduler(MockAsr2().transcribe)
+    await session._process_final_audio(b"\x01" * 3200, "A", stats)
+
+    # Second segment must have prepended '少しは'
+    asr_finals = [e for e in events if isinstance(e, AsrFinal)]
+    assert len(asr_finals) == 2
+    assert asr_finals[1].text == "少しは 我慢しなさい"
+    assert session.pending_tail_fragment == ""
+    await session.close()

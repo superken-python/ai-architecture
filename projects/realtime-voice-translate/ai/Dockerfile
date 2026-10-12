@@ -18,4 +18,4 @@ COPY src/ ./src/
 ENV PYTHONPATH=/app/src
 ENV RVT_USE_FAKE=0
 
-CMD ["uv", "run", "uvicorn", "rvt_ai.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "rvt_ai.main:app", "--host", "0.0.0.0", "--port", "8000", "--ws-ping-interval", "10", "--ws-ping-timeout", "10"]

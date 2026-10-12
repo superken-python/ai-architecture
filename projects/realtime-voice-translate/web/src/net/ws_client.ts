@@ -20,9 +20,12 @@ class RVTClient {
   private audioProcessor: AudioWorkletNode | null = null;
   private reconnectTimer: any = null;
   private pingInterval: any = null;
+  private healthInterval: any = null;
   private audioWatchdog: any = null;
   private url: string = "";
   private lastServerMessageAt: number = 0;
+  private totalChunksSent: number = 0;
+  private lastRmsDbfs: number | null = null;
 
   constructor() {
     if (typeof document !== 'undefined') {
@@ -99,6 +102,25 @@ class RVTClient {
             }
           }
         }, 2500);
+
+        // Health telemetry every 5s (Mục 9.3 docs 07)
+        if (this.healthInterval) {
+          clearInterval(this.healthInterval);
+        }
+        this.healthInterval = setInterval(() => {
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const track = this.mediaStream?.getAudioTracks()[0];
+            this.send({
+              type: "client.health",
+              audio_context_state: this.audioContext?.state || "none",
+              track_muted: track ? track.muted : false,
+              track_ended: track ? track.readyState === 'ended' : false,
+              rms_dbfs: this.lastRmsDbfs,
+              chunks_sent: this.totalChunksSent,
+              document_visible: typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
+            });
+          }
+        }, 5000);
       };
 
       this.ws.onclose = (event: CloseEvent) => {
@@ -106,6 +128,10 @@ class RVTClient {
         if (this.pingInterval) {
           clearInterval(this.pingInterval);
           this.pingInterval = null;
+        }
+        if (this.healthInterval) {
+          clearInterval(this.healthInterval);
+          this.healthInterval = null;
         }
 
         if (event.code === 4429) {
@@ -288,8 +314,16 @@ class RVTClient {
       this.audioProcessor.port.onmessage = (event) => {
         this.lastChunkTime = Date.now();
         const pcm = new Int16Array(event.data);
+        let sumSq = 0;
         let energy = 0;
-        for (let i = 0; i < pcm.length; i++) energy += Math.abs(pcm[i]);
+        for (let i = 0; i < pcm.length; i++) {
+          energy += Math.abs(pcm[i]);
+          const norm = pcm[i] / 32768.0;
+          sumSq += norm * norm;
+        }
+        const rms = Math.sqrt(sumSq / Math.max(1, pcm.length));
+        this.lastRmsDbfs = rms > 1e-5 ? Math.round(20 * Math.log10(rms)) : -96;
+
         if (energy > 0) {
           if (silentChunkCount >= 50 && useStore.getState().captureWarning?.includes("im lặng số")) {
             useStore.getState().setCaptureWarning(null);
@@ -306,10 +340,11 @@ class RVTClient {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
           this.ws.send(event.data); // ArrayBuffer PCM16 LE 40ms
           chunkCount++;
+          this.totalChunksSent++;
           if (chunkCount === 1) {
             console.log("🎙 First audio chunk sent successfully to WebSocket server");
           } else if (chunkCount % 25 === 0) {
-            console.log(`🎙 Đang gửi audio: ${chunkCount} chunks (${(chunkCount * 0.04).toFixed(1)}s)`);
+            console.log(`🎙 Đang gửi audio: ${chunkCount} chunks (${(chunkCount * 0.04).toFixed(1)}s, ${this.lastRmsDbfs}dBFS)`);
           }
         }
       };
@@ -392,6 +427,21 @@ class RVTClient {
       utterance_id: utteranceId,
       lang: lang
     });
+  }
+
+  getDebugStats() {
+    const track = this.mediaStream?.getAudioTracks()[0];
+    return {
+      audioContextState: this.audioContext?.state || "none",
+      trackReadyState: track?.readyState || "none",
+      trackMuted: track?.muted || false,
+      trackEnabled: track?.enabled || false,
+      chunksSent: this.totalChunksSent,
+      rmsDbfs: this.lastRmsDbfs,
+      wsState: this.ws ? (this.ws.readyState === 1 ? "OPEN" : this.ws.readyState === 0 ? "CONNECTING" : "CLOSED") : "NONE",
+      lastServerMsgSecAgo: this.lastServerMessageAt > 0 ? ((Date.now() - this.lastServerMessageAt) / 1000).toFixed(1) : "none",
+      docVisible: typeof document !== 'undefined' ? document.visibilityState : "unknown"
+    };
   }
 }
 

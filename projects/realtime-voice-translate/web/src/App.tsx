@@ -102,6 +102,8 @@ const App: React.FC = () => {
   const scrollRefB = useRef<HTMLDivElement>(null);
   const scrollRefMeeting = useRef<HTMLDivElement>(null);
 
+  const [debugStats, setDebugStats] = useState<any>(null);
+
   useEffect(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
@@ -112,6 +114,13 @@ const App: React.FC = () => {
       const cleanupWakeLock = setupWakeLockAutoRefresh();
       return cleanupWakeLock;
     });
+
+    if (typeof window !== 'undefined' && window.location.search.includes('debug=1')) {
+      const timer = setInterval(() => {
+        setDebugStats(rvtClient.getDebugStats());
+      }, 2000);
+      return () => clearInterval(timer);
+    }
   }, []);
 
   const utteranceList = Object.values(utterances);
@@ -655,6 +664,19 @@ const App: React.FC = () => {
             </div>
             <button onClick={() => setOverrideModal(null)} style={{ marginTop: '16px', background: 'none', color: '#888', border: 'none', cursor: 'pointer' }}>Hủy</button>
           </div>
+        </div>
+      )}
+
+      {/* Debug status bar (Mục 9.3 docs 07) */}
+      {debugStats && (
+        <div style={{ backgroundColor: '#09090b', borderTop: '1px solid #27272a', padding: '4px 12px', fontSize: '10px', color: '#a1a1aa', display: 'flex', gap: '12px', flexWrap: 'wrap', fontFamily: 'monospace', flexShrink: 0 }}>
+          <span>Ctx: <b style={{ color: debugStats.audioContextState === 'running' ? '#4ade80' : '#f87171' }}>{debugStats.audioContextState}</b></span>
+          <span>Track: {debugStats.trackReadyState} {debugStats.trackMuted ? '(MUTED)' : ''}</span>
+          <span>RMS: {debugStats.rmsDbfs !== null ? `${debugStats.rmsDbfs}dBFS` : '—'}</span>
+          <span>Chunks: {debugStats.chunksSent}</span>
+          <span>WS: <b style={{ color: debugStats.wsState === 'OPEN' ? '#4ade80' : '#f87171' }}>{debugStats.wsState}</b></span>
+          <span>Last msg: {debugStats.lastServerMsgSecAgo}s ago</span>
+          <span>Vis: {debugStats.docVisible}</span>
         </div>
       )}
 
