@@ -1,5 +1,4 @@
 import asyncio
-import difflib
 import re
 import time
 from collections import OrderedDict, deque
@@ -32,45 +31,42 @@ PUNCT_REGEX = re.compile(r"[.。!?！？\s,，、・~～—\-_]")
 LANG_NAMES: dict[str, str] = {"vi": "Vietnamese", "ja": "Japanese", "en": "English"}
 
 
+def _edit_distance(a: str, b: str) -> int:
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+
 def strip_committed_prefix(full: str, committed: str) -> str:
-    """Loại bỏ câu đã chốt sớm khỏi câu đầy đủ, dung thứ sai lệch dấu câu và khoảng trắng (Mục 7 docs 07)."""
-    if not committed or not full:
-        return full
-    committed = committed.strip()
+    """Bỏ câu đã chốt sớm khỏi đầu chữ chốt của cả đoạn.
+
+    Chịu được lệch dấu câu và khoảng trắng, thừa/thiếu/sai vài ký tự ("あ、" ở đầu, rơi ký tự đầu, おく/置く,
+    ズレ/ずれ): sau khi bỏ dấu câu, so câu đã chốt (n ký tự) với từng đoạn đầu dài n − 3 … n + 3 ký tự của chữ chốt
+    bằng khoảng cách sửa, chọn đoạn gần nhất và chỉ cắt khi khác không quá 1/4 số ký tự. Không giống thì giữ nguyên
+    (docs 08 §3.6).
+    """
     full = full.strip()
-    if full.startswith(committed):
-        return full[len(committed) :].strip()
-
     norm_c = PUNCT_REGEX.sub("", committed)
-    if not norm_c:
+    if not norm_c or not full:
         return full
-    norm_full = PUNCT_REGEX.sub("", full)
-    if norm_full.startswith(norm_c):
-        idx = 0
-        matched_norm = 0
-        while idx < len(full) and matched_norm < len(norm_c):
-            if not PUNCT_REGEX.match(full[idx]):
-                matched_norm += 1
-            idx += 1
-        while idx < len(full) and PUNCT_REGEX.match(full[idx]):
-            idx += 1
-        return full[idx:].strip()
-
-    # SequenceMatcher cho trường hợp ASR lệch nhẹ 1-2 ký tự đầu
-    sm = difflib.SequenceMatcher(None, norm_c, norm_full[: len(norm_c) + 10])
-    match = sm.find_longest_match(0, len(norm_c), 0, min(len(norm_full), len(norm_c) + 10))
-    if match.a == 0 and match.size >= int(len(norm_c) * 0.8):
-        idx = 0
-        matched_norm = 0
-        while idx < len(full) and matched_norm < match.size:
-            if not PUNCT_REGEX.match(full[idx]):
-                matched_norm += 1
-            idx += 1
-        while idx < len(full) and PUNCT_REGEX.match(full[idx]):
-            idx += 1
-        return full[idx:].strip()
-
-    return full
+    pos = [i for i, ch in enumerate(full) if not PUNCT_REGEX.match(ch)]  # vị trí các ký tự không phải dấu câu
+    norm_full = "".join(full[i] for i in pos)
+    n = len(norm_c)
+    best: tuple[int, int, int] | None = None  # (khoảng cách, |j - n|, j)
+    for j in range(max(1, n - 3), min(len(norm_full), n + 3) + 1):
+        cand = (_edit_distance(norm_c, norm_full[:j]), abs(j - n), j)
+        if best is None or cand < best:
+            best = cand
+    if best is None or best[0] > max(1, n // 4):
+        return full  # thà hiện trùng còn hơn mất chữ
+    idx = pos[best[2] - 1] + 1
+    while idx < len(full) and PUNCT_REGEX.match(full[idx]):
+        idx += 1
+    return full[idx:].strip()
 
 
 def find_stable_prefix(prev: str, curr: str, committed: int) -> int:
@@ -144,8 +140,6 @@ class RVTSession:
         self.active_tasks: list[asyncio.Task] = []
         self.last_activity_time = time.time()
         self.recent_asr_history: deque[tuple[float, str]] = deque(maxlen=5)
-        self.pending_tail_fragment: str = ""
-        self._pending_tail_task: asyncio.Task | None = None
 
     async def handle_session_start(self, event: SessionStart) -> bool:
         self.last_activity_time = time.time()
@@ -222,7 +216,11 @@ class RVTSession:
             self.active_tasks.append(task)
         elif should_partial and len(buffer) > 0:
             uid = self.utterance_id_counter
-            asyncio.create_task(self._process_partial_audio(buffer, side, uid))
+            # Chữ tạm cũng mang VAD trung bình (cùng cách tính với chữ chốt), để bộ lọc câu bịa áp cho cả chữ tạm:
+            # nếu không, "ご視聴…" vẫn nháy lên và có thể quay lại qua nhánh "cứu chữ từ chữ tạm" (docs 08 §3.3)
+            probs = self.segmenter.frame_probs
+            vad_mean = sum(probs) / len(probs) if probs else None
+            asyncio.create_task(self._process_partial_audio(buffer, side, uid, vad_mean))
 
     async def handle_override_lang(self, utterance_id: int, new_lang: Lang) -> None:
         self.last_activity_time = time.time()
@@ -261,14 +259,6 @@ class RVTSession:
             self.active_tasks.append(task)
 
     async def _flush_segmenter(self) -> None:
-        if self._pending_tail_task and not self._pending_tail_task.done():
-            self._pending_tail_task.cancel()
-        if self.pending_tail_fragment and self.current_side:
-            tail = self.pending_tail_fragment
-            self.pending_tail_fragment = ""
-            tail_uid = self.utterance_id_counter
-            self.utterance_id_counter += 1
-            await self._emit_final_and_mt(tail_uid, self.current_side, tail, "vi", {"vi": 1.0}, False, 0)
         if self.current_side:
             buf = self.segmenter.force_final()
             if len(buf) > 0:
@@ -276,11 +266,11 @@ class RVTSession:
                 logger.info(f"[{self.session_id}] ⏱️ Flush on turn stop: processing final audio ({duration_ms}ms)")
                 await self._process_final_audio(buf, self.current_side, self.segmenter.last_stats)
 
-    async def _process_partial_audio(self, audio: bytes, side: Side, uid: int) -> None:
+    async def _process_partial_audio(self, audio: bytes, side: Side, uid: int, vad_mean: float | None = None) -> None:
         try:
             force_lang = self.sides_config[side] if self.sides_config[side] != "auto" else None
             text, lang, _ = await self.scheduler.execute_transcribe(
-                audio, force_lang=force_lang, is_final=False, session_id=self.session_id
+                audio, force_lang=force_lang, is_final=False, session_id=self.session_id, vad_mean=vad_mean
             )
             # Đoạn đã chốt (hoặc vừa chốt sớm) trong lúc chờ nhận dạng: chữ tạm này đã cũ. Nếu vẫn gửi đi, nó mang uid
             # của đoạn sau, hiện thành thẻ trùng và có thể treo luôn trên màn hình (docs 08 §3.7).
@@ -384,7 +374,7 @@ class RVTSession:
                 force_lang=force_lang,
                 is_final=True,
                 session_id=self.session_id,
-                vad_mean=stats.prob_mean,
+                vad_mean=stats.prob_mean if stats else None,
                 initial_prompt=initial_prompt,
             )
         except Exception as e:
@@ -450,13 +440,6 @@ class RVTSession:
             )
             return
 
-        # Prepend pending tail fragment if one exists (Mục 6.1 docs 07)
-        if self._pending_tail_task and not self._pending_tail_task.done():
-            self._pending_tail_task.cancel()
-        if self.pending_tail_fragment:
-            text = self.pending_tail_fragment + " " + text
-            self.pending_tail_fragment = ""
-
         self.recent_asr_history.append((time.time(), text))
 
         # Check for potential language mismatch (locked to one lang, but speech detected strongly as another)
@@ -485,27 +468,10 @@ class RVTSession:
         if not uncertain:
             self.sides_prior[side] = update_side_prior(self.sides_prior[side], final_lang)
 
-        # Section 6.1 docs 07: Tách phần đuôi sau dấu kết câu cuối cùng nếu có câu hoàn chỉnh trước đó
-        sentence_matches = list(SENTENCE_END_RE.finditer(text))
-        if sentence_matches:
-            last_end = sentence_matches[-1].end()
-            if last_end < len(text):
-                complete_part = text[:last_end].strip()
-                tail_part = text[last_end:].strip()
-                if complete_part and tail_part and len(tail_part) <= 30:
-                    logger.info(
-                        f"[{self.session_id}] ✂️ Holding trailing fragment '{tail_part}' to merge with next segment "
-                        f"(emitting complete part: '{complete_part}')"
-                    )
-                    self.pending_tail_fragment = tail_part
-                    text = complete_part
-                    if self._pending_tail_task and not self._pending_tail_task.done():
-                        self._pending_tail_task.cancel()
-                    self._pending_tail_task = asyncio.create_task(
-                        self._flush_pending_tail_timer(tail_part, side, final_lang)
-                    )
-
-        # 3. Emit ASR Final & MT
+        # 3. Emit ASR Final & MT. Luôn chốt cả đoạn: việc giữ phần đuôi sau dấu kết câu để ghép vào đoạn sau
+        # (07 §6.1) đã được bỏ — trên golden_1 nó chỉ được dùng 3 lần trong 14 phút, không lần nào ghép được, và có lần
+        # chiếm mất thẻ chữ tạm của câu đang nói (docs 08 §3.4). Ngữ cảnh 2 câu trước gửi kèm bản dịch đã giữ mạch câu
+        # qua các đoạn.
         logger.info(
             f"[{self.session_id}] 📝 ASR Final: '{text}' [lang={final_lang}, probs={asr_probs}, side={side}, "
             f"{_audio_summary(audio, stats)}]"
@@ -544,18 +510,6 @@ class RVTSession:
         for tgt in targets:
             task = asyncio.create_task(self._run_mt(uid, text, lang, tgt))
             self.active_tasks.append(task)
-
-    async def _flush_pending_tail_timer(self, tail: str, side: Side, lang: Lang) -> None:
-        try:
-            await asyncio.sleep(1.5)
-            if self.pending_tail_fragment == tail:
-                self.pending_tail_fragment = ""
-                uid = self.utterance_id_counter
-                self.utterance_id_counter += 1
-                logger.info(f"[{self.session_id}] ⏱️ Flushing pending tail fragment standalone after 1.5s: '{tail}'")
-                await self._emit_final_and_mt(uid, side, tail, lang, {lang: 1.0}, False, 0)
-        except asyncio.CancelledError:
-            pass
 
     def _validate_mt(self, text: str, source: Lang, target: Lang, raw: str) -> ValidationResult:
         """Bộ làm sạch bản dịch lỗi thì dùng dòng đầu của bản dịch thô, không đổi thành "[Lỗi dịch]" (docs 08 §3.1)."""
@@ -698,8 +652,6 @@ class RVTSession:
 
     async def close(self) -> None:
         logger.info(f"Closing session {self.session_id}...")
-        if self._pending_tail_task and not self._pending_tail_task.done():
-            self._pending_tail_task.cancel()
         for task in self.active_tasks:
             if not task.done():
                 task.cancel()

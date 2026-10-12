@@ -200,42 +200,28 @@ async def test_session_all_committed_closes_ghost_card():
 
 
 @pytest.mark.asyncio
-async def test_session_tail_fragment_merging():
+async def test_session_emits_whole_segment_without_holding_tail():
+    # Không giữ phần đuôi sau dấu kết câu để ghép vào đoạn sau nữa (docs 08 §3.4): mỗi đoạn là một thẻ, dịch cả đoạn
     events = []
 
     async def mock_send_event(event):
         events.append(event)
 
-    session = RVTSession("test-tail", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    texts = iter(["私だって知らないわ。少しは", "我慢しなさい"])
 
-    # First segment: has a sentence ending '。' and dangling tail '少しは'
-    class MockAsr1:
+    class ScriptedAsr:
         def transcribe(self, *args, **kwargs):
-            return "私だって知らないわ。少しは", "ja", {"ja": 1.0}
+            return next(texts), "ja", {"ja": 1.0}
 
-    session.scheduler = AsrScheduler(MockAsr1().transcribe)
+    session = RVTSession("test-tail", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.scheduler = AsrScheduler(ScriptedAsr().transcribe)
     stats = SegmentStats(speech_ms=2000, prob_mean=0.8, prob_max=0.9)
     await session._process_final_audio(b"\x01" * 3200, "A", stats)
-
-    # Complete part should be emitted immediately
-    asr_finals = [e for e in events if isinstance(e, AsrFinal)]
-    assert len(asr_finals) == 1
-    assert asr_finals[0].text == "私だって知らないわ。"
-    assert session.pending_tail_fragment == "少しは"
-
-    # Second segment arrives: '我慢しなさい'
-    class MockAsr2:
-        def transcribe(self, *args, **kwargs):
-            return "我慢しなさい", "ja", {"ja": 1.0}
-
-    session.scheduler = AsrScheduler(MockAsr2().transcribe)
     await session._process_final_audio(b"\x01" * 3200, "A", stats)
+    await asyncio.sleep(2.0)  # nếu còn bộ hẹn giờ giữ phần đuôi (1,5 s) thì nó đã kịp chốt thêm một thẻ
 
-    # Second segment must have prepended '少しは'
-    asr_finals = [e for e in events if isinstance(e, AsrFinal)]
-    assert len(asr_finals) == 2
-    assert asr_finals[1].text == "少しは 我慢しなさい"
-    assert session.pending_tail_fragment == ""
+    finals = [(e.utterance_id, e.text) for e in events if isinstance(e, AsrFinal)]
+    assert finals == [(0, "私だって知らないわ。少しは"), (1, "我慢しなさい")]
     await session.close()
 
 
@@ -339,3 +325,77 @@ async def test_stale_partial_after_final_is_dropped():
     await session._process_partial_audio(b"\x01" * 3200, "A", 4)
     assert [e.utterance_id for e in events if isinstance(e, AsrPartial)] == [4]
     await session.close()
+
+
+@pytest.mark.asyncio
+async def test_partial_asr_gets_segment_vad_mean():
+    # Chữ tạm cũng phải qua bộ lọc câu bịa theo VAD, nên nhận dạng tạm phải mang vad_mean của đoạn (docs 08 §3.3)
+    calls = []
+
+    class RecordingAsr:
+        def transcribe(self, audio, language=None, vad_mean=None, initial_prompt=None):
+            calls.append({"vad_mean": vad_mean, "initial_prompt": initial_prompt})
+            return "テスト", "ja", {"ja": 1.0}
+
+    async def mock_send_event(event):
+        pass
+
+    session = RVTSession("test-partial-vad", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.scheduler = AsrScheduler(RecordingAsr().transcribe)
+    await session.handle_turn_start("A")
+    voiced, silent = b"\x01\x00" * 640, b"\x00\x00" * 640
+    # 400 ms có tiếng (p = 1) rồi 400 ms lặng (p = 0, vẫn đang nói): chữ tạm bật ở khung thứ 20
+    for chunk in [voiced] * 10 + [silent] * 10:
+        await session.handle_audio_chunk(chunk)
+    for _ in range(100):
+        if calls:
+            break
+        await asyncio.sleep(0.02)
+
+    assert calls
+    assert abs(calls[0]["vad_mean"] - 0.5) < 1e-9
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_final_without_stats_is_not_dropped():
+    # stats=None từng làm `stats.prob_mean` ném lỗi bên trong khối try, nên câu bị coi như nhận dạng ra rỗng
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    class MockAsr:
+        def transcribe(self, *args, **kwargs):
+            return "こんにちは。", "ja", {"ja": 1.0}
+
+    session = RVTSession("test-no-stats", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.scheduler = AsrScheduler(MockAsr().transcribe)
+    await session._process_final_audio(b"\x01" * 3200, "A")
+
+    assert [e.text for e in events if isinstance(e, AsrFinal)] == ["こんにちは。"]
+    await session.close()
+
+
+@pytest.mark.parametrize(
+    ("full", "committed", "expected"),
+    [
+        # Chữ chốt của cả đoạn thêm "あ、" ở đầu: 873d676 cắt lệch thành "く。俺に…"
+        ("あ、夢は自分の中に留めておく。俺にあるのは目的だ", "夢は自分の中に留めておく。", "俺にあるのは目的だ"),
+        ("え夢は自分の中に留めておく俺にあるのは目的だ", "夢は自分の中に留めておく。", "俺にあるのは目的だ"),
+        # Rơi ký tự đầu: 873d676 không khớp, câu hiện hai lần
+        ("は自分の中に留めておく。俺にあるのは目的だ", "夢は自分の中に留めておく。", "俺にあるのは目的だ"),
+        # Khác chữ viết: おく → 置く, ズレ → ずれ (golden_1, 482,7 s)
+        ("夢は自分の中に留めて置く。俺にあるのは目的だ", "夢は自分の中に留めておく。", "俺にあるのは目的だ"),
+        ("ずれてるのは先生の髪型だろ?", "ズレてるのは先生の髪型だろ?", ""),
+        # Không liên quan: giữ nguyên, thà hiện trùng còn hơn mất chữ
+        ("全然違う文章がここに来るとどうなる", "夢は自分の中に留めておく。", "全然違う文章がここに来るとどうなる"),
+        ("そうだそうだ行こう", "そうだ。", "そうだ行こう"),
+        ("はい", "はい。", ""),
+    ],
+)
+def test_strip_committed_prefix_tolerates_asr_drift(full, committed, expected):
+    # Căn bằng khoảng cách sửa thay cho SequenceMatcher (docs 08 §3.6)
+    from rvt_ai.pipeline.session import strip_committed_prefix
+
+    assert strip_committed_prefix(full, committed) == expected

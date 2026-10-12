@@ -79,7 +79,17 @@ def test_segmenter_records_stats_for_final():
     assert stats is not None
     assert stats.speech_ms == 400  # từ đầu khung tiếng đầu tiên tới cuối khung tiếng cuối cùng
     assert stats.prob_max == 0.9
-    assert abs(stats.prob_mean - 0.7) < 1e-9
+    # Trung bình trên mọi khung từ lúc bắt đầu nói tới lúc chốt: 5 × 0,9 + 5 × 0,5 + 13 khung lặng (docs 08 §3.3)
+    assert abs(stats.prob_mean - 7.0 / 23) < 1e-9
+
+
+def test_segment_vad_mean_counts_quiet_frames():
+    # Đoạn chỉ có một khung rõ, còn lại nửa vời (tiếng động, nhạc) rồi lặng: trước đây chỉ tính các khung
+    # ≥ neg_threshold nên trung bình là 0,386 và bộ lọc câu bịa (< 0,35) không bao giờ áp được (docs 08 §3.3)
+    seg = Segmenter(SegmenterConfig(threshold=0.4, neg_threshold=0.25, min_silence_ms=200))
+    finals = [seg.add_chunk(b"\x00\x00" * 640, p)[1] for p in [0.9] + [0.3] * 6 + [0.1] * 8]
+    assert any(finals)
+    assert seg.last_stats is not None and seg.last_stats.prob_mean < 0.35
 
 
 def test_force_final_returns_audio_and_stats():

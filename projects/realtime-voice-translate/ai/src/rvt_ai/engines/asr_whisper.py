@@ -35,12 +35,15 @@ HALLUCINATIONS = [
     r"amara\.org",
 ]
 
+# Câu ngắn chỉ gồm đúng từ đó, cho phép dấu câu hai bên: prompt ngữ cảnh nối bằng "。" làm Whisper hay ra "おわり。"
+# (docs 08 §3.3). Câu thoại thật như "おわりだ" không khớp.
+_JA_EDGE = r"[\s・…—\-。、！？!?]*"
 JA_HALLUCINATIONS = [
     r"ご視聴(?:ありがとう|いただき)",
     r"チャンネル登録",
-    r"^[\s・…—\-]*字幕[\s・…—\-]*$",
-    r"^[\s・…—\-]*おわり[\s・…—\-]*$",
-    r"^[\s・…—\-]*終わり[\s・…—\-]*$",
+    rf"^{_JA_EDGE}字幕{_JA_EDGE}$",
+    rf"^{_JA_EDGE}おわり{_JA_EDGE}$",
+    rf"^{_JA_EDGE}終わり{_JA_EDGE}$",
 ]
 
 

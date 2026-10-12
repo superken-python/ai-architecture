@@ -21,6 +21,21 @@ golden_1 bằng cả phiên dịch thay vì chỉ nhận dạng từng đoạn; 
 trên màn hình tới hết video. Câu bịa trên màn hình tăng từ 8 lên 9, vì lỗi cũ từng xoá nhầm một thẻ câu bịa; phần này
 sửa ở bước 1 (§3.3).
 
+**Cập nhật 2026-10-12: đã làm bước 1**, có test:
+
+- §3.3: `vad_mean` tính trên mọi khung, mẫu câu bịa chấp nhận dấu câu, lọc cả chữ tạm;
+- §3.4: tắt giữ phần đuôi;
+- §3.6: so khớp câu đã chốt sớm bằng khoảng cách sửa.
+
+Phát lại golden_1 bằng `golden_session.py`:
+
+- câu bịa trên màn hình 9 → 2; câu hiện hai lần chỉ còn 4 chỗ lặp thật của video;
+- 0 thẻ đã chốt bị xoá, 0 thẻ treo, 138/141 câu thoại;
+- 90,0% ký tự trên màn hình khớp phụ đề (trước bước 1: 85,8%);
+- CER 0,167, đúng như cột "Sửa, tắt ghép phần đuôi" ở mục 5.
+
+Từ bản này, số `vad_mean=` trong log của mỗi câu thấp hơn trước với cùng một đoạn (§3.3).
+
 ## 1. Kết luận
 
 **Chưa ổn để chạy lâu dài.** Phần lớn hạng mục của 07 đã được làm, và phần quan trọng nhất — vị trí cắt đoạn — đúng hoàn
@@ -78,7 +93,7 @@ phần.
 5. **Bảng đối chiếu từng đề xuất của 07** ở Phụ lục A.
 6. **Thứ tự làm** (mục 7):
    - hotfix ba lỗi ở điểm 2, kèm §3.7 (đã làm);
-   - sửa session (§3.3, §3.6) và tắt ghép phần đuôi (§3.4), kèm test ở mục 6;
+   - sửa session (§3.3, §3.6) và tắt ghép phần đuôi (§3.4), kèm test ở mục 6 (đã làm);
    - sửa web (§4.1–4.3);
    - lọc FIR trong worklet;
    - đo lại trên server bằng `eval/golden_session.py`.
@@ -769,7 +784,7 @@ riêng.
 | Bước | Nội dung | Tầng | Công | Xong khi |
 |---|---|---|---|---|
 | 0 · Hotfix | §3.1 `endswith`, bộ làm sạch lỗi thì dùng bản dịch thô; §3.2 xoá đúng thẻ, kèm §3.7 bỏ chữ tạm cũ; §3.5 bỏ "—", "\*\*" khỏi `stop` | server | 1 giờ | **Đã làm.** Test mục 6 xanh; `golden_session.py`: 0 thẻ đã chốt bị xoá, 0 thẻ treo |
-| 1 · Session | §3.3 `vad_mean`, mẫu câu bịa, lọc cả chữ tạm; §3.4 tắt ghép phần đuôi (hoặc sửa đủ, kèm `useStore`); §3.6 so khớp | server (+ web nếu giữ ghép đuôi) | 1 ngày | `golden_session.py` trên golden_1: 0 thẻ bị xoá, 0 chữ tạm đến muộn, câu bịa trên màn hình ≤ 2, CER ≤ 0,18 (mô phỏng: 0,167) |
+| 1 · Session | §3.3 `vad_mean`, mẫu câu bịa, lọc cả chữ tạm; §3.4 tắt ghép phần đuôi (hoặc sửa đủ, kèm `useStore`); §3.6 so khớp | server (+ web nếu giữ ghép đuôi) | 1 ngày | **Đã làm** (tắt ghép phần đuôi). `golden_session.py` trên golden_1: 0 thẻ bị xoá, 0 chữ tạm đến muộn, câu bịa trên màn hình 2, CER 0,167 |
 | 2 · Safari | §4.1 phép kiểm "đang nghe" + chạm để xin lại mic; §4.2; §4.3 `client_id` theo trang, 4409; wake lock | web + server | 1–2 ngày | Safari: tab khác lấy mic rồi trả, khoá màn hình, gọi Siri — app báo đúng và nghe lại sau một lần chạm; mở hai tab không đá nhau |
 | 3 · Thu âm | §4.4 FIR 63 tap, cấp phát một lần | web | 0,5 ngày | aliasing ≤ −40 dB so với lời |
 | 4 · Prompt | §3.8 ba chỉnh nhỏ | server | 0,5 ngày | CER golden_1 không tăng, câu bịa không tăng |

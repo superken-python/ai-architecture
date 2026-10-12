@@ -1,8 +1,10 @@
+import re
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 
-from rvt_ai.engines.asr_whisper import FasterWhisperEngine
+from rvt_ai.engines.asr_whisper import JA_HALLUCINATIONS, FasterWhisperEngine
 
 
 def test_faster_whisper_rms_silence_floor():
@@ -115,3 +117,37 @@ def test_faster_whisper_english_silence_hallucinations():
 
         text_real, _, _ = engine.transcribe(audio_loud, language="en")
         assert text_real == "Thank you."
+
+
+@pytest.mark.parametrize("text", ["おわり。", "終わり!", "字幕。", "…おわり…", "ご視聴ありがとうございました。"])
+def test_ja_hallucination_patterns_accept_punctuation(text):
+    # Prompt ngữ cảnh nối bằng "。" nên Whisper hay ra "おわり。": mẫu cũ có neo ^…$ bỏ sót (docs 08 §3.3)
+    assert any(re.search(p, text) for p in JA_HALLUCINATIONS)
+
+
+@pytest.mark.parametrize("text", ["おわりだ", "字幕を付けて", "終わりだ、ナルト", "もう終わりにしよう"])
+def test_ja_hallucination_patterns_keep_real_lines(text):
+    assert not any(re.search(p, text) for p in JA_HALLUCINATIONS)
+
+
+def test_faster_whisper_ja_hallucination_filtered_only_when_vad_is_low():
+    mock_model = MagicMock()
+    mock_seg = MagicMock()
+    mock_seg.text = " おわり。"
+    mock_seg.no_speech_prob = 0.0
+    mock_seg.avg_logprob = -0.3
+    mock_info = MagicMock()
+    mock_info.language = "ja"
+    mock_info.language_probability = 0.99
+    mock_info.all_language_probs = [("ja", 0.99)]
+    mock_model.transcribe.return_value = ([mock_seg], mock_info)
+
+    with patch("rvt_ai.engines.asr_whisper.WhisperModel", return_value=mock_model):
+        engine = FasterWhisperEngine(model_size="tiny", device="cpu", compute_type="int8")
+        t = np.linspace(0, 1.0, 16000, False)
+        audio = (np.sin(2 * np.pi * 300 * t) * 8000).astype(np.int16).tobytes()
+
+        # Đoạn chủ yếu là nhạc/tiếng thở (VAD trung bình thấp): bỏ
+        assert engine.transcribe(audio, language="ja", vad_mean=0.2)[0] == ""
+        # Người đọc rõ ràng câu kết (VAD cao): giữ
+        assert engine.transcribe(audio, language="ja", vad_mean=0.8)[0] == "おわり。"

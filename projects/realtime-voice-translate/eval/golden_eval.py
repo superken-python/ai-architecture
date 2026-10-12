@@ -79,12 +79,25 @@ def segment(pcm: np.ndarray, cfg: SegmenterConfig, models_dir: str) -> tuple[lis
             cut = seg.is_speaking
             end_s = (i + 1) * 0.04 - (len(seg.buffer) / 32000 if cut else 0.0)
             finals.append(
-                {"start": round(end_s - len(buf) / 32000, 2), "end": round(end_s, 2), "cut": cut, "audio": buf}
+                {
+                    "start": round(end_s - len(buf) / 32000, 2),
+                    "end": round(end_s, 2),
+                    "cut": cut,
+                    # Như app: bộ lọc câu bịa tiếng Nhật cần VAD trung bình của đoạn (docs 08 §3.3)
+                    "vad_mean": round(seg.last_stats.prob_mean, 3) if seg.last_stats else None,
+                    "audio": buf,
+                }
             )
     tail = seg.force_final()
     if tail:
         finals.append(
-            {"start": round(n * 0.04 - len(tail) / 32000, 2), "end": round(n * 0.04, 2), "cut": False, "audio": tail}
+            {
+                "start": round(n * 0.04 - len(tail) / 32000, 2),
+                "end": round(n * 0.04, 2),
+                "cut": False,
+                "vad_mean": round(seg.last_stats.prob_mean, 3) if seg.last_stats else None,
+                "audio": tail,
+            }
         )
     return finals, probs
 
@@ -176,7 +189,7 @@ def main() -> None:
     for f in finals:
         audio_chunk = f.pop("audio")
         try:
-            text, _, _ = engine.transcribe(audio_chunk, language=args.language)
+            text, _, _ = engine.transcribe(audio_chunk, language=args.language, vad_mean=f["vad_mean"])
         except RuntimeError as err:
             if "out of memory" in str(err).lower() and asr_device != "cpu":
                 print("\nCUDA hết bộ nhớ khi nhận dạng! Chuyển Whisper sang CPU int8...", flush=True)
@@ -184,7 +197,7 @@ def main() -> None:
                 asr_device = "cpu"
                 asr_compute_type = "int8"
                 engine = FasterWhisperEngine(model_size=profile.asr.model, device="cpu", compute_type="int8")
-                text, _, _ = engine.transcribe(audio_chunk, language=args.language)
+                text, _, _ = engine.transcribe(audio_chunk, language=args.language, vad_mean=f["vad_mean"])
             else:
                 raise
         rows.append({**f, "text": text})

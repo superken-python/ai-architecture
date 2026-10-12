@@ -15,9 +15,12 @@ class SegmenterConfig(BaseModel):
 
 
 class SegmentStats(BaseModel):
-    """Thống kê VAD của câu vừa chốt, để log theo câu."""
+    """Thống kê VAD của câu vừa chốt: để log theo câu và để lọc câu bịa của Whisper (asr_whisper.JA_HALLUCINATIONS)."""
 
     speech_ms: int
+    # Trung bình trên MỌI khung từ lúc bắt đầu nói tới lúc chốt, gồm khung VAD thấp giữa câu và khoảng lặng cuối.
+    # Nếu chỉ tính các khung được coi là tiếng nói thì giá trị luôn ≥ neg_threshold và không phân biệt được đoạn chỉ có
+    # nhạc, tiếng thở với đoạn có lời (docs 08 §3.3).
     prob_mean: float
     prob_max: float
 
@@ -35,8 +38,6 @@ class Segmenter:
         self.last_partial_ms: int = 0
         self.last_stats: SegmentStats | None = None
         self.frame_probs: list[float] = []
-        self._prob_sum = 0.0
-        self._prob_count = 0
         self._prob_max = 0.0
         self.lead_bytes = 0
 
@@ -68,12 +69,8 @@ class Segmenter:
                 self.speech_start_ms = max(0, self.current_time_ms - chunk_ms)
                 self.lead_bytes = max(0, len(self.buffer) - len(chunk))
                 self.frame_probs = []
-                self._prob_sum = 0.0
-                self._prob_count = 0
                 self._prob_max = 0.0
             self.last_speech_ms = self.current_time_ms
-            self._prob_sum += speech_prob
-            self._prob_count += 1
             self._prob_max = max(self._prob_max, speech_prob)
 
         if self.is_speaking:
@@ -138,8 +135,6 @@ class Segmenter:
                     self.speech_start_ms = self.current_time_ms - len(self.frame_probs) * chunk_ms
                     self.last_speech_ms = self.current_time_ms
                     self.last_partial_ms = self.current_time_ms
-                    self._prob_sum = float(sum(kept_probs))
-                    self._prob_count = len(kept_probs)
                     self._prob_max = max(kept_probs) if kept_probs else 0.0
 
                     return should_partial, True, final_audio
@@ -156,7 +151,8 @@ class Segmenter:
         speech_ms = 0
         if self.speech_start_ms is not None and self.last_speech_ms is not None:
             speech_ms = self.last_speech_ms - self.speech_start_ms
-        prob_mean = self._prob_sum / self._prob_count if self._prob_count else 0.0
+        probs = self.frame_probs
+        prob_mean = sum(probs) / len(probs) if probs else 0.0
         return SegmentStats(speech_ms=speech_ms, prob_mean=prob_mean, prob_max=self._prob_max)
 
     def reset(self) -> None:
@@ -167,8 +163,6 @@ class Segmenter:
         self.last_partial_ms = self.current_time_ms
         self.last_stats = None
         self.frame_probs = []
-        self._prob_sum = 0.0
-        self._prob_count = 0
         self._prob_max = 0.0
         self.lead_bytes = 0
 
