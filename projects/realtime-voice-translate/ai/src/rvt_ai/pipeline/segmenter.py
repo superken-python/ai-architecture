@@ -38,6 +38,7 @@ class Segmenter:
         self._prob_sum = 0.0
         self._prob_count = 0
         self._prob_max = 0.0
+        self.lead_bytes = 0
 
     def add_chunk(self, chunk: bytes, speech_prob: float) -> tuple[bool, bool, bytes]:
         """
@@ -65,6 +66,7 @@ class Segmenter:
             if not self.is_speaking:
                 self.is_speaking = True
                 self.speech_start_ms = max(0, self.current_time_ms - chunk_ms)
+                self.lead_bytes = max(0, len(self.buffer) - len(chunk))
                 self.frame_probs = []
                 self._prob_sum = 0.0
                 self._prob_count = 0
@@ -105,13 +107,9 @@ class Segmenter:
                         # Speech too short (e.g. noise/cough), drop it
                         self.reset()
 
-            # Check for max_ms và cắt ở chỗ lặng nhất (Mục 5.1 docs 06)
+            # Check for max_ms và cắt ở chỗ lặng nhất (Mục 5.1 docs 06 & Mục 3.4 docs 07)
             if not should_final and duration_ms >= self.config.max_ms:
                 chunk_bytes = (self.config.sample_rate * 2 * chunk_ms) // 1000
-                preroll_bytes = min(
-                    len(self.buffer),
-                    (self.config.preroll_ms * self.config.sample_rate * 2) // 1000,
-                )
                 n = len(self.frame_probs)
                 window_frames = max(1, 1500 // chunk_ms)
                 tail_frames = max(1, 200 // chunk_ms)
@@ -120,16 +118,30 @@ class Segmenter:
 
                 k = min(range(start_idx, end_idx), key=self.frame_probs.__getitem__)
                 if self.frame_probs[k] < self.config.neg_threshold or duration_ms >= self.config.hard_max_ms:
-                    cut = preroll_bytes + (k + 1) * chunk_bytes
+                    cut = self.lead_bytes + (k + 1) * chunk_bytes
                     cut = min(cut, len(self.buffer))
                     final_audio = bytes(self.buffer[:cut])
                     self.buffer = self.buffer[cut:]
-                    self.frame_probs = self.frame_probs[k + 1 :]
+                    self.lead_bytes = 0
+
+                    cut_probs = self.frame_probs[: k + 1]
+                    kept_probs = self.frame_probs[k + 1 :]
+                    self.frame_probs = kept_probs
+
+                    # Stats cho đoạn vừa cắt
+                    speech_ms = (k + 1) * chunk_ms
+                    prob_mean = sum(cut_probs) / len(cut_probs) if cut_probs else 0.0
+                    prob_max = max(cut_probs) if cut_probs else 0.0
+                    self.last_stats = SegmentStats(speech_ms=speech_ms, prob_mean=prob_mean, prob_max=prob_max)
+
+                    # Reset lại stats cho phần còn lại
                     self.speech_start_ms = self.current_time_ms - len(self.frame_probs) * chunk_ms
                     self.last_speech_ms = self.current_time_ms
                     self.last_partial_ms = self.current_time_ms
-                    stats = self._stats()
-                    self.last_stats = stats
+                    self._prob_sum = float(sum(kept_probs))
+                    self._prob_count = len(kept_probs)
+                    self._prob_max = max(kept_probs) if kept_probs else 0.0
+
                     return should_partial, True, final_audio
 
         buffer_out = bytes(self.buffer)
@@ -158,6 +170,7 @@ class Segmenter:
         self._prob_sum = 0.0
         self._prob_count = 0
         self._prob_max = 0.0
+        self.lead_bytes = 0
 
     def force_final(self) -> bytes:
         if self.speech_start_ms is None:

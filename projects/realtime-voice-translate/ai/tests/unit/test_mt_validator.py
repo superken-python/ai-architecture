@@ -159,6 +159,29 @@ def test_mt_validator_strip_multiline_and_preambles():
     assert res_multi.is_valid is True
     assert res_multi.cleaned_text == "Thưa thầy."
 
+
+def test_mt_validator_preserves_bold_dashes_and_three_sentences():
+    # 1. Bold markers: **text** should not wipe out the sentence
+    orig1 = "今日の課題は…2つの鈴を奪うことだ"
+    raw1 = "**Nhiệm vụ hôm nay** là cướp hai cái chuông."
+    res1 = mt_validator.validate(orig1, "ja", "vi", raw1)
+    assert res1.is_valid is True
+    assert res1.cleaned_text == "Nhiệm vụ hôm nay là cướp hai cái chuông."
+
+    # 2. Em-dash should be kept as punctuation and not cut off the rest of sentence
+    orig2 = "待てよ!"
+    raw2 = "Đợi đã — ê!"
+    res2 = mt_validator.validate(orig2, "ja", "vi", raw2)
+    assert res2.is_valid is True
+    assert "Đợi đã" in res2.cleaned_text and "ê!" in res2.cleaned_text
+
+    # 3. 3-sentence translation from ja without punctuation should keep all 3 sentences
+    orig3 = "先生どこだよ他のクラスはもう来てるのにうちらだけ"
+    raw3 = "Thầy đâu rồi? Lớp khác đến hết rồi. Chỉ còn mỗi bọn mình."
+    res3 = mt_validator.validate(orig3, "ja", "vi", raw3)
+    assert res3.is_valid is True
+    assert res3.cleaned_text == "Thầy đâu rồi? Lớp khác đến hết rồi. Chỉ còn mỗi bọn mình."
+
     # Preamble: 'Here is the translation into Vietnamese:'
     raw_preamble = "Here is the translation into Vietnamese: Chào buổi sáng."
     res_preamble = mt_validator.validate("Good morning", "en", "vi", raw_preamble)

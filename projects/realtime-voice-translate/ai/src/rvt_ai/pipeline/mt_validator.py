@@ -35,11 +35,14 @@ class MtValidator:
         if not cleaned:
             return ""
 
-        # 1. Strip surrounding quotation marks or code blocks
+        # 1. Strip surrounding quotation marks or code blocks, and markdown bold markers
         if cleaned.startswith("```") and cleaned.endswith("```"):
             cleaned = cleaned.strip("`").strip()
-        if (cleaned.startswith('"') and cleaned.endswith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
+        if (cleaned.startswith('"') and cleaned.endsWith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
             cleaned = cleaned[1:-1].strip()
+        cleaned = cleaned.replace("**", "").strip()
+        cleaned = re.sub(r"\s*[—–]\s*", ", ", cleaned).strip()
+        cleaned = re.sub(r"[,，\s]+$", "", cleaned).strip()
 
         # 2. Take only the first non-empty line (speech translation should never have multi-line commentary)
         lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
@@ -120,8 +123,6 @@ class MtValidator:
             r"No notes.*",
             r"No note.*",
             r"【.*",
-            r"—.*",
-            r"\*\*.*",
             r"Translate the following.*",
             r"Note:?.*",
             r"Notes:?.*",
@@ -270,21 +271,39 @@ class MtValidator:
 
         # 12. Cap excessive sentences if original text was short
         if original_text and len(original_text.strip()) > 0:
-            orig_enders = len(re.findall(r"[.!?。！？]", original_text)) or 1
-            max_allowed = 2 if orig_enders == 1 else orig_enders
-            c_parts = re.split(r"([.!?。！？])", cleaned)
-            if len(c_parts) > max_allowed * 2:
-                reconstructed = []
-                c_count = 0
-                for i in range(0, len(c_parts) - 1, 2):
-                    sent = c_parts[i] + c_parts[i + 1]
-                    if sent.strip():
-                        c_count += 1
-                        reconstructed.append(sent.strip())
-                        if c_count >= max_allowed:
+            if target_lang == "vi":
+                # For Japanese/speech translated into Vietnamese, source text frequently lacks explicit punctuation.
+                # Do not cut off legitimate 3rd sentences.
+                # Only protect against runaway hallucination loops (> 4x length).
+                max_len = max(120, len(original_text) * 4)
+                if len(cleaned) > max_len:
+                    c_parts = re.split(r"([.!?。！？])", cleaned)
+                    reconstructed = []
+                    cur_len = 0
+                    for i in range(0, len(c_parts) - 1, 2):
+                        sent = c_parts[i] + c_parts[i + 1]
+                        if cur_len + len(sent) > max_len:
                             break
-                if reconstructed:
-                    cleaned = joiner.join(reconstructed)
+                        reconstructed.append(sent.strip())
+                        cur_len += len(sent)
+                    if reconstructed:
+                        cleaned = joiner.join(reconstructed)
+            else:
+                orig_enders = len(re.findall(r"[.!?。！？]", original_text)) or 1
+                max_allowed = 2 if orig_enders == 1 else orig_enders
+                c_parts = re.split(r"([.!?。！？])", cleaned)
+                if len(c_parts) > max_allowed * 2:
+                    reconstructed = []
+                    c_count = 0
+                    for i in range(0, len(c_parts) - 1, 2):
+                        sent = c_parts[i] + c_parts[i + 1]
+                        if sent.strip():
+                            c_count += 1
+                            reconstructed.append(sent.strip())
+                            if c_count >= max_allowed:
+                                break
+                    if reconstructed:
+                        cleaned = joiner.join(reconstructed)
 
         # 13. Final loop collapse check
         m2 = re.match(r"^(.{4,}?)\1+$", cleaned)

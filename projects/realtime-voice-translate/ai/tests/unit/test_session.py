@@ -7,6 +7,8 @@ import pytest
 
 from rvt_ai.engines.fake import FakeAsrEngine, FakeMtEngine, FakeVadEngine
 from rvt_ai.engines.vad_silero import SileroVadEngine
+from rvt_ai.pipeline.scheduler import AsrScheduler
+from rvt_ai.pipeline.segmenter import SegmentStats
 from rvt_ai.pipeline.session import RVTSession
 from rvt_contracts.messages import AsrFinal, MtDelta, MtFinal, Vad
 
@@ -154,3 +156,44 @@ async def test_session_run_mt_stream_and_deltas():
     assert len(deltas) > 0
     assert len(finals) == 1
     assert finals[0].text == "Hôm nay thời tiết rất đẹp."
+
+
+def test_strip_committed_prefix_golden_case():
+    from rvt_ai.pipeline.session import strip_committed_prefix
+
+    committed = "夢は自分の中に留めておく。"
+    full = "夢は自分の中に留めておく俺にあるのは目的だ一族"
+    res = strip_committed_prefix(full, committed)
+    assert res == "俺にあるのは目的だ一族"
+
+    # Space differences and punctuation
+    c2 = "Xin chào các bạn."
+    f2 = "Xin chào các bạn! Hôm nay trời đẹp."
+    assert strip_committed_prefix(f2, c2) == "Hôm nay trời đẹp."
+
+
+@pytest.mark.asyncio
+async def test_session_all_committed_closes_ghost_card():
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    session = RVTSession("test-ghost", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.last_partial_uid = 42
+    session.committed_sentences = ["夢は自分の中に留めておく。"]
+
+    stats = SegmentStats(speech_ms=2000, prob_mean=0.8, prob_max=0.9)
+
+    # Simulate Whisper returning the sentence that was already committed
+    class MockAsr:
+        def transcribe(self, *args, **kwargs):
+            return "夢は自分の中に留めておく", "ja", {"ja": 1.0}
+
+    session.utterance_id_counter = 42
+    session.scheduler = AsrScheduler(MockAsr().transcribe)
+    await session._process_final_audio(b"\x01" * 3200, "A", stats)
+
+    # Must emit AsrFinal with text="" for uid=42 to clear the card
+    empty_finals = [e for e in events if isinstance(e, AsrFinal) and e.utterance_id == 42 and e.text == ""]
+    assert len(empty_finals) == 1

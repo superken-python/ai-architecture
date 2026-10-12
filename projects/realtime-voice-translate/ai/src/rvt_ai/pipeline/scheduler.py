@@ -41,14 +41,31 @@ class AsrScheduler:
             except RuntimeError:
                 pass
 
+    def _run_transcribe(
+        self,
+        audio: bytes,
+        force_lang: str | None,
+        vad_mean: float | None = None,
+        initial_prompt: str | None = None,
+    ) -> Any:
+        kwargs: dict[str, Any] = {}
+        if vad_mean is not None:
+            kwargs["vad_mean"] = vad_mean
+        if initial_prompt is not None:
+            kwargs["initial_prompt"] = initial_prompt
+        try:
+            return self.transcribe_fn(audio, force_lang, **kwargs)
+        except TypeError:
+            return self.transcribe_fn(audio, force_lang)
+
     async def _worker(self) -> None:
         while self._running:
             try:
                 # 1. Prioritize all Final jobs
                 if not self._final_queue.empty():
-                    audio, force_lang, future = await self._final_queue.get()
+                    audio, force_lang, vad_mean, initial_prompt, future = await self._final_queue.get()
                     try:
-                        res = await asyncio.to_thread(self.transcribe_fn, audio, force_lang)
+                        res = await asyncio.to_thread(self._run_transcribe, audio, force_lang, vad_mean, initial_prompt)
                         if not future.done():
                             future.set_result(res)
                         self.completed_finals += 1
@@ -61,9 +78,9 @@ class AsrScheduler:
 
                 # 2. Process latest partial job (if any)
                 if self._pending_partials:
-                    sess_id, (audio, force_lang, future) = self._pending_partials.popitem()
+                    sess_id, (audio, force_lang, vad_mean, initial_prompt, future) = self._pending_partials.popitem()
                     try:
-                        res = await asyncio.to_thread(self.transcribe_fn, audio, force_lang)
+                        res = await asyncio.to_thread(self._run_transcribe, audio, force_lang, vad_mean, initial_prompt)
                         if not future.done():
                             future.set_result(res)
                         self.completed_partials += 1
@@ -86,13 +103,15 @@ class AsrScheduler:
         force_lang: str | None = None,
         is_final: bool = True,
         session_id: str = "default",
+        vad_mean: float | None = None,
+        initial_prompt: str | None = None,
     ) -> Any:
         self._ensure_worker()
         loop = asyncio.get_running_loop()
 
         if is_final:
             future: asyncio.Future = loop.create_future()
-            await self._final_queue.put((audio, force_lang, future))
+            await self._final_queue.put((audio, force_lang, vad_mean, initial_prompt, future))
             self._has_work.set()
             return await future
         else:
@@ -103,20 +122,20 @@ class AsrScheduler:
 
             # Coalesce: if there is already a waiting partial for this session, resolve it with empty result
             if session_id in self._pending_partials:
-                _, _, old_future = self._pending_partials[session_id]
+                *_, old_future = self._pending_partials[session_id]
                 if not old_future.done():
                     old_future.set_result(("", "vi", {}))
                 self.dropped_partials += 1
 
             future = loop.create_future()
-            self._pending_partials[session_id] = (audio, force_lang, future)
+            self._pending_partials[session_id] = (audio, force_lang, vad_mean, initial_prompt, future)
             self._has_work.set()
             return await future
 
     def cancel_session_partials(self, session_id: str) -> None:
         """Cancel any waiting partial jobs when a final utterance arrives."""
         if session_id in self._pending_partials:
-            _, _, future = self._pending_partials.pop(session_id)
+            *_, future = self._pending_partials.pop(session_id)
             if not future.done():
                 future.set_result(("", "vi", {}))
             self.dropped_partials += 1

@@ -13,6 +13,9 @@ export const cleanTranslationText = (
   if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
     cleaned = cleaned.slice(1, -1).trim();
   }
+  cleaned = cleaned.replace(/\*\*/g, "").trim();
+  cleaned = cleaned.replace(/\s*[—–]\s*/g, ", ").trim();
+  cleaned = cleaned.replace(/[,，\s]+$/, "").trim();
 
   // 2. Take only the first non-empty line (speech translation never spans paragraphs)
   const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
@@ -59,8 +62,7 @@ export const cleanTranslationText = (
     /\bI['’]m sorry,\s*(?:I['’]m not sure|I don['’]t understand|could you|can you|what do you|as an AI|please clarify|but I).*/is,
     /\bI am sorry,\s*(?:I am not sure|I do not understand|could you|can you|what do you|as an AI|please clarify|but I).*/is,
     /\b(I['’]m not sure what you mean|I am not sure what you mean|I don['’]t understand what you mean|I do not understand what you mean|Could you please (?:clarify|explain|repeat)|Can you please (?:clarify|explain|repeat)|Would you please (?:clarify|explain|repeat)|Please clarify|Please explain|What do you mean by|As an AI|As a language model|This is the most important thing|They are very friendly|No notes|No note|Note:|Notes:|Explanation:|Meaning:|Literal\s+translation:|Ghi chú:|Lưu ý:|Giải thích:|Ý nghĩa:).*/is,
-    /[—【].*/s,
-    /\*\*.*/s,
+    /【.*/s,
     /(申し訳ありませんが、.*(?:分かりかねます|質問|理解)|ご質問の意味が|説明:|注意:|補足:|翻译[为成][:：]|意思[是为][:：]).*/is,
   ];
   for (const m of markers) {

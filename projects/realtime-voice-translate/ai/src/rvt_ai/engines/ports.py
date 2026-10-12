@@ -17,8 +17,14 @@ class VadEngine(Protocol):
 
 
 class AsrEngine(Protocol):
-    def transcribe(self, audio: bytes, language: Lang | None = None) -> tuple[str, Lang, dict[Lang, float]]:
-        """Transcribes audio to text, optionally forcing a language.
+    def transcribe(
+        self,
+        audio: bytes,
+        language: Lang | None = None,
+        vad_mean: float | None = None,
+        initial_prompt: str | None = None,
+    ) -> tuple[str, Lang, dict[Lang, float]]:
+        """Transcribes audio to text, optionally forcing a language and providing context prompt.
         Returns (text, language, language_probs)"""
         ...
 

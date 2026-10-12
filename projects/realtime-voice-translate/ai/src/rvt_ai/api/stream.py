@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import time
@@ -15,6 +16,8 @@ from rvt_contracts.messages import ClientEvent, ErrorEvent, Pong, ServerEvent
 router = APIRouter()
 
 active_sessions: dict[str, RVTSession] = {}
+client_sockets: dict[str, WebSocket] = {}
+client_sessions: dict[str, str] = {}
 
 
 async def handle_websocket_connection(websocket: WebSocket):
@@ -33,6 +36,8 @@ async def handle_websocket_connection(websocket: WebSocket):
     # Check session limit
     if len(active_sessions) >= settings.MAX_SESSIONS:
         logger.warning(f"Rejecting WebSocket connection: max sessions reached ({settings.MAX_SESSIONS})")
+        # Accept first so browser onclose receives code 4429 and reason cleanly (Mục 9.3 docs 07)
+        await websocket.accept(subprotocol="rvt.v1")
         await websocket.close(code=4429, reason="Too many active sessions")
         return
 
@@ -118,6 +123,15 @@ async def handle_websocket_connection(websocket: WebSocket):
                     event = client_event_adapter.validate_python(payload)
 
                     if event.type == "session.start":
+                        if event.client_id:
+                            cid = event.client_id
+                            if cid in client_sockets and client_sockets[cid] != websocket:
+                                old_ws = client_sockets.pop(cid)
+                                logger.info(f"Closing previous zombie connection for client_id {cid}")
+                                with contextlib.suppress(Exception):
+                                    await old_ws.close(code=1000, reason="Replaced by new connection")
+                            client_sockets[cid] = websocket
+                            client_sessions[session_id] = cid
                         await session.handle_session_start(event)
                     elif event.type == "turn.start":
                         await session.handle_turn_start(event.side)
@@ -161,6 +175,9 @@ async def handle_websocket_connection(websocket: WebSocket):
     finally:
         await session.close()
         active_sessions.pop(session_id, None)
+        cid = client_sessions.pop(session_id, None)
+        if cid and client_sockets.get(cid) == websocket:
+            client_sockets.pop(cid, None)
         logger.info(f"Session {session_id} cleaned up (remaining: {len(active_sessions)})")
 
 

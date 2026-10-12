@@ -98,3 +98,53 @@ def test_segmenter_dynamic_silence_threshold_for_long_speech():
     # At 4.5s speech, 280ms of silence should finalize!
     finals = [r for r in feed(seg, 0.0, 280) if r[1]]
     assert len(finals) == 1
+
+
+def test_segmenter_mincut_incomplete_preroll_and_consecutive_cuts():
+    # Config: max_ms=2000ms, window 1500ms (frames up to 200ms tail)
+    config = SegmenterConfig(max_ms=2000, hard_max_ms=4000, preroll_ms=400, min_speech_ms=200, neg_threshold=0.25)
+    seg = Segmenter(config)
+
+    # 1. Preroll thiếu: chỉ có 2 khung 40ms (80ms < 400ms)
+    feed(seg, 0.0, 80)
+    # Khung preroll có 80 * 32 = 2560 bytes
+
+    # 2. 1600ms speech (40 frames, prob 0.85)
+    feed(seg, 0.85, 1600)
+
+    # 3. 1 khung lặng 40ms tại vị trí biết trước (prob 0.05 < neg_threshold)
+    quiet_chunk_1 = b"\x07" * CHUNK_40MS
+    seg.add_chunk(quiet_chunk_1, 0.05)
+
+    # 4. 400ms speech (prob 0.85) để vượt ngưỡng max_ms (2000ms)
+    # Tail là 200ms (5 frames), nên khung quiet_chunk_1 nằm trước tail 200ms và trong window 1500ms
+    res = feed(seg, 0.85, 400)
+    finals = [r for r in res if r[1]]
+    assert len(finals) == 1
+    final_1 = finals[0][2]
+
+    # Kiểm tra điểm cắt 1: phải chứa đúng 80ms preroll + 1600ms speech + 40ms quiet chunk = 1720ms
+    expected_len_1 = int(16000 * 2 * (0.08 + 1.6 + 0.04))
+    assert len(final_1) == expected_len_1
+    # Đoạn cắt phải kết thúc đúng bằng quiet_chunk_1
+    assert final_1.endswith(quiet_chunk_1)
+
+    # 5. Lần cắt thứ 2 nối tiếp: buffer còn lại bắt đầu ngay mà không có preroll
+    # Tiếp tục feed 1600ms speech (prob 0.85)
+    feed(seg, 0.85, 1600)
+
+    # 1 khung lặng 40ms thứ hai (prob 0.08)
+    quiet_chunk_2 = b"\x09" * CHUNK_40MS
+    seg.add_chunk(quiet_chunk_2, 0.08)
+
+    # 400ms speech để vượt max_ms lần thứ 2
+    res2 = feed(seg, 0.85, 400)
+    finals2 = [r for r in res2 if r[1]]
+    assert len(finals2) == 1
+    final_2 = finals2[0][2]
+
+    # Kiểm tra điểm cắt 2: không có preroll drift!
+    # Buffer còn lại từ đoạn 1 là 400ms speech, cộng thêm 1600ms speech + 40ms quiet = 2040ms
+    expected_len_2 = int(16000 * 2 * (0.4 + 1.6 + 0.04))
+    assert len(final_2) == expected_len_2
+    assert final_2.endswith(quiet_chunk_2)

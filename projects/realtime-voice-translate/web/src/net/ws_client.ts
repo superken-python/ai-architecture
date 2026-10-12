@@ -1,5 +1,18 @@
 import { useStore, Side, SupportedLang } from '../state/useStore';
 
+function getClientId(): string {
+  try {
+    let id = localStorage.getItem('rvt_client_id');
+    if (!id) {
+      id = 'cli-' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('rvt_client_id', id);
+    }
+    return id;
+  } catch {
+    return 'cli-default';
+  }
+}
+
 class RVTClient {
   private ws: WebSocket | null = null;
   private audioContext: AudioContext | null = null;
@@ -9,6 +22,31 @@ class RVTClient {
   private pingInterval: any = null;
   private audioWatchdog: any = null;
   private url: string = "";
+  private lastServerMessageAt: number = 0;
+
+  constructor() {
+    if (typeof document !== 'undefined') {
+      const checkStateOnForeground = () => {
+        const store = useStore.getState();
+        if (store.isMicActive) {
+          if (this.audioContext && (this.audioContext.state === 'suspended' || (this.audioContext.state as any) === 'interrupted')) {
+            this.audioContext.resume().catch(() => {});
+            useStore.getState().setCaptureWarning("Trang vừa quay lại từ chế độ nền. Chạm vào màn hình để tiếp tục nghe.");
+          }
+          const track = this.mediaStream?.getAudioTracks()[0];
+          if (track && (track.muted || track.readyState === 'ended')) {
+            useStore.getState().setCaptureWarning("Microphone đã bị gián đoạn khi chuyển ứng dụng. Chạm để bật lại.");
+          }
+        }
+      };
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          checkStateOnForeground();
+        }
+      });
+      window.addEventListener('pageshow', checkStateOnForeground);
+    }
+  }
 
   async connect(url: string) {
     this.url = url;
@@ -23,15 +61,17 @@ class RVTClient {
 
       this.ws.onopen = () => {
         useStore.getState().setConnected(true);
+        this.lastServerMessageAt = Date.now();
         // Send session.start
         const store = useStore.getState();
         const targets = store.meetingMode && store.sideBLang !== 'auto'
           ? [store.sideBLang]
-          : undefined;
+          : ['ja', 'en', 'vi'];
 
         this.send({
           type: "session.start",
           protocol: 1,
+          client_id: getClientId(),
           audio: { rate: 16000, format: "pcm_s16le" },
           sides: {
             A: { lang: store.sideALang },
@@ -46,22 +86,30 @@ class RVTClient {
           this.send({ type: "turn.start", side: store.activeSide });
         }
 
-        // Heartbeat ping every 3s to keep connection alive through long pauses/silence
+        // Heartbeat ping every 2.5s to keep connection alive and detect half-open sockets
         if (this.pingInterval) {
           clearInterval(this.pingInterval);
         }
         this.pingInterval = setInterval(() => {
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.send({ type: "ping", t: Date.now() });
+            if (this.lastServerMessageAt > 0 && Date.now() - this.lastServerMessageAt > 8000) {
+              console.warn("Watchdog: No server message in 8s. Connection dead, reconnecting...");
+              this.ws.close();
+            }
           }
-        }, 3000);
+        }, 2500);
       };
 
-      this.ws.onclose = () => {
+      this.ws.onclose = (event: CloseEvent) => {
         useStore.getState().setConnected(false);
         if (this.pingInterval) {
           clearInterval(this.pingInterval);
           this.pingInterval = null;
+        }
+
+        if (event.code === 4429) {
+          useStore.getState().setError("Máy chủ hiện đang đầy phiên xử lý (tối đa 4 phiên). Vui lòng thử lại sau giây lát.");
         }
 
         // Do NOT destroy audio capture if mic is still active; allow seamless reconnect
@@ -83,6 +131,7 @@ class RVTClient {
       const isDebug = typeof window !== 'undefined' && window.location.search.includes('debug=1');
 
       this.ws.onmessage = (event) => {
+        this.lastServerMessageAt = Date.now();
         if (typeof event.data === "string") {
           try {
             const payload = JSON.parse(event.data);
@@ -207,13 +256,22 @@ class RVTClient {
         });
       }
 
-      // Ensure AudioContext wakes up if hardware track un-mutes
+      // Ensure AudioContext wakes up if hardware track un-mutes or warn if muted/ended
       this.mediaStream.getTracks().forEach((track) => {
+        track.onmute = () => {
+          console.warn("Audio track MUTED by browser/system");
+          useStore.getState().setCaptureWarning("Microphone đã bị tạm dừng bởi hệ thống hoặc tab khác. Chạm vào màn hình để tiếp tục nghe.");
+        };
         track.onunmute = () => {
-          console.log("Audio track unmuted, ensuring AudioContext running...");
+          console.log("Audio track UNMUTED");
+          useStore.getState().setCaptureWarning(null);
           if (this.audioContext && this.audioContext.state === 'suspended') {
             this.audioContext.resume().catch(() => {});
           }
+        };
+        track.onended = () => {
+          console.warn("Audio track ENDED");
+          useStore.getState().setCaptureWarning("Microphone đã bị đóng. Chạm để bật lại.");
         };
       });
 
@@ -226,8 +284,25 @@ class RVTClient {
       this.audioProcessor = new AudioWorkletNode(this.audioContext, 'audio-processor');
 
       let chunkCount = 0;
+      let silentChunkCount = 0;
       this.audioProcessor.port.onmessage = (event) => {
         this.lastChunkTime = Date.now();
+        const pcm = new Int16Array(event.data);
+        let energy = 0;
+        for (let i = 0; i < pcm.length; i++) energy += Math.abs(pcm[i]);
+        if (energy > 0) {
+          if (silentChunkCount >= 50 && useStore.getState().captureWarning?.includes("im lặng số")) {
+            useStore.getState().setCaptureWarning(null);
+          }
+          silentChunkCount = 0;
+        } else {
+          silentChunkCount++;
+          if (silentChunkCount === 50) {
+            console.warn("Received 2s of continuous digital zero audio. Track may be muted by OS.");
+            useStore.getState().setCaptureWarning("Microphone đang nhận toàn số 0 (im lặng số). Chạm để khôi phục thu âm.");
+          }
+        }
+
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
           this.ws.send(event.data); // ArrayBuffer PCM16 LE 40ms
           chunkCount++;
@@ -253,7 +328,22 @@ class RVTClient {
     }
   }
 
+  async resumeCapture() {
+    useStore.getState().setCaptureWarning(null);
+    if (this.audioContext && (this.audioContext.state === 'suspended' || (this.audioContext.state as any) === 'interrupted')) {
+      await this.audioContext.resume().catch(() => {});
+    }
+    const store = useStore.getState();
+    const track = this.mediaStream?.getAudioTracks()[0];
+    if (!track || track.readyState === 'ended') {
+      if (store.activeSide) {
+        await this.startAudio(store.activeSide, store.audioSource);
+      }
+    }
+  }
+
   stopAudio() {
+    useStore.getState().setCaptureWarning(null);
     if (this.audioWatchdog) {
       clearInterval(this.audioWatchdog);
       this.audioWatchdog = null;
@@ -284,7 +374,7 @@ class RVTClient {
     const store = useStore.getState();
     const targets = store.meetingMode && sideB !== 'auto'
       ? [sideB]
-      : undefined;
+      : ['ja', 'en', 'vi'];
 
     this.send({
       type: "sides.update",

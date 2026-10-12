@@ -68,6 +68,7 @@ const App: React.FC = () => {
     detectedSideLang,
     utterances,
     errorMessage,
+    captureWarning,
     audioSource,
     meetingMode,
     setAudioSource,
@@ -76,6 +77,21 @@ const App: React.FC = () => {
     clearError,
     clearHistory
   } = useStore();
+
+  const handleMeetingModeChange = (mode: boolean) => {
+    setMeetingMode(mode);
+    const targets = mode && sideBLang !== 'auto'
+      ? [sideBLang]
+      : ['ja', 'en', 'vi'];
+    rvtClient.send({
+      type: "sides.update",
+      sides: {
+        A: { lang: sideALang },
+        B: { lang: sideBLang }
+      },
+      targets
+    });
+  };
 
   const [fontSizeA, setFontSizeA] = useState<number>(13);
   const [fontSizeB, setFontSizeB] = useState<number>(13);
@@ -286,7 +302,7 @@ const App: React.FC = () => {
       <div style={{ height: '38px', backgroundColor: '#18181b', borderBottom: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', fontSize: '11px', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           <button
-            onClick={() => setMeetingMode(false)}
+            onClick={() => handleMeetingModeChange(false)}
             style={{
               padding: '4px 10px',
               borderRadius: '6px',
@@ -301,7 +317,7 @@ const App: React.FC = () => {
             👥 2 Chiều
           </button>
           <button
-            onClick={() => setMeetingMode(true)}
+            onClick={() => handleMeetingModeChange(true)}
             style={{
               padding: '4px 10px',
               borderRadius: '6px',
@@ -363,6 +379,48 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Capture Warning / Tap to resume overlay banner (Safari & iOS handling - Mục 9.4 docs 07) */}
+      {captureWarning && (
+        <div
+          onClick={() => rvtClient.resumeCapture()}
+          style={{
+            backgroundColor: '#ea580c',
+            color: '#fff',
+            padding: '10px 16px',
+            fontSize: '13px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            zIndex: 100
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>⚠️</span>
+            <span>{captureWarning}</span>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              rvtClient.resumeCapture();
+            }}
+            style={{
+              backgroundColor: '#fff',
+              color: '#ea580c',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+          >
+            Chạm để tiếp tục nghe
+          </button>
+        </div>
+      )}
+
       {/* Mode View: Continuous Meeting / Video vs Split Screen */}
       {meetingMode ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '10px 14px' }}>
@@ -405,7 +463,7 @@ const App: React.FC = () => {
           {/* Audio capture reminder */}
           {audioSource === 'mic' ? (
             <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', fontSize: '11px', color: '#93c5fd', marginBottom: '8px' }}>
-              💡 <strong>Lưu ý video:</strong> Nếu xem video trên chính máy này, hãy chọn nguồn <strong>💻 Tab/Video</strong> ở góc trên để tránh bị bộ khử vọng xóa âm thanh!
+              💡 <strong>Lưu ý:</strong> Trên iPhone/iPad (Safari), giữ trình duyệt mở và màn hình sáng; phát video trên thiết bị khác (TV/máy tính). Nếu xem video trên chính máy này, hãy chọn nguồn <strong>💻 Tab/Video</strong> ở góc trên!
             </div>
           ) : (
             <div style={{ backgroundColor: '#064e3b', border: '1px solid #047857', borderRadius: '6px', padding: '6px 10px', fontSize: '11px', color: '#a7f3d0', marginBottom: '8px' }}>

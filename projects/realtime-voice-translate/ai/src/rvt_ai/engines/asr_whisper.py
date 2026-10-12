@@ -35,6 +35,14 @@ HALLUCINATIONS = [
     r"amara\.org",
 ]
 
+JA_HALLUCINATIONS = [
+    r"ご視聴(?:ありがとう|いただき)",
+    r"チャンネル登録",
+    r"^[\s・…—\-]*字幕[\s・…—\-]*$",
+    r"^[\s・…—\-]*おわり[\s・…—\-]*$",
+    r"^[\s・…—\-]*終わり[\s・…—\-]*$",
+]
+
 
 class FasterWhisperEngine(AsrEngine):
     def __init__(self, model_size: str = "large-v3-turbo", device: str = "cuda", compute_type: str = "int8_float16"):
@@ -71,7 +79,13 @@ class FasterWhisperEngine(AsrEngine):
                 logger.error(f"Failed to load faster-whisper model '{model_size}' on CPU: {e2}")
                 raise e2
 
-    def transcribe(self, audio: bytes, language: Lang | None = None) -> tuple[str, Lang, dict[Lang, float]]:
+    def transcribe(
+        self,
+        audio: bytes,
+        language: Lang | None = None,
+        vad_mean: float | None = None,
+        initial_prompt: str | None = None,
+    ) -> tuple[str, Lang, dict[Lang, float]]:
         # Convert 16bit PCM to float32 normalized [-1, 1]
         audio_int16 = np.frombuffer(audio, np.int16)
         audio_float32 = audio_int16.astype(np.float32) / 32768.0
@@ -90,6 +104,7 @@ class FasterWhisperEngine(AsrEngine):
             temperature=0.0,
             vad_filter=False,
             condition_on_previous_text=False,
+            initial_prompt=initial_prompt,
             without_timestamps=True,
             no_speech_threshold=0.6,
             log_prob_threshold=-1.0,
@@ -122,6 +137,25 @@ class FasterWhisperEngine(AsrEngine):
                 logger.info(f"Discarded known Whisper hallucination: '{text}' (matched {pat})")
                 text = ""
                 break
+
+        # Filter Japanese hallucinations if segment had low average speech probability (VAD < 0.35)
+        # (Preserves genuine video endings spoken clearly by real voices)
+        if text:
+            for pat in JA_HALLUCINATIONS:
+                if re.search(pat, text):
+                    if vad_mean is not None and vad_mean < 0.35:
+                        logger.info(
+                            f"Discarded Japanese hallucination: '{text}' "
+                            f"(matched {pat}, vad_mean={vad_mean:.2f} < 0.35)"
+                        )
+                        text = ""
+                        break
+                    elif vad_mean is None and rms < 0.008:
+                        logger.info(
+                            f"Discarded Japanese hallucination on low energy: '{text}' (matched {pat}, rms={rms:.4f})"
+                        )
+                        text = ""
+                        break
 
         detected_lang: Lang = "vi"
         if info.language in ("ja", "en", "vi"):

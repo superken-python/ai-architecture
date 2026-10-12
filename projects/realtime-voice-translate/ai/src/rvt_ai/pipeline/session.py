@@ -1,4 +1,5 @@
 import asyncio
+import difflib
 import re
 import time
 from collections import OrderedDict, deque
@@ -27,6 +28,49 @@ from rvt_contracts.messages import (
 )
 
 SENTENCE_END_RE = re.compile(r"[。！？!?]")
+PUNCT_REGEX = re.compile(r"[.。!?！？\s,，、・~～—\-_]")
+LANG_NAMES: dict[str, str] = {"vi": "Vietnamese", "ja": "Japanese", "en": "English"}
+
+
+def strip_committed_prefix(full: str, committed: str) -> str:
+    """Loại bỏ câu đã chốt sớm khỏi câu đầy đủ, dung thứ sai lệch dấu câu và khoảng trắng (Mục 7 docs 07)."""
+    if not committed or not full:
+        return full
+    committed = committed.strip()
+    full = full.strip()
+    if full.startswith(committed):
+        return full[len(committed) :].strip()
+
+    norm_c = PUNCT_REGEX.sub("", committed)
+    if not norm_c:
+        return full
+    norm_full = PUNCT_REGEX.sub("", full)
+    if norm_full.startswith(norm_c):
+        idx = 0
+        matched_norm = 0
+        while idx < len(full) and matched_norm < len(norm_c):
+            if not PUNCT_REGEX.match(full[idx]):
+                matched_norm += 1
+            idx += 1
+        while idx < len(full) and PUNCT_REGEX.match(full[idx]):
+            idx += 1
+        return full[idx:].strip()
+
+    # SequenceMatcher cho trường hợp ASR lệch nhẹ 1-2 ký tự đầu
+    sm = difflib.SequenceMatcher(None, norm_c, norm_full[: len(norm_c) + 10])
+    match = sm.find_longest_match(0, len(norm_c), 0, min(len(norm_full), len(norm_c) + 10))
+    if match.a == 0 and match.size >= int(len(norm_c) * 0.8):
+        idx = 0
+        matched_norm = 0
+        while idx < len(full) and matched_norm < match.size:
+            if not PUNCT_REGEX.match(full[idx]):
+                matched_norm += 1
+            idx += 1
+        while idx < len(full) and PUNCT_REGEX.match(full[idx]):
+            idx += 1
+        return full[idx:].strip()
+
+    return full
 
 
 def find_stable_prefix(prev: str, curr: str, committed: int) -> int:
@@ -99,6 +143,8 @@ class RVTSession:
         # Track running MT tasks for graceful cancellation
         self.active_tasks: list[asyncio.Task] = []
         self.last_activity_time = time.time()
+        self.recent_asr_history: deque[tuple[float, str]] = deque(maxlen=5)
+        self.pending_tail_fragment: str = ""
 
     async def handle_session_start(self, event: SessionStart) -> bool:
         self.last_activity_time = time.time()
@@ -125,16 +171,14 @@ class RVTSession:
         if "A" in event.sides and "B" in event.sides:
             self.sides_config["A"] = event.sides["A"].lang
             self.sides_config["B"] = event.sides["B"].lang
-        if event.targets is not None:
-            self.targets = event.targets
+        self.targets = event.targets
         return True
 
     async def handle_sides_update(self, event: SidesUpdate) -> None:
         self.last_activity_time = time.time()
         for side, cfg in event.sides.items():
             self.sides_config[side] = cfg.lang
-        if event.targets is not None:
-            self.targets = event.targets
+        self.targets = event.targets
         logger.info(f"[{self.session_id}] Sides updated: {self.sides_config}, targets: {self.targets}")
 
     async def handle_turn_start(self, side: Side) -> None:
@@ -251,15 +295,16 @@ class RVTSession:
                         self.committed_offset = stable_end
 
                         # Emit asr.final for the early committed sentence
+                        approx_ms = int((len(audio) * 1000 // 32000) * (stable_end / max(1, len(text))))
                         await self.send_event(
                             AsrFinal(
                                 utterance_id=commit_uid,
                                 side=side,
                                 text=stable_sentence,
                                 lang=lang,
-                                lang_probs={},
+                                lang_probs={lang: 1.0},
                                 uncertain=False,
-                                audio_ms=0,
+                                audio_ms=approx_ms,
                             )
                         )
 
@@ -310,15 +355,30 @@ class RVTSession:
         if self.sides_config[side] != "auto":
             force_lang = self.sides_config[side]
 
+        # Build initial_prompt from recent valid utterances within 5.0s (Mục 5 docs 07)
+        now = time.time()
+        prompt_parts = []
+        for t_ts, h_text in list(self.recent_asr_history)[-2:]:
+            if (now - t_ts) <= 5.0 and h_text.strip():
+                prompt_parts.append(h_text.strip().rstrip("。！？.!?"))
+        initial_prompt = "。".join(prompt_parts) + "。" if prompt_parts else None
+        if initial_prompt and len(initial_prompt) > 60:
+            initial_prompt = initial_prompt[-60:]
+
         try:
             text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
-                audio, force_lang=force_lang, is_final=True, session_id=self.session_id
+                audio,
+                force_lang=force_lang,
+                is_final=True,
+                session_id=self.session_id,
+                vad_mean=stats.prob_mean,
+                initial_prompt=initial_prompt,
             )
         except Exception as e:
             logger.error(f"[{self.session_id}] Final transcribe error: {e}")
             text, detected_lang, asr_probs = "", "vi", {}
 
-        # Remove already committed sentences from final text (Mục 5.2 docs 06)
+        # Remove already committed sentences from final text (Mục 5.2 docs 06 & Mục 7 docs 07)
         committed_to_clean = self.committed_sentences[:]
         self.committed_offset = 0
         self.committed_sentences = []
@@ -330,18 +390,7 @@ class RVTSession:
         if committed_to_clean and text:
             clean_text = text.strip()
             for cs in committed_to_clean:
-                cs_clean = cs.strip()
-                if clean_text.startswith(cs_clean):
-                    clean_text = clean_text[len(cs_clean) :].strip()
-                elif clean_text.replace(" ", "").startswith(cs_clean.replace(" ", "")):
-                    idx = 0
-                    cs_no_space = cs_clean.replace(" ", "")
-                    matched_chars = 0
-                    while idx < len(clean_text) and matched_chars < len(cs_no_space):
-                        if clean_text[idx] != " ":
-                            matched_chars += 1
-                        idx += 1
-                    clean_text = clean_text[idx:].strip()
+                clean_text = strip_committed_prefix(clean_text, cs)
             text = clean_text
 
         # Rescue from partial if final Whisper returned empty but partial had valid recognized speech
@@ -359,20 +408,12 @@ class RVTSession:
             detected_lang = self.last_partial_lang
 
         if not text or not text.strip():
-            if committed_to_clean:
-                logger.info(f"[{self.session_id}] All speech in segment was already committed early, segment complete.")
-                return
-
-            logger.info(
-                f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping "
-                f"[side={side}, {_audio_summary(audio, stats)}]"
-            )
             # If client received a partial card for this uid, tell client to finalize with empty text
-            # so the client clears the ghost card instead of leaving it stuck
-            if self.last_partial_uid == uid:
+            # so the client clears the ghost card instead of leaving it stuck (Mục 10 docs 07)
+            if self.last_partial_uid is not None:
                 await self.send_event(
                     AsrFinal(
-                        utterance_id=uid,
+                        utterance_id=self.last_partial_uid,
                         side=side,
                         text="",
                         lang=force_lang or "vi",
@@ -381,7 +422,25 @@ class RVTSession:
                         audio_ms=len(audio) * 1000 // 32000,
                     )
                 )
+                self.last_partial_uid = None
+                self.last_partial_text = ""
+
+            if committed_to_clean:
+                logger.info(f"[{self.session_id}] All speech in segment was already committed early, segment complete.")
+                return
+
+            logger.info(
+                f"[{self.session_id}] 🔇 Audio transcribed to empty text (silence/noise), skipping "
+                f"[side={side}, {_audio_summary(audio, stats)}]"
+            )
             return
+
+        # Prepend pending tail fragment if one exists (Mục 6.1 docs 07)
+        if self.pending_tail_fragment:
+            text = self.pending_tail_fragment + " " + text
+            self.pending_tail_fragment = ""
+
+        self.recent_asr_history.append((time.time(), text))
 
         # Check for potential language mismatch (locked to one lang, but speech detected strongly as another)
         if force_lang and detected_lang != force_lang and asr_probs.get(detected_lang, 0.0) >= 0.8:
@@ -530,8 +589,9 @@ class RVTSession:
                 )
                 try:
                     retry_text = ""
+                    target_name = LANG_NAMES.get(target, target)
                     async for delta in self.mt.translate_stream(
-                        text, source, target, context=f"Strictly translate completely into {target}"
+                        text, source, target, context=f"Strictly translate completely into {target_name}"
                     ):
                         retry_text += delta
                     v_retry = mt_validator.validate(text, source, target, retry_text)

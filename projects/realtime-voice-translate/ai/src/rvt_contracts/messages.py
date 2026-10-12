@@ -24,6 +24,7 @@ class SessionStart(BaseModel):
     audio: AudioConfig = Field(default_factory=AudioConfig)
     sides: dict[Side, SideConfig] = Field(default_factory=lambda: {"A": SideConfig(), "B": SideConfig()})
     targets: list[Lang] | None = None
+    client_id: str | None = None
 
 
 class TurnStart(BaseModel):
