@@ -116,6 +116,11 @@ phần.
   - số câu bịa còn trên màn hình;
   - số lượt dịch câu rất ngắn (≤ 6 ký tự). Số này gồm cả câu ngắn thật như "はい", nên chỉ dùng để so trước và sau khi
     sửa.
+
+  Đã chạy thử script trong sandbox trên toàn bộ golden_1, với `WhisperModel` thay bằng bản giả lập. Kết quả trùng từng
+  số với cột `873d676` ở mục 5: 7 thẻ bị xoá ở đúng các thời điểm, 3 phần đuôi chốt riêng, 8 câu bịa, 134/141 câu. Riêng
+  ký tự lời thoại bắt được là 90,9% thay vì 90,7%, vì script chấm bằng `difflib` như `golden_eval.py`, còn mục 5 chấm
+  bằng căn chỉnh Levenshtein như 07.
 - **Kiểm riêng từng chỗ:** `mt_validator.validate` với bản dịch có dấu ngoặc kép; `strip_committed_prefix` với 9 ca;
   thuật toán AudioWorklet mới trên audio 48 kHz stereo của golden_1.
 - **Không chạy được trong sandbox:** model dịch, Safari, GPU. Số liệu tuyệt đối cần đo lại trên server.

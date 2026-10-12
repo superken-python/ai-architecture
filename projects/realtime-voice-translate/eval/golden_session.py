@@ -174,7 +174,7 @@ def run_session(
         wall = time.time()
         for i in range(n):
             await session.handle_audio_chunk(pcm[i * FRAME : (i + 1) * FRAME].tobytes())
-            await asyncio.sleep(FRAME / 32000)
+            await asyncio.sleep(FRAME / 16000)  # 640 mẫu ở 16 kHz = 40 ms
             if i and i % 1500 == 0:
                 print(f"  {i * 0.04:5.0f} s audio sau {time.time() - wall:4.0f} s", flush=True)
         await asyncio.sleep(10)
