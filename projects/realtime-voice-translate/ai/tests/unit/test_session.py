@@ -399,3 +399,79 @@ def test_strip_committed_prefix_tolerates_asr_drift(full, committed, expected):
     from rvt_ai.pipeline.session import strip_committed_prefix
 
     assert strip_committed_prefix(full, committed) == expected
+
+
+class _PromptRecordingAsr:
+    """Ghi lại prompt ngữ cảnh của mỗi lần nhận dạng chốt, trả lần lượt các câu cho trước."""
+
+    def __init__(self, texts: list[str]):
+        self.texts = texts
+        self.prompts: list[str | None] = []
+
+    def transcribe(self, audio, language=None, vad_mean=None, initial_prompt=None):
+        self.prompts.append(initial_prompt)
+        return self.texts.pop(0), "ja", {"ja": 1.0}
+
+
+async def _noop_send(event):
+    pass
+
+
+@pytest.mark.asyncio
+async def test_context_prompt_window_uses_audio_time():
+    # Bản cũ tính 5 s theo giờ hệ thống, từ lúc câu trước có kết quả: đoạn nói liền 5–6 s không có prompt dù không có
+    # khoảng lặng nào. Giờ tính theo thời gian audio, từ lúc đoạn trước kết thúc tới lúc đoạn này bắt đầu
+    # (docs 08 §3.8).
+    asr = _PromptRecordingAsr(["一つ目の文。", "二つ目の文。", "三つ目の文。"])
+    session = RVTSession("test-prompt-window", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), _noop_send)
+    session.scheduler = AsrScheduler(asr.transcribe)
+    second = 32000  # byte PCM16 cho 1 s audio
+
+    await session._process_final_audio(b"\x01" * 2 * second, "A", end_ms=2000)  # 0–2 s
+    await session._process_final_audio(b"\x01" * 6 * second, "A", end_ms=8000)  # nói liền: 2–8 s
+    await session._process_final_audio(b"\x01" * 1 * second, "A", end_ms=15000)  # sau 6 s lặng: 14–15 s
+
+    assert asr.prompts == [None, "一つ目の文。", None]
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_early_committed_sentences_go_into_the_context_prompt():
+    # Bản cũ chỉ ghi phần còn lại sau khi bỏ câu chốt sớm, nên đoạn sau mất câu đó khỏi prompt (docs 08 §3.8)
+    asr = _PromptRecordingAsr(["落ち着きなさいよ。私だって知らないわ。", "落ち着きなさいよ。", "少しは我慢しなさい。"])
+    session = RVTSession("test-prompt-early", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), _noop_send)
+    session.scheduler = AsrScheduler(asr.transcribe)
+    second = 32000
+
+    session.committed_sentences = ["落ち着きなさいよ。"]
+    await session._process_final_audio(b"\x01" * 3 * second, "A", end_ms=3000)
+    # Cả đoạn đã được chốt sớm, chữ chốt chỉ lặp lại câu đó: vẫn phải vào lịch sử
+    session.committed_sentences = ["落ち着きなさいよ。"]
+    await session._process_final_audio(b"\x01" * 1 * second, "A", end_ms=4000)
+    await session._process_final_audio(b"\x01" * 2 * second, "A", end_ms=6000)
+
+    assert asr.prompts == [
+        None,
+        "落ち着きなさいよ。私だって知らないわ。",
+        "落ち着きなさいよ。私だって知らないわ。落ち着きなさいよ。",
+    ]
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_low_vad_segment_gets_no_context_prompt():
+    # Ở đoạn không có lời, Whisper hay chép lại prompt: trên golden_1, đoạn nhạc 102–115 s ra "お待ちしております。" bốn
+    # lần. Đoạn VAD trung bình dưới 0,35 không nhận prompt (07 §5, docs 08 §3.8).
+    asr = _PromptRecordingAsr(["お待ちしております。", "", "行くぞ。"])
+    session = RVTSession("test-prompt-vad", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), _noop_send)
+    session.scheduler = AsrScheduler(asr.transcribe)
+    second = 32000
+    speech = SegmentStats(speech_ms=1500, prob_mean=0.8, prob_max=0.95)
+    music = SegmentStats(speech_ms=300, prob_mean=0.2, prob_max=0.6)
+
+    await session._process_final_audio(b"\x01" * 2 * second, "A", speech, end_ms=2000)
+    await session._process_final_audio(b"\x01" * 2 * second, "A", music, end_ms=4000)
+    await session._process_final_audio(b"\x01" * 2 * second, "A", speech, end_ms=6000)
+
+    assert asr.prompts == [None, None, "お待ちしております。"]
+    await session.close()

@@ -101,6 +101,44 @@ Từ bản này, số `vad_mean=` trong log của mỗi câu thấp hơn trướ
   mức dao động: FIR không làm nhận dạng kém đi. 14/60 đoạn có chữ khác bản hạ mẫu chuẩn, phần lớn là dấu câu và câu bịa
   ở đoạn không lời.
 
+**Cập nhật 2026-10-12: đã làm bước 4 (prompt)**, có test:
+
+- **§3.8 — ba chỉnh:**
+  - prompt được dựng trong worker của `AsrScheduler`, ngay trước khi nhận dạng. Sau mỗi lượt chốt, worker nhường một
+    lượt để session ghi kết quả vào lịch sử trước khi lượt sau dựng prompt;
+  - lịch sử prompt ghi chữ của cả đoạn, gồm câu chốt sớm;
+  - cửa sổ 5 s tính theo thời gian audio, từ lúc đoạn trước kết thúc tới lúc đoạn này bắt đầu.
+- **Thêm chỉnh thứ tư: đoạn có VAD trung bình dưới 0,35 không nhận prompt.**
+  - Chỉ làm ba chỉnh thì 218/231 đoạn có prompt (trước đây 191), kể cả đoạn nhạc và tiếng động. Ở những đoạn đó Whisper
+    chép lại prompt: "お待ちしております。" lặp ở 102–115 s, "お前、ちょっとずれてるな。" chép nguyên ở 482,6 s, "お前は、お前は、
+    お前は、" ở 782 s. CER tăng từ 0,167 lên 0,179.
+  - 07 §5 đã đề xuất bỏ prompt sau đoạn nhạc. Ngưỡng 0,35 trùng với bộ lọc câu bịa.
+- **Đo golden_1 bằng `golden_session.py`** (Whisper turbo ONNX giả lập, độ trễ GPU giả định):
+
+| golden_1, cả phiên | `466ba30` | Ba chỉnh | Ba chỉnh + ngưỡng VAD 0,35 |
+|---|---|---|---|
+| CER so với phụ đề | 0,167 | 0,179 | **0,134** |
+| Câu thoại bắt được | 138/141 | 139/141 | 139/141 |
+| Ký tự lời thoại bắt được | 93,4% | 93,9% | 93,6% |
+| Câu bịa trên màn hình | 2 | 2 | 2 |
+| Câu hiện hai lần (gồm câu lặp thật của video) | 4 | 6 | 4 |
+| Đoạn chốt có prompt | 191/231 | 218/231 | 178/231 |
+| Đoạn có chữ nằm trọn trong prompt | 8 | 10 | 1 |
+
+- Ca còn lại là "おはよう" ở 311,9 s, câu được nói hai lần thật. Các câu bịa và câu chép prompt ở 103 s, 107 s, 419 s,
+  423 s, 484 s và 722,7 s ("次の動画でお会いしましょう!") không còn. Ở 782,8 s có thêm một câu thoại bản cũ bỏ sót
+  ("うわっ!命中した!…やりすぎだ!").
+- Ngưỡng 0,5 cho kết quả gần như vậy (CER 0,136) nhưng bỏ prompt thêm ở 31 đoạn, phần lớn là câu ngắn có lời. Giữ 0,35
+  cho trùng với bộ lọc câu bịa.
+- Prompt dài hơn (trung bình 24 ký tự, trước đây 17) và luôn kết thúc bằng "。": 82% thẻ phụ đề kết thúc bằng dấu câu,
+  trước đây 79%.
+- **Prompt có chữ của đoạn ngay trước:** đếm trên các đoạn có lời (VAD ≥ 0,35) mà đoạn trước kết thúc trong vòng 5 s.
+  - với độ trễ GPU giả định: 181/181, trước đây 160/181;
+  - khi nhận dạng chậm như chạy CPU (0,6 s + 0,5 s cho mỗi giây audio): 181/181, trước đây 90/181.
+- **Test:** `tests/unit/test_scheduler.py` (prompt dựng lúc lượt chạy) và `tests/unit/test_session.py` (cửa sổ theo
+  thời gian audio, câu chốt sớm, ngưỡng VAD). Cả 4 test đỏ ở bản cũ. Bỏ lượt nhường trong worker thì test của scheduler
+  đỏ: prompt của đoạn thứ hai thiếu chữ đoạn thứ nhất.
+
 ## 1. Kết luận
 
 **Chưa ổn để chạy lâu dài.** Phần lớn hạng mục của 07 đã được làm, và phần quan trọng nhất — vị trí cắt đoạn — đúng hoàn
@@ -852,7 +890,7 @@ riêng.
 | 1 · Session | §3.3 `vad_mean`, mẫu câu bịa, lọc cả chữ tạm; §3.4 tắt ghép phần đuôi (hoặc sửa đủ, kèm `useStore`); §3.6 so khớp | server (+ web nếu giữ ghép đuôi) | 1 ngày | **Đã làm** (tắt ghép phần đuôi). `golden_session.py` trên golden_1: 0 thẻ bị xoá, 0 chữ tạm đến muộn, câu bịa trên màn hình 2, CER 0,167 |
 | 2 · Safari | §4.1 phép kiểm "đang nghe" + chạm để xin lại mic; §4.2; §4.3 `client_id` theo trang, 4409; wake lock | web + server | 1–2 ngày | **Đã làm, đã kiểm trên Chromium.** Còn thử trên Safari/iPhone: tab khác lấy mic rồi trả, khoá màn hình, gọi Siri — app báo đúng và nghe lại sau một lần chạm; mở hai tab không đá nhau |
 | 3 · Thu âm | §4.4 FIR 63 tap, cấp phát một lần | web | 0,5 ngày | **Đã làm.** Aliasing so với lời: −58,1 dB ở 48 kHz, −45,9 dB ở 44,1 kHz (biquad: −33,2 / −34,1 dB) |
-| 4 · Prompt | §3.8 ba chỉnh nhỏ | server | 0,5 ngày | CER golden_1 không tăng, câu bịa không tăng |
+| 4 · Prompt | §3.8 ba chỉnh nhỏ | server | 0,5 ngày | **Đã làm**, thêm ngưỡng VAD 0,35 cho prompt. CER golden_1 0,167 → 0,134; câu bịa trên màn hình 2 → 2 |
 
 ## 8. Rủi ro và đánh đổi
 

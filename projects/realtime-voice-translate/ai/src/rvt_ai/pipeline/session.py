@@ -30,6 +30,13 @@ SENTENCE_END_RE = re.compile(r"[。！？!?]")
 PUNCT_REGEX = re.compile(r"[.。!?！？\s,，、・~～—\-_]")
 LANG_NAMES: dict[str, str] = {"vi": "Vietnamese", "ja": "Japanese", "en": "English"}
 
+# Prompt ngữ cảnh cho Whisper (07 §5): chữ của tối đa 2 đoạn trước, tối đa 60 ký tự, bỏ đoạn đã kết thúc quá 5 s audio
+PROMPT_MAX_CHARS = 60
+PROMPT_MAX_GAP_MS = 5000
+# Đoạn có VAD trung bình thấp (nhạc, tiếng động, hơi thở) không nhận prompt: ở đoạn không có lời, Whisper hay chép lại
+# prompt (07 §5). Cùng ngưỡng với bộ lọc câu bịa tiếng Nhật (asr_whisper.py).
+PROMPT_MIN_VAD_MEAN = 0.35
+
 
 def _edit_distance(a: str, b: str) -> int:
     prev = list(range(len(b) + 1))
@@ -139,7 +146,8 @@ class RVTSession:
         # Track running MT tasks for graceful cancellation
         self.active_tasks: list[asyncio.Task] = []
         self.last_activity_time = time.time()
-        self.recent_asr_history: deque[tuple[float, str]] = deque(maxlen=5)
+        # Lịch sử cho prompt ngữ cảnh: (lúc đoạn kết thúc, ms theo thời gian audio; chữ của cả đoạn, gồm câu chốt sớm)
+        self.recent_asr_history: deque[tuple[int, str]] = deque(maxlen=5)
 
     async def handle_session_start(self, event: SessionStart) -> bool:
         self.last_activity_time = time.time()
@@ -212,7 +220,9 @@ class RVTSession:
         if should_final and len(buffer) > 0:
             duration_ms = len(buffer) * 1000 // 32000
             logger.info(f"[{self.session_id}] ⏱️ Segmenter: Speech ended, final audio ({duration_ms}ms)")
-            task = asyncio.create_task(self._process_final_audio(buffer, side, self.segmenter.last_stats))
+            task = asyncio.create_task(
+                self._process_final_audio(buffer, side, self.segmenter.last_stats, self._audio_end_ms())
+            )
             self.active_tasks.append(task)
         elif should_partial and len(buffer) > 0:
             uid = self.utterance_id_counter
@@ -258,13 +268,34 @@ class RVTSession:
             task = asyncio.create_task(self._run_mt(utterance_id, text, new_lang, tgt))
             self.active_tasks.append(task)
 
+    def _audio_end_ms(self) -> int:
+        """Thời điểm (ms, theo thời gian audio) kết thúc đoạn vừa được segmenter chốt: phần còn lại trong buffer là
+        của đoạn sau (khi cắt ở max_ms)."""
+        pending_ms = len(self.segmenter.buffer) * 1000 // (self.segmenter.config.sample_rate * 2)
+        return self.segmenter.current_time_ms - pending_ms
+
+    def _context_prompt(self, start_ms: int) -> str | None:
+        """Prompt ngữ cảnh cho đoạn bắt đầu ở start_ms: chữ của tối đa 2 đoạn trước, nối bằng "。".
+
+        Bỏ đoạn đã kết thúc quá 5 s audio trước start_ms, tức sau khoảng lặng dài hoặc đoạn nhạc. Tính theo thời gian
+        audio chứ không theo giờ hệ thống: một đoạn nói liền 5–6 s vẫn có prompt (docs 08 §3.8).
+        """
+        parts = []
+        for end_ms, text in list(self.recent_asr_history)[-2:]:
+            part = text.strip().rstrip("。！？.!?")
+            if part and start_ms - end_ms <= PROMPT_MAX_GAP_MS:
+                parts.append(part)
+        if not parts:
+            return None
+        return ("。".join(parts) + "。")[-PROMPT_MAX_CHARS:]
+
     async def _flush_segmenter(self) -> None:
         if self.current_side:
             buf = self.segmenter.force_final()
             if len(buf) > 0:
                 duration_ms = len(buf) * 1000 // 32000
                 logger.info(f"[{self.session_id}] ⏱️ Flush on turn stop: processing final audio ({duration_ms}ms)")
-                await self._process_final_audio(buf, self.current_side, self.segmenter.last_stats)
+                await self._process_final_audio(buf, self.current_side, self.segmenter.last_stats, self._audio_end_ms())
 
     async def _process_partial_audio(self, audio: bytes, side: Side, uid: int, vad_mean: float | None = None) -> None:
         try:
@@ -341,7 +372,9 @@ class RVTSession:
         except Exception as e:
             logger.debug(f"Partial ASR error: {e}")
 
-    async def _process_final_audio(self, audio: bytes, side: Side, stats: SegmentStats | None = None) -> None:
+    async def _process_final_audio(
+        self, audio: bytes, side: Side, stats: SegmentStats | None = None, end_ms: int | None = None
+    ) -> None:
         uid = self.utterance_id_counter
         self.utterance_id_counter += 1
 
@@ -358,15 +391,13 @@ class RVTSession:
         if self.sides_config[side] != "auto":
             force_lang = self.sides_config[side]
 
-        # Build initial_prompt from recent valid utterances within 5.0s (Mục 5 docs 07)
-        now = time.time()
-        prompt_parts = []
-        for t_ts, h_text in list(self.recent_asr_history)[-2:]:
-            if (now - t_ts) <= 5.0 and h_text.strip():
-                prompt_parts.append(h_text.strip().rstrip("。！？.!?"))
-        initial_prompt = "。".join(prompt_parts) + "。" if prompt_parts else None
-        if initial_prompt and len(initial_prompt) > 60:
-            initial_prompt = initial_prompt[-60:]
+        # Prompt ngữ cảnh (07 §5) do scheduler dựng ngay trước khi nhận dạng, để có cả chữ của đoạn trước nếu đoạn đó
+        # còn đang chờ GPU lúc đoạn này được chốt (docs 08 §3.8)
+        if end_ms is None:
+            end_ms = self.segmenter.current_time_ms
+        start_ms = end_ms - len(audio) * 1000 // 32000
+        vad_mean = stats.prob_mean if stats else None
+        use_prompt = vad_mean is None or vad_mean >= PROMPT_MIN_VAD_MEAN
 
         try:
             text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
@@ -374,8 +405,8 @@ class RVTSession:
                 force_lang=force_lang,
                 is_final=True,
                 session_id=self.session_id,
-                vad_mean=stats.prob_mean if stats else None,
-                initial_prompt=initial_prompt,
+                vad_mean=vad_mean,
+                initial_prompt=(lambda: self._context_prompt(start_ms)) if use_prompt else None,
             )
         except Exception as e:
             logger.error(f"[{self.session_id}] Final transcribe error: {e}")
@@ -410,6 +441,12 @@ class RVTSession:
             text = self.last_partial_text
             detected_lang = self.last_partial_lang
 
+        # Ghi cả câu chốt sớm vào lịch sử prompt, không chỉ phần còn lại (docs 08 §3.8). Ghi trước mọi lệnh await, để
+        # đoạn kế tiếp, nếu đã xếp hàng, dựng prompt có chữ của đoạn này.
+        segment_text = "".join(committed_to_clean) + (text.strip() if text else "")
+        if segment_text:
+            self.recent_asr_history.append((end_ms, segment_text))
+
         if not text or not text.strip():
             # If client received a partial card for this uid, tell client to finalize with empty text
             # so the client clears the ghost card instead of leaving it stuck (Mục 10 docs 07).
@@ -439,8 +476,6 @@ class RVTSession:
                 f"[side={side}, {_audio_summary(audio, stats)}]"
             )
             return
-
-        self.recent_asr_history.append((time.time(), text))
 
         # Check for potential language mismatch (locked to one lang, but speech detected strongly as another)
         if force_lang and detected_lang != force_lang and asr_probs.get(detected_lang, 0.0) >= 0.8:
