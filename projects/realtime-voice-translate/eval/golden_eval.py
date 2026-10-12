@@ -131,6 +131,8 @@ def main() -> None:
     parser.add_argument("--models-dir", default=os.environ.get("RVT_MODELS_DIR", "models"))
     parser.add_argument("--language", default="ja")
     parser.add_argument("--max-seconds", type=float, default=0, help="chỉ đo đoạn đầu (0 = toàn bộ)")
+    parser.add_argument("--device", default="", help="thiết bị chạy ASR: cuda hoặc cpu (mặc định theo profile)")
+    parser.add_argument("--compute-type", default="", help="kiểu tính toán: float16, int8_float16, int8")
     parser.add_argument("--out", default="", help="ghi báo cáo JSON (kèm từng đoạn)")
     args = parser.parse_args()
 
@@ -157,12 +159,40 @@ def main() -> None:
         flush=True,
     )
 
-    engine = FasterWhisperEngine(
-        model_size=profile.asr.model, device=profile.asr.device, compute_type=profile.asr.compute_type
-    )
+    asr_device = args.device or profile.asr.device
+    asr_compute_type = args.compute_type or profile.asr.compute_type
+    if asr_device == "cpu" and asr_compute_type == "int8_float16":
+        asr_compute_type = "int8"
+
+    try:
+        engine = FasterWhisperEngine(
+            model_size=profile.asr.model, device=asr_device, compute_type=asr_compute_type
+        )
+    except Exception as e:
+        print(f"Cảnh báo: Không thể tải FasterWhisperEngine trên {asr_device}: {e}. Đang chuyển sang CPU int8...")
+        asr_device = "cpu"
+        asr_compute_type = "int8"
+        engine = FasterWhisperEngine(
+            model_size=profile.asr.model, device="cpu", compute_type="int8"
+        )
+
     t0, rows = time.time(), []
     for f in finals:
-        text, _, _ = engine.transcribe(f.pop("audio"), language=args.language)
+        audio_chunk = f.pop("audio")
+        try:
+            text, _, _ = engine.transcribe(audio_chunk, language=args.language)
+        except RuntimeError as re:
+            if "out of memory" in str(re).lower() and asr_device != "cpu":
+                print("\nCUDA Out of Memory trong khi nhận dạng! Đang tự động chuyển Whisper sang CPU int8...", flush=True)
+                del engine
+                asr_device = "cpu"
+                asr_compute_type = "int8"
+                engine = FasterWhisperEngine(
+                    model_size=profile.asr.model, device="cpu", compute_type="int8"
+                )
+                text, _, _ = engine.transcribe(audio_chunk, language=args.language)
+            else:
+                raise re
         rows.append({**f, "text": text})
     print(f"Nhận dạng {len(rows)} đoạn trong {time.time() - t0:.0f} s; {sum(not r['text'] for r in rows)} đoạn ra rỗng")
 
