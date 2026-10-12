@@ -38,7 +38,7 @@ class MtValidator:
         # 1. Strip surrounding quotation marks or code blocks, and markdown bold markers
         if cleaned.startswith("```") and cleaned.endswith("```"):
             cleaned = cleaned.strip("`").strip()
-        if (cleaned.startswith('"') and cleaned.endsWith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
+        if (cleaned.startswith('"') and cleaned.endswith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
             cleaned = cleaned[1:-1].strip()
         cleaned = cleaned.replace("**", "").strip()
         cleaned = re.sub(r"\s*[—–]\s*", ", ", cleaned).strip()

@@ -193,3 +193,15 @@ def test_mt_validator_preserves_bold_dashes_and_three_sentences():
     res_dash = mt_validator.validate("先生", "ja", "vi", raw_dash)
     assert res_dash.is_valid is True
     assert res_dash.cleaned_text == "Thưa thầy"
+
+
+def test_mt_validator_strips_double_quotes():
+    # 873d676 gọi `endsWith` (tên hàm JS) nên mọi bản dịch bắt đầu bằng " đều ném AttributeError (docs 08 §3.1)
+    res = mt_validator.validate("こんにちは", "ja", "vi", '"Xin chào"')
+    assert res.is_valid is True
+    assert res.cleaned_text == "Xin chào"
+
+    # Chỉ có ngoặc mở thì giữ nguyên, không được lỗi
+    res_open = mt_validator.validate("行こう", "ja", "vi", '"Đi thôi')
+    assert res_open.is_valid is True
+    assert res_open.cleaned_text == '"Đi thôi'

@@ -10,7 +10,7 @@ import numpy as np
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.ports import AsrEngine, MtEngine, VadEngine
 from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
-from rvt_ai.pipeline.mt_validator import LATIN_REGEX, mt_validator
+from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
 from rvt_contracts.messages import (
@@ -282,6 +282,10 @@ class RVTSession:
             text, lang, _ = await self.scheduler.execute_transcribe(
                 audio, force_lang=force_lang, is_final=False, session_id=self.session_id
             )
+            # Đoạn đã chốt (hoặc vừa chốt sớm) trong lúc chờ nhận dạng: chữ tạm này đã cũ. Nếu vẫn gửi đi, nó mang uid
+            # của đoạn sau, hiện thành thẻ trùng và có thể treo luôn trên màn hình (docs 08 §3.7).
+            if uid != self.utterance_id_counter:
+                return
             if not text or self.current_side != side:
                 return
 
@@ -418,11 +422,13 @@ class RVTSession:
 
         if not text or not text.strip():
             # If client received a partial card for this uid, tell client to finalize with empty text
-            # so the client clears the ghost card instead of leaving it stuck (Mục 10 docs 07)
-            if self.last_partial_uid is not None:
+            # so the client clears the ghost card instead of leaving it stuck (Mục 10 docs 07).
+            # Chỉ xoá thẻ chữ tạm của CHÍNH đoạn này: last_partial_uid không được đặt lại sau mỗi câu chốt, nên có thể
+            # còn trỏ vào thẻ đã chốt của câu trước hoặc câu vừa chốt sớm — web sẽ xoá mất thẻ đó (docs 08 §3.2).
+            if self.last_partial_uid == uid:
                 await self.send_event(
                     AsrFinal(
-                        utterance_id=self.last_partial_uid,
+                        utterance_id=uid,
                         side=side,
                         text="",
                         lang=force_lang or "vi",
@@ -551,6 +557,21 @@ class RVTSession:
         except asyncio.CancelledError:
             pass
 
+    def _validate_mt(self, text: str, source: Lang, target: Lang, raw: str) -> ValidationResult:
+        """Bộ làm sạch bản dịch lỗi thì dùng dòng đầu của bản dịch thô, không đổi thành "[Lỗi dịch]" (docs 08 §3.1)."""
+        try:
+            return mt_validator.validate(text, source, target, raw)
+        except Exception as e:
+            logger.exception(
+                f"[{self.session_id}] mt_validator failed ({source}->{target}), using raw translation: {e}"
+            )
+            first_line = next((line.strip() for line in raw.splitlines() if line.strip()), "")
+            return ValidationResult(
+                is_valid=bool(first_line),
+                cleaned_text=first_line,
+                error_reason=None if first_line else "Empty translation",
+            )
+
     async def _run_mt(self, uid: int, text: str, source: Lang, target: Lang) -> None:
         # Sanitize text: collapse excessive repeated characters (e.g. scream loop うおおおお... 500 times)
         text = re.sub(r"(.)\1{7,}", r"\1\1\1\1\1", text).strip()
@@ -573,10 +594,9 @@ class RVTSession:
             async for delta in self.mt.translate_stream(text, source, target, context=context):
                 full_text += delta
                 lower_full = full_text.lower()
+                # Không ngắt ở "—" hay "**": cleanText.ts đã dọn hai ký hiệu này trên từng mt.delta (docs 08 §3.5)
                 cutoff_markers = [
-                    "**",
                     "【",
-                    "—",
                     "\n",
                     "\n\n",
                     "(note",
@@ -635,7 +655,7 @@ class RVTSession:
                     await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))
 
             # Validate output
-            v_res = mt_validator.validate(text, source, target, full_text)
+            v_res = self._validate_mt(text, source, target, full_text)
             if not v_res.is_valid:
                 logger.warning(
                     f"MT output validation failed for {source}->{target}: {v_res.error_reason}. "
@@ -648,7 +668,7 @@ class RVTSession:
                         text, source, target, context=f"Strictly translate completely into {target_name}"
                     ):
                         retry_text += delta
-                    v_retry = mt_validator.validate(text, source, target, retry_text)
+                    v_retry = self._validate_mt(text, source, target, retry_text)
                     if v_retry.is_valid:
                         v_res = v_retry
                         logger.info(

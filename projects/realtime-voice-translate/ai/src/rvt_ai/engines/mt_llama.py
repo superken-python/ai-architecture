@@ -192,12 +192,12 @@ class LlamaCppMtEngine(MtEngine):
             "max_tokens": dynamic_max_tokens,
             "temperature": 0.1,
             "top_p": 0.7,
+            # Không dừng ở "—" hay "**": "Đợi đã — ê!" sẽ chỉ còn "Đợi đã". mt_validator và cleanText.ts đã đổi "—"
+            # thành ", " và bỏ ký hiệu "**" mà giữ chữ (docs 08 §3.5).
             "stop": [
                 "\n",
                 "\n\n",
                 "【",
-                "**",
-                "—",
                 "(Note",
                 " (Note",
                 "(note",

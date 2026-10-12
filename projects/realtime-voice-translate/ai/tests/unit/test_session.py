@@ -10,7 +10,7 @@ from rvt_ai.engines.vad_silero import SileroVadEngine
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import SegmentStats
 from rvt_ai.pipeline.session import RVTSession
-from rvt_contracts.messages import AsrFinal, MtDelta, MtFinal, Vad
+from rvt_contracts.messages import AsrFinal, AsrPartial, MtDelta, MtFinal, Vad
 
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../models"))
 SPEECH_WAV = os.path.join(os.path.dirname(__file__), "../fixtures/speech_16k.wav")
@@ -236,4 +236,106 @@ async def test_session_tail_fragment_merging():
     assert len(asr_finals) == 2
     assert asr_finals[1].text == "少しは 我慢しなさい"
     assert session.pending_tail_fragment == ""
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_run_mt_keeps_raw_translation_when_validator_crashes(monkeypatch):
+    # Bộ làm sạch lỗi thì phải hiện bản dịch thô, không thay bằng "[Lỗi dịch vi]" (docs 08 §3.1)
+    from rvt_ai.pipeline.mt_validator import mt_validator
+
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    def broken_validate(*args, **kwargs):
+        raise AttributeError("'str' object has no attribute 'endsWith'")
+
+    monkeypatch.setattr(mt_validator, "validate", broken_validate)
+    session = RVTSession("test-validator-crash", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    await session._run_mt(7, "検証用の一文です。", "ja", "vi")
+
+    finals = [e for e in events if isinstance(e, MtFinal)]
+    assert len(finals) == 1
+    assert finals[0].text == "Hôm nay thời tiết rất đẹp."
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_empty_final_does_not_wipe_previous_card():
+    # Đoạn 1 có chữ tạm (uid 0) rồi chốt có chữ; đoạn 2 ngắn, chưa có chữ tạm, nhận dạng ra rỗng (ví dụ câu bịa vừa bị
+    # lọc). Không được gửi asr.final rỗng cho uid 0 — web sẽ xoá thẻ đã chốt cùng bản dịch (docs 08 §3.2).
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    texts = iter(["こんにちは。", ""])
+
+    class ScriptedAsr:
+        def transcribe(self, *args, **kwargs):
+            return next(texts), "ja", {"ja": 1.0}
+
+    session = RVTSession("test-wipe", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.scheduler = AsrScheduler(ScriptedAsr().transcribe)
+    stats = SegmentStats(speech_ms=900, prob_mean=0.6, prob_max=0.9)
+    session.last_partial_uid = 0
+    await session._process_final_audio(b"\x01" * 3200, "A", stats)
+    await session._process_final_audio(b"\x01" * 3200, "A", stats)
+
+    assert [e.text for e in events if isinstance(e, AsrFinal) and e.utterance_id == 0] == ["こんにちは。"]
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_all_committed_segment_keeps_early_committed_card():
+    # Câu chốt sớm lấy uid của thẻ chữ tạm (5); sau đó không còn chữ tạm mới. Chữ chốt của cả đoạn (uid 6) chỉ còn câu
+    # đã chốt nên ra rỗng: không được xoá thẻ 5 (docs 08 §3.2).
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    class MockAsr:
+        def transcribe(self, *args, **kwargs):
+            return "夢は自分の中に留めておく", "ja", {"ja": 1.0}
+
+    session = RVTSession("test-commit-wipe", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.scheduler = AsrScheduler(MockAsr().transcribe)
+    session.last_partial_uid = 5
+    session.utterance_id_counter = 6
+    session.committed_sentences = ["夢は自分の中に留めておく。"]
+    stats = SegmentStats(speech_ms=2000, prob_mean=0.8, prob_max=0.9)
+    await session._process_final_audio(b"\x01" * 3200, "A", stats)
+
+    assert not [e for e in events if isinstance(e, AsrFinal) and e.text == ""]
+    await session.close()
+
+
+@pytest.mark.asyncio
+async def test_stale_partial_after_final_is_dropped():
+    # Chữ tạm gửi đi khi đoạn còn uid 3, nhưng đoạn được chốt trong lúc chờ nên bộ đếm đã sang 4. Kết quả đó là chữ của
+    # câu vừa chốt: không được hiện thành thẻ uid 4 (thẻ trùng, có thể treo luôn) (docs 08 §3.7).
+    events = []
+
+    async def mock_send_event(event):
+        events.append(event)
+
+    class MockAsr:
+        def transcribe(self, *args, **kwargs):
+            return "落ち着きなさいよ", "ja", {"ja": 1.0}
+
+    session = RVTSession("test-stale", FakeVadEngine(), FakeAsrEngine(), FakeMtEngine(), mock_send_event)
+    session.scheduler = AsrScheduler(MockAsr().transcribe)
+    session.current_side = "A"
+    session.utterance_id_counter = 4
+
+    await session._process_partial_audio(b"\x01" * 3200, "A", 3)
+    assert not [e for e in events if isinstance(e, AsrPartial)]
+    assert session.last_partial_uid is None
+
+    # Chữ tạm của đúng đoạn đang nói vẫn hiện bình thường
+    await session._process_partial_audio(b"\x01" * 3200, "A", 4)
+    assert [e.utterance_id for e in events if isinstance(e, AsrPartial)] == [4]
     await session.close()
