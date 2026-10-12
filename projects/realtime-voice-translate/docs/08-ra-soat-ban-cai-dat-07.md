@@ -67,6 +67,40 @@ Từ bản này, số `vad_mean=` trong log của mỗi câu thấp hơn trướ
 - `RVT_AI_URL=http://localhost:8000 npm run dev` giờ chuyển `/ws` và `/api` tới server AI chạy ở máy, như nginx làm khi
   triển khai.
 
+**Cập nhật 2026-10-12: đã làm bước 3 (thu âm)**, có test:
+
+- **§4.4 — `web/public/audio-processor.js`:**
+  - lọc FIR 63 tap (cửa sổ Hamming, cắt 7 kHz) thay cho biquad bậc 2. Chỉ lọc khi hạ mẫu: nguồn 16 kHz đi thẳng, nguồn
+    dưới 16 kHz chỉ nội suy;
+  - cấp phát bộ đệm một lần trong constructor (trước đây tạo 375 `Float32Array` mỗi giây);
+  - nội suy tuyến tính qua được ranh giới khối 128 mẫu: điểm nằm giữa hai khối dùng mẫu cuối của khối trước. Bản cũ lấy
+    luôn mẫu cuối của khối, sai ở mỗi ranh giới khi tỉ lệ không nguyên (44,1 kHz).
+- **Đo bằng chính file JS**, chạy trong Node theo khối 128 mẫu trên 860 s audio stereo của golden_1, cách đo của §4.4:
+
+| Tần số mẫu của `AudioContext` | Biquad bậc 2 (`873d676`) | FIR 63 tap |
+|---|---|---|
+| 48 kHz | −33,2 dB | −58,1 dB |
+| 44,1 kHz | −34,1 dB | −45,9 dB |
+| 96 kHz | −32,6 dB | −49,9 dB |
+
+- Ở 44,1 kHz, phần còn lại do bộ nội suy tuyến tính (−46,0 dB). Lỗi ở ranh giới khối giảm từ −43,5 dB xuống
+  −75,8 dB.
+- Ở 48 kHz, đầu ra trùng với tín hiệu đã lọc lấy 1/3 mẫu, lệch tối đa 1 LSB.
+- CPU: 7,6–8,4 ms cho mỗi giây audio ở 48 kHz (Node 22, máy sandbox). Bản cũ tốn 11,4–12,8 ms vì cấp phát mỗi
+  khối.
+- **Kiểm trong Chromium thật** (`AudioContext` 48 kHz và 44,1 kHz, sóng sin):
+  - 1 kHz và 5 kHz giữ nguyên mức (lệch ≤ 0,3 dB);
+  - 9 kHz còn −64 đến −66 dB, 12 kHz còn −68 đến −78 dB;
+  - hai kênh ngược pha triệt tiêu hết.
+
+  e2e `connection.spec.ts` và `app.spec.ts` vẫn xanh (mic giả, server dùng engine giả).
+- **Unit test** `web/tests/audio_processor.test.ts` chạy đúng file worklet. 4/7 test đỏ ở bản cũ: dải lời nói, chặn
+  trên 8 kHz, 44,1 kHz, cấp phát.
+- **Nhận dạng** (Whisper turbo ONNX, 60 đoạn đầu như 07 §8, chấm theo phụ đề): ký tự lời thoại khớp 547 với FIR, 542
+  với biquad, 533 khi hạ mẫu chuẩn (`resample_poly`), 525 với bản cũ hơn (kênh trái, không lọc). Chênh lệch nằm trong
+  mức dao động: FIR không làm nhận dạng kém đi. 14/60 đoạn có chữ khác bản hạ mẫu chuẩn, phần lớn là dấu câu và câu bịa
+  ở đoạn không lời.
+
 ## 1. Kết luận
 
 **Chưa ổn để chạy lâu dài.** Phần lớn hạng mục của 07 đã được làm, và phần quan trọng nhất — vị trí cắt đoạn — đúng hoàn
@@ -126,7 +160,7 @@ phần.
    - hotfix ba lỗi ở điểm 2, kèm §3.7 (đã làm);
    - sửa session (§3.3, §3.6) và tắt ghép phần đuôi (§3.4), kèm test ở mục 6 (đã làm);
    - sửa web (§4.1–4.3) (đã làm, còn thử trên Safari/iPhone thật);
-   - lọc FIR trong worklet;
+   - lọc FIR trong worklet (đã làm);
    - đo lại trên server bằng `eval/golden_session.py`.
 
 ## 2. Cách kiểm tra
@@ -817,7 +851,7 @@ riêng.
 | 0 · Hotfix | §3.1 `endswith`, bộ làm sạch lỗi thì dùng bản dịch thô; §3.2 xoá đúng thẻ, kèm §3.7 bỏ chữ tạm cũ; §3.5 bỏ "—", "\*\*" khỏi `stop` | server | 1 giờ | **Đã làm.** Test mục 6 xanh; `golden_session.py`: 0 thẻ đã chốt bị xoá, 0 thẻ treo |
 | 1 · Session | §3.3 `vad_mean`, mẫu câu bịa, lọc cả chữ tạm; §3.4 tắt ghép phần đuôi (hoặc sửa đủ, kèm `useStore`); §3.6 so khớp | server (+ web nếu giữ ghép đuôi) | 1 ngày | **Đã làm** (tắt ghép phần đuôi). `golden_session.py` trên golden_1: 0 thẻ bị xoá, 0 chữ tạm đến muộn, câu bịa trên màn hình 2, CER 0,167 |
 | 2 · Safari | §4.1 phép kiểm "đang nghe" + chạm để xin lại mic; §4.2; §4.3 `client_id` theo trang, 4409; wake lock | web + server | 1–2 ngày | **Đã làm, đã kiểm trên Chromium.** Còn thử trên Safari/iPhone: tab khác lấy mic rồi trả, khoá màn hình, gọi Siri — app báo đúng và nghe lại sau một lần chạm; mở hai tab không đá nhau |
-| 3 · Thu âm | §4.4 FIR 63 tap, cấp phát một lần | web | 0,5 ngày | aliasing ≤ −40 dB so với lời |
+| 3 · Thu âm | §4.4 FIR 63 tap, cấp phát một lần | web | 0,5 ngày | **Đã làm.** Aliasing so với lời: −58,1 dB ở 48 kHz, −45,9 dB ở 44,1 kHz (biquad: −33,2 / −34,1 dB) |
 | 4 · Prompt | §3.8 ba chỉnh nhỏ | server | 0,5 ngày | CER golden_1 không tăng, câu bịa không tăng |
 
 ## 8. Rủi ro và đánh đổi
