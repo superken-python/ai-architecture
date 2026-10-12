@@ -26,6 +26,7 @@ Xem docs/08-ra-soat-ban-cai-dat-07.md §2.
 
 import argparse
 import asyncio
+import difflib
 import glob
 import json
 import os
@@ -77,6 +78,15 @@ class VirtualClockLoop(asyncio.SelectorEventLoop):
         return self.virtual_time
 
 
+def _repeats(prev: str, cur: str) -> bool:
+    """Thẻ sau mở đầu gần giống hệt thẻ trước (chịu được dấu câu, ズレ/ずれ...): câu bị hiện hai lần.
+
+    Video cũng có câu lặp thật ("おはよう" hai lần), nên so số này giữa hai bản code, đừng đòi bằng 0.
+    """
+    a, b = norm(prev), norm(cur)
+    return len(a) >= 4 and difflib.SequenceMatcher(None, a, b[: len(a)], autojunk=False).ratio() >= 0.75
+
+
 def replay_screen(events: list[dict]) -> dict:
     """Chép cách useStore.ts xử lý asr.partial / asr.final: final rỗng thì xoá thẻ, final có chữ thì chốt thẻ."""
     cards: dict[int, dict] = {}
@@ -105,11 +115,7 @@ def replay_screen(events: list[dict]) -> dict:
                 refinal += 1
             cards[uid] = {"uid": uid, "text": text, "final": True, "t": ev["t"]}
     finals = [c for _, c in sorted(cards.items()) if c["final"]]
-    duplicated = [
-        b["text"]
-        for a, b in zip(finals, finals[1:], strict=False)
-        if len(norm(a["text"])) >= 4 and norm(a["text"]) in norm(b["text"])
-    ]
+    duplicated = [b["text"] for a, b in zip(finals, finals[1:], strict=False) if _repeats(a["text"], b["text"])]
     return {
         "finals": finals,
         "wiped": wiped,
