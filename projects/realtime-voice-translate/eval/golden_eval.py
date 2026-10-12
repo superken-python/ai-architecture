@@ -165,34 +165,28 @@ def main() -> None:
         asr_compute_type = "int8"
 
     try:
-        engine = FasterWhisperEngine(
-            model_size=profile.asr.model, device=asr_device, compute_type=asr_compute_type
-        )
+        engine = FasterWhisperEngine(model_size=profile.asr.model, device=asr_device, compute_type=asr_compute_type)
     except Exception as e:
         print(f"Cảnh báo: Không thể tải FasterWhisperEngine trên {asr_device}: {e}. Đang chuyển sang CPU int8...")
         asr_device = "cpu"
         asr_compute_type = "int8"
-        engine = FasterWhisperEngine(
-            model_size=profile.asr.model, device="cpu", compute_type="int8"
-        )
+        engine = FasterWhisperEngine(model_size=profile.asr.model, device="cpu", compute_type="int8")
 
     t0, rows = time.time(), []
     for f in finals:
         audio_chunk = f.pop("audio")
         try:
             text, _, _ = engine.transcribe(audio_chunk, language=args.language)
-        except RuntimeError as re:
-            if "out of memory" in str(re).lower() and asr_device != "cpu":
-                print("\nCUDA Out of Memory trong khi nhận dạng! Đang tự động chuyển Whisper sang CPU int8...", flush=True)
+        except RuntimeError as err:
+            if "out of memory" in str(err).lower() and asr_device != "cpu":
+                print("\nCUDA hết bộ nhớ khi nhận dạng! Chuyển Whisper sang CPU int8...", flush=True)
                 del engine
                 asr_device = "cpu"
                 asr_compute_type = "int8"
-                engine = FasterWhisperEngine(
-                    model_size=profile.asr.model, device="cpu", compute_type="int8"
-                )
+                engine = FasterWhisperEngine(model_size=profile.asr.model, device="cpu", compute_type="int8")
                 text, _, _ = engine.transcribe(audio_chunk, language=args.language)
             else:
-                raise re
+                raise
         rows.append({**f, "text": text})
     print(f"Nhận dạng {len(rows)} đoạn trong {time.time() - t0:.0f} s; {sum(not r['text'] for r in rows)} đoạn ra rỗng")
 
