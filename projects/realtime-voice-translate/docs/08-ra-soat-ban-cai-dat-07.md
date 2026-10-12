@@ -36,6 +36,37 @@ Phát lại golden_1 bằng `golden_session.py`:
 
 Từ bản này, số `vad_mean=` trong log của mỗi câu thấp hơn trước với cùng một đoạn (§3.3).
 
+**Cập nhật 2026-10-12: đã làm bước 2 (Safari)**, có test:
+
+- **§4.1 — phép kiểm "đang nghe" mỗi giây.** Nó báo khi:
+  - track đã hết hoặc bị mute;
+  - `AudioContext` dừng quá 1,5 s;
+  - khung audio ngừng tới quá 2 s;
+  - mic gửi toàn số 0 quá 2 s.
+
+  Cảnh báo còn hiện chừng nào lỗi còn. Chạm vào cảnh báo thì chạy lại `AudioContext`; nếu track bị mute, đã hết, ngừng
+  hoặc toàn số 0 thì xin lại mic/tab ngay trong lần chạm. Lời nhắn nói đúng nguồn (micro hay tab), và im lặng số khi thu
+  âm tab không bị coi là lỗi.
+- **§4.2:** bấm "Dừng chia sẻ" lại tắt thu như trước.
+- **§4.3 — `client_id`:**
+  - mỗi trang một mã, chỉ giữ trong bộ nhớ, gửi trên URL `/ws?client_id=…`;
+  - server thay kết nối cũ cùng mã trước khi kiểm giới hạn phiên, và đóng nó bằng 4409; client gặp 4409 thì không tự
+    nối lại;
+  - client bỏ qua sự kiện của kết nối đã bị thay; watchdog 8 s nối lại ngay, không chờ sự kiện close của kết nối chết.
+- **Wake lock:** xin lại trong lần chạm bật mic và khi chạm "tiếp tục nghe"; hiện nhắc nhở khi không giữ được màn hình
+  sáng.
+- **Kiểm bằng Chromium với mic giả và server thật dùng engine giả** (`web/tests/e2e/connection.spec.ts`, chạy khi đặt
+  `RVT_AI_URL`):
+  - hai tab cùng trình duyệt: 0 lần mất kết nối trong 8 s (bản cũ dùng chung mã, đá nhau mỗi 2 s);
+  - kết nối bị thay bằng 4409: hiện lý do, không tự nối lại;
+  - track mic chết: cảnh báo hiện trong vòng 3 s, một lần chạm thì thu lại.
+
+  Cả 3 test đều đỏ ở bản cũ. Có thêm unit test `web/tests/capture_health.test.ts` và 3 test tích hợp server trong
+  `ai/tests/integration/test_ws_stream.py`.
+- **Chưa thử trên Safari/iPhone thật** (sandbox chỉ có Chromium): cần thử theo tiêu chí của bước 2 ở mục 7.
+- `RVT_AI_URL=http://localhost:8000 npm run dev` giờ chuyển `/ws` và `/api` tới server AI chạy ở máy, như nginx làm khi
+  triển khai.
+
 ## 1. Kết luận
 
 **Chưa ổn để chạy lâu dài.** Phần lớn hạng mục của 07 đã được làm, và phần quan trọng nhất — vị trí cắt đoạn — đúng hoàn
@@ -94,7 +125,7 @@ phần.
 6. **Thứ tự làm** (mục 7):
    - hotfix ba lỗi ở điểm 2, kèm §3.7 (đã làm);
    - sửa session (§3.3, §3.6) và tắt ghép phần đuôi (§3.4), kèm test ở mục 6 (đã làm);
-   - sửa web (§4.1–4.3);
+   - sửa web (§4.1–4.3) (đã làm, còn thử trên Safari/iPhone thật);
    - lọc FIR trong worklet;
    - đo lại trên server bằng `eval/golden_session.py`.
 
@@ -785,7 +816,7 @@ riêng.
 |---|---|---|---|---|
 | 0 · Hotfix | §3.1 `endswith`, bộ làm sạch lỗi thì dùng bản dịch thô; §3.2 xoá đúng thẻ, kèm §3.7 bỏ chữ tạm cũ; §3.5 bỏ "—", "\*\*" khỏi `stop` | server | 1 giờ | **Đã làm.** Test mục 6 xanh; `golden_session.py`: 0 thẻ đã chốt bị xoá, 0 thẻ treo |
 | 1 · Session | §3.3 `vad_mean`, mẫu câu bịa, lọc cả chữ tạm; §3.4 tắt ghép phần đuôi (hoặc sửa đủ, kèm `useStore`); §3.6 so khớp | server (+ web nếu giữ ghép đuôi) | 1 ngày | **Đã làm** (tắt ghép phần đuôi). `golden_session.py` trên golden_1: 0 thẻ bị xoá, 0 chữ tạm đến muộn, câu bịa trên màn hình 2, CER 0,167 |
-| 2 · Safari | §4.1 phép kiểm "đang nghe" + chạm để xin lại mic; §4.2; §4.3 `client_id` theo trang, 4409; wake lock | web + server | 1–2 ngày | Safari: tab khác lấy mic rồi trả, khoá màn hình, gọi Siri — app báo đúng và nghe lại sau một lần chạm; mở hai tab không đá nhau |
+| 2 · Safari | §4.1 phép kiểm "đang nghe" + chạm để xin lại mic; §4.2; §4.3 `client_id` theo trang, 4409; wake lock | web + server | 1–2 ngày | **Đã làm, đã kiểm trên Chromium.** Còn thử trên Safari/iPhone: tab khác lấy mic rồi trả, khoá màn hình, gọi Siri — app báo đúng và nghe lại sau một lần chạm; mở hai tab không đá nhau |
 | 3 · Thu âm | §4.4 FIR 63 tap, cấp phát một lần | web | 0,5 ngày | aliasing ≤ −40 dB so với lời |
 | 4 · Prompt | §3.8 ba chỉnh nhỏ | server | 0,5 ngày | CER golden_1 không tăng, câu bịa không tăng |
 

@@ -1,9 +1,12 @@
 import json
 import time
 
+import pytest
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 from rvt_ai.api.stream import active_sessions
+from rvt_ai.core.config import settings
 from rvt_ai.main import app
 
 
@@ -84,3 +87,62 @@ def test_websocket_end_to_end_flow():
         err_msg = json.loads(ws.receive_text())
         assert err_msg["type"] == "error"
         assert err_msg["code"] == "invalid_message"
+
+
+def _ready(ws) -> dict:
+    msg = json.loads(ws.receive_text())
+    assert msg["type"] == "session.ready"
+    return msg
+
+
+def _pong(ws, t: int) -> None:
+    ws.send_text(json.dumps({"type": "ping", "t": t}))
+    msg = json.loads(ws.receive_text())
+    assert msg["type"] == "pong" and msg["t"] == t
+
+
+def test_same_client_id_replaces_previous_connection_with_4409():
+    # Trang nối lại sau khi mất mạng: kết nối cũ (thường đã chết) bị đóng bằng 4409, kết nối mới dùng được
+    # (docs 08 §4.3)
+    with (
+        TestClient(app) as client,
+        client.websocket_connect("/ws?client_id=page-1", subprotocols=["rvt.v1"]) as old,
+    ):
+        _ready(old)
+        with client.websocket_connect("/ws?client_id=page-1", subprotocols=["rvt.v1"]) as new:
+            _ready(new)
+            with pytest.raises(WebSocketDisconnect) as exc:
+                old.receive_text()
+            assert exc.value.code == 4409
+            _pong(new, 1)
+
+
+def test_different_client_ids_keep_both_connections():
+    # Mỗi tab một client_id: hai tab không được đá nhau (873d676 dùng chung mã trong localStorage)
+    with (
+        TestClient(app) as client,
+        client.websocket_connect("/ws?client_id=tab-a", subprotocols=["rvt.v1"]) as a,
+        client.websocket_connect("/ws?client_id=tab-b", subprotocols=["rvt.v1"]) as b,
+    ):
+        _ready(a)
+        _ready(b)
+        _pong(a, 1)
+        _pong(b, 2)
+
+
+def test_reconnecting_page_is_not_blocked_by_its_own_stale_session(monkeypatch):
+    # Đủ phiên: trang khác bị từ chối 4429, nhưng chính trang có phiên cũ nối lại thì được nhận vì phiên cũ bị thay
+    with TestClient(app) as client:
+        monkeypatch.setattr(settings, "MAX_SESSIONS", len(active_sessions) + 1)
+        with client.websocket_connect("/ws?client_id=page-1", subprotocols=["rvt.v1"]) as old:
+            _ready(old)
+            with client.websocket_connect("/ws?client_id=page-2", subprotocols=["rvt.v1"]) as other:
+                with pytest.raises(WebSocketDisconnect) as exc:
+                    other.receive_text()
+                assert exc.value.code == 4429
+            with client.websocket_connect("/ws?client_id=page-1", subprotocols=["rvt.v1"]) as new:
+                _ready(new)
+                with pytest.raises(WebSocketDisconnect) as exc:
+                    old.receive_text()
+                assert exc.value.code == 4409
+                _pong(new, 3)

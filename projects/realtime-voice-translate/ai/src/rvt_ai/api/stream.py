@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import json
 import os
@@ -19,6 +20,38 @@ router = APIRouter()
 active_sessions: dict[str, RVTSession] = {}
 client_sockets: dict[str, WebSocket] = {}
 client_sessions: dict[str, str] = {}
+_background_tasks: set[asyncio.Task] = set()
+
+# Mã đóng khi một trang mở kết nối mới thay cho kết nối cũ của chính nó: client nhận mã này thì không tự nối lại
+REPLACED_CLOSE_CODE = 4409
+
+
+async def _close_quietly(websocket: WebSocket, code: int, reason: str) -> None:
+    with contextlib.suppress(Exception):
+        await websocket.close(code=code, reason=reason)
+
+
+def _replace_previous_connection(client_id: str, websocket: WebSocket) -> None:
+    """Mỗi trang chỉ giữ một kết nối: đóng kết nối cũ cùng client_id và trả chỗ của nó ngay.
+
+    Kết nối cũ thường đã "chết" (mất mạng, máy ngủ) mà server chưa biết. Phải trả chỗ trước khi kiểm MAX_SESSIONS, nếu
+    không trang vừa nối lại bị từ chối 4429 vì chính phiên chết của nó (docs 08 §4.3). Không chờ đóng xong: với kết
+    nối nửa mở, bắt tay đóng có thể treo tới hết thời gian chờ.
+    """
+    old_ws = client_sockets.get(client_id)
+    if old_ws is None or old_ws is websocket:
+        return
+    client_sockets.pop(client_id, None)
+    for sid, cid in list(client_sessions.items()):
+        if cid == client_id:
+            client_sessions.pop(sid, None)
+            active_sessions.pop(sid, None)  # vòng lặp của kết nối cũ sẽ tự dọn phần còn lại khi nó kết thúc
+    logger.info(f"Replacing previous connection for client_id {client_id}")
+    task = asyncio.get_running_loop().create_task(
+        _close_quietly(old_ws, REPLACED_CLOSE_CODE, "Replaced by a newer connection from the same page")
+    )
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
 
 async def handle_websocket_connection(websocket: WebSocket):
@@ -33,6 +66,12 @@ async def handle_websocket_connection(websocket: WebSocket):
         logger.warning("Rejecting WebSocket connection: invalid or missing session token")
         await websocket.close(code=4401, reason="Unauthorized: invalid or missing session token")
         return
+
+    # client_id trên URL (ws_client.ts gửi, mỗi trang một mã): thay kết nối cũ của chính trang này trước khi kiểm
+    # giới hạn phiên. Client cũ chỉ gửi client_id trong session.start, xử lý ở dưới.
+    client_id = (websocket.query_params.get("client_id") or "").strip()[:64] or None
+    if client_id:
+        _replace_previous_connection(client_id, websocket)
 
     # Check session limit
     if len(active_sessions) >= settings.MAX_SESSIONS:
@@ -87,6 +126,9 @@ async def handle_websocket_connection(websocket: WebSocket):
         scheduler=app_state.asr_scheduler,
     )
     active_sessions[session_id] = session
+    if client_id:
+        client_sockets[client_id] = websocket
+        client_sessions[session_id] = client_id
     logger.info(f"WebSocket session connected: {session_id} (total: {len(active_sessions)})")
 
     # Send initial session.ready event
@@ -145,15 +187,11 @@ async def handle_websocket_connection(websocket: WebSocket):
                     event = client_event_adapter.validate_python(payload)
 
                     if event.type == "session.start":
-                        if event.client_id:
-                            cid = event.client_id
-                            if cid in client_sockets and client_sockets[cid] != websocket:
-                                old_ws = client_sockets.pop(cid)
-                                logger.info(f"Closing previous zombie connection for client_id {cid}")
-                                with contextlib.suppress(Exception):
-                                    await old_ws.close(code=1000, reason="Replaced by new connection")
-                            client_sockets[cid] = websocket
-                            client_sessions[session_id] = cid
+                        # Client cũ chỉ gửi client_id ở đây; client mới đã đăng ký mã trên URL lúc kết nối
+                        if event.client_id and session_id not in client_sessions:
+                            _replace_previous_connection(event.client_id, websocket)
+                            client_sockets[event.client_id] = websocket
+                            client_sessions[session_id] = event.client_id
                         await session.handle_session_start(event)
                     elif event.type == "turn.start":
                         await session.handle_turn_start(event.side)

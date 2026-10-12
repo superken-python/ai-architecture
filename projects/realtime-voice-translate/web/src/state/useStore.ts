@@ -30,6 +30,7 @@ interface AppState {
   utterances: Record<number, Utterance>;
   errorMessage: string | null;
   captureWarning: string | null;
+  wakeLockHeld: boolean;
   audioSource: 'mic' | 'tab';
   meetingMode: boolean;
 
@@ -41,6 +42,7 @@ interface AppState {
   setMeetingMode: (active: boolean) => void;
   setError: (msg: string | null) => void;
   setCaptureWarning: (msg: string | null) => void;
+  setWakeLockHeld: (held: boolean) => void;
   clearError: () => void;
   clearHistory: () => void;
   handleServerEvent: (event: ServerEvent) => void;
@@ -59,6 +61,7 @@ export const useStore = create<AppState>((set, get) => ({
   utterances: {},
   errorMessage: null,
   captureWarning: null,
+  wakeLockHeld: true,
   audioSource: 'mic',
   meetingMode: false,
 
@@ -66,6 +69,7 @@ export const useStore = create<AppState>((set, get) => ({
   setActiveSide: (side) => set({ activeSide: side }),
   setMicActive: (active) => set({ isMicActive: active }),
   setCaptureWarning: (msg) => set({ captureWarning: msg }),
+  setWakeLockHeld: (held) => set({ wakeLockHeld: held }),
   setAudioSource: (source) => set({ audioSource: source }),
   setMeetingMode: (active) => set({ meetingMode: active }),
   

@@ -16,6 +16,12 @@ export async function requestWakeLock(): Promise<boolean> {
   return false;
 }
 
+// Màn hình còn được giữ sáng không: trình duyệt tự nhả wake lock khi trang bị ẩn, hoặc từ chối (pin yếu, không có thao
+// tác người dùng, Safari < 16.4). ws_client.ts đọc giá trị này để hiện nhắc nhở khi đang nghe (docs 08 §4.5).
+export function isWakeLockHeld(): boolean {
+  return wakeLockSentinel !== null && wakeLockSentinel.released !== true;
+}
+
 export function releaseWakeLock(): void {
   if (wakeLockSentinel) {
     wakeLockSentinel.release().catch(() => {});

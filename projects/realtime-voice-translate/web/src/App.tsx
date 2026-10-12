@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore, Side, SupportedLang, Utterance } from './state/useStore';
 import { rvtClient } from './net/ws_client';
+import { setupWakeLockAutoRefresh } from './audio/wake-lock';
 
 const LANG_LABELS: Record<string, string> = {
   auto: "Tự động",
@@ -69,6 +70,7 @@ const App: React.FC = () => {
     utterances,
     errorMessage,
     captureWarning,
+    wakeLockHeld,
     audioSource,
     meetingMode,
     setAudioSource,
@@ -109,18 +111,19 @@ const App: React.FC = () => {
     const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
     rvtClient.connect(wsUrl);
 
-    // Keep screen awake on mobile during conversation
-    import('./audio/wake-lock').then(({ setupWakeLockAutoRefresh }) => {
-      const cleanupWakeLock = setupWakeLockAutoRefresh();
-      return cleanupWakeLock;
-    });
+    // Keep screen awake on mobile during conversation (xin lại khi bật mic: ws_client.startAudio)
+    const cleanupWakeLock = setupWakeLockAutoRefresh();
 
+    let debugTimer: ReturnType<typeof setInterval> | null = null;
     if (typeof window !== 'undefined' && window.location.search.includes('debug=1')) {
-      const timer = setInterval(() => {
+      debugTimer = setInterval(() => {
         setDebugStats(rvtClient.getDebugStats());
       }, 2000);
-      return () => clearInterval(timer);
     }
+    return () => {
+      cleanupWakeLock();
+      if (debugTimer) clearInterval(debugTimer);
+    };
   }, []);
 
   const utteranceList = Object.values(utterances);
@@ -427,6 +430,13 @@ const App: React.FC = () => {
           >
             Chạm để tiếp tục nghe
           </button>
+        </div>
+      )}
+
+      {/* Không giữ được màn hình sáng khi đang nghe: màn hình tự khoá sẽ làm ngừng thu âm (docs 08 §4.5) */}
+      {isMicActive && !wakeLockHeld && !captureWarning && (
+        <div style={{ backgroundColor: '#1e293b', color: '#fbbf24', padding: '6px 16px', fontSize: '12px', borderBottom: '1px solid #334155' }}>
+          🔆 Màn hình có thể tự khoá và làm ngừng thu âm. Tắt Tự động khoá hoặc cắm sạc trong lúc dùng.
         </div>
       )}
 

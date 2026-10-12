@@ -115,7 +115,7 @@ test.describe('Realtime Voice Translate UI', () => {
 
     const micSourceBtn = page.getByRole('button', { name: '🎙️ Mic' });
     await micSourceBtn.click();
-    await expect(page.locator('text=Lưu ý video:')).toBeVisible();
+    await expect(page.locator('text=Trên iPhone/iPad (Safari), giữ trình duyệt mở và màn hình sáng')).toBeVisible();
   });
 });
 

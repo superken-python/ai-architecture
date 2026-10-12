@@ -1,17 +1,14 @@
 import { useStore, Side, SupportedLang } from '../state/useStore';
-
-function getClientId(): string {
-  try {
-    let id = localStorage.getItem('rvt_client_id');
-    if (!id) {
-      id = 'cli-' + Math.random().toString(36).substring(2, 10);
-      localStorage.setItem('rvt_client_id', id);
-    }
-    return id;
-  } catch {
-    return 'cli-default';
-  }
-}
+import { isWakeLockHeld, requestWakeLock } from '../audio/wake-lock';
+import type { CaptureProblem, CaptureSource } from './capture_health';
+import {
+  REPLACED_CLOSE_CODE,
+  captureMessage,
+  detectCaptureProblem,
+  needsNewCapture,
+  newClientId,
+  wsUrlWithClientId,
+} from './capture_health';
 
 class RVTClient {
   private ws: WebSocket | null = null;
@@ -26,21 +23,24 @@ class RVTClient {
   private lastServerMessageAt: number = 0;
   private totalChunksSent: number = 0;
   private lastRmsDbfs: number | null = null;
+  // Mỗi trang một mã, chỉ trong bộ nhớ (docs 08 §4.3): để chính trang này thay được kết nối "chết" của mình khi nối lại.
+  // Bản cũ lưu trong localStorage nên mọi tab dùng chung một mã và đá nhau mỗi 2 s.
+  private readonly clientId: string = newClientId();
+  private captureSource: CaptureSource = 'mic';
+  private zeroSince: number = 0;
+  private contextBadSince: number = 0;
+  private listenTimer: any = null;
 
   constructor() {
     if (typeof document !== 'undefined') {
+      // Trang quay lại từ nền: thử chạy lại AudioContext (có trình duyệt cho phép không cần chạm), rồi để phép kiểm
+      // "đang nghe" quyết định có cần hiện "Chạm để tiếp tục" hay không (docs 08 §4.1)
       const checkStateOnForeground = () => {
-        const store = useStore.getState();
-        if (store.isMicActive) {
-          if (this.audioContext && (this.audioContext.state === 'suspended' || (this.audioContext.state as any) === 'interrupted')) {
-            this.audioContext.resume().catch(() => {});
-            useStore.getState().setCaptureWarning("Trang vừa quay lại từ chế độ nền. Chạm vào màn hình để tiếp tục nghe.");
-          }
-          const track = this.mediaStream?.getAudioTracks()[0];
-          if (track && (track.muted || track.readyState === 'ended')) {
-            useStore.getState().setCaptureWarning("Microphone đã bị gián đoạn khi chuyển ứng dụng. Chạm để bật lại.");
-          }
+        if (!useStore.getState().isMicActive) return;
+        if (this.audioContext && this.audioContext.state !== 'running') {
+          this.audioContext.resume().catch(() => {});
         }
+        setTimeout(() => this.checkListening(), 300);
       };
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
@@ -58,11 +58,24 @@ class RVTClient {
       this.reconnectTimer = null;
     }
 
-    try {
-      this.ws = new WebSocket(url, "rvt.v1");
-      this.ws.binaryType = "arraybuffer";
+    // Đóng kết nối cũ nếu còn (ví dụ React StrictMode gọi connect hai lần): sự kiện của nó sẽ bị bỏ qua
+    if (this.ws) {
+      const previous = this.ws;
+      this.ws = null;
+      try {
+        previous.close();
+      } catch (_) {}
+    }
 
-      this.ws.onopen = () => {
+    try {
+      const socket = new WebSocket(wsUrlWithClientId(url, this.clientId), "rvt.v1");
+      socket.binaryType = "arraybuffer";
+      this.ws = socket;
+
+      // Mọi handler bỏ qua sự kiện của một kết nối đã bị thay (watchdog, nối lại): sự kiện close đến muộn của kết nối cũ
+      // không được làm mất kết nối hiện tại
+      socket.onopen = () => {
+        if (this.ws !== socket) return;
         useStore.getState().setConnected(true);
         this.lastServerMessageAt = Date.now();
         // Send session.start
@@ -74,7 +87,7 @@ class RVTClient {
         this.send({
           type: "session.start",
           protocol: 1,
-          client_id: getClientId(),
+          client_id: this.clientId,
           audio: { rate: 16000, format: "pcm_s16le" },
           sides: {
             A: { lang: store.sideALang },
@@ -98,7 +111,12 @@ class RVTClient {
             this.send({ type: "ping", t: Date.now() });
             if (this.lastServerMessageAt > 0 && Date.now() - this.lastServerMessageAt > 8000) {
               console.warn("Watchdog: No server message in 8s. Connection dead, reconnecting...");
-              this.ws.close();
+              // Không chờ sự kiện close: với kết nối nửa mở, trình duyệt có thể rất lâu mới báo đóng
+              const dead = this.ws;
+              this.handleDisconnect(1006);
+              try {
+                dead.close();
+              } catch (_) {}
             }
           }
         }, 2500);
@@ -123,40 +141,21 @@ class RVTClient {
         }, 5000);
       };
 
-      this.ws.onclose = (event: CloseEvent) => {
-        useStore.getState().setConnected(false);
-        if (this.pingInterval) {
-          clearInterval(this.pingInterval);
-          this.pingInterval = null;
-        }
-        if (this.healthInterval) {
-          clearInterval(this.healthInterval);
-          this.healthInterval = null;
-        }
-
-        if (event.code === 4429) {
-          useStore.getState().setError("Máy chủ hiện đang đầy phiên xử lý (tối đa 4 phiên). Vui lòng thử lại sau giây lát.");
-        }
-
-        // Do NOT destroy audio capture if mic is still active; allow seamless reconnect
-        if (!useStore.getState().isMicActive) {
-          this.stopAudio();
-        }
-
-        // Auto-reconnect with 2s backoff
-        this.reconnectTimer = setTimeout(() => {
-          this.connect(this.url);
-        }, 2000);
+      socket.onclose = (event: CloseEvent) => {
+        if (this.ws !== socket) return;
+        this.handleDisconnect(event.code);
       };
 
-      this.ws.onerror = (err) => {
+      socket.onerror = (err) => {
+        if (this.ws !== socket) return;
         console.error("WebSocket error:", err);
         useStore.getState().setError("Lỗi kết nối WebSocket tới máy chủ. Vui lòng kiểm tra lại chứng chỉ SSL hoặc kết nối mạng.");
       };
 
       const isDebug = typeof window !== 'undefined' && window.location.search.includes('debug=1');
 
-      this.ws.onmessage = (event) => {
+      socket.onmessage = (event) => {
+        if (this.ws !== socket) return;
         this.lastServerMessageAt = Date.now();
         if (typeof event.data === "string") {
           try {
@@ -174,6 +173,39 @@ class RVTClient {
       console.error("WebSocket connection failure:", e);
       useStore.getState().setError(`Lỗi kết nối: ${(e as Error).message}`);
     }
+  }
+
+  private handleDisconnect(code: number) {
+    this.ws = null;
+    useStore.getState().setConnected(false);
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+    if (this.healthInterval) {
+      clearInterval(this.healthInterval);
+      this.healthInterval = null;
+    }
+
+    if (code === 4429) {
+      useStore.getState().setError("Máy chủ hiện đang đầy phiên xử lý (tối đa 4 phiên). Vui lòng thử lại sau giây lát.");
+    }
+    if (code === REPLACED_CLOSE_CODE) {
+      // Server đã thay kết nối này bằng một kết nối mới cùng mã: tự nối lại thì hai bên sẽ đá nhau mãi (docs 08 §4.3)
+      useStore.getState().setError("Phiên này đã được mở lại ở một kết nối khác. Tải lại trang để tiếp tục dùng ở đây.");
+      this.stopAudio();
+      return;
+    }
+
+    // Do NOT destroy audio capture if mic is still active; allow seamless reconnect
+    if (!useStore.getState().isMicActive) {
+      this.stopAudio();
+    }
+
+    // Auto-reconnect with 2s backoff
+    this.reconnectTimer = setTimeout(() => {
+      this.connect(this.url);
+    }, 2000);
   }
 
   send(data: object) {
@@ -198,6 +230,9 @@ class RVTClient {
 
   async startAudio(side: Side, source: 'mic' | 'tab' = 'mic') {
     try {
+      // Xin giữ màn hình sáng ngay trong lần chạm bật mic: iOS có thể từ chối khi không có thao tác (docs 08 §4.5)
+      void requestWakeLock();
+
       // Clean up any ongoing audio stream first
       this.stopAudio();
       this.lastChunkTime = 0;
@@ -268,9 +303,6 @@ class RVTClient {
           this.stopAudio();
           throw new Error("Bạn chưa tích chọn ô 'Chia sẻ âm thanh' (Share audio) của tab!");
         }
-        audioTracks[0].onended = () => {
-          this.stopAudio();
-        };
       } else {
         this.mediaStream = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -282,22 +314,27 @@ class RVTClient {
         });
       }
 
-      // Ensure AudioContext wakes up if hardware track un-mutes or warn if muted/ended
+      // Track đổi trạng thái thì kiểm lại ngay, không đợi lượt kiểm mỗi giây (docs 08 §4.1). Thu âm tab: bấm "Dừng chia
+      // sẻ" của trình duyệt thì tắt thu như trước (docs 08 §4.2).
       this.mediaStream.getTracks().forEach((track) => {
         track.onmute = () => {
-          console.warn("Audio track MUTED by browser/system");
-          useStore.getState().setCaptureWarning("Microphone đã bị tạm dừng bởi hệ thống hoặc tab khác. Chạm vào màn hình để tiếp tục nghe.");
+          console.warn(`${track.kind} track MUTED by browser/system`);
+          this.checkListening();
         };
         track.onunmute = () => {
-          console.log("Audio track UNMUTED");
-          useStore.getState().setCaptureWarning(null);
-          if (this.audioContext && this.audioContext.state === 'suspended') {
+          console.log(`${track.kind} track UNMUTED`);
+          if (this.audioContext && this.audioContext.state !== 'running') {
             this.audioContext.resume().catch(() => {});
           }
+          this.checkListening();
         };
         track.onended = () => {
-          console.warn("Audio track ENDED");
-          useStore.getState().setCaptureWarning("Microphone đã bị đóng. Chạm để bật lại.");
+          console.warn(`${track.kind} track ENDED`);
+          if (source === 'tab') {
+            this.stopAudio();
+          } else {
+            this.checkListening();
+          }
         };
       });
 
@@ -310,7 +347,6 @@ class RVTClient {
       this.audioProcessor = new AudioWorkletNode(this.audioContext, 'audio-processor');
 
       let chunkCount = 0;
-      let silentChunkCount = 0;
       this.audioProcessor.port.onmessage = (event) => {
         this.lastChunkTime = Date.now();
         const pcm = new Int16Array(event.data);
@@ -324,17 +360,11 @@ class RVTClient {
         const rms = Math.sqrt(sumSq / Math.max(1, pcm.length));
         this.lastRmsDbfs = rms > 1e-5 ? Math.round(20 * Math.log10(rms)) : -96;
 
+        // Chuỗi khung toàn số 0: phép kiểm "đang nghe" báo sau 2 s (chỉ với mic)
         if (energy > 0) {
-          if (silentChunkCount >= 50 && useStore.getState().captureWarning?.includes("im lặng số")) {
-            useStore.getState().setCaptureWarning(null);
-          }
-          silentChunkCount = 0;
-        } else {
-          silentChunkCount++;
-          if (silentChunkCount === 50) {
-            console.warn("Received 2s of continuous digital zero audio. Track may be muted by OS.");
-            useStore.getState().setCaptureWarning("Microphone đang nhận toàn số 0 (im lặng số). Chạm để khôi phục thu âm.");
-          }
+          this.zeroSince = 0;
+        } else if (this.zeroSince === 0) {
+          this.zeroSince = this.lastChunkTime;
         }
 
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -355,6 +385,16 @@ class RVTClient {
       audioSourceNode.connect(this.audioProcessor);
       this.audioProcessor.connect(muteGain);
       muteGain.connect(this.audioContext.destination);
+
+      // Phép kiểm "đang nghe" mỗi giây (docs 08 §4.1)
+      this.captureSource = source;
+      this.lastChunkTime = Date.now();
+      this.zeroSince = 0;
+      this.contextBadSince = 0;
+      if (this.listenTimer) {
+        clearInterval(this.listenTimer);
+      }
+      this.listenTimer = setInterval(() => this.checkListening(), 1000);
     } catch (err) {
       console.error("Audio capture failed:", err);
       useStore.getState().setError(`Lỗi thu âm: ${(err as Error).message || "Không thể truy cập nguồn âm"}`);
@@ -363,22 +403,70 @@ class RVTClient {
     }
   }
 
+  private currentProblem(): CaptureProblem | null {
+    if (!this.mediaStream) return null;
+    const now = Date.now();
+    const contextState = (this.audioContext?.state as string | undefined) ?? 'none';
+    if (contextState === 'running') {
+      this.contextBadSince = 0;
+    } else if (this.contextBadSince === 0) {
+      this.contextBadSince = now;
+    }
+    const track = this.mediaStream.getAudioTracks()[0];
+    return detectCaptureProblem({
+      source: this.captureSource,
+      trackState: !track ? 'none' : track.readyState === 'ended' ? 'ended' : 'live',
+      trackMuted: !!track?.muted,
+      contextState,
+      now,
+      lastChunkAt: this.lastChunkTime,
+      zeroSince: this.zeroSince,
+      contextBadSince: this.contextBadSince,
+    });
+  }
+
+  // Phép kiểm "đang nghe" (docs 08 §4.1): chạy mỗi giây và ngay khi track đổi trạng thái. Cảnh báo còn hiện chừng nào
+  // lỗi còn, và tự tắt khi hết lỗi — không còn cảnh báo một lần rồi thôi.
+  private checkListening() {
+    const store = useStore.getState();
+    if (!store.isMicActive || !this.mediaStream) return;
+    const problem = this.currentProblem();
+    const message = problem ? captureMessage(problem, this.captureSource) : null;
+    if (store.captureWarning !== message) {
+      store.setCaptureWarning(message);
+    }
+    const held = isWakeLockHeld();
+    if (store.wakeLockHeld !== held) {
+      store.setWakeLockHeld(held);
+    }
+  }
+
+  // Gọi trong lần chạm vào cảnh báo: iOS chỉ cho chạy lại AudioContext và xin lại mic khi có thao tác của người dùng
   async resumeCapture() {
-    useStore.getState().setCaptureWarning(null);
-    if (this.audioContext && (this.audioContext.state === 'suspended' || (this.audioContext.state as any) === 'interrupted')) {
+    const store = useStore.getState();
+    if (!store.isMicActive || !store.activeSide) {
+      store.setCaptureWarning(null);
+      return;
+    }
+    const problem = this.currentProblem();
+    void requestWakeLock();
+    if (this.audioContext && this.audioContext.state !== 'running') {
       await this.audioContext.resume().catch(() => {});
     }
-    const store = useStore.getState();
-    const track = this.mediaStream?.getAudioTracks()[0];
-    if (!track || track.readyState === 'ended') {
-      if (store.activeSide) {
-        await this.startAudio(store.activeSide, store.audioSource);
-      }
+    if (needsNewCapture(problem)) {
+      // Dừng luồng cũ rồi xin lại mic/tab ngay trong lần chạm: trên Safari đây là cách lấy lại mic từ trang/app khác
+      await this.startAudio(store.activeSide, this.captureSource);
     }
+    this.checkListening();
+    setTimeout(() => this.checkListening(), 1500);
   }
 
   stopAudio() {
     useStore.getState().setCaptureWarning(null);
+    if (this.listenTimer) {
+      clearInterval(this.listenTimer);
+      this.listenTimer = null;
+    }
     if (this.audioWatchdog) {
       clearInterval(this.audioWatchdog);
       this.audioWatchdog = null;
