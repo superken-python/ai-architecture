@@ -6,7 +6,8 @@
 - đo lại độ chính xác phần nghe trên golden_1, chạy cả phiên;
 - xem lại những gì được đưa đi dịch;
 - tìm các lỗi còn lại, thử ba cách tăng độ chính xác;
-- đề xuất bước tiếp theo.
+- đề xuất bước tiếp theo;
+- đối chiếu các kỹ thuật được gợi ý từ bên ngoài, và tìm vì sao Nhật → Việt kém hơn Anh, Việt (mục 8, 9).
 
 **Tài liệu phân tích và đề xuất, không đổi code.**
 
@@ -45,7 +46,14 @@
    - 3 ví dụ few-shot lấy từ một phim khác.
 
    Phải làm bộ đo dịch trước (§5.1) mới biết thay đổi nào có lợi.
-6. **Thứ tự làm** (mục 6): bộ đo dịch → bước dò VAD → prompt dịch → so model trên GPU thật → thêm golden.
+6. **Các kỹ thuật được gợi ý từ bên ngoài** (mục 8): gần hết app đã có. Hai gợi ý sẽ làm kém đi: đổi Whisper sang
+   bản medium, và bỏ câu dịch đến trễ.
+7. **Nhật → Việt kém hơn Anh, Việt** vì khó ở cả phần nghe lẫn phần dịch (mục 9). Có thêm 2 lỗi trong code chỉ ảnh hưởng
+   chiều này:
+   - bản dịch còn sót một chữ Nhật bị loại rồi dịch lại, mất ngữ cảnh;
+   - bản dịch bị cắt ngang khi gặp "Sensei" sau dấu câu.
+8. **Thứ tự làm** (mục 6): sửa 2 lỗi Nhật → Việt → bộ đo dịch → bước dò VAD → prompt dịch → so model trên GPU thật →
+   thêm golden.
 
 ## 2. Phần nghe: đo lại theo từng bước
 
@@ -240,10 +248,11 @@
 
 | Bước | Nội dung | Tầng | Công | Xong khi |
 |---|---|---|---|---|
+| 0 · Sửa Nhật → Việt | §9: bản dịch có chữ Nhật bị loại và dịch lại không ngữ cảnh; bản dịch bị cắt ở "Sensei" | server | 0,5 ngày | test mới đỏ ở bản cũ, xanh ở bản sửa; bản dịch có tên riêng không bị loại, không bị cắt |
 | 1 · Đo dịch | §5.1: bản dịch tham chiếu cho golden_1, script chấm chrF cho bộ dịch và cả chuỗi | eval + server | 1–2 ngày | có chrF của bản hiện tại, chạy lại được bằng một lệnh |
 | 2 · Dò VAD | §4.1: dò vùng audio to mà VAD bỏ sót, chỉ khi thu âm tab; engine trả thêm `avg_logprob` | server | 1 ngày | golden_1: 141/141 câu, CER ≤ 0,12, câu bịa trên màn hình không tăng; kiểm trên ít nhất một video khác |
-| 3 · Prompt dịch | §5.2–5.5: glossary, ngữ cảnh có bản dịch trước, few-shot trung tính, bảng tra câu cảm thán | server | 1–2 ngày | chrF ở bước 1 không giảm; tên riêng có trong glossary được dịch đúng |
-| 4 · So model | §4.4, §5.6: large-v3 (đo lại cả beam), các model dịch, đo trên GPU thật | server | 1–2 ngày | chọn theo CER, chrF và độ trễ p95 |
+| 3 · Prompt dịch | §5.2–5.5, §9: glossary kèm cách xưng hô, ngữ cảnh có bản dịch trước, few-shot trung tính, bảng tra câu cảm thán | server | 1–2 ngày | chrF ở bước 1 không giảm; tên riêng có trong glossary được dịch đúng |
+| 4 · So model | §4.4, §5.6, §9: large-v3 (đo lại cả beam), các model dịch, dịch qua tiếng Anh, đo trên GPU thật | server | 1–2 ngày | chọn theo CER, chrF và độ trễ p95 |
 | 5 · Thêm golden | 2–3 video khác loại (phim người đóng, vlog, hai người nói qua mic); sửa tên riêng sai trong đáp án golden_1 | eval | 1–2 ngày | các số ở bước 2–4 được đo trên ít nhất 2 golden |
 
 ## 7. Rủi ro
@@ -255,6 +264,76 @@
 - **Đáp án sai tên riêng:** đáp án là phụ đề tự động của YouTube, nên CER ở các câu có tên riêng không phản ánh đúng.
 - **Bước dò VAD** gửi cả đoạn nhạc đi nhận dạng. Nếu bộ lọc để lọt, màn hình sẽ hiện lời bài hát hoặc chữ rác.
 
+## 8. Đối chiếu các kỹ thuật được gợi ý từ bên ngoài
+
+Các gợi ý chung (từ Google AI Mode) cho bài toán nghe dịch Nhật → Việt trên GPU 8 GB, so với app hiện tại:
+
+| Kỹ thuật được gợi ý | App hiện tại | Có giúp Nhật → Việt không |
+|---|---|---|
+| Lượng tử hoá: Faster-Whisper **medium** INT8, Qwen2.5-7B Q4 | Đã làm, với model tốt hơn: Whisper large-v3-turbo `int8_float16`, Qwen2.5-7B Q4_K_M | Không đổi sang medium: bản medium kém hơn turbo ở tiếng Nhật. Ngược lại, nên thử Qwen Q5_K_M nếu VRAM còn chỗ (§5.6) |
+| Streaming qua WebSocket, nghe tới đâu dịch tới đó | Đã có: khung 40 ms qua WebSocket, chữ tạm mỗi 0,8 s, chốt sớm câu đã ổn định | Không nên dịch chữ tạm tiếng Nhật: động từ, phủ định, câu hỏi nằm cuối câu, dịch sớm dễ sai nghĩa |
+| Cửa sổ ngữ cảnh trượt 5–10 câu để VRAM không tăng | Mỗi lượt dịch là một yêu cầu riêng, kèm 2 câu nguồn trước. llama.cpp cấp KV cache cố định, nên VRAM không tăng theo thời gian | Không có vấn đề VRAM. Nhưng 2 câu nguồn là ngữ cảnh ít với tiếng Nhật: nên thêm bản dịch trước (§5.3) |
+| VAD cắt câu khi ngừng nói quá 0,5 s | Đã có: Silero, `min_silence_ms` 500, cắt ở 4 s, cắt cứng ở 6 s | Đã có. Lỗi lớn của VAD với phim là bỏ sót câu hét lẫn nhạc (§4.1) |
+| Mốc thời gian từng từ (`word_timestamps`), bỏ câu dịch quá trễ | Không dùng. Scheduler ưu tiên lượt chốt, gộp và bỏ chữ tạm cũ | Không tăng độ chính xác: `word_timestamps` tốn thêm thời gian nhận dạng, bỏ câu trễ là mất nội dung |
+| Chống trùng chữ bằng khoảng cách Levenshtein | Đã có: bỏ câu chốt sớm theo khoảng cách sửa (08 §3.6), bỏ chữ tạm đến muộn (08 §3.7). Các đoạn audio không chồng lên nhau | Đã có |
+| Hàng đợi ưu tiên bất đồng bộ | Đã có: `AsrScheduler` cho lượt chốt chạy trước, gộp chữ tạm và bỏ chữ tạm khi hàng chờ dài; mỗi lượt dịch chạy riêng | Đã có. Trên golden_1 trung bình 3,9 s mới có một câu cần dịch, không dồn ứ |
+| Gộp 2–3 câu ngắn rồi dịch một lần | Chưa có | Ý đúng ở chỗ câu ngắn tiếng Nhật cần ngữ cảnh. Nhưng gộp làm câu đầu hiện chậm, và một bản dịch phải chia lại cho nhiều thẻ. Đưa bản dịch trước vào ngữ cảnh (§5.3) đạt cùng mục đích mà không đổi giao diện |
+| Phụ đề hai trạng thái, chữ mờ và chữ đậm | Đã có dạng cơ bản: thẻ chữ tạm có "● đang xử lý...", bản dịch hiện "… đang dịch" rồi được chốt | Có thể làm chữ tạm mờ hơn cho dễ nhìn. Không ảnh hưởng độ chính xác |
+
+**Kết luận:** gần hết các kỹ thuật này app đã có, có cái ở dạng tốt hơn. Đổi sang Whisper medium và bỏ câu dịch trễ sẽ
+làm kém đi. Không gợi ý nào chạm tới các nguyên nhân làm Nhật → Việt kém hơn Anh, Việt (mục 9).
+
+## 9. Vì sao Nhật → Việt kém hơn Anh, Việt
+
+**Phần nghe:**
+
+- Audio phim (nhạc nền, tiếng hét, giọng lồng tiếng) khó hơn lời nói trực tiếp. Nếu tiếng Anh, tiếng Việt được thử bằng
+  lời nói rõ (họp, nói vào mic), thì một phần khác biệt là do audio, không phải do ngôn ngữ.
+- Tiếng Nhật trên golden_1 còn CER 0,134: 2 câu bị VAD bỏ sót (§4.1), tên riêng và thuật ngữ bị nghe sai (mục 4).
+
+**Phần dịch khó hơn vì bản chất hai ngôn ngữ:**
+
+- Tiếng Nhật hay bỏ chủ ngữ, còn tiếng Việt bắt buộc chọn cách xưng hô (tớ/cậu, thầy/em, tao/mày). Ngữ cảnh chỉ có 2 câu
+  nguồn, nên model đoán lại ở mỗi câu và cách xưng hô dễ đổi giữa các câu.
+- Động từ, phủ định và câu hỏi nằm ở cuối câu. Câu bị cắt đôi mất đúng phần quyết định nghĩa. Trên golden_1 chỉ khoảng
+  5/221 câu bị cắt như vậy, nhưng ở cuộc họp tiếng Nhật, câu dài hơn, sẽ nhiều hơn.
+- Qwen2.5-7B mạnh nhất ở tiếng Trung và tiếng Anh. Nhật → Việt là hướng ít dữ liệu hơn, và lượng tử hoá 4 bit thường làm
+  những hướng như vậy kém đi nhiều hơn.
+
+**Hai lỗi trong code chỉ ảnh hưởng chiều Nhật → Việt** (kiểm bằng chính code ở `092c437`):
+
+1. **Bản dịch còn sót chữ Nhật bị loại** ([`mt_validator.py`][c-cjk]). Bản dịch tiếng Việt chỉ cần còn một chữ kana hay
+   kanji là bị coi là hỏng.
+   - Ví dụ "Tớ sẽ trở thành 火影!" và "Thầy カカシ, thầy đến muộn rồi." đều bị loại. Tên nhân vật và thuật ngữ là nguồn
+     chính, vì model hay để nguyên "ナルト", "火影".
+   - App dịch lại, nhưng lượt dịch lại thay ngữ cảnh 2 câu trước bằng dòng chữ "Strictly translate completely into
+     Vietnamese" ([`session.py`][c-retry]).
+   - Người xem thấy bản dịch có chữ Nhật hiện dần, rồi bị thay sau một lượt dịch nữa. Nếu lượt sau cũng hỏng thì vẫn
+     hiện bản có chữ Nhật, hoặc "[Chưa dịch được vi]".
+   - **Sửa:** dặn model viết tên bằng chữ Latin (Naruto, Kakashi) và dùng glossary (§5.2). Nếu vẫn còn katakana thì đổi
+     sang romaji thay vì loại cả câu. Giữ ngữ cảnh khi dịch lại.
+2. **Bản dịch bị cắt khi gặp "Sensei" sau dấu câu** ([`mt_llama.py`][c-sensei]). Luật chặn lời giải thích kiểu "…
+   Sensei means teacher" bắt nhầm cả câu dịch bình thường.
+   - "Thầy ơi! Sensei đến muộn quá." chỉ còn "Thầy ơi! Sensei".
+   - "Đúng vậy. Sensei nói thế." chỉ còn "Đúng vậy. Sensei".
+   - Trên golden_1 có 11/221 câu đưa đi dịch chứa "先生".
+   - **Sửa:** chỉ coi là lời giải thích khi sau "sensei" là "means", "is", "refers". `mt_validator` đã có đúng luật này.
+
+Ngoài ra, 3 ví dụ few-shot lạc đề (§5.4) cũng chỉ có ở chiều Nhật → Việt.
+
+**Việc nên làm cho Nhật → Việt, theo thứ tự:**
+
+1. Sửa 2 lỗi trên, kèm test. Việc nhanh, không cần chờ bộ đo.
+2. Làm bộ đo dịch Nhật → Việt (§5.1), để mọi bước sau có số.
+3. Glossary kèm cách xưng hô cho từng pack, ví dụ "Naruto ↔ Sakura: tớ/cậu; học trò → Kakashi: em/thầy". Đưa bản dịch
+   trước vào ngữ cảnh (§5.2, §5.3).
+4. Thử dịch qua tiếng Anh (Nhật → Anh → Việt) bằng cùng model, so chrF và độ trễ. Hai hướng Nhật → Anh và Anh → Việt
+   thường mạnh hơn Nhật → Việt, nhưng tốn hai lượt dịch.
+5. So model dịch: Qwen2.5-7B Q5_K_M, Hunyuan-MT-7B (§5.6).
+
 [c-mt-prompt]: https://github.com/superken-python/ai-architecture/blob/092c43722d885818c651d0aec90424d2f3094934/projects/realtime-voice-translate/ai/src/rvt_ai/engines/mt_llama.py#L98-L175
 [c-mt-context]: https://github.com/superken-python/ai-architecture/blob/092c43722d885818c651d0aec90424d2f3094934/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/session.py#L579-L583
 [c-asr-args]: https://github.com/superken-python/ai-architecture/blob/092c43722d885818c651d0aec90424d2f3094934/projects/realtime-voice-translate/ai/src/rvt_ai/engines/asr_whisper.py#L103-L115
+[c-cjk]: https://github.com/superken-python/ai-architecture/blob/092c43722d885818c651d0aec90424d2f3094934/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/mt_validator.py#L336-L339
+[c-retry]: https://github.com/superken-python/ai-architecture/blob/092c43722d885818c651d0aec90424d2f3094934/projects/realtime-voice-translate/ai/src/rvt_ai/pipeline/session.py#L648-L658
+[c-sensei]: https://github.com/superken-python/ai-architecture/blob/092c43722d885818c651d0aec90424d2f3094934/projects/realtime-voice-translate/ai/src/rvt_ai/engines/mt_llama.py#L93-L96
