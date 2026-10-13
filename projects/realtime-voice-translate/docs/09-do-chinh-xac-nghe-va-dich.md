@@ -24,6 +24,32 @@
 - "Sensei" đứng sau dấu câu không còn làm bản dịch bị cắt. Chỉ cắt khi theo sau là câu giải thích, ví dụ "Sensei
   means…" (`EXPLANATION_AFTER_SENTENCE` trong [`mt_llama.py`](../ai/src/rvt_ai/engines/mt_llama.py)).
 
+**Cập nhật 2026-10-13: đã làm bước 2 (dò VAD)**, có test ([`test_vad_probe.py`](../ai/tests/unit/test_vad_probe.py)):
+
+- [`vad_probe.py`](../ai/src/rvt_ai/pipeline/vad_probe.py) làm đúng §4.1. Khung to hơn −30 dBFS, VAD dưới 0,25, lúc
+  segmenter không ở trong câu nào, được gom thành vùng: hở tối đa 480 ms, vùng 2–6 s. Vùng được gửi đi nhận dạng như một
+  đoạn chốt không prompt, với `vad_mean = 0` để bộ lọc câu bịa luôn áp.
+  - Chỉ giữ chữ có `avg_logprob` ≥ −0,5 (tham số mới `min_avg_logprob` của engine), có ít nhất 4 ký tự, có chữ Nhật khi
+    nửa đó khoá tiếng Nhật, và không phải tiếng hét.
+  - Khi VAD bắt đầu bắt, vùng kết thúc. 400 ms cuối của vùng được bỏ, vì segmenter đã lấy làm preroll.
+- **Chỉ chạy khi thu âm tab.** `turn.start` có thêm trường `source` (`"mic"` hoặc `"tab"`), web gửi kèm cả khi kết nối
+  lại. Tắt hẳn bằng `RVT_VAD_PROBE=false`.
+- Phát lại golden_1 bằng `golden_session.py --capture tab` (Whisper giả lập như ở đầu tài liệu). Con số khớp ước lượng ở
+  §4.1:
+
+| golden_1 | `--capture mic` (không dò) | `--capture tab` |
+|---|---|---|
+| CER | 0,134 | **0,114** |
+| Ký tự lời thoại bắt được | 93,6% | 95,7% |
+| Câu thoại bắt được | 139/141 | **141/141** |
+| Câu bịa trên màn hình | 2 | 2 |
+| Lượt nhận dạng | 794 | 820 |
+
+- 2 thẻ mới là hai câu đang bị mất: "引っかかった!引っかかったよ!すみません先生!…" ở giây 46 và "危ない!逃げて!やられちゃうよ!" ở
+  giây 546.
+- **Chưa kiểm trên video khác.** Đây là điều kiện cuối của bước 2 trong mục 6, cần golden mới (bước 5). Nếu thấy câu rác
+  trong đoạn nhạc, tắt bằng `RVT_VAD_PROBE=false`.
+
 **Cập nhật 2026-10-13: đã làm bước 3 (prompt dịch)**, có test:
 
 - **Glossary (§5.2).** [`packs/glossary/naruto.yaml`](../packs/glossary/naruto.yaml) có tên nhân vật, thuật ngữ và quy
@@ -312,11 +338,11 @@
 
 | Bước | Nội dung | Tầng | Công | Xong khi |
 |---|---|---|---|---|
-| 0 · Sửa Nhật → Việt | §9: bản dịch có chữ Nhật bị loại và dịch lại không ngữ cảnh; bản dịch bị cắt ở "Sensei" | server | 0,5 ngày | test mới đỏ ở bản cũ, xanh ở bản sửa; bản dịch có tên riêng không bị loại, không bị cắt |
-| 1 · Đo dịch | §5.1: bản dịch tham chiếu cho golden_1, script chấm chrF cho bộ dịch và cả chuỗi | eval + server | 1–2 ngày | có chrF của bản hiện tại, chạy lại được bằng một lệnh |
-| 2 · Dò VAD | §4.1: dò vùng audio to mà VAD bỏ sót, chỉ khi thu âm tab; engine trả thêm `avg_logprob` | server | 1 ngày | golden_1: 141/141 câu, CER ≤ 0,12, câu bịa trên màn hình không tăng; kiểm trên ít nhất một video khác |
-| 3 · Prompt dịch | §5.2–5.5, §9: glossary kèm cách xưng hô, ngữ cảnh có bản dịch trước, few-shot trung tính, bảng tra câu cảm thán | server | 1–2 ngày | chrF ở bước 1 không giảm; tên riêng có trong glossary được dịch đúng |
-| 4 · So model | §4.4, §5.6, §9: large-v3 (đo lại cả beam), các model dịch, dịch qua tiếng Anh, đo trên GPU thật | server | 1–2 ngày | chọn theo CER, chrF và độ trễ p95 |
+| 0 · Sửa Nhật → Việt | §9: bản dịch có chữ Nhật bị loại và dịch lại không ngữ cảnh; bản dịch bị cắt ở "Sensei" | server | 0,5 ngày | test mới đỏ ở bản cũ, xanh ở bản sửa; bản dịch có tên riêng không bị loại, không bị cắt. **Đã làm** |
+| 1 · Đo dịch | §5.1: bản dịch tham chiếu cho golden_1, script chấm chrF cho bộ dịch và cả chuỗi | eval + server | 1–2 ngày | có chrF của bản hiện tại, chạy lại được bằng một lệnh. **Đã có bộ đo và lệnh chạy, chưa có số:** cần chạy trên server |
+| 2 · Dò VAD | §4.1: dò vùng audio to mà VAD bỏ sót, chỉ khi thu âm tab; engine trả thêm `avg_logprob` | server | 1 ngày | golden_1: 141/141 câu, CER ≤ 0,12, câu bịa trên màn hình không tăng; kiểm trên ít nhất một video khác. **Đã làm:** 141/141, CER 0,114, câu bịa 2 → 2; còn kiểm trên video khác |
+| 3 · Prompt dịch | §5.2–5.5, §9: glossary kèm cách xưng hô, ngữ cảnh có bản dịch trước, few-shot trung tính, bảng tra câu cảm thán | server | 1–2 ngày | chrF ở bước 1 không giảm; tên riêng có trong glossary được dịch đúng. **Đã làm**, còn kiểm chrF trên server |
+| 4 · So model | §4.4, §5.6, §9: large-v3 (đo lại cả beam), các model dịch, dịch qua tiếng Anh, đo trên GPU thật | server | 1–2 ngày | chọn theo CER, chrF và độ trễ p95. **Đã đổi sang Qwen Q5_K_M**, chưa so bằng số |
 | 5 · Thêm golden | 2–3 video khác loại (phim người đóng, vlog, hai người nói qua mic); sửa tên riêng sai trong đáp án golden_1 | eval | 1–2 ngày | các số ở bước 2–4 được đo trên ít nhất 2 golden |
 
 ## 7. Rủi ro
