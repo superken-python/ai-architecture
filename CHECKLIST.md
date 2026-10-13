@@ -60,6 +60,10 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 
 ## Giai đoạn 4 · Dự án luyện tập
 
+- [x] **G7 + G6** Nghiên cứu [GPT Excel Agent Chatbot](projects/gpt-excel-agent-chatbot/README.md): mô tả bài toán,
+      solution approach, khả thi và nguồn Microsoft; chỉ Markdown, chưa code.
+- [ ] **P1** Trước khi triển khai Excel chatbot: chốt Excel build/tenant, workbook/schema và API/auth của agent;
+      xem [kế hoạch POC đề xuất](projects/gpt-excel-agent-chatbot/docs/03-danh-gia-kha-thi.md).
 - [ ] **P1** `projects/g1-churn-telco/` — mốc cuối tháng 2: top 500 khách + lý do SHAP, chạy qua API.
 - [ ] **P2** `projects/g6-rag-handbook/` — mốc cuối tháng 4: RAG tiếng Việt + golden set ~100 câu + bảng
       chất lượng–chi phí–độ trễ.

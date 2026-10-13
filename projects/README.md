@@ -19,6 +19,8 @@ thể có một dự án tích hợp. Dự án đi trọn quy trình ĐÚNG → 
 | `cmb-08-ticket-cascade/` | Tổ hợp CMB-08 | Phân loại ticket: model nhỏ → LLM → người, bảng chất lượng–chi phí | Tự tạo / công khai |
 | [`cmb-09-data-agent-os/`](cmb-09-data-agent-os/README.md) | Tổ hợp CMB-09 | Data agent nhiều domain pack trên AgentOS, dùng lại skill của Data plugin, dữ liệu qua MCP DBHub — **thiết kế POC** | Giả lập (timesheet, finance) |
 | [`realtime-voice-translate/`](realtime-voice-translate/README.md) | 6 · Giọng nói | Dịch hội thoại trực tiếp Nhật ⇄ Anh ⇄ Việt trên web điện thoại, model chạy tại chỗ trên GPU 8 GB — **kế hoạch triển khai** | Tự thu (golden set) + FLEURS |
+| [`gpt-excel-agent-chatbot/`](gpt-excel-agent-chatbot/README.md) | **7 · Agent** chính; 6 · LLM hỗ trợ | Chatbot trong Excel Office nối agent nội bộ, tìm theo cột và thêm bản ghi — **nghiên cứu khả thi, chưa code** | Workbook giả lập dự kiến; chưa tạo dữ liệu |
+| [`gemini-excel-ai-agent/`](gemini-excel-ai-agent/README.md) | Tổ hợp CMB-10 / 7 · Agent | Plugin AI Chatbot nhúng Excel Office, kết nối AI Agent nội bộ thao tác bảng tính hai chiều — **nghiên cứu khả thi & thiết kế kiến trúc** | Tự sinh & Dữ liệu doanh nghiệp mẫu |
 
 Chi tiết từng nhóm (metric, bẫy, kỹ năng cần): xem trang nhóm trong [bản đồ kỹ năng](../docs/02-skill-map/generated/README.md).
 

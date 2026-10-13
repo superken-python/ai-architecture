@@ -10,6 +10,25 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-13 · Nghiên cứu GPT Excel Agent Chatbot (chỉ Markdown)
+
+**Đã làm**
+
+- Tạo [dự án gpt-excel-agent-chatbot](projects/gpt-excel-agent-chatbot/README.md), ba tài liệu trong `docs/`:
+  mô tả bài toán, solution approach, đánh giá khả thi và kế hoạch kiểm chứng; đối chiếu nguồn Microsoft.
+- Bổ sung liên kết trong bản đồ bài toán và danh sách dự án; chưa tạo code, manifest hay dữ liệu Excel.
+
+**Quyết định**
+
+- Xếp G7 chính, G6 hỗ trợ; giữ nguyên 8 nhóm doanh nghiệp.
+- Đề xuất Task Pane Add-in + Office.js + adapter tới agent hiện có; MVP search theo cột và thêm một record
+  vào Excel Table. Chèn cả hàng worksheet và xử lý cloud qua Graph được phân tích như phạm vi riêng.
+
+**Còn mở**
+
+- Excel build/tenant, schema workbook, API/auth và khả năng tiếp tục client tool của agent; cần POC chứng minh
+  hiệu năng, độ đúng khi ghi và xử lý retry trước khi kết luận production → [CHECKLIST.md](CHECKLIST.md).
+
 ## 2026-10-09 · Kế hoạch dự án Realtime Voice Translate (chỉ tài liệu)
 
 **Đã làm**
