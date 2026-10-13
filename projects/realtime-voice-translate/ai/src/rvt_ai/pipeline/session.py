@@ -10,8 +10,7 @@ import numpy as np
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.mt_llama import EXPLANATION_AFTER_SENTENCE
 from rvt_ai.engines.ports import AsrEngine, MtEngine, MtHints, VadEngine
-from rvt_ai.packs.glossary import Glossary, get_glossary, get_phrasebook
-from rvt_ai.pipeline.kana import katakana_to_romaji
+from rvt_ai.packs.glossary import Glossary, fix_leftovers, get_glossary, get_phrasebook
 from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
@@ -571,11 +570,7 @@ class RVTSession:
             self.translations.popitem(last=False)
 
     def _fix_leftovers(self, translation: str, source: Lang, target: Lang) -> str:
-        """Bản dịch sang tiếng Việt/Anh còn sót chữ Nhật: thay bằng bản dịch trong glossary, katakana còn lại đổi
-        sang romaji ("カカシ" → "Kakashi"). Chữ kanji không có trong glossary vẫn để bộ kiểm loại (docs 09 §9)."""
-        if source != "ja" or target not in ("vi", "en"):
-            return translation
-        return katakana_to_romaji(self.glossary.fix_leftovers(translation, target))
+        return fix_leftovers(translation, source, target, self.glossary)
 
     def _validate_mt(self, text: str, source: Lang, target: Lang, raw: str) -> ValidationResult:
         """Bộ làm sạch bản dịch lỗi thì dùng dòng đầu của bản dịch thô, không đổi thành "[Lỗi dịch]" (docs 08 §3.1)."""

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from rvt_ai.core.config import settings
 from rvt_ai.core.logging import logger
+from rvt_ai.pipeline.kana import katakana_to_romaji
 from rvt_contracts.messages import Lang
 
 
@@ -81,6 +82,14 @@ _PUNCT_EDGE = re.compile(r"^[\s。、・…,.]+|[\s。、・…,.]+$")
 def normalize_phrase(text: str) -> str:
     text = text.strip().replace("？", "?").replace("！", "!")
     return _PUNCT_EDGE.sub("", text)
+
+
+def fix_leftovers(translation: str, source: Lang, target: Lang, glossary: Glossary) -> str:
+    """Bản dịch sang tiếng Việt/Anh còn sót chữ Nhật: thay bằng bản dịch trong glossary, katakana còn lại đổi sang
+    romaji ("カカシ" → "Kakashi"). Kanji không có trong glossary vẫn để bộ kiểm loại (docs 09 §9)."""
+    if source != "ja" or target not in ("vi", "en"):
+        return translation
+    return katakana_to_romaji(glossary.fix_leftovers(translation, target))
 
 
 def _packs_dir() -> str:
