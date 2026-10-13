@@ -10,7 +10,54 @@ Quy ước khi thêm một mục:
 
 ---
 
-## 2026-10-13 · Bài toán mới CMB-10 — trợ lý AI trong Excel nối với agent của hệ thống (chỉ tài liệu)
+## 2026-10-13 · CMB-10 — POC 0.1: AgentOS + AG-UI + OpenAI Agents SDK, chat → file Excel, /search → ghi vào cột ([#6](https://github.com/superken-python/ai-architecture/pull/6))
+
+**Đã làm**
+
+- `projects/cmb-10-excel-agent-addin/`: POC Python theo
+  [best practice cấu trúc dự án](projects/python-ai-project-structure-best-practices.md) (`src/` layout, tầng API/service/
+  schema/agent, prompt YAML tách khỏi code, uv + Makefile).
+- Agent viết bằng **OpenAI Agents SDK** 0.23.1: `Điều phối` (triage) handoff sang `Excel Report Agent` (`export_excel`) và
+  `Data Search Agent` (`search_data`); model mặc định `gpt-5-mini`; chưa có key thì chạy model offline (luật cố định).
+- **AgentOS** (Agno 3.1.3) chỉ làm runtime: adapter tự viết `OpenAIAgentsAdapter` đổi sự kiện stream của SDK sang sự kiện
+  AgentOS → AG-UI; session lưu SQLite.
+- API dữ liệu giả lập (`/datasets`, `/search`, `/export` → `.xlsx`); workbook service lưu theo phiên bản, xem trước, ghi cột
+  / thêm dòng có kiểm chứng (kiểu, phạm vi, trùng mã, `expected_version`), hoàn tác.
+- Giao diện web (JS thuần, client AG-UI): khung chat + thẻ file → bấm xem dữ liệu; `/search` (theo cột chọn trên bảng hoặc
+  `Cột: từ khóa`) → tích kết quả → **Ghi vào cột** / **Thêm thành dòng mới** → xác nhận.
+- 38 test unit + integration (AG-UI qua AgentOS thật, `ScriptedModel` mô phỏng gpt-5-mini gọi tool) + 1 test e2e Chromium;
+  hướng dẫn: `docs/06-poc-huong-dan-su-dung.md`.
+
+**Quyết định**
+
+- ADR-08 (chủ dự án chọn): agent và tool viết bằng OpenAI Agents SDK, không viết agent bằng Agno; thay ADR-06. Ghi dữ liệu
+  theo mẫu *agent đề xuất → người dùng xác nhận trên giao diện → API ghi xác định*, không cần frontend tools.
+
+**Còn mở**
+
+- Chưa chạy với gpt-5-mini thật (chưa có key; môi trường làm POC chặn `api.openai.com`).
+- Adapter chưa hỗ trợ frontend tools (tạm dừng/tiếp tục) — chỉ cần khi agent phải tự đọc sheet giữa run.
+
+## 2026-10-13 · CMB-10 — ADR-07 chọn runtime agent cho Excel add-in ([#6](https://github.com/superken-python/ai-architecture/pull/6))
+
+**Đã làm**
+
+- So sánh AgentOS/Agno với Pydantic AI, Microsoft Agent Framework, LangGraph, Mastra, Google ADK, OpenAI Agents SDK và nền
+  tảng low-code theo 6 tiêu chí, đọc mã nguồn phần AG-UI của từng framework và giấy phép trong metadata gói →
+  `projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md`.
+
+**Quyết định** (đề xuất, chờ duyệt)
+
+- Giữ AgentOS/Agno (Apache-2.0): duy nhất có sẵn frontend tools + tạm dừng/tiếp tục lưu ở server, xác thực, session, trace,
+  MCP, skill, và dùng chung runtime với CMB-09. AG-UI là giao kèo để backend thay được.
+- Dự phòng theo thứ tự: Pydantic AI → Microsoft Agent Framework → LangGraph (server `langgraph-api` là Elastic-2.0).
+
+**Còn mở**
+
+- Control plane của AgentOS (os.agno.com) trả phí khi nối AgentOS chạy thật — add-in không cần, nhưng CMB-09 cần tính nếu
+  dùng AgentOS UI ở production.
+
+## 2026-10-13 · Bài toán mới CMB-10 — trợ lý AI trong Excel nối với agent của hệ thống (chỉ tài liệu, [#6](https://github.com/superken-python/ai-architecture/pull/6))
 
 **Đã làm**
 

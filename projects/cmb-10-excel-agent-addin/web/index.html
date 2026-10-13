@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Excel Agent POC</title>
+  <meta name="description" content="POC CMB-10: chat qua AG-UI (AgentOS) với agent OpenAI Agents SDK, xuất file Excel, xem dữ liệu, /search và áp kết quả vào cột.">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">X</span>
+      <div>
+        <h1>Excel Agent <span class="muted">· POC</span></h1>
+        <p class="sub">AgentOS · AG-UI · OpenAI Agents SDK</p>
+      </div>
+    </div>
+    <div class="badges">
+      <span id="mode-badge" class="badge">Đang kết nối…</span>
+      <button id="new-chat" class="btn ghost small" type="button">Hội thoại mới</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="chat" aria-label="Khung chat">
+      <div id="messages" class="messages" aria-live="polite"></div>
+      <div id="suggestions" class="suggestions">
+        <button type="button" data-text="Tạo file Excel danh sách khách hàng ở Hà Nội">📗 Khách hàng ở Hà Nội</button>
+        <button type="button" data-text="Xuất danh sách đơn hàng đang giao ra Excel">📦 Đơn hàng đang giao</button>
+        <button type="button" data-text="/search Đà Nẵng">🔎 /search Đà Nẵng</button>
+        <button type="button" data-text="/help">❓ /help</button>
+      </div>
+      <form id="composer" class="composer">
+        <textarea id="input" rows="2" placeholder="Nhập yêu cầu, hoặc /search <từ khóa>, /search <cột>: <từ khóa>…" aria-label="Tin nhắn"></textarea>
+        <button id="send" class="btn primary" type="submit">Gửi</button>
+      </form>
+    </section>
+
+    <section class="sheet" aria-label="Bảng Excel">
+      <div id="sheet-empty" class="sheet-empty">
+        <div class="empty-icon" aria-hidden="true">📗</div>
+        <h2>Chưa mở file Excel nào</h2>
+        <p>Yêu cầu agent tạo file (ví dụ <em>Tạo file Excel khách hàng ở Hà Nội</em>) rồi bấm vào thẻ file trong khung chat để xem dữ liệu ở đây.</p>
+        <div id="recent" class="recent"></div>
+      </div>
+
+      <div id="sheet-view" class="sheet-view" hidden>
+        <div class="sheet-toolbar">
+          <div class="file-title">
+            <span class="file-icon" aria-hidden="true">X</span>
+            <div>
+              <strong id="wb-name">—</strong>
+              <span id="wb-meta" class="muted small"></span>
+            </div>
+          </div>
+          <div class="toolbar-actions">
+            <button id="btn-refresh" class="btn ghost small" type="button">Làm mới</button>
+            <button id="btn-undo" class="btn ghost small" type="button">↶ Hoàn tác</button>
+            <a id="btn-download" class="btn small" href="#" download>⬇ Tải về</a>
+          </div>
+        </div>
+        <div id="sheet-tabs" class="sheet-tabs" role="tablist"></div>
+        <div class="selection-bar">
+          <span id="selection-text">Bấm tiêu đề cột để chọn cột · bấm số dòng để chọn dòng (Shift để chọn liên tiếp)</span>
+          <button id="btn-clear-selection" class="btn ghost small" type="button" hidden>Bỏ chọn</button>
+        </div>
+        <div class="grid-wrap">
+          <table id="grid" class="grid"></table>
+        </div>
+        <div class="grid-footer">
+          <span id="grid-range" class="muted small"></span>
+          <button id="btn-more" class="btn ghost small" type="button" hidden>Tải thêm</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
