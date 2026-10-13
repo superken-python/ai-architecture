@@ -1,79 +1,104 @@
-# gemini-excel-ai-agent · Trợ lý AI Agent nhúng Excel (Office Add-in)
+# gemini-excel-ai-agent · Trợ lý AI Agent nhúng Excel (Agno AgentOS SDK)
 
 **Nhóm bài toán:** Nhóm 7 · AI Agent & Tự động hóa quy trình (Tổ hợp mở rộng: **CMB-10 · Enterprise Spreadsheet Copilot**)  
-**Trạng thái:** Nghiên cứu khả thi & Thiết kế giải pháp kiến trúc (Chưa code)  
-**Người đề xuất / Nghiên cứu:** AI Architecture Team  
-**Mục tiêu:** Đánh giá tính khả thi, định vị bài toán doanh nghiệp và thiết kế giải pháp xây dựng một Office Add-in Chatbot nhúng trực tiếp vào Microsoft Excel, kết nối hai chiều với hệ sinh thái AI Agent nội bộ để tự động hóa thao tác dữ liệu bảng tính.
+**Runtime & Model:** **Agno AgentOS SDK** kết hợp mô hình **Azure OpenAI (`gpt-5-mini`)**  
+**Trạng thái:** **Đã hoàn thiện mã nguồn POC đầy đủ** (FastAPI backend + Agno SDK + Mock Enterprise DB + Office Add-in UI)  
+**Người đề xuất / Nghiên cứu:** Motives AI Architecture Team  
 
 ---
 
-## 1 · ĐÚNG — Framing bài toán (Khung phân tích nghiệp vụ)
+## 1 · Tổng quan dự án
 
-| Câu hỏi framing | Phân tích & Trả lời |
-|---|---|
-| **Quyết định nào sẽ thay đổi?** | Nhân viên nghiệp vụ (Kế toán, Thu mua, Kinh doanh, Kho vận, Phân tích dữ liệu) không còn phải tự tìm kiếm, so khớp dữ liệu thủ công, gõ tay từng dòng, copy-paste giữa các phần mềm ERP/CRM và Excel. Giảm thời gian thao tác từ hàng giờ xuống vài giây thông qua hội thoại tự nhiên với AI Agent ngay trong bảng tính. |
-| **Ai dùng kết quả, dùng thế nào?** | Nhân viên văn phòng, kế toán, quản lý kho, chuyên viên dữ liệu; tương tác qua khung chat bên cạnh bảng tính (Office Taskpane) trên Excel Desktop (Windows/macOS) hoặc Excel Online (Microsoft 365 Web). |
-| **KPI nghiệp vụ cốt lõi** | - Giảm **80% thời gian** nhập liệu, tra cứu và đối soát dữ liệu trên Excel.<br>- Giảm **95% lỗi gõ nhầm/lệch cột** khi điền thông tin hàng loạt.<br>- Tỷ lệ chấp nhận của người dùng (User Adoption Rate) cao vì người dùng không phải rời khỏi môi trường Excel quen thuộc. |
-| **Metric kỹ thuật tương ứng** | - Tỷ lệ thực thi đúng lệnh thao tác bảng tính (Search Accuracy, Insertion Success Rate) > 98%.<br>- Độ trễ phản hồi (End-to-end latency): Streaming ký tự đầu tiên < 1.5s; hoàn thành lệnh cập nhật Excel < 3s.<br>- Tỷ lệ người dùng duyệt qua giao diện Preview Diff trước khi ghi đè dữ liệu thật (Safety Check Rate) đạt 100%. |
-| **Loại sai nào đắt hơn?** | **Ghi đè hoặc chèn sai dữ liệu vào bảng tính nghiệp vụ đắt hơn rất nhiều** so với việc Agent từ chối hoặc yêu cầu người dùng xác nhận lại.<br>→ *Nguyên tắc thiết kế:* Luôn có cơ chế **Human-in-the-Loop** (hiển thị thẻ xem trước thay đổi - Preview Diff) trước khi gọi API cập nhật bảng tính, hỗ trợ Undo tức thì. |
-| **Cách làm hiện tại (Baseline)** | 1. Tra cứu thủ công (Ctrl+F, filter từng cột, dùng hàm `VLOOKUP`/`XLOOKUP` phức tạp).<br>2. Nhập tay từng ô hoặc copy từ email/PDF/phần mềm ngoài paste vào Excel.<br>3. Dùng ChatGPT/Claude bên ngoài: Phải copy dữ liệu nhạy cảm ra trình duyệt, rủi ro lộ bí mật kinh doanh, sau đó copy ngược lại Excel (thủ công, dễ vỡ format). |
-| **Có cần AI không, hay Macro/VBA/Python script là đủ?** | VBA/Macro hay script thông thường chỉ giải quyết được các quy tắc cứng (cố định số cột, format cố định). Khi yêu cầu nghiệp vụ thay đổi theo ngôn ngữ tự nhiên ("Tìm khách hàng X rồi thêm đơn hàng vừa gửi qua email vào", "Kiểm tra xem dòng này có gì bất thường không"), **chỉ có AI Agent với khả năng hiểu ngữ nghĩa, gọi tool linh hoạt và kết nối API hệ thống lõi mới giải quyết được**. |
-| **Ràng buộc bảo mật & hạ tầng** | - Không gửi dữ liệu nội bộ nhạy cảm ra các model AI công cộng chưa được ký cam kết bảo mật.<br>- Hoạt động mượt mà cả trên Excel Desktop (Windows, Mac) và Excel Web.<br>- Tương thích hoàn toàn với hệ thống backend FastAPI + Langfuse + Agent runtime hiện tại. |
+Dự án phát triển một giải pháp toàn diện bao gồm:
+1. **Plugin Office Add-in (Taskpane UI):** Nhúng trực tiếp vào Microsoft Excel (Desktop Windows/Mac và Excel Online), hỗ trợ lệnh tắt `/search`, hội thoại tự nhiên và thẻ xác nhận thay đổi dữ liệu (Human-in-the-Loop Preview Diff).
+2. **Backend AI Agent (Agno AgentOS):** Dịch vụ FastAPI chuẩn kiến trúc phân tầng (Layered Architecture), Pydantic v2, Strategy Pattern và Pipeline Step-Context.
+3. **Mô hình AI:** Sử dụng **Azure OpenAI (`gpt-5-mini`)** cấu hình Zero-Hardcoding qua `.env`.
+4. **Mock Enterprise Database:** Giả lập danh mục sản phẩm doanh nghiệp, cho phép tra cứu bằng `/search` và đẩy dữ liệu trực tiếp vào bảng tính Excel.
 
 ---
 
-## 2 · Tổng quan kiến trúc giải pháp
+## 2 · Cấu trúc thư mục mã nguồn
 
-```mermaid
-flowchart LR
-    subgraph Client ["Client: Microsoft Excel"]
-        direction TB
-        Sheet["Bảng tính Excel<br/>(Active Worksheet / Table)"]
-        Taskpane["Taskpane Add-in UI<br/>(Chatbot React/TypeScript)"]
-        OfficeJS["Office.js Engine<br/>(Excel JavaScript API)"]
-        Taskpane <-->|Đọc/Ghi Cell & Range| OfficeJS
-        OfficeJS <-->|Thao tác trực tiếp| Sheet
-    end
-
-    subgraph Gateway ["Tầng kết nối & Xác thực"]
-        API["FastAPI Gateway<br/>(SSE Streaming / REST / Auth)"]
-    end
-
-    subgraph AgentBackend ["Hệ sinh thái AI Agent nội bộ"]
-        Agent["Agent Orchestrator<br/>(ReAct Loop / LangGraph)"]
-        Tracing["Langfuse Tracing<br/>(Prompt & Tool Log)"]
-        MCP["Enterprise Tools & DB<br/>(ERP / CRM / SQL DBHub)"]
-        LLM["AI Engine<br/>(Gemini / OpenAI / vLLM)"]
-        Agent <--> LLM
-        Agent --> Tracing
-        Agent <--> MCP
-    end
-
-    Taskpane <-->|Hội thoại & Tool Calls| API
-    API <--> Agent
+```
+projects/gemini-excel-ai-agent/
+├── .env.example                         # File mẫu cấu hình Azure OpenAI gpt-5-mini & Agno
+├── pyproject.toml                       # Cấu hình Poetry dependencies
+├── Makefile                             # Lệnh dev, setup, lint, format
+├── README.md                            # Tổng quan và hướng dẫn dự án
+├── prompts/                             # Cô lập prompt theo chuẩn (.yml)
+│   ├── excel_agent.yml                  # Prompt ReAct cho Excel Copilot
+│   └── search_agent.yml                 # Prompt phân tích lệnh tìm kiếm
+├── addin/                               # Mã nguồn Microsoft Office Web Add-in
+│   ├── manifest.xml                     # File manifest sideload vào Excel
+│   ├── index.html                       # Giao diện Fluent UI Taskpane & Web Simulator
+│   ├── styles.css                       # CSS giao diện chuẩn Office
+│   └── app.js                           # Kết nối Office.js, xử lý /search và API call
+├── docs/                                # Hệ thống tài liệu nghiên cứu chuyên sâu
+│   ├── 01-mo-ta-bai-toan.md             # Mô tả bài toán nghiệp vụ & định vị G7 / CMB-10
+│   ├── 02-solution-approach-kien-truc.md# Kiến trúc Agno AgentOS 3 tầng & Pydantic schemas
+│   ├── 03-danh-gia-tinh-kha-thi.md      # Báo cáo đánh giá khả thi kỹ thuật
+│   ├── 04-danh-muc-tinh-nang-mo-rong.md # Danh mục 6 nhóm tính năng mở rộng
+│   ├── 05-ke-hoach-poc.md               # Kế hoạch triển khai thử nghiệm POC
+│   ├── 06-huong-dan-chay-excel-vi.md    # Hướng dẫn chi tiết chạy với Excel (Tiếng Việt)
+│   ├── 07-running-with-excel-en.md      # Detailed running guide with Excel (English)
+│   └── 08-phan-tich-agno-license-oss-vs-commercial.md # Phân tích bản quyền Agno OSS vs Commercial
+└── src/excel_agent/                     # Mã nguồn Backend theo chuẩn kiến trúc
+    ├── main.py                          # FastAPI entrypoint & static mount
+    ├── core/                            # Config (BaseSettings), Logging (loguru), Decorators
+    ├── models/                          # SQLModel entities (Product, AuditLog)
+    ├── schemas/                         # Pydantic v2 DTOs (Search, Excel, Agent, Common)
+    ├── strategies/                      # Strategy Pattern (AzureOpenAI, MockLLM, FuzzySearch)
+    ├── builders/                        # YAML PromptBuilder loader
+    ├── pipelines/                       # Step-Context Pipeline Pattern
+    ├── services/                        # 100% Business Logic (DbService, ExcelService, AgentService)
+    └── api/v1/                          # Routers (chat, search, excel)
 ```
 
 ---
 
-## 3 · Danh mục tài liệu nghiên cứu chi tiết
+## 3 · Bắt đầu nhanh (Quick Start)
 
-Hệ thống tài liệu nghiên cứu khả thi và kiến trúc giải pháp nằm trong thư mục [`docs/`](docs/):
+### 3.1. Cài đặt và cấu hình
+```bash
+cd projects/gemini-excel-ai-agent
 
-| # | Tài liệu | Nội dung chính |
-|---|---|---|
-| 1 | [01 · Mô tả bài toán](docs/01-mo-ta-bai-toan.md) | Bối cảnh doanh nghiệp, bài toán người dùng, phân loại và định vị bài toán trong bản đồ 8 nhóm bài toán AI doanh nghiệp. |
-| 2 | [02 · Kiến trúc giải pháp](docs/02-solution-approach-kien-truc.md) | Thiết kế kiến trúc 3 tầng: Office.js Taskpane, Client-Server Tool Execution Loop, cơ chế bảo mật và giao thức tương tác. |
-| 3 | [03 · Đánh giá tính khả thi](docs/03-danh-gia-tinh-kha-thi.md) | Nghiên cứu sâu về khả năng của Office.js, ma trận tương thích (Web/Desktop/Mac), hiệu năng, rủi ro và kết luận khả thi. |
-| 4 | [04 · Danh mục tính năng mở rộng](docs/04-danh-muc-tinh-nang-mo-rong.md) | Đề xuất danh mục tính năng đột phá: Smart Search, 2-way ERP Sync, Formula Copilot, Anomaly Detection, Doc-to-Excel Ingestion. |
-| 5 | [05 · Kế hoạch thử nghiệm POC](docs/05-ke-hoach-poc.md) | Lộ trình triển khai POC 3 giai đoạn (POC-1, POC-2, POC-3) để kiểm chứng thực tế mà không gây rủi ro kỹ thuật. |
+# Cài đặt thư viện bằng Poetry
+poetry install
+
+# Tạo file cấu hình môi trường
+cp .env.example .env
+# (Điền AZURE_OPENAI_API_KEY nếu có, hoặc để trống để chạy chế độ Fallback Simulator)
+```
+
+### 3.2. Khởi chạy Server
+```bash
+poetry run uvicorn excel_agent.main:app --reload --host 0.0.0.0 --port 8000
+# Hoặc chạy lệnh make:
+make dev
+```
+
+### 3.3. Trải nghiệm
+- **Kiểm thử trên trình duyệt:** Mở [http://localhost:8000/taskpane/index.html](http://localhost:8000/taskpane/index.html). Thử gõ `/search Áo thun` hoặc bấm các nút quick action.
+- **Sideload vào Microsoft Excel:** Xem chi tiết hướng dẫn tại [06-huong-dan-chay-excel-vi.md](docs/06-huong-dan-chay-excel-vi.md) hoặc [07-running-with-excel-en.md](docs/07-running-with-excel-en.md).
 
 ---
 
-## 4 · Kết luận nghiên cứu sơ bộ
+## 4 · Danh mục tài liệu chi tiết trong `docs/`
 
-> [!IMPORTANT]
-> **KẾT LUẬN TÍNH KHẢ THI: 100% KHẢ THI VỀ MẶT KỸ THUẬT VÀ CÓ GIÁ TRỊ THƯƠNG MẠI CAO.**
-> 
-> 1. **Về công nghệ Office Add-in:** Nền tảng **Office JavaScript API (`Office.js`)** hiện đại của Microsoft hỗ trợ đầy đủ các thao tác tìm kiếm cột, chèn dòng, định dạng, lắng nghe sự kiện trên cả Windows, Mac và Web.
-> 2. **Về kiến trúc Agent:** Sử dụng mô hình **Client-Side Tool Execution Loop**, trong đó Agent trên server suy luận và phát lệnh, còn Taskpane Add-in trên client thực thi trực tiếp trên workbook, đảm bảo không cần upload toàn bộ file Excel lên server.
-> 3. **Về phân loại bài toán:** Thuộc **Nhóm 7 (AI Agent & Tự động hóa quy trình)** ở tầng thuật toán và định vị là **CMB-10 (Enterprise Spreadsheet Copilot)** trong bản đồ bài toán doanh nghiệp.
+| # | Tài liệu | Nội dung chính |
+|---|---|---|
+| 1 | [01 · Mô tả bài toán](docs/01-mo-ta-bai-toan.md) | Bối cảnh doanh nghiệp, pain points & định vị trong bản đồ bài toán (Nhóm 7 / CMB-10). |
+| 2 | [02 · Kiến trúc giải pháp](docs/02-solution-approach-kien-truc.md) | Kiến trúc 3 tầng với **Agno AgentOS**, Client-Side Tool Calling và Pydantic schemas. |
+| 3 | [03 · Đánh giá tính khả thi](docs/03-danh-gia-tinh-kha-thi.md) | Khảo sát năng lực Office.js API, ma trận tương thích Win/Mac/Web, hiệu năng và rủi ro. |
+| 4 | [04 · Danh mục tính năng mở rộng](docs/04-danh-muc-tinh-nang-mo-rong.md) | Đề xuất các tính năng mở rộng: Smart VLOOKUP, 2-Way ERP Sync, Formula Copilot, VLM Doc Ingestion. |
+| 5 | [05 · Kế hoạch thử nghiệm POC](docs/05-ke-hoach-poc.md) | Lộ trình triển khai POC 3 giai đoạn (POC-1, POC-2, POC-3). |
+| 6 | [06 · Hướng dẫn chạy với Excel (Tiếng Việt)](docs/06-huong-dan-chay-excel-vi.md) | **Hướng dẫn chi tiết từng bước chạy và nạp vào Excel Desktop / Excel Web (Tiếng Việt).** |
+| 7 | [07 · Running Guide with Excel (English)](docs/07-running-with-excel-en.md) | **Step-by-step setup and sideloading instructions into Microsoft Excel (English).** |
+| 8 | [08 · Phân tích bản quyền Agno (OSS vs Commercial)](docs/08-phan-tich-agno-license-oss-vs-commercial.md) | **Phân tích bản quyền Apache 2.0, chi phí prod, so sánh tính năng mã nguồn mở vs bản trả phí.** |
+
+---
+
+## 5 · Kết luận phân tích bản quyền Agno cho Doanh nghiệp
+
+- **Agno Open Source SDK (Apache 2.0):** Miễn phí thương mại vĩnh viễn, được phép tự host trên máy chủ doanh nghiệp (on-premise / private cloud) chạy production mà **không cần mua license**.
+- **Bản Commercial (Agno Enterprise Cloud):** Chỉ cần thiết khi doanh nghiệp muốn ủy thác toàn bộ việc quản lý hạ tầng cho vendor, cần dashboard quản lý nhiều team tập trung và chứng chỉ SOC2 Type II.
