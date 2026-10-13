@@ -50,6 +50,14 @@ flowchart TD
 > [CMB-10](../02-skill-map/generated/to-hop-ky-nang.md#cmb-10). Tách dự án thành bài toán con rồi nhận diện từng phần —
 > xem [tổ hợp kỹ năng](../02-skill-map/02-ky-nang-ket-hop.md).
 
+## Use case bổ sung · Chatbot AI thao tác Excel
+
+[GPT Excel Agent Chatbot](../../projects/gpt-excel-agent-chatbot/README.md) thuộc **G7 · AI Agent và tự động hóa
+quy trình**, với **G6** hỗ trợ hiểu yêu cầu: chat trong Excel → tra dữ liệu theo cột hoặc từ hệ thống → kiểm tra
+→ thêm bản ghi → báo kết quả. Đây là use case mới trong nhóm hiện có, **không cần thêm G9**. Dữ liệu nằm trong
+Excel không tự làm bài toán thuộc G1; G1 chỉ tham gia khi có mục tiêu dự đoán/chấm điểm. Dự án hiện chỉ nghiên cứu
+khả thi và solution approach, chưa triển khai.
+
 ## Ma trận kỹ năng theo nhóm (giai đoạn 1)
 
 Mức cần thiết của 8 mảng kỹ năng để làm tốt từng nhóm ở mức trung cấp trở lên (đánh giá định tính).
