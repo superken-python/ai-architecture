@@ -77,13 +77,16 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
       [nghiên cứu khả thi](projects/cmb-10-excel-agent-addin/README.md) (phân loại CMB-10, 4 phương án, kiến trúc AG-UI,
       41 tính năng), trả lời 9 câu hỏi mở rồi làm P0 → POC theo
       [kế hoạch POC](projects/cmb-10-excel-agent-addin/docs/04-danh-gia-kha-thi.md#6-kế-hoạch-poc).
-- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — điền `OPENAI_API_KEY` vào `.env`, chạy POC 0.1 với `gpt-5-mini`
-      (các câu ở [hướng dẫn §5](projects/cmb-10-excel-agent-addin/docs/06-poc-huong-dan-su-dung.md#5-sử-dụng)); ghi lại
-      độ trễ, số token, câu nào agent hiểu sai.
-- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — chủ dự án review POC 0.1 và
-      [ADR-08](projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md#bổ-sung--adr-08--agent-viết-bằng-openai-agents-sdk-agentos-chỉ-làm-runtime)
-      (mất frontend tools: agent chỉ thấy trạng thái bảng do giao diện gửi lên); quyết định bước tiếp: đưa giao diện vào
-      task pane Office add-in, nối API dữ liệu thật.
+- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — điền `OPENAI_API_KEY` vào `.env`, chạy POC 0.2 với `gpt-5-mini`
+      (các câu ở [hướng dẫn §7](projects/cmb-10-excel-agent-addin/docs/06-poc-huong-dan-su-dung.md#7-sử-dụng)); ghi lại
+      độ trễ, số token, câu nào agent hiểu sai hoặc gọi sai công cụ Excel.
+- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — nạp add-in vào **Excel thật** (web + Windows/Mac) theo
+      [addin/README.md](projects/cmb-10-excel-agent-addin/addin/README.md), chạy lại kịch bản của `tests/e2e/test_taskpane.py`
+      bằng tay, ghi khác biệt so với Office.js giả lập.
+- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — chủ dự án review POC 0.2 và
+      [ADR-09](projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md#bổ-sung--adr-09--quay-lại-agent-agno-một-agent-công-cụ-excel-chạy-ở-add-in)
+      (một agent Agno, không agent điều hướng vì thành viên Team không nhận công cụ Excel); quyết định bước tiếp:
+      đăng nhập (NAA), nối API dữ liệu thật, golden set.
 - [ ] **P2** Dự án của hướng chuyên sâu đã chọn — mốc cuối tháng 6.
 
 ## Giai đoạn 5 · Production (dự kiến)

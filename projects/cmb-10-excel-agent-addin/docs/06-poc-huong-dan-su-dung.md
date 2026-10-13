@@ -2,184 +2,164 @@
 
 | Thuộc tính | Chi tiết |
 |---|---|
-| Phiên bản | 0.1 — POC chạy được |
+| Phiên bản | 0.2 — POC chạy được, có add-in cho Excel thật |
 | Ngày | 2026-10-13 |
-| Stack | **AgentOS** (Agno 3.1.3, chỉ làm runtime phục vụ) + giao thức **AG-UI** + agent viết bằng **OpenAI Agents SDK** 0.23.1, model mặc định **gpt-5-mini** |
-| Chạy không cần API key | Có — chế độ offline (luật cố định) để thử giao diện; có `OPENAI_API_KEY` thì tự chuyển sang gpt-5-mini |
-| Kiểm thử | 38 test unit + integration (không mạng, không key) + 1 test giao diện bằng Chromium thật |
-| Đọc trước | [02 · Giải pháp và kiến trúc](02-giai-phap-kien-truc.md) · [05 · ADR-07 runtime agent](05-adr-runtime-agent.md) |
+| Stack | **AgentOS** (Agno 3.1.3) + giao thức **AG-UI** + **agent Agno**, model mặc định **gpt-5-mini** (OpenAI Responses API) |
+| Hai giao diện, một khung chat | **Web POC** (bảng Excel mô phỏng, file trên server) và **task pane Office add-in** (Excel thật, Office.js) |
+| Chạy không cần API key | Có — chế độ offline (luật cố định, đi qua đúng đường code của Agno); có `OPENAI_API_KEY` thì dùng gpt-5-mini |
+| Kiểm thử | 47 test unit + integration (không mạng, không key) + 2 test giao diện bằng Chromium (web POC; task pane với Office.js giả lập) |
+| Quyết định liên quan | [ADR-09](05-adr-runtime-agent.md#bổ-sung--adr-09--quay-lại-agent-agno-một-agent-công-cụ-excel-chạy-ở-add-in) — bản 0.1 viết agent bằng OpenAI Agents SDK (ADR-08), bản 0.2 quay lại Agno để có công cụ Excel chạy ở add-in |
 
 ## Mục lục
 
 1. [POC làm được gì](#1-poc-làm-được-gì)
 2. [Kiến trúc POC](#2-kiến-trúc-poc)
-3. [Cấu trúc mã nguồn](#3-cấu-trúc-mã-nguồn)
-4. [Cài đặt và chạy](#4-cài-đặt-và-chạy)
-5. [Sử dụng](#5-sử-dụng)
-6. [API](#6-api)
-7. [Thay API giả lập bằng API thật](#7-thay-api-giả-lập-bằng-api-thật)
-8. [Kiểm thử](#8-kiểm-thử)
-9. [Giới hạn và bước tiếp theo](#9-giới-hạn-và-bước-tiếp-theo)
-10. [Xử lý sự cố](#10-xử-lý-sự-cố)
+3. [Công cụ Excel chạy ở add-in](#3-công-cụ-excel-chạy-ở-add-in)
+4. [Cấu trúc mã nguồn](#4-cấu-trúc-mã-nguồn)
+5. [Cài đặt và chạy web POC](#5-cài-đặt-và-chạy-web-poc)
+6. [Chạy trong Excel thật](#6-chạy-trong-excel-thật)
+7. [Sử dụng](#7-sử-dụng)
+8. [API](#8-api)
+9. [Thay API giả lập bằng API thật](#9-thay-api-giả-lập-bằng-api-thật)
+10. [Kiểm thử](#10-kiểm-thử)
+11. [Giới hạn và bước tiếp theo](#11-giới-hạn-và-bước-tiếp-theo)
+12. [Xử lý sự cố](#12-xử-lý-sự-cố)
 
 ## 1. POC làm được gì
 
 | # | Yêu cầu | Trong POC |
 |---|---|---|
-| 1 | Chat UI → AgentOS (AG-UI) → agent gọi **một API**, đầu ra là **file Excel** | Gõ *"Tạo file Excel khách hàng ở Hà Nội"* → agent điều phối chuyển cho **Excel Report Agent** → tool `export_excel` gọi `POST /export` của API dữ liệu → nhận file `.xlsx` (định dạng Excel Table, số tiền, ngày) → giao diện hiện **thẻ file** |
-| 2 | **Bấm vào file Excel → hiện dữ liệu** | Bấm thẻ file → bảng dữ liệu bên phải (các sheet, chữ cái cột, số dòng Excel), tải file về, hoàn tác |
-| 3 | **`/search`** theo cột, hoặc truyền text → gọi API search → **chọn kết quả → áp vào cột** | `/search Đà Nẵng` (mọi cột, hoặc theo **cột đang chọn** trên bảng), `/search Thành phố: Đà Nẵng` (chỉ định cột) → `GET /search` → bảng kết quả có ô tích → **Ghi vào cột…** (ghi vào các dòng đang chọn) hoặc **Thêm thành dòng mới** → xác nhận → file lên phiên bản mới |
-| 4 | Agent viết bằng **OpenAI Agents SDK** (không viết agent bằng Agno), **gpt-5-mini**, có **agent điều hướng** | `Điều phối` (triage) handoff sang `Excel Report Agent` / `Data Search Agent`; AgentOS chỉ phục vụ qua adapter `OpenAIAgentsAdapter` |
+| 1 | Chat UI → AgentOS (AG-UI) → agent gọi **một API**, đầu ra là **file Excel**; **bấm vào file → hiện dữ liệu** | *"Tạo file Excel khách hàng ở Hà Nội"* → tool `export_excel` gọi `POST /export` → **thẻ file**. Web POC: bấm **Xem dữ liệu** → bảng. Trong Excel: bấm **Chèn vào workbook** → thành sheet mới |
+| 2 | **`/search`** theo cột hoặc theo text → API search → **chọn kết quả → áp vào cột** | `/search Đà Nẵng` (theo **cột đang chọn** trên sheet, hoặc mọi cột), `/search Thành phố: Đà Nẵng` → bảng kết quả có ô tích → **Ghi vào cột…** (các dòng đang chọn) hoặc **Thêm thành dòng mới**. Chạy bằng code, không tốn token |
+| 3 | Agent **thao tác trực tiếp trên sheet**: tìm theo cột, chèn nguyên một dòng từ hệ thống, ghi cột | *"Thêm khách hàng KH-0012 vào bảng"* → `search_data` (server) → `excel_append_rows` (chạy ở add-in) → run **tạm dừng**, add-in hiện **xem trước** → người dùng **xác nhận** → ghi → run **chạy tiếp**, agent tóm tắt |
+| 4 | Chạy trong **Excel thật** | Task pane + manifest (`addin/`), công cụ Excel viết bằng Office.js, nút **Mở Excel Agent** ở tab Home |
+| 5 | Agent **Agno**, model **gpt-5-mini** | Một `Agent` Agno, `OpenAIResponses(gpt-5-mini, reasoning low, store=false)`. Không dùng Team/agent điều hướng — lý do ở [ADR-09](05-adr-runtime-agent.md#bổ-sung--adr-09--quay-lại-agent-agno-một-agent-công-cụ-excel-chạy-ở-add-in) |
 
-Quy tắc giữ nguyên từ thiết kế (tài liệu 02): **code tìm và tính, LLM chọn tham số**; **mọi lệnh ghi do người dùng xác nhận
-trên giao diện** (agent chỉ đề xuất kết quả, không tự ghi); mỗi lần ghi tạo **phiên bản mới**, hoàn tác = quay về phiên bản
-trước; lệnh bắt đầu bằng `/` chạy bằng code, **không tốn token**.
+Quy tắc giữ từ thiết kế (tài liệu 02): **code tìm và tính, LLM chọn tham số**; **mọi lệnh ghi đều có xem trước và chờ người
+dùng xác nhận** — cổng ghi đặt ở add-in, agent không vượt qua được; ngay trước khi ghi, add-in đọc lại sheet và chặn nếu
+dữ liệu đã đổi; lệnh bắt đầu bằng `/` chạy bằng code.
 
 ## 2. Kiến trúc POC
 
 ```mermaid
 flowchart LR
-    subgraph UI["Trình duyệt · web/ (HTML + JS thuần)"]
-        CHAT["Khung chat<br/>client AG-UI (SSE)"]
-        GRID["Bảng Excel<br/>chọn cột · chọn dòng"]
+    subgraph CLIENT["Giao diện · cùng khung chat (web/js/chat.js)"]
+        CHAT["Client AG-UI<br/>+ công cụ Excel (excel_*)"]
+        WEB["Web POC<br/>bảng mô phỏng"]
+        TP["Task pane trong Excel<br/>Office.js"]
     end
     subgraph SRV["Một tiến trình · uvicorn :7777"]
         AGUI["AgentOS · POST /agui"]
-        AD["OpenAIAgentsAdapter<br/>BaseExternalAgent"]
-        subgraph SDK["OpenAI Agents SDK"]
-            TR["Điều phối (triage)"]
-            RA["Excel Report Agent<br/>export_excel"]
-            SA["Data Search Agent<br/>search_data"]
-        end
-        WB["/api/v1/workbooks<br/>preview · apply · undo · download"]
-        MOCK["/mock-api · API dữ liệu giả lập<br/>/datasets · /search · /export"]
-        DB[("SQLite · session AgentOS")]
-        FILES[("var/workbooks · file theo phiên bản")]
+        AG["Agent Agno<br/>tool server: search_data,<br/>export_excel, list_datasets"]
+        CMD["/api/v1/commands<br/>/search /datasets /help"]
+        WB["/api/v1/workbooks<br/>(chỉ web POC)"]
+        MOCK["/mock-api · API dữ liệu giả lập"]
+        DB[("SQLite · session,<br/>run tạm dừng")]
     end
-    LLM[("OpenAI · gpt-5-mini<br/>hoặc model offline")]
-    CHAT -- "AG-UI" --> AGUI --> AD --> TR
-    TR -- handoff --> RA
-    TR -- handoff --> SA
-    RA -- "HTTP" --> MOCK
-    SA -- "HTTP" --> MOCK
-    TR & RA & SA -.-> LLM
+    LLM[("OpenAI Responses · gpt-5-mini<br/>hoặc model offline")]
+    XL[("Workbook đang mở")]
+    CHAT -- "AG-UI: câu hỏi + context excel_ui + tools excel_*" --> AGUI --> AG
+    AG -.-> LLM
+    AG --> MOCK
     AGUI --- DB
-    RA --> FILES
-    GRID -- "REST" --> WB --> FILES
+    CHAT -- "lệnh /" --> CMD --> MOCK
+    WEB -- REST --> WB
+    TP -- Office.js --> XL
+    CHAT --- WEB
+    CHAT --- TP
 ```
 
-**Vì sao cần adapter:** AgentOS 3.1 có adapter cho Claude Agent SDK, LangGraph, DSPy… nhưng chưa có cho OpenAI Agents SDK.
-`OpenAIAgentsAdapter` (≈ 250 dòng) chạy `Runner.run_streamed` rồi đổi sự kiện của SDK sang sự kiện AgentOS; AgentOS đổi tiếp
-sang AG-UI. Nhờ vậy được dùng nguyên phần AgentOS làm tốt (endpoint AG-UI, session lưu SQLite/PostgreSQL, REST `/agents/…`,
-lịch sử hội thoại) mà agent vẫn viết thuần OpenAI Agents SDK.
+**Luồng tạm dừng/tiếp tục** — điểm khác biệt chính so với bản 0.1: agent gọi công cụ chạy trong Excel.
 
-| Sự kiện OpenAI Agents SDK | Sự kiện AgentOS | Sự kiện AG-UI tới trình duyệt |
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Người dùng
+    participant TP as Task pane (add-in)
+    participant OS as AgentOS /agui
+    participant AG as Agent Agno
+    participant API as API dữ liệu
+    participant XL as Excel (Office.js)
+    U->>TP: Thêm khách hàng KH-0012 vào bảng
+    TP->>XL: đọc sheet, tiêu đề, vùng chọn
+    TP->>OS: POST /agui · câu hỏi + context excel_ui + tools excel_*
+    OS->>AG: arun
+    AG->>API: search_data → GET /search?q=KH-0012
+    API-->>AG: bản ghi KH-0012
+    AG-->>OS: gọi excel_append_rows → run TẠM DỪNG (lưu DB)
+    OS-->>TP: TOOL_CALL_START/ARGS/END · RUN_FINISHED (không có RESULT)
+    TP->>U: thẻ xem trước: dòng 6 = KH-0012 …
+    U->>TP: Xác nhận thêm
+    TP->>XL: đọc lại sheet (chặn nếu đã đổi) → table.rows.add
+    TP->>OS: POST /agui · tin nhắn role "tool" {status: applied, first_row: 6}
+    OS->>AG: acontinue_run
+    AG-->>TP: TEXT_MESSAGE · Đã thêm 1 dòng vào sheet Khách hàng (dòng 6)
+```
+
+| Sự kiện Agno | Sự kiện AG-UI tới giao diện | Giao diện làm gì |
 |---|---|---|
-| `raw_response_event` · `response.output_text.delta` | `RunContent` | `TEXT_MESSAGE_START/CONTENT/END` |
-| `run_item_stream_event` · `tool_called`, `handoff_requested` | `ToolCallStarted` | `TOOL_CALL_START`, `TOOL_CALL_ARGS` |
-| `run_item_stream_event` · `tool_output`, `handoff_occured` | `ToolCallCompleted` | `TOOL_CALL_END`, `TOOL_CALL_RESULT` (JSON) |
+| `RunContent` | `TEXT_MESSAGE_START/CONTENT/END` | hiện chữ |
+| tool server bắt đầu / xong | `TOOL_CALL_START/ARGS/END` → `TOOL_CALL_RESULT` | chip ✓; kết quả `workbook` → thẻ file, `search_results` → bảng kết quả |
+| `RunPaused` (tool `external_execution`) | `TOOL_CALL_START/ARGS/END` **không có RESULT**, rồi `RUN_FINISHED` | chạy công cụ Excel trên host; tool ghi → thẻ xác nhận; gửi kết quả để run chạy tiếp |
+| lỗi | `RUN_ERROR` | hiện lỗi |
 
-Giao diện đọc `TOOL_CALL_RESULT` theo trường `type`: `workbook` → thẻ file, `search_results` → bảng kết quả chọn được,
-`handoff` → "Đã chuyển cho …", `error` → báo lỗi.
+## 3. Công cụ Excel chạy ở add-in
 
-### 2.1 Luồng 1 · chat → file Excel → xem dữ liệu
+Định nghĩa trong `web/js/excel-tools.js`, gửi kèm **mỗi** lượt chat. Model thấy chúng như tool bình thường; AgentOS biến
+thành tool `external_execution`. Số dòng luôn là **số dòng thật trong Excel** (dòng tiêu đề là 1 với bảng ở A1).
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Người dùng
-    participant UI as Giao diện
-    participant OS as AgentOS /agui
-    participant AD as Adapter
-    participant TR as Điều phối
-    participant RA as Excel Report Agent
-    participant API as API dữ liệu
-    participant WB as Workbook service
-    U->>UI: Tạo file Excel khách hàng ở Hà Nội
-    UI->>OS: POST /agui · messages + context (file, cột, dòng đang chọn)
-    OS->>AD: arun(stream)
-    AD->>TR: Runner.run_streamed
-    TR-->>AD: handoff → Excel Report Agent
-    AD-->>UI: TOOL_CALL_START/RESULT · Đã chuyển cho Excel Report Agent
-    RA->>API: export_excel → POST /export · dataset + bộ lọc
-    API-->>RA: file .xlsx
-    RA->>WB: lưu phiên bản 1
-    AD-->>UI: TOOL_CALL_RESULT · type workbook
-    RA-->>UI: TEXT_MESSAGE · Đã tạo file … 9 dòng
-    U->>UI: bấm thẻ file
-    UI->>WB: GET /api/v1/workbooks/{id}/preview
-    WB-->>UI: cột + dòng → hiện bảng
-```
+| Công cụ | Loại | Tham số | Kết quả trả agent |
+|---|---|---|---|
+| `excel_get_context` | đọc | — | workbook, sheet, Table, tiêu đề cột, số dòng, vùng chọn, 3 dòng đầu |
+| `excel_find_rows` | đọc | `query`, `column?`, `match` (`contains`/`exact`), `limit` | `matches: [{row, values}]`, `total`; chọn dòng tìm được trên sheet |
+| `excel_read_rows` | đọc | `rows`, `columns?` | giá trị các dòng |
+| `excel_set_values` | **ghi** | `column`, `rows`, `values` (1 giá trị hoặc bằng số dòng), `create_column` | `status: applied/rejected/error`, `changed_rows` |
+| `excel_append_rows` | **ghi** | `rows: [{tên cột: giá trị}]` | `status`, `first_row`, `last_row` |
 
-### 2.2 Luồng 2 · /search → chọn → áp vào cột
+Hai **host** cùng giao diện (`context`, `readTable`, `select`, `setValues`, `appendRows`):
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Người dùng
-    participant UI as Giao diện
-    participant OS as AgentOS /agui
-    participant AD as Adapter
-    participant API as API dữ liệu
-    participant WB as Workbook service
-    U->>UI: chọn cột Thành phố + 3 dòng trên bảng
-    U->>UI: /search Đà Nẵng
-    UI->>OS: POST /agui · context có cột và dòng đang chọn
-    OS->>AD: arun(stream)
-    AD->>API: lệnh / chạy bằng code · GET /search?q=Đà Nẵng&column=Thành phố
-    API-->>AD: 6 bản ghi
-    AD-->>UI: TOOL_CALL_RESULT · type search_results
-    U->>UI: tích 1 kết quả · Ghi vào cột… · Xác nhận
-    UI->>WB: POST /apply · set_column · expected_version
-    WB->>WB: kiểm chứng kiểu, phạm vi, phiên bản → lưu phiên bản 2
-    WB-->>UI: các dòng đã đổi → bảng tô sáng ô vừa ghi
-```
+| | Web POC (`hosts/web-host.js`) | Excel thật (`hosts/office-host.js`) |
+|---|---|---|
+| Dữ liệu | file `.xlsx` trên server, mỗi lần ghi tạo phiên bản mới | workbook đang mở; vùng dữ liệu = Excel Table đầu tiên của sheet, không có thì vùng đã dùng |
+| Ghi | `POST /api/v1/workbooks/{id}/apply` (server kiểm kiểu, trùng mã, `expected_version`) | `Range.values`, `table.rows.add`, `table.columns.add` |
+| Kiểm trước khi ghi | phía client (cột, dòng, trùng mã ở cột đầu) + phía server | phía client + đọc lại sheet ngay trước khi ghi (ô hoặc số dòng đổi → chặn) |
+| Hoàn tác | nút **↶ Hoàn tác** (về phiên bản trước) | Ctrl+Z |
+| Giữ số 0 đầu (điện thoại, mã) | server giữ dạng chữ | ghi dạng `'0957…` để Excel không đổi thành số |
 
-## 3. Cấu trúc mã nguồn
+## 4. Cấu trúc mã nguồn
 
 Theo [best practice cấu trúc dự án Python AI](../../python-ai-project-structure-best-practices.md): `src/` layout, tách
-tầng API (chỉ routing) — service (logic) — schema (giao kèo) — agent, prompt nằm ngoài code. Dùng **uv** như cả repo thay
-cho Poetry.
+tầng API (chỉ routing) — service — schema — agent, prompt nằm ngoài code. Dùng **uv** như cả repo.
 
 ```text
 projects/cmb-10-excel-agent-addin/
 ├── pyproject.toml · uv.lock · Makefile · .env.example
-├── prompts/agents/                 # [PROMPT ISOLATION] instructions của từng agent (YAML)
-│   ├── triage.yml                  #   agent điều phối
-│   ├── excel_report.yml            #   agent xuất Excel
-│   ├── data_search.yml             #   agent tìm kiếm
-│   └── single.yml                  #   khi USE_TRIAGE=false (một agent đủ tool)
+├── prompts/agents/excel_agent.yml  # [PROMPT ISOLATION] instructions của agent (biến $datasets)
+├── addin/                          # Office add-in: manifest.xml + hướng dẫn nạp vào Excel
 ├── src/excel_agent/
-│   ├── main.py                     # khởi tạo AgentOS + AGUI + API + UI (create_app)
-│   ├── core/                       # [SHARED KERNEL] config (pydantic-settings), text (chuẩn hóa tiếng Việt),
-│   │                               #   values (số/ngày kiểu Việt), exceptions, logging
-│   ├── api/                        # [API LAYER] chỉ routing + DI
-│   │   ├── dependencies.py
-│   │   └── v1/{router.py, workbooks.py}
-│   ├── schemas/                    # [CONTRACTS] Pydantic v2: data_api.py, workbook.py
-│   ├── services/                   # [SERVICE LAYER] data_api_client.py (HTTP tới API dữ liệu),
-│   │                               #   workbook_service.py (phiên bản, preview, apply, undo, kiểm chứng)
-│   ├── agents/                     # [AGENT LAYER] OpenAI Agents SDK
-│   │   ├── factory.py              #   dựng triage + 2 agent chuyên trách, model gpt-5-mini
-│   │   ├── tools.py                #   function tools: list_datasets, export_excel, search_data
-│   │   ├── context.py              #   AgentDeps + UiState (trạng thái giao diện gửi qua AG-UI context)
-│   │   ├── commands.py             #   lệnh /search, /datasets, /help (không gọi LLM)
-│   │   ├── summaries.py            #   câu trả lời từ kết quả tool cho lệnh /
-│   │   ├── offline_model.py        #   model offline (khi chưa có key) dựa trên ScriptedModel của SDK
-│   │   ├── intent.py               #   luật đọc câu tiếng Việt cho model offline
-│   │   └── runtime/agentos_adapter.py  # OpenAIAgentsAdapter: OpenAI Agents SDK → AgentOS → AG-UI
+│   ├── main.py                     # AgentOS + AGUI + API + web/task pane (create_app)
+│   ├── core/                       # [SHARED KERNEL] config, text (tiếng Việt), values, exceptions, logging
+│   ├── api/v1/                     # [API LAYER] commands.py (lệnh /), workbooks.py (web POC), router.py
+│   ├── schemas/                    # [CONTRACTS] data_api.py, workbook.py, commands.py
+│   ├── services/                   # [SERVICE LAYER] data_api_client.py, workbook_service.py
+│   ├── agents/                     # [AGENT LAYER] Agno
+│   │   ├── excel_agent.py          #   build_agent + build_model (gpt-5-mini / offline)
+│   │   ├── tools.py                #   tool server: SystemDataTools (search_data, export_excel, list_datasets)
+│   │   ├── context.py              #   UiState (context excel_ui) + AgentDeps
+│   │   ├── commands.py             #   lệnh /search, /datasets, /help (không gọi model)
+│   │   └── summaries.py            #   câu trả lời từ kết quả tool (lệnh / và model offline)
+│   ├── offline_llm/                # OpenAI Responses API giả lập: chế độ offline (RuleBrain) + test (ScriptBrain)
 │   ├── builders/prompt_builder.py  # [PROMPT BUILDERS] nạp YAML + điền biến
-│   └── mock_data_api/              # API dữ liệu giả lập (thay ERP/CRM): app.py, service.py, data/*.json
-├── web/                            # giao diện chat + bảng Excel (index.html, app.js, styles.css)
-├── scripts/generate_sample_data.py # sinh dữ liệu mẫu cố định theo seed
-└── tests/                          # [TEST PYRAMID] unit/ · integration/ (AG-UI qua AgentOS) · e2e/ (Chromium)
+│   └── mock_data_api/              # API dữ liệu giả lập (thay ERP/CRM)
+├── web/
+│   ├── index.html · taskpane.html · commands.html · styles.css · assets/icon-*.png
+│   └── js/  agui.js (client AG-UI) · chat.js (vòng tạm dừng/tiếp tục, thẻ) · excel-tools.js (giao kèo công cụ)
+│            hosts/web-host.js · hosts/office-host.js · main-web.js · main-taskpane.js · util.js
+├── scripts/                        # generate_sample_data.py, generate_addin_icons.py
+└── tests/                          # unit/ · integration/ (AG-UI qua AgentOS thật) · e2e/ (Chromium, Office.js giả lập)
 ```
 
-Phần của mẫu best practice **chưa dùng** trong POC và lý do: `models/`, `repositories/`, Alembic (chưa có bảng nghiệp vụ —
-session do AgentOS lưu, file Excel lưu theo thư mục); `mcp/` (API dữ liệu gọi bằng HTTP; khi nối CMB-09 sẽ dùng DBHub qua
-MCP); `domains/` (một miền dữ liệu giả lập — tách pack khi có miền thật); `eval/` (để POC-2 của tài liệu 04).
-
-## 4. Cài đặt và chạy
+## 5. Cài đặt và chạy web POC
 
 **Cần:** Python ≥ 3.12, [uv](https://docs.astral.sh/uv/), trình duyệt. Không cần Excel.
 
@@ -189,101 +169,97 @@ make setup        # uv sync + tạo .env từ .env.example
 make dev          # http://127.0.0.1:7777
 ```
 
-Mở `http://127.0.0.1:7777`. Góc phải trên hiện **"Offline · chưa có OPENAI_API_KEY"** — vẫn dùng được hai luồng (câu
-được hiểu bằng luật cố định, lệnh `/` chạy bình thường).
+Góc phải trên hiện **"Offline · chưa có OPENAI_API_KEY"** — vẫn thử được mọi luồng với các câu mẫu ở mục 7.
 
-**Bật gpt-5-mini** khi có key: sửa `.env` rồi chạy lại `make dev`.
+**Bật gpt-5-mini** khi có key: sửa `.env` rồi chạy lại `make dev` → góc phải hiện **"Agno · gpt-5-mini"**.
 
 ```dotenv
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-5-mini
 OPENAI_REASONING_EFFORT=low
-USE_TRIAGE=true          # false = một agent đủ tool, bớt một lượt gọi model
+OPENAI_STORE=false
 ```
-
-Góc phải trên đổi thành **"OpenAI · gpt-5-mini · có agent điều phối"**. Trace của OpenAI Agents SDK **không** gửi lên
-OpenAI trừ khi đặt `OPENAI_TRACING=true`. Dùng gateway tương thích OpenAI thì đặt thêm `OPENAI_BASE_URL`.
 
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
 | `OPENAI_API_KEY` | trống | trống → chế độ offline |
-| `OPENAI_MODEL` | `gpt-5-mini` | model cho cả 3 agent |
-| `OPENAI_REASONING_EFFORT` | `low` | `minimal` · `low` · `medium` · `high` (model gpt-5) |
+| `OPENAI_MODEL` | `gpt-5-mini` | model của agent |
+| `OPENAI_REASONING_EFFORT` | `low` | `minimal` · `low` · `medium` · `high` (chỉ gửi với model gpt-5/o) |
+| `OPENAI_STORE` | `false` | `false` = OpenAI không lưu hội thoại, Agno gửi lại ngữ cảnh mỗi lượt |
+| `OPENAI_BASE_URL` | trống | gateway tương thích OpenAI |
 | `AGENT_MODE` | `auto` | `auto` (có key thì OpenAI) · `openai` · `offline` |
-| `USE_TRIAGE` | `true` | agent điều phối + handoff |
-| `MAX_TURNS` | `8` | số bước tối đa của một lượt chạy |
-| `DATA_API_URL` | trống | trống → API giả lập tại `http://HOST:PORT/mock-api` |
-| `MOUNT_MOCK_API` | `true` | gắn API giả lập vào cùng server |
-| `DEFAULT_DATASET` | `khach_hang` | dataset mặc định cho `/search` khi chưa mở file |
-| `STORAGE_DIR` | `./var` | file Excel theo phiên bản + SQLite của AgentOS |
+| `NUM_HISTORY_RUNS` | `4` | số lượt hội thoại trước đưa vào ngữ cảnh |
+| `TOOL_CALL_LIMIT` | `12` | số lần gọi tool tối đa một lượt |
+| `DATA_API_URL` | trống | trống → API giả lập gắn trong server |
+| `MOUNT_MOCK_API` | `true` | gắn API giả lập vào server |
+| `DEFAULT_DATASET` | `khach_hang` | dataset mặc định khi không đoán được từ sheet |
+| `STORAGE_DIR` | `./var` | file Excel của web POC + SQLite của AgentOS |
 | `HOST`, `PORT` | `127.0.0.1`, `7777` | địa chỉ server |
 
-## 5. Sử dụng
+## 6. Chạy trong Excel thật
 
-### 5.1 Tạo file Excel và xem dữ liệu
+Chi tiết: [`addin/README.md`](../addin/README.md). Tóm tắt:
 
-1. Gõ (hoặc bấm gợi ý): *Tạo file Excel danh sách khách hàng ở Hà Nội* · *Xuất danh sách đơn hàng đang giao ra Excel* ·
-   *Xuất sản phẩm có đơn giá từ 10 triệu* (câu cuối cần gpt-5-mini; chế độ offline chỉ hiểu thành phố, phân khúc, trạng thái).
-2. Khung chat hiện các bước: *Đã chuyển cho Excel Report Agent* → *Gọi API xuất Excel* → **thẻ file** (tên, số dòng, số cột,
-   bộ lọc).
-3. **Bấm thẻ file** → bảng dữ liệu bên phải: sheet dữ liệu + sheet *Thông tin* (nguồn, bộ lọc, thời điểm tạo). Nút ⬇ tải
-   file `.xlsx` (mở được bằng Excel, dữ liệu là Excel Table).
+```bash
+make addin-certs   # một lần, cần Node.js: chứng chỉ https://localhost tin cậy
+make dev-https     # https://localhost:7777
+```
 
-### 5.2 Tìm kiếm rồi áp vào cột
+Nạp `addin/manifest.xml`: **Excel web** → Home → Add-ins → More Add-ins → **Upload My Add-in**; **Windows** →
+`npx office-addin-debugging start addin/manifest.xml desktop`; **Mac** → chép vào thư mục `wef`. Nút **Mở Excel Agent**
+xuất hiện ở tab Home. Triển khai cho công ty: `make addin-manifest BASE_URL=https://<domain>` rồi admin Microsoft 365 đưa
+lên **Integrated apps**.
 
-1. Trên bảng: **bấm tiêu đề cột** để chọn cột (ví dụ *Thành phố*), **bấm số dòng** để chọn dòng (Shift để chọn liên tiếp).
-2. Gõ lệnh:
+Dòng trạng thái trên cùng task pane cho biết workbook, sheet và vùng đang chọn (cập nhật theo sự kiện chọn ô của Excel).
 
-   | Lệnh | Ý nghĩa |
-   |---|---|
-   | `/search Đà Nẵng` | tìm "Đà Nẵng"; nếu đang chọn một cột có trong dataset thì **chỉ tìm trong cột đó**, không thì tìm mọi cột |
-   | `/search Thành phố: Đà Nẵng` · `/search Thành phố=Đà Nẵng` | chỉ định cột |
-   | `/search in:san_pham laptop` · `/search @san_pham laptop` | chọn dataset (mặc định: dataset của file đang mở) |
-   | `/datasets` · `/help` | danh sách dữ liệu · hướng dẫn |
-   | câu tự nhiên, ví dụ *tìm khách hàng ở Cần Thơ* | đi qua agent điều phối → Data Search Agent |
+## 7. Sử dụng
 
-   Tìm kiếm không phân biệt hoa thường, có dấu hay không dấu (*da nang* = *Đà Nẵng*).
-3. Trong bảng kết quả, tích chọn bản ghi rồi chọn:
-   - **Ghi vào cột…** → chọn *cột đích* (mặc định là cột đang chọn; có *+ Tạo cột mới…*) và *trường lấy giá trị* (mặc định
-     trường cùng tên) → **Xác nhận ghi**. Chọn 1 kết quả → ghi cùng giá trị cho mọi dòng đang chọn; chọn n kết quả và n dòng
-     → ghi lần lượt.
-   - **Thêm thành dòng mới** → mỗi bản ghi thành một dòng; trường trùng tên cột được điền, cột thiếu để trống → **Xác nhận
-     thêm**.
-4. Ô vừa ghi được tô vàng; phiên bản tăng 1. **↶ Hoàn tác** quay về phiên bản trước.
+### 7.1 Tạo file Excel từ hệ thống
 
-**Lớp kiểm chứng trước khi ghi** (`workbook_service.py`): cột phải tồn tại (hoặc chọn tạo mới); giá trị phải đúng kiểu cột
-(ngày, số); dòng phải trong phạm vi; không thêm trùng mã ở cột đầu (Mã KH, Mã SP…); chặn ghi nếu file đã đổi phiên bản kể
-từ lúc xem (`expected_version`); tối đa 200 dòng mỗi lần. Lỗi hiện ngay trong thẻ kết quả.
+*Tạo file Excel danh sách khách hàng ở Hà Nội* · *Xuất danh sách đơn hàng đang giao ra Excel* → thẻ file (tên, số dòng,
+bộ lọc). Web POC: **Xem dữ liệu** mở bảng bên phải (sheet dữ liệu + sheet *Thông tin*). Trong Excel: **Chèn vào workbook**
+thêm các sheet của file vào cuối workbook (ExcelApi 1.13; bản cũ hơn mở thành workbook mới). Nút ⬇ tải file `.xlsx`.
 
-## 6. API
+### 7.2 Agent thao tác trên sheet đang mở
+
+| Câu mẫu (chạy được cả offline) | Agent làm |
+|---|---|
+| *Tìm dòng có Thành phố là Đà Nẵng trong bảng* | `excel_find_rows(column="Thành phố", query="Đà Nẵng")` → trả số dòng, chọn dòng trên sheet |
+| *Thêm khách hàng KH-0012 vào bảng* | `search_data` (hệ thống) → `excel_append_rows` với các cột trùng tên → **xem trước → xác nhận** |
+| *Ghi "VIP" vào cột Phân khúc cho các dòng đang chọn* | `excel_set_values` cho các dòng đang chọn → bảng **giá trị cũ → mới** → xác nhận |
+
+Có gpt-5-mini thì nói tự nhiên hơn, ví dụ *"tra 3 khách hàng mới nhất ở Huế rồi thêm vào cuối bảng"*, *"điền email từ
+hệ thống cho các dòng đang chọn theo Mã KH"*. Chế độ offline chỉ hiểu các mẫu ở bảng trên.
+
+Mỗi thẻ xác nhận ghi rõ sẽ ghi gì, vào đâu; **Hủy** → agent nhận `rejected` và không thử lại. Thêm trùng mã ở cột đầu
+(Mã KH, Mã SP…), dòng ngoài vùng dữ liệu, cột không tồn tại → bị chặn trước khi tới bước xác nhận, agent báo lại lý do.
+
+### 7.3 Lệnh `/search`
+
+| Lệnh | Ý nghĩa |
+|---|---|
+| `/search Đà Nẵng` | tìm trong hệ thống; đang chọn một cột có trong dataset thì **chỉ tìm trong cột đó** |
+| `/search Thành phố: Đà Nẵng` · `/search Thành phố=Đà Nẵng` | chỉ định cột |
+| `/search in:san_pham laptop` · `/search @san_pham laptop` | chọn dataset (mặc định: đoán theo tiêu đề cột của sheet) |
+| `/datasets` · `/help` | danh sách dữ liệu · hướng dẫn |
+
+Tích chọn kết quả → **Ghi vào cột…** (chọn cột đích — có *+ Tạo cột mới…* — và trường lấy giá trị; 1 kết quả → cùng giá
+trị cho mọi dòng đang chọn, n kết quả ↔ n dòng) hoặc **Thêm thành dòng mới** → xác nhận.
+
+## 8. API
 
 | Endpoint | Ai gọi | Mô tả |
 |---|---|---|
-| `POST /agui` | giao diện | AG-UI của AgentOS: `RunAgentInput` → stream SSE |
-| `POST /agents/excel-agent/runs` | script, hệ thống khác | REST chuẩn của AgentOS (form `message`, `stream`, `session_id`) |
-| `GET /health`, `GET /info` | giám sát | của AgentOS |
-| `GET /api/v1/config` | giao diện | chế độ (openai/offline), model, có triage không |
-| `GET /api/v1/workbooks` · `GET /api/v1/workbooks/{id}` | giao diện | danh sách file gần đây · thông tin file |
-| `GET /api/v1/workbooks/{id}/preview?sheet=&offset=&limit=` | giao diện | cột + dòng (tối đa 500 dòng mỗi lần) |
-| `GET /api/v1/workbooks/{id}/download` | giao diện | tải file `.xlsx` phiên bản hiện tại |
-| `POST /api/v1/workbooks/{id}/apply` | giao diện | `set_column` / `append_rows` — xem `ApplyRequest` trong `schemas/workbook.py` |
-| `POST /api/v1/workbooks/{id}/undo` | giao diện | quay về phiên bản trước |
-| `GET /mock-api/datasets` · `GET /mock-api/search` · `POST /mock-api/export` | agent (tool) | API dữ liệu giả lập |
+| `POST /agui` | giao diện | AG-UI của AgentOS: `RunAgentInput` (kèm `tools` excel_* và context `excel_ui`) → stream SSE; tin nhắn `role: "tool"` ở cuối = chạy tiếp run đang tạm dừng |
+| `POST /api/v1/commands` | giao diện | `{text, ui}` → `{handled, result, text}` cho `/search`, `/datasets`, `/help` |
+| `POST /agents/excel-agent/runs` | script, hệ thống khác | REST chuẩn của AgentOS (không có công cụ Excel) |
+| `GET /health`, `GET /info`, `GET /sessions/...` | giám sát | của AgentOS |
+| `GET /api/v1/config` | giao diện | chế độ (openai/offline), model |
+| `GET /api/v1/workbooks...` · `POST .../apply` · `POST .../undo` | web POC | xem, tải, ghi có kiểm chứng, hoàn tác file trên server |
+| `GET /static/taskpane.html` | Excel | task pane của add-in |
+| `/mock-api/datasets` · `/mock-api/search` · `/mock-api/export` | agent (tool server) | API dữ liệu giả lập |
 
-AG-UI gọi thử bằng curl (lệnh `/` nên không cần key):
-
-```bash
-curl -N http://127.0.0.1:7777/agui -H 'Content-Type: application/json' -d '{
-  "threadId": "demo", "runId": "r1", "state": {}, "tools": [], "forwardedProps": {},
-  "context": [{"description": "excel_ui", "value": "{}"}],
-  "messages": [{"id": "m1", "role": "user", "content": "/search Đà Nẵng"}]
-}'
-```
-
-Giao diện gửi trạng thái bảng trong `context` với `description = "excel_ui"`:
-`{"active_workbook_id", "sheet", "selected_column", "selected_rows"}` — agent đọc qua `AgentDeps.ui`.
-
-## 7. Thay API giả lập bằng API thật
+## 9. Thay API giả lập bằng API thật
 
 Đặt `MOUNT_MOCK_API=false` và `DATA_API_URL=https://<api-của-công-ty>`. API thật cần đúng ba endpoint (giao kèo trong
 `schemas/data_api.py`), hoặc viết lại `services/data_api_client.py` cho API sẵn có:
@@ -294,44 +270,45 @@ Giao diện gửi trạng thái bảng trong `context` với `description = "exc
 | `GET /search` | `q`, `dataset`, `column` (tùy chọn), `limit` | `{dataset, query, column, total, columns, records:[{cột: giá trị}]}` |
 | `POST /export` | `{dataset, filters:[{column, op, value}], columns, title, limit}` | file `.xlsx`; header `X-File-Name`, `X-Row-Count` |
 
-Không phải sửa agent hay giao diện: danh mục dataset và tên cột được đưa vào instructions của agent lúc chạy.
+Không phải sửa agent hay giao diện: danh mục dataset và tên cột đưa vào instructions của agent lúc chạy.
 
-## 8. Kiểm thử
+## 10. Kiểm thử
 
 ```bash
-make test        # 38 test unit + integration, không mạng, không API key
-make setup-e2e   # một lần: cài Playwright (dùng Chromium có sẵn của máy)
-make e2e         # chạy giao diện thật: chat → file → xem → /search → ghi vào cột → thêm dòng → hoàn tác → tải về
+make test        # 47 test unit + integration, không mạng, không API key
+make setup-e2e   # một lần: Playwright (dùng Chromium có sẵn của máy)
+make e2e         # 2 test giao diện: web POC và task pane (Office.js giả lập)
 make lint
 ```
 
 | Nhóm | Bao phủ |
 |---|---|
-| `tests/unit` | chuẩn hóa tiếng Việt, đọc số/ngày, cú pháp `/search`, luật offline, API dữ liệu (lọc, tìm, xuất Excel), workbook service (ghi cột, tạo cột, thêm dòng mở rộng Excel Table, chặn trùng mã, sai kiểu, sai phiên bản, hoàn tác), factory (gpt-5-mini + reasoning, triage + handoff), đổi lỗi OpenAI sang tiếng Việt |
-| `tests/integration` | `POST /agui` qua AgentOS thật: handoff → `export_excel` → xem/tải file; `/search` theo cột đang chọn → apply → chặn phiên bản cũ → hoàn tác; REST `/agents/excel-agent/runs`; model "kịch bản" (`ScriptedModel`) mô phỏng gpt-5-mini gọi tool với bộ lọc số và xử lý lỗi tool |
-| `tests/e2e` | Chromium thật qua toàn bộ hai luồng; `E2E_SCREENSHOTS=<thư mục>` để lưu ảnh từng bước |
+| `tests/unit` | tiếng Việt, số/ngày, cú pháp `/search`, luật offline, API giả lập + SDK `openai` đọc được stream, dựng agent/model (gpt-5-mini, reasoning, `store=false`), API dữ liệu, workbook service |
+| `tests/integration` | `POST /agui` qua AgentOS thật: xuất file; **tạm dừng → chạy tiếp** khi thêm dòng; người dùng hủy; tìm trong sheet; ghi cột theo vùng chọn; không có công cụ Excel; model "kịch bản" giả gpt-5-mini gọi song song tool server + tool Excel, kiểm tham số gửi OpenAI và `call_id` khi chạy tiếp; lệnh `/`; REST của AgentOS |
+| `tests/e2e/test_ui_flow.py` | web POC trên Chromium: file → xem → thêm dòng có xác nhận → chặn trùng mã → hủy → tìm → ghi cột → `/search` → hoàn tác → tải |
+| `tests/e2e/test_taskpane.py` | task pane 400 px + Office.js giả lập: tìm, thêm vào Excel Table (giữ số 0 đầu), ghi vùng chọn, **chặn ghi khi ô bị sửa sau lúc xem trước**, `/search`, chèn file xuất, sheet không phải Table bắt đầu ở B3 |
 
-**Chưa chạy thử với gpt-5-mini thật** (chưa có key; môi trường làm POC chặn `api.openai.com`). Đường đi tới model đã được
-kiểm bằng `ScriptedModel` của OpenAI Agents SDK; khi có key, chạy `make dev` và thử các câu ở mục 5.1.
-
-## 9. Giới hạn và bước tiếp theo
+## 11. Giới hạn và bước tiếp theo
 
 | Giới hạn của POC | Bước tiếp theo |
 |---|---|
-| Giao diện là web app, "Excel" là file trên server | Đưa `web/` vào task pane của Office add-in; thao tác ghi chuyển sang Office.js (`TableRowCollection.add`, `Range.values`) ngay trên workbook đang mở — cùng mẫu *agent đề xuất → người dùng xác nhận trên giao diện* |
-| Không có đăng nhập, ai vào được server là dùng được | NAA (Entra ID) + gateway + JWT của AgentOS (tài liệu 02 §7) |
-| SQLite + thư mục `var/` | PostgreSQL (dùng chung CMB-09) và kho file (S3/SharePoint) |
-| API dữ liệu giả lập | Nối API/DB thật (mục 7) hoặc DBHub qua MCP như CMB-09 |
-| Model offline chỉ hiểu vài mẫu câu | Có key → gpt-5-mini; lập golden set 30 tác vụ để đo (tài liệu 04 · POC-2) |
-| Adapter tự viết, chưa hỗ trợ pause/resume (frontend tools) của AG-UI | Chưa cần: mẫu xác nhận trên giao diện thay được. Cần thì bổ sung bằng cơ chế duyệt (`needs_approval`) của OpenAI Agents SDK |
+| **Chưa chạy với gpt-5-mini thật** (chưa có key; môi trường làm POC chặn `api.openai.com`) | Điền key, thử các câu ở 7.2; lập `golden-v0` 30 tác vụ để đo (tài liệu 04 · POC-2) |
+| **Chưa chạy trong Excel thật** — Office.js kiểm bằng bản giả lập | Nạp manifest vào Excel web/Windows/Mac, chạy lại kịch bản của `test_taskpane.py` bằng tay; ghi lại khác biệt |
+| Không có đăng nhập | NAA (Entra ID) + JWT của AgentOS (tài liệu 02 §7) |
+| SQLite, file web POC trong `var/` | PostgreSQL dùng chung CMB-09 |
+| Đọc tối đa 5.000 dòng mỗi lần tìm; ghi tối đa 200 dòng | Tìm theo trang / `Range.find` (ExcelApi 1.9) cho sheet lớn |
+| Tìm được nhiều dòng thì Excel chỉ chọn dòng đầu | Tô sáng tạm bằng conditional format, hoặc danh sách dòng bấm được trong chat |
+| Không có agent điều hướng | Khi có nhiều miền: agent Excel gọi agent miền (CMB-09) như tool server |
 
-## 10. Xử lý sự cố
+## 12. Xử lý sự cố
 
 | Hiện tượng | Cách xử lý |
 |---|---|
-| Góc phải hiện *Offline* dù đã có key | `.env` nằm trong `projects/cmb-10-excel-agent-addin/`; chạy lại `make dev`; kiểm tra `AGENT_MODE` không phải `offline` |
-| *Không kết nối được OpenAI API* | mạng/proxy chặn `api.openai.com`, hoặc `OPENAI_BASE_URL` sai. Lệnh `/search`, `/datasets` vẫn chạy |
-| *OPENAI_API_KEY không hợp lệ* · *Key hiện tại không dùng được model* | kiểm tra key, quyền dùng `gpt-5-mini` của project trên OpenAI, hoặc đổi `OPENAI_MODEL` |
-| *Không gọi được API dữ liệu* | `DATA_API_URL` sai, hoặc đổi `PORT` mà vẫn để `MOUNT_MOCK_API=false` |
-| *File đã đổi sang phiên bản …* | file vừa được sửa ở thẻ khác — bấm **Làm mới** rồi áp lại |
+| Góc phải hiện *Offline* dù đã có key | `.env` nằm trong `projects/cmb-10-excel-agent-addin/`; chạy lại `make dev`; kiểm `AGENT_MODE` |
+| Lỗi kết nối / key / model trong khung chat | mạng hoặc proxy chặn `api.openai.com`, `OPENAI_BASE_URL` sai, key không có quyền dùng `gpt-5-mini`. Lệnh `/search` vẫn chạy |
+| Task pane trắng hoặc báo lỗi chứng chỉ | chạy `make addin-certs`, dùng `make dev-https`, mở thử `https://localhost:7777/static/taskpane.html` trong trình duyệt |
+| *Add-in này chỉ chạy trong Excel* / *Không tải được Office.js* | mở trang qua nút **Mở Excel Agent** trong Excel, không mở trực tiếp; máy phải tải được `appsforoffice.microsoft.com` |
+| *Sheet … chưa có dữ liệu* | sheet cần một dòng tiêu đề cột; bảng có tiêu đề báo cáo phía trên → chuyển thành Excel Table (Ctrl+T) |
+| *… đã đổi từ lúc xem trước* | sheet vừa được sửa trong lúc thẻ xác nhận đang mở — gửi lại yêu cầu |
+| *File đã đổi sang phiên bản …* (web POC) | file vừa được sửa ở thẻ khác — **Làm mới** rồi áp lại |
 | Muốn xóa dữ liệu chạy thử | `make clean` (xóa `var/`) |

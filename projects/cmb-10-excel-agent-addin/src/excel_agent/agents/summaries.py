@@ -7,14 +7,14 @@ from typing import Any
 
 HELP_TEXT = (
     "Mình có thể:\n"
-    "- **Xuất file Excel** từ hệ thống: gõ ví dụ *Tạo file Excel khách hàng ở Hà Nội* rồi bấm vào thẻ file "
-    "để xem dữ liệu.\n"
-    "- **Tìm dữ liệu rồi áp vào bảng**: `/search Đà Nẵng` (tìm mọi cột), "
-    "`/search Thành phố: Đà Nẵng` (tìm theo cột), "
-    "`/search in:san_pham laptop` (chọn dataset). "
-    "Nếu đang chọn một cột trên bảng Excel, `/search` sẽ tìm theo cột đó.\n"
-    "- Tích chọn kết quả rồi bấm **Ghi vào cột** (ghi vào các dòng đang chọn) hoặc **Thêm thành dòng mới**.\n"
-    "- `/datasets` xem danh sách dữ liệu, `/help` xem hướng dẫn này."
+    "- **Xuất file Excel** từ hệ thống: *Tạo file Excel khách hàng ở Hà Nội* rồi bấm vào thẻ file để xem dữ liệu.\n"
+    "- **Tìm trong sheet đang mở**: *Tìm dòng có Thành phố là Đà Nẵng trong bảng*.\n"
+    "- **Lấy bản ghi từ hệ thống đưa vào sheet**: *Thêm khách hàng KH-0012 vào bảng* — xem trước, bấm xác nhận "
+    "mới ghi.\n"
+    '- **Ghi vào cột cho các dòng đang chọn**: *Ghi "VIP" vào cột Phân khúc cho các dòng đang chọn*.\n'
+    "- **Lệnh nhanh, không tốn token**: `/search Đà Nẵng` (tìm trong hệ thống theo cột đang chọn hoặc mọi cột), "
+    "`/search Thành phố: Đà Nẵng`, `/search in:san_pham laptop`, `/datasets`, `/help`. "
+    "Tích chọn kết quả rồi bấm **Ghi vào cột** hoặc **Thêm thành dòng mới**."
 )
 
 
@@ -46,3 +46,38 @@ def summarize(raw: str) -> str:
     if kind == "error":
         return f"Không thực hiện được: {data.get('message')}"
     return str(raw)
+
+
+def _rows(rows: list[int]) -> str:
+    shown = ", ".join(str(r) for r in rows[:10])
+    return shown + ("…" if len(rows) > 10 else "")
+
+
+def summarize_excel(tool: str, raw: str) -> str:
+    """Câu trả lời từ kết quả của công cụ Excel (chạy trong add-in) — dùng cho model offline."""
+    try:
+        data: dict[str, Any] = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return str(raw)
+    status = data.get("status")
+    if status == "rejected":
+        return "Bạn đã hủy nên mình chưa ghi gì vào sheet."
+    if status == "error":
+        return f"Không ghi được: {data.get('message')}"
+    if tool == "excel_find_rows":
+        matches = data.get("matches") or []
+        scope = f" trong cột {data['column']}" if data.get("column") else ""
+        if not matches:
+            return f"Không có dòng nào chứa “{data.get('query')}”{scope} trong sheet {data.get('sheet')}."
+        return (
+            f"Có {data.get('total', len(matches))} dòng chứa “{data.get('query')}”{scope} trong sheet "
+            f"{data.get('sheet')}: dòng {_rows([m['row'] for m in matches])}. Mình đã chọn dòng tìm được trên sheet."
+        )
+    if tool == "excel_append_rows":
+        return f"Đã thêm {data.get('rows_added', 0)} dòng vào sheet {data.get('sheet')} (dòng {data.get('first_row')})."
+    if tool == "excel_set_values":
+        return (
+            f"Đã ghi vào cột {data.get('column')} cho {len(data.get('changed_rows') or [])} dòng: "
+            f"{_rows(data.get('changed_rows') or [])}."
+        )
+    return data.get("message") or str(raw)

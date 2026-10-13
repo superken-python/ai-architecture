@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Manifest XML (add-in only) của Excel Agent — POC CMB-10.
+  Bản này trỏ tới server chạy máy dev: https://localhost:7777 (make dev-https).
+  Khi triển khai: make addin-manifest BASE_URL=https://<domain-của-công-ty> → var/manifest.xml
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+  <Id>42441168-3190-4ac0-bc68-ebd62fc5aaad</Id>
+  <Version>0.2.0.0</Version>
+  <ProviderName>CMB-10 POC</ProviderName>
+  <DefaultLocale>vi-VN</DefaultLocale>
+  <DisplayName DefaultValue="Excel Agent"/>
+  <Description DefaultValue="Khung chat AI trong Excel: tìm và ghi dữ liệu trên sheet, tra cứu và xuất dữ liệu từ hệ thống. Mọi lệnh ghi đều có xem trước và chờ bạn xác nhận."/>
+  <IconUrl DefaultValue="https://localhost:7777/static/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:7777/static/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://localhost:7777/"/>
+  <AppDomains>
+    <AppDomain>https://localhost:7777</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="ExcelApi" MinVersion="1.7"/>
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:7777/static/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="ExcelAgent.Group">
+                <Label resid="Group.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="ExcelAgent.OpenButton">
+                  <Label resid="OpenButton.Label"/>
+                  <Supertip>
+                    <Title resid="OpenButton.Label"/>
+                    <Description resid="OpenButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ExcelAgentPane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:7777/static/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:7777/static/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:7777/static/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://localhost:7777/"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://localhost:7777/static/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:7777/static/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Excel Agent đã sẵn sàng"/>
+        <bt:String id="Group.Label" DefaultValue="Excel Agent"/>
+        <bt:String id="OpenButton.Label" DefaultValue="Mở Excel Agent"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Bấm Mở Excel Agent ở tab Home để chat với agent trên sheet đang mở."/>
+        <bt:String id="OpenButton.Tooltip" DefaultValue="Mở khung chat AI: tìm, thêm dòng, ghi cột trên sheet đang mở; tra cứu dữ liệu hệ thống."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

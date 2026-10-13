@@ -3,9 +3,17 @@ from datetime import date
 import pytest
 
 from excel_agent.agents.commands import parse_command
-from excel_agent.agents.intent import detect_intent, report_args, search_args
 from excel_agent.core.text import find_name, normalize
 from excel_agent.core.values import parse_date, to_number
+from excel_agent.offline_llm.rules import (
+    detect_intent,
+    map_record,
+    record_query,
+    report_args,
+    search_args,
+    sheet_find_args,
+    update_args,
+)
 
 
 def test_normalize_vietnamese() -> None:
@@ -59,3 +67,39 @@ def test_offline_intent_rules() -> None:
     assert {"column": "Phân khúc", "op": "eq", "value": "Doanh nghiệp"} in args["filters"]
     assert report_args("đơn hàng đang giao")["filters"] == [{"column": "Trạng thái", "op": "eq", "value": "Đang giao"}]
     assert search_args("tìm khách hàng ở Đà Nẵng")["query"] == "Đà Nẵng"
+
+
+def test_offline_rules_for_excel_intents() -> None:
+    assert detect_intent("Thêm khách hàng KH-0012 vào bảng") == "append"
+    assert detect_intent("chèn sản phẩm SP-003 vào sheet") == "append"
+    assert detect_intent('Ghi "VIP" vào cột Phân khúc cho các dòng đang chọn') == "update"
+    assert detect_intent("Tìm dòng có Thành phố là Đà Nẵng trong bảng") == "find_sheet"
+    assert detect_intent("tìm khách hàng KH-0012") == "search"
+
+    assert record_query("Thêm khách hàng kh-0012 vào bảng")["query"] == "KH-0012"
+    headers = ["Mã KH", "Tên khách hàng", "Thành phố"]
+    args = sheet_find_args("Tìm dòng có Thành phố là Đà Nẵng trong bảng", headers)
+    assert (args["column"], args["query"]) == ("Thành phố", "Đà Nẵng")
+    assert sheet_find_args("tìm Cần Thơ trong bảng", headers) == {
+        "query": "Cần Thơ",
+        "column": None,
+        "match": "contains",
+        "limit": 20,
+    }
+    assert update_args('Ghi "VIP" vào cột Thành phố cho các dòng đang chọn', headers, [3, 4]) == {
+        "column": "Thành phố",
+        "rows": [3, 4],
+        "values": ["VIP"],
+        "create_column": False,
+    }
+    assert update_args("ghi VIP vào cột Thành phố", headers, [3]) is None  # thiếu ngoặc kép
+
+
+def test_map_record_keeps_only_sheet_columns() -> None:
+    record = {"Mã KH": "KH-0001", "Tên khách hàng": "A", "Email": "a@x.vn", "Thành phố": "Huế"}
+    assert map_record(record, ["Mã KH", "thanh pho", "Ghi chú"]) == {"Mã KH": "KH-0001", "thanh pho": "Huế"}
+
+
+def test_sheet_find_keeps_value_after_la() -> None:
+    args = sheet_find_args("Tìm dòng có Trạng thái là Đang giao trong bảng", ["Mã ĐH", "Trạng thái"])
+    assert (args["column"], args["query"]) == ("Trạng thái", "Đang giao")

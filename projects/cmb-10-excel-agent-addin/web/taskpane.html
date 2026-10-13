@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Excel Agent</title>
+  <meta name="description" content="Task pane của Excel Agent add-in: chat với agent Agno qua AG-UI, công cụ Excel chạy bằng Office.js.">
+  <link rel="stylesheet" href="/static/styles.css">
+  <!-- Office.js của Microsoft — bắt buộc tải từ CDN chính thức, không đóng gói lại -->
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body class="taskpane">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">X</span>
+      <div>
+        <h1>Excel Agent</h1>
+        <p id="excel-status" class="sub">Đang kết nối Excel…</p>
+      </div>
+    </div>
+    <div class="badges">
+      <span id="mode-badge" class="badge">…</span>
+      <button id="new-chat" class="btn ghost small" type="button" title="Hội thoại mới">＋</button>
+    </div>
+  </header>
+
+  <section class="chat" aria-label="Khung chat">
+    <div id="messages" class="messages" aria-live="polite"></div>
+    <div id="suggestions" class="suggestions">
+      <button type="button" data-text="Tìm dòng có Thành phố là Đà Nẵng trong bảng">🔍 Tìm trong bảng</button>
+      <button type="button" data-text="Thêm khách hàng KH-0012 vào bảng">➕ Thêm KH-0012</button>
+      <button type="button" data-text="/search Đà Nẵng">🔎 /search</button>
+      <button type="button" data-text="/help">❓</button>
+    </div>
+    <form id="composer" class="composer">
+      <textarea id="input" rows="2" placeholder="Hỏi hoặc ra lệnh… /search <từ khóa>" aria-label="Tin nhắn"></textarea>
+      <button id="send" class="btn primary" type="submit">Gửi</button>
+    </form>
+  </section>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="/static/js/main-taskpane.js"></script>
+</body>
+</html>

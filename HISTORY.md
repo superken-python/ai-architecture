@@ -10,6 +10,34 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-13 · CMB-10 — POC 0.2: quay lại agent Agno, công cụ Excel chạy ở add-in, Office add-in cho Excel thật ([#6](https://github.com/superken-python/ai-architecture/pull/6))
+
+**Đã làm**
+
+- Bỏ OpenAI Agents SDK và adapter tự viết; agent là một `Agent` Agno phục vụ qua interface AGUI của AgentOS, model
+  `OpenAIResponses(gpt-5-mini, reasoning low, store=false)`.
+- Công cụ Excel do giao diện khai báo qua AG-UI (`excel_get_context`, `excel_find_rows`, `excel_read_rows`,
+  `excel_set_values`, `excel_append_rows`): run tạm dừng → giao diện chạy công cụ (tool ghi có xem trước + xác nhận,
+  đọc lại sheet trước khi ghi) → gửi kết quả → run chạy tiếp.
+- Một khung chat, hai host: web POC (bảng mô phỏng, file trên server) và **task pane Office add-in** (Office.js, Excel
+  Table, giữ số 0 đầu, chèn file xuất vào workbook) + `addin/manifest.xml`, icon, `make addin-certs`, `make dev-https`,
+  `make addin-manifest`.
+- Chế độ offline và test dùng OpenAI Responses API giả lập trong tiến trình (luật cố định / kịch bản) — cùng đường code
+  Agno như khi có key; từ chối `function_call_output` không khớp lời gọi hàm như OpenAI.
+- Lệnh `/search`, `/datasets`, `/help` chuyển sang `POST /api/v1/commands` (không gọi model); `/search` mới dùng cột đang
+  chọn, agent tự chọn cột khi tìm.
+- 47 test unit + integration (tạm dừng/tiếp tục qua AgentOS thật, gpt-5-mini giả lập gọi song song tool server + tool
+  Excel) + 2 test e2e (web POC; task pane với Office.js giả lập). Viết lại tài liệu 06, thêm ADR-09.
+
+**Quyết định**
+
+- ADR-09 (theo yêu cầu chủ dự án): quay lại agent Agno vì add-in cần frontend tools; thay ADR-08. Một Agent, không Team:
+  đọc mã nguồn Agno 3.1.3 thấy thành viên Team nhận `dependencies` nhưng không nhận công cụ của client.
+
+**Còn mở**
+
+- Chưa chạy với gpt-5-mini thật và chưa chạy trên Excel thật (môi trường làm POC chặn `api.openai.com`, không có Excel).
+
 ## 2026-10-13 · CMB-10 — POC 0.1: AgentOS + AG-UI + OpenAI Agents SDK, chat → file Excel, /search → ghi vào cột ([#6](https://github.com/superken-python/ai-architecture/pull/6))
 
 **Đã làm**

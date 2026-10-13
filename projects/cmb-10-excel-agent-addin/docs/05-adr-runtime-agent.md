@@ -1,7 +1,7 @@
 # 05 · ADR-07 · Runtime agent cho add-in: AgentOS/Agno hay framework open source khác?
 
-- **Trạng thái:** phần *AgentOS làm runtime, AG-UI làm giao kèo* — giữ; phần *viết agent bằng Agno* — **được thay bởi
-  [ADR-08](#bổ-sung--adr-08--agent-viết-bằng-openai-agents-sdk-agentos-chỉ-làm-runtime)** (chủ dự án chọn OpenAI Agents SDK)
+- **Trạng thái:** **chấp nhận** (xem [ADR-09](#bổ-sung--adr-09--quay-lại-agent-agno-một-agent-công-cụ-excel-chạy-ở-add-in)):
+  AgentOS/Agno làm runtime và viết agent, AG-UI làm giao kèo. ADR-08 (agent OpenAI Agents SDK) đã thử ở POC 0.1 và bị thay.
 - **Ngày:** 2026-10-13
 - **Phiên bản đã xem xét** (đọc mã nguồn hoặc metadata gói trên PyPI/npm cùng ngày): `agno` 3.1.3 · `pydantic-ai-slim`
   2.55.0 · `agent-framework` 1.21.0 + `agent-framework-ag-ui` 1.5.1 · `langgraph` 1.2.15 + `ag-ui-langgraph` 0.0.47 +
@@ -94,7 +94,7 @@ AgentOS UI ở production thì phải tính chi phí này.
 
 ## Bổ sung · ADR-08 · Agent viết bằng OpenAI Agents SDK, AgentOS chỉ làm runtime
 
-- **Trạng thái:** chấp nhận — chủ dự án chọn ngày 2026-10-13, áp dụng từ [POC 0.1](06-poc-huong-dan-su-dung.md)
+- **Trạng thái:** **bị thay bởi ADR-09** — đã áp dụng ở POC 0.1 (commit `d20e23e`), bỏ ở POC 0.2 vì mất frontend tools
 - **Thay cho:** ADR-06 ([tài liệu 02](02-giai-phap-kien-truc.md#9-quyết-định-kiến-trúc)) và phần "viết agent bằng
   Agno" của ADR-07. Phần "AgentOS làm runtime, AG-UI làm giao kèo" của ADR-07 giữ nguyên.
 
@@ -147,3 +147,61 @@ AgentOS lo phần AG-UI, session, REST — lý do loại ở ADR-07 không còn 
   `needs_approval` / `RunState` của SDK nối với cơ chế tạm dừng của AgentOS), hoặc quay về ADR-06.
 - Agno ra adapter chính thức cho OpenAI Agents SDK → bỏ adapter tự viết.
 - OpenAI Agents SDK có AG-UI chính thức → xem có còn cần AgentOS không (session, REST, xác thực).
+
+---
+
+## Bổ sung · ADR-09 · Quay lại agent Agno: một Agent, công cụ Excel chạy ở add-in
+
+- **Trạng thái:** chấp nhận — chủ dự án yêu cầu ngày 2026-10-13 ("OpenAI Agents SDK không ổn thì chuyển lại agent Agno, cần
+  hỗ trợ Excel add-in tốt nhất có thể"), áp dụng từ [POC 0.2](06-poc-huong-dan-su-dung.md)
+- **Thay cho:** ADR-08. Khôi phục ADR-06 ([tài liệu 02](02-giai-phap-kien-truc.md#9-quyết-định-kiến-trúc)) và bổ sung:
+  một Agent, không dùng Team.
+- **Đã kiểm chứng trên mã nguồn** `agno` 3.1.3: `os/interfaces/agui/` (router, input, resume, handlers),
+  `agent/_tools.py`, `team/_tools.py`, `team/_default_tools.py`, `models/openai/responses.py`.
+
+### Bối cảnh
+
+ADR-08 đổi tiêu chí **T1 (frontend tools)** lấy agent viết thuần OpenAI Agents SDK. Với add-in Excel, T1 là tiêu chí bắt
+buộc: Office.js chỉ chạy trong add-in, nên muốn agent tự tìm, đọc, ghi trên workbook đang mở thì run phải tạm dừng được
+để add-in chạy công cụ rồi chạy tiếp. Ở POC 0.1, agent chỉ thấy những gì giao diện gửi lên trong `context`.
+
+### Quyết định
+
+1. **Agent là `agno.agent.Agent`** do AgentOS chạy trực tiếp, phục vụ qua interface `AGUI` có sẵn — bỏ adapter tự viết.
+2. **Công cụ Excel do add-in khai báo** trong `RunAgentInput.tools` mỗi lượt (`web/js/excel-tools.js`):
+   `excel_get_context`, `excel_find_rows`, `excel_read_rows`, `excel_set_values`, `excel_append_rows`. AgentOS biến chúng
+   thành tool `external_execution` → model gọi thì run **tạm dừng** (AG-UI nhận `TOOL_CALL_START/ARGS/END`, không có
+   `RESULT`) → add-in chạy bằng Office.js → gửi kết quả bằng tin nhắn `role: "tool"` → AgentOS gọi `acontinue_run`.
+   Run tạm dừng được lưu trong DB của AgentOS (session do server giữ, chặn tiếp tục run trong session của người khác).
+3. **Một Agent, không Team (không agent điều hướng).** Agno 3.1.3 gắn `client_tools` cho agent/team chạy trực tiếp; khi
+   Team giao việc cho thành viên, thành viên nhận `dependencies` nhưng **không** nhận `client_tools`
+   (`team/_default_tools.py`, lời gọi `member_agent.arun(...)`) → agent chuyên trách không gọi được công cụ Excel. Với
+   khoảng 8 công cụ, gpt-5-mini chọn đúng mà không cần điều phối, lại bớt một lượt gọi model mỗi câu hỏi.
+4. **Model `OpenAIResponses(id="gpt-5-mini", reasoning_effort="low", store=False)`.** `store=false`: OpenAI không lưu hội
+   thoại; Agno tự xin `reasoning.encrypted_content` để giữ phần suy luận giữa các lần gọi tool. Đã kiểm: khi chạy tiếp,
+   Agno gửi `function_call_output` với `call_id` khớp lời gọi hàm (AG-UI dùng id `fc_…`, OpenAI cần `call_…`).
+5. **Cổng ghi đặt ở add-in** (giữ ADR-03): `excel_set_values` / `excel_append_rows` luôn hiện xem trước (giá trị cũ → mới,
+   dòng sẽ thêm) và chờ người dùng bấm xác nhận; ngay trước khi ghi, add-in đọc lại sheet — ô hoặc số dòng đã đổi thì
+   chặn và báo agent. Kết quả trả agent có `status`: `applied` | `rejected` | `error`.
+6. **Chế độ offline và test** dùng API Responses giả lập trong tiến trình (luật cố định hoặc kịch bản) — đi qua đúng đường
+   code `OpenAIResponses` → SDK `openai` như khi có key. API giả lập từ chối `function_call_output` không khớp lời gọi
+   hàm như OpenAI thật.
+7. **Lệnh `/search`, `/datasets`, `/help`** đi qua `POST /api/v1/commands`, chạy bằng code, không gọi model.
+
+### Đánh đổi
+
+| | Nội dung |
+|---|---|
+| Được | Đạt T1: agent tự tìm, đọc, ghi trên sheet đang mở giữa run; trạng thái tạm dừng do server giữ |
+| Được | Dùng nguyên interface AGUI của AgentOS — không còn adapter tự viết phải bảo trì |
+| Được | Cùng runtime với CMB-09 (T2): dùng lại agent, skill, MCP của hệ thống |
+| Mất | Agent gắn với Agno; giảm rủi ro bằng giao kèo AG-UI + bộ công cụ Excel tách riêng ở client (đổi backend không phải sửa add-in) |
+| Mất | Chưa có agent điều hướng cho công cụ Excel. Khi cần nhiều miền nghiệp vụ: agent Excel gọi agent miền (CMB-09) như một tool phía server |
+| Lưu ý | `store=false` → mỗi lần gọi model gửi lại toàn bộ ngữ cảnh (tốn token hơn nối `previous_response_id`); đặt `OPENAI_STORE=true` nếu chính sách dữ liệu cho phép |
+
+### Điều kiện xem lại
+
+- Agno chuyển `client_tools` sang thành viên của Team → cân nhắc thêm agent điều hướng.
+- Chạy với key thật trên `golden-v0` mà tỷ lệ đúng không đạt → thử model lớn hơn (`gpt-5`) trước khi đổi framework.
+- Agno đổi lớn phần AG-UI hoặc `external_execution` — đã có test integration (tạm dừng/tiếp tục qua AgentOS thật) để
+  phát hiện khi nâng phiên bản.

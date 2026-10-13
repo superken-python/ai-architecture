@@ -172,6 +172,10 @@ h1, h2 { margin: 0; }
   padding: 3px 10px;
 }
 .tool-chip.done::before { content: "✓"; color: var(--accent); font-weight: 700; }
+.tool-chip.failed { color: var(--danger); border-color: var(--danger); }
+.tool-chip.failed::before { content: "✕"; font-weight: 700; }
+.tool-chip.client { border-style: solid; }
+.tool-chip.client::after { content: "Excel"; font-size: 10px; padding: 0 5px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-strong); }
 .tool-chip.pending::before {
   content: "";
   width: 10px;
@@ -233,6 +237,13 @@ h1, h2 { margin: 0; }
 .apply-summary { font-size: 13px; }
 .apply-result { margin-top: 8px; font-size: 12.5px; padding: 8px 10px; border-radius: 8px; background: var(--accent-soft); }
 .apply-result.err { background: var(--danger-soft); color: var(--danger); }
+.apply-result.muted-result { background: var(--surface-2); color: var(--muted); }
+.confirm-card { border-color: var(--accent); }
+.confirm-card.rejected { border-color: var(--border); opacity: 0.8; }
+.confirm-card .results-table td.old { color: var(--muted); text-decoration: line-through; }
+.confirm-card .results-table td.new { color: var(--accent-strong); font-weight: 600; }
+.warn { margin-top: 6px; color: #7a5300; }
+@media (prefers-color-scheme: dark) { .warn { color: #f1cf75; } }
 
 .suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 8px; }
 .suggestions button {
@@ -357,3 +368,17 @@ h1, h2 { margin: 0; }
   .brand h1 { font-size: 15px; }
   .badge { white-space: normal; text-align: center; }
 }
+
+/* ------------------------------------------------------------ task pane trong Excel (rộng 320–450px) */
+body.taskpane { min-width: 0; }
+body.taskpane .topbar { padding: 8px 10px; }
+body.taskpane .brand h1 { font-size: 14px; }
+body.taskpane .brand .sub { display: block; overflow-wrap: anywhere; }
+body.taskpane .badge { white-space: normal; text-align: center; font-size: 11px; }
+body.taskpane .chat { flex: 1; border-right: none; }
+body.taskpane .messages { padding: 10px; }
+body.taskpane .msg { max-width: 100%; }
+body.taskpane .composer { padding: 8px 10px 10px; }
+body.taskpane .suggestions { padding: 0 10px 6px; }
+body.taskpane .file-card .card-head { flex-wrap: wrap; }
+body.taskpane .file-card .actions { margin-left: 0; }

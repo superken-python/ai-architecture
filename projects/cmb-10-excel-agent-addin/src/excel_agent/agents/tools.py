@@ -1,8 +1,12 @@
-"""Tool của agent (OpenAI Agents SDK).
+"""Tool phía server của agent (gọi API hệ thống) — chạy trong AgentOS.
 
-Mỗi tool có hai lớp: hàm `run_*` thuần (dùng chung cho lệnh `/search` không qua LLM và cho test) và
-wrapper `@function_tool` cho agent. Kết quả trả về là JSON có trường `type` để giao diện vẽ thẻ tương
-ứng: `workbook` (thẻ file Excel), `search_results` (bảng kết quả chọn được), `datasets`, `error`.
+Tool phía Excel (`excel_*`: đọc sheet, tìm dòng, ghi ô, thêm dòng) KHÔNG nằm ở đây: add-in khai báo chúng
+trong `RunAgentInput.tools` mỗi lượt, AgentOS biến thành tool `external_execution` → run tạm dừng, add-in chạy
+bằng Office.js rồi gửi kết quả về để run chạy tiếp. Danh sách tool đó: `web/js/excel-tools.js`.
+
+Mỗi tool ở đây có hai lớp: hàm `run_*` thuần (dùng chung cho lệnh `/search` không qua LLM và cho test) và
+method của `SystemDataTools` cho agent. Kết quả là JSON có trường `type` để giao diện vẽ thẻ tương ứng:
+`workbook` (thẻ file Excel), `search_results` (bảng kết quả chọn được), `datasets`, `error`.
 """
 
 from __future__ import annotations
@@ -11,20 +15,21 @@ import asyncio
 import json
 from typing import Any, Literal
 
-from agents import RunContextWrapper, function_tool
+from agno.run.base import RunContext
+from agno.tools import Toolkit
 from pydantic import BaseModel
 
-from excel_agent.agents.context import AgentDeps
+from excel_agent.agents.context import UI_CONTEXT_KEY, AgentDeps, DepsFactory, UiState
 from excel_agent.core.exceptions import ExcelAgentError
 from excel_agent.core.text import find_name
 from excel_agent.schemas.data_api import ExportRequest, Filter
 
 
 class FilterArg(BaseModel):
-    """Một điều kiện lọc. Mọi trường bắt buộc để schema hợp lệ ở strict mode."""
+    """Một điều kiện lọc."""
 
     column: str
-    op: Literal["eq", "contains", "gt", "gte", "lt", "lte"]
+    op: Literal["eq", "contains", "gt", "gte", "lt", "lte"] = "eq"
     value: str
 
 
@@ -98,12 +103,14 @@ async def run_search_data(
     column: str | None = None,
     dataset: str | None = None,
     limit: int | None = None,
+    use_selected_column: bool = False,
 ) -> str:
-    dataset = dataset or deps.active_dataset() or deps.settings.default_dataset
+    """`use_selected_column` chỉ bật cho lệnh `/search` (người dùng chủ động chọn cột trên sheet); agent tự chọn cột."""
     limit = min(limit or deps.settings.max_tool_rows, deps.settings.max_tool_rows)
     try:
-        if not column and deps.ui.selected_column:
-            # "search theo cột đó": giao diện đang chọn cột nào thì tìm trong cột đó nếu dataset có cột này
+        dataset = dataset or await deps.active_dataset() or deps.settings.default_dataset
+        if use_selected_column and not column and deps.ui.selected_column:
+            # "/search theo cột đó": đang chọn cột nào trong Excel thì tìm trong cột đó nếu dataset có cột này
             info = next((d for d in await deps.datasets() if d["name"] == dataset), None)
             if info and find_name([c["name"] for c in info["columns"]], deps.ui.selected_column):
                 column = deps.ui.selected_column
@@ -120,52 +127,53 @@ async def run_search_data(
             "shown": len(result.records),
             "columns": result.columns,
             "records": result.records,
-            "target": {
-                "workbook_id": deps.ui.active_workbook_id,
-                "column": deps.ui.selected_column,
-                "rows": deps.ui.selected_rows,
-            },
         }
     )
 
 
-@function_tool
-async def list_datasets(ctx: RunContextWrapper[AgentDeps]) -> str:
-    """Liệt kê các dataset của API dữ liệu và tên cột của từng dataset."""
-    return await run_list_datasets(ctx.context)
+class SystemDataTools(Toolkit):
+    """Công cụ gọi API dữ liệu của hệ thống (ERP/CRM giả lập trong POC)."""
 
+    def __init__(self, deps_factory: DepsFactory) -> None:
+        self._deps_factory = deps_factory
+        super().__init__(name="system_data", tools=[self.list_datasets, self.search_data, self.export_excel])
 
-@function_tool
-async def export_excel(
-    ctx: RunContextWrapper[AgentDeps],
-    dataset: str,
-    filters: list[FilterArg],
-    columns: list[str] | None = None,
-    title: str | None = None,
-) -> str:
-    """Gọi API dữ liệu để xuất dữ liệu thành file Excel; giao diện hiện thẻ file để người dùng bấm xem.
+    def _deps(self, run_context: RunContext | None) -> AgentDeps:
+        dependencies = (run_context.dependencies if run_context else None) or {}
+        return self._deps_factory(UiState.from_context(dependencies.get(UI_CONTEXT_KEY)))
 
-    Args:
-        dataset: Tên dataset: khach_hang, san_pham hoặc don_hang.
-        filters: Bộ lọc theo cột; danh sách rỗng nếu lấy toàn bộ.
-        columns: Chỉ lấy các cột này; bỏ trống để lấy mọi cột.
-        title: Tên sheet của file; bỏ trống để dùng tên dataset.
-    """
-    return await run_export_excel(ctx.context, dataset, filters, columns, title)
+    async def list_datasets(self, run_context: RunContext) -> str:
+        """Liệt kê các dataset của hệ thống và tên cột của từng dataset."""
+        return await run_list_datasets(self._deps(run_context))
 
+    async def search_data(
+        self, run_context: RunContext, query: str, column: str | None = None, dataset: str | None = None
+    ) -> str:
+        """Tìm bản ghi trong HỆ THỐNG (API dữ liệu, không phải sheet đang mở). Giao diện hiện bảng kết quả
+        để người dùng chọn; muốn đưa bản ghi vào sheet thì gọi tiếp excel_append_rows hoặc excel_set_values.
 
-@function_tool
-async def search_data(
-    ctx: RunContextWrapper[AgentDeps],
-    query: str,
-    column: str | None = None,
-    dataset: str | None = None,
-) -> str:
-    """Tìm bản ghi qua API search; giao diện hiện bảng kết quả để người dùng chọn và áp vào cột Excel.
+        Args:
+            query: Từ khóa cần tìm (không phân biệt dấu, hoa thường), ví dụ mã KH-0012 hoặc "Đà Nẵng".
+            column: Chỉ tìm trong cột này của dataset; bỏ trống để tìm mọi cột.
+            dataset: khach_hang, san_pham hoặc don_hang; bỏ trống để dùng dataset khớp với sheet đang mở.
+        """
+        return await run_search_data(self._deps(run_context), query, column, dataset)
 
-    Args:
-        query: Từ khóa cần tìm (không phân biệt dấu, hoa thường).
-        column: Chỉ tìm trong cột này; bỏ trống để tìm mọi cột.
-        dataset: khach_hang, san_pham hoặc don_hang; bỏ trống để dùng dataset của file đang mở.
-    """
-    return await run_search_data(ctx.context, query, column, dataset)
+    async def export_excel(
+        self,
+        run_context: RunContext,
+        dataset: str,
+        filters: list[FilterArg] | None = None,
+        columns: list[str] | None = None,
+        title: str | None = None,
+    ) -> str:
+        """Gọi API hệ thống để xuất dữ liệu thành một FILE EXCEL MỚI; giao diện hiện thẻ file để người dùng
+        bấm xem (hoặc chèn vào workbook đang mở khi chạy trong Excel).
+
+        Args:
+            dataset: Tên dataset: khach_hang, san_pham hoặc don_hang.
+            filters: Bộ lọc theo cột, mỗi phần tử {column, op, value}; op là eq, contains, gt, gte, lt, lte.
+            columns: Chỉ lấy các cột này; bỏ trống để lấy mọi cột.
+            title: Tên sheet của file; bỏ trống để dùng tên dataset.
+        """
+        return await run_export_excel(self._deps(run_context), dataset, filters, columns, title)

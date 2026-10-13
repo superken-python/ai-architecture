@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Excel Agent POC</title>
-  <meta name="description" content="POC CMB-10: chat qua AG-UI (AgentOS) với agent OpenAI Agents SDK, xuất file Excel, xem dữ liệu, /search và áp kết quả vào cột.">
+  <meta name="description" content="POC CMB-10: chat qua AG-UI (AgentOS) với agent Agno; công cụ Excel chạy ở giao diện, ghi có xem trước và xác nhận.">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
       <span class="logo" aria-hidden="true">X</span>
       <div>
         <h1>Excel Agent <span class="muted">· POC</span></h1>
-        <p class="sub">AgentOS · AG-UI · OpenAI Agents SDK</p>
+        <p class="sub">AgentOS · AG-UI · Agno · công cụ Excel ở client</p>
       </div>
     </div>
     <div class="badges">
@@ -27,7 +27,8 @@
       <div id="messages" class="messages" aria-live="polite"></div>
       <div id="suggestions" class="suggestions">
         <button type="button" data-text="Tạo file Excel danh sách khách hàng ở Hà Nội">📗 Khách hàng ở Hà Nội</button>
-        <button type="button" data-text="Xuất danh sách đơn hàng đang giao ra Excel">📦 Đơn hàng đang giao</button>
+        <button type="button" data-text="Thêm khách hàng KH-0012 vào bảng">➕ Thêm KH-0012 vào bảng</button>
+        <button type="button" data-text="Tìm dòng có Thành phố là Hà Nội trong bảng">🔍 Tìm trong bảng</button>
         <button type="button" data-text="/search Đà Nẵng">🔎 /search Đà Nẵng</button>
         <button type="button" data-text="/help">❓ /help</button>
       </div>
@@ -77,6 +78,6 @@
   </main>
 
   <div id="toast" class="toast" role="status" hidden></div>
-  <script type="module" src="/static/app.js"></script>
+  <script type="module" src="/static/js/main-web.js"></script>
 </body>
 </html>

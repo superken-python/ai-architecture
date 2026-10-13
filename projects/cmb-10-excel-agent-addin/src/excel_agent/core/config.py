@@ -19,17 +19,17 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 7777
 
-    # --- Agent (OpenAI Agents SDK) ---
+    # --- Agent (Agno, model OpenAI) ---
     openai_api_key: SecretStr | None = Field(default=None, description="Để trống → chạy chế độ offline")
     openai_model: str = "gpt-5-mini"
     openai_base_url: str | None = None  # gateway tương thích OpenAI (để trống → api.openai.com)
     openai_reasoning_effort: Literal["minimal", "low", "medium", "high"] = "low"
+    # false = OpenAI không lưu hội thoại (Responses API store=false); Agno gửi lại ngữ cảnh mỗi lượt
+    openai_store: bool = False
     # auto: có OPENAI_API_KEY thì dùng OpenAI, không có thì dùng model offline (luật cố định)
     agent_mode: Literal["auto", "openai", "offline"] = "auto"
-    use_triage: bool = True  # agent điều phối + handoff sang agent chuyên trách
-    max_turns: int = 8
-    # Mặc định KHÔNG gửi trace của OpenAI Agents SDK lên nền tảng OpenAI
-    openai_tracing: bool = False
+    num_history_runs: int = 4  # số lượt hội thoại trước đưa lại vào ngữ cảnh
+    tool_call_limit: int = 12  # số lần gọi tool tối đa trong một lượt chạy
 
     # --- API dữ liệu (giả lập ERP/CRM) ---
     data_api_url: str | None = None  # để trống → dùng API giả lập gắn trong cùng server
