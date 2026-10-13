@@ -55,6 +55,49 @@ vào `.env` (`OPENAI_MODEL=gpt-5-mini`) rồi chạy lại là dùng gpt-5-mini.
 | API hệ thống | API dữ liệu giả lập (`/datasets`, `/search`, `/export` → file `.xlsx`) — thay bằng API thật qua `DATA_API_URL` |
 | Giao diện | JS thuần, một khung chat cho hai host: **web POC** (bảng mô phỏng, file trên server) và **task pane** trong Excel (Office.js) |
 
+### POC 0.2 đã làm được
+
+| # | Chức năng | Ví dụ |
+|---|---|---|
+| 1 | Chat → agent gọi API → **file Excel** → bấm xem dữ liệu (web POC) / **chèn vào workbook** (Excel thật) | *Tạo file Excel khách hàng ở Hà Nội* |
+| 2 | **`/search`** theo cột đang chọn hoặc theo cột chỉ định → tích kết quả → **Ghi vào cột** / **Thêm thành dòng mới** (chạy bằng code, không tốn token) | `/search Đà Nẵng`, `/search Thành phố: Đà Nẵng`, `/search in:san_pham laptop` |
+| 3 | **Tìm trong sheet đang mở** theo cột, chọn dòng tìm được | *Tìm dòng có Thành phố là Huế trong bảng* |
+| 4 | **Tra hệ thống rồi chèn nguyên một dòng** vào sheet | *Thêm khách hàng KH-0012 vào bảng* |
+| 5 | **Ghi giá trị vào một cột** cho các dòng đang chọn | *Ghi "VIP" vào cột Phân khúc cho các dòng đang chọn* |
+| 6 | **Chạy trong Excel thật**: manifest, nút **Mở Excel Agent** ở tab Home, task pane Office.js | xem [addin/README.md](addin/README.md) |
+
+An toàn khi ghi: mọi lệnh ghi đều **xem trước** (giá trị cũ → mới, dòng sẽ thêm) và **chờ người dùng bấm xác nhận**; ngay
+trước khi ghi, add-in đọc lại sheet và **chặn nếu ô hoặc số dòng đã đổi**; chặn thêm trùng mã ở cột đầu (Mã KH, Mã SP…);
+giữ số 0 đầu (điện thoại, mã); hoàn tác bằng nút ↶ (web POC) hoặc Ctrl+Z (Excel).
+
+### Chạy trên Excel nào?
+
+Là **Office Add-in dạng task pane** (HTML/JS + Office.js): **một manifest, một server** dùng cho mọi phiên bản Excel.
+
+| Excel | Hỗ trợ | Ghi chú |
+|---|---|---|
+| **Excel trên web** (excel.office.com, OneDrive/SharePoint) | ✅ | Nạp dễ nhất: Home → Add-ins → **Upload My Add-in** — nên thử trước ở đây |
+| **Excel cho Windows** (Microsoft 365) | ✅ | `npx office-addin-debugging start addin/manifest.xml desktop` hoặc Trusted Add-in Catalog |
+| **Excel cho Mac** (Microsoft 365) | ✅ | chép manifest vào thư mục `wef` |
+| Excel cho iPad | về lý thuyết | chưa ưu tiên |
+| Office 2016/2019 mua đứt | một phần | cần tối thiểu ExcelApi 1.7; **Chèn vào workbook** cần 1.13 (bản cũ hơn mở file thành workbook mới) |
+
+Triển khai cho cả công ty: admin Microsoft 365 đưa manifest lên **Integrated apps** → nút tự xuất hiện trên mọi phiên bản.
+Excel bắt buộc add-in chạy qua **HTTPS** (dev: `make addin-certs` + `make dev-https`; thật: domain HTTPS của công ty).
+
+> **Web POC ≠ Excel.** Trang `http://127.0.0.1:7777` là bảng Excel **mô phỏng** trên trình duyệt để thử nhanh khi không có
+> Excel. Add-in thật là `taskpane.html` mở **bên trong** Excel. Hai nơi dùng chung khung chat, agent và bộ công cụ.
+
+### Kiểm thử và việc còn lại
+
+- **47 test** unit + integration (tạm dừng/tiếp tục qua AgentOS thật, gpt-5-mini giả lập gọi song song tool server + tool
+  Excel, người dùng hủy) + **2 test giao diện** Chromium: web POC đủ luồng; task pane với Office.js giả lập (Excel Table,
+  vùng chọn, chặn ghi khi ô bị sửa, sheet bắt đầu ở B3). CI của repo xanh.
+- **Chưa kiểm:** chạy với **gpt-5-mini thật** (chưa có key; môi trường làm POC chặn `api.openai.com`) và trên **Excel thật**
+  (môi trường làm POC không có Excel — Office.js mới kiểm bằng bản giả lập).
+- **Tiếp theo** (đã ghi ở [CHECKLIST](../../CHECKLIST.md)): điền `OPENAI_API_KEY` và thử câu mẫu; nạp add-in vào Excel
+  web/desktop; chủ dự án review POC 0.2 + ADR-09; rồi đăng nhập (NAA/Entra ID), nối API dữ liệu thật, golden set 30 tác vụ.
+
 ```mermaid
 flowchart LR
     U["Người dùng<br/>trong Excel"] --> TP["Add-in task pane<br/>chat + công cụ Excel"]

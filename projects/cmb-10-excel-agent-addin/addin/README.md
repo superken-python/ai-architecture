@@ -4,6 +4,10 @@ Task pane (`web/taskpane.html`) dùng chung khung chat với web POC; khác ở 
 workbook đang mở (`web/js/hosts/office-host.js`). Manifest: [`manifest.xml`](manifest.xml) (dạng XML, add-in only,
 nút **Mở Excel Agent** ở tab Home, yêu cầu ExcelApi 1.7).
 
+Chạy trên **Excel trên web** và **ứng dụng Excel** (Windows, Mac — Microsoft 365) bằng cùng một manifest. Office
+2016/2019 mua đứt: cần tối thiểu ExcelApi 1.7; nút **Chèn vào workbook** cần ExcelApi 1.13 (bản cũ hơn mở file thành
+workbook mới). Excel cho iPad về lý thuyết chạy được nhưng chưa ưu tiên.
+
 ## Cần có
 
 - Excel Microsoft 365 (web, Windows hoặc Mac) — tài khoản được phép tải add-in lên (Upload My Add-in).
