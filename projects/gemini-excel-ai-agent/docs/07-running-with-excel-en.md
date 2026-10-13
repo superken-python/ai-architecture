@@ -1,127 +1,256 @@
-# 07 · End-to-End Implementation & Excel Execution Guide (English)
+# 07 · Comprehensive Installation & User Guide for Excel Web & Desktop Apps (macOS & Windows)
 
-This document provides a comprehensive, step-by-step technical guide to running the **Excel Enterprise AI Agent Copilot** (powered by Agno SDK & Azure OpenAI `gpt-5-mini`) and sideloading the Office Web Add-in into Microsoft Excel (Windows, macOS, and Excel Online).
-
----
-
-## 1. Prerequisites
-
-- **Python:** Version 3.11 or 3.12 (managed via `poetry`).
-- **Microsoft Excel:** Any of the following:
-  - Excel on the Web (Microsoft 365 in Chrome/Edge - free or business account).
-  - Excel Desktop for Windows (Microsoft 365, Office 2019/2021).
-  - Excel Desktop for macOS (Microsoft 365).
-- **Web Browser:** Google Chrome or Microsoft Edge.
+This document is the complete, step-by-step master guide for configuring, installing (sideloading), and operating the **Excel Enterprise AI Agent Copilot** across **Excel on the Web** and **Excel Desktop Apps on both macOS and Windows**.
 
 ---
 
-## 2. Step 1: Install Backend Dependencies
+## TABLE OF CONTENTS
+1. [Part I: Environment Setup & Service Launch](#part-1)
+2. [Part II: Sideloading & Installation Guide](#part-2)
+   - [Section A: Excel on the Web (Microsoft 365 Browser)](#sec-a-web)
+   - [Section B: Excel Desktop App on macOS](#sec-b-macos)
+   - [Section C: Excel Desktop App on Windows](#sec-c-windows)
+   - [Section D: Centralized Deployment for Enterprise (M365 Admin)](#sec-d-admin)
+3. [Part III: Detailed Feature User Guide](#part-3)
+   - [3.1. Opening & Pinning the AI Copilot Taskpane](#user-31)
+   - [3.2. Fast Catalog Query with `/search` Slash Command](#user-32)
+   - [3.3. Browsing Catalog & 1-Click Insert via "DB Search" Tab](#user-33)
+   - [3.4. Human-in-the-Loop Safety Protocol: Preview Diff Modal](#user-34)
+   - [3.5. Natural Language ReAct Commands](#user-35)
+   - [3.6. Dynamic Formula Recalculation](#user-36)
+4. [Part IV: Troubleshooting & FAQ](#part-4)
 
-Navigate to the project root directory:
+---
 
+<a id="part-1"></a>
+## PART I: ENVIRONMENT SETUP & SERVICE LAUNCH
+
+### Step 1.1: Launch the Backend Service
+Open your Terminal and run:
 ```bash
 cd projects/gemini-excel-ai-agent
 
 # Install dependencies using Poetry
 poetry install
-```
 
----
-
-## 3. Step 2: Environment Configuration (.env)
-
-Create your local `.env` file from `.env.example`:
-
-```bash
+# Create environment configuration
 cp .env.example .env
-```
 
-Configure your Azure OpenAI credentials in `.env` (or leave as default to test with the smart fallback simulator):
-
-```dotenv
-AZURE_OPENAI_API_KEY=your-actual-azure-key-here
-AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
-AZURE_OPENAI_API_VERSION=2024-08-01-preview
-AZURE_DEPLOYMENT_NAME=gpt-5-mini
-AZURE_OPENAI_MODEL=gpt-5-mini
-
-HOST=0.0.0.0
-PORT=8000
-DEBUG=true
-```
-
-> [!NOTE]
-> **Built-in Fallback Strategy:** If no valid Azure API key is configured yet, the backend automatically engages its intelligent Mock Strategy, allowing you to test 100% of the UI, `/search` command, Diff previews, and Excel row insertions immediately!
-
----
-
-## 4. Step 3: Launch the Backend Service & Add-in Server
-
-Start the FastAPI application:
-
-```bash
+# Start the FastAPI + Agno AgentOS server
 poetry run uvicorn excel_agent.main:app --reload --host 0.0.0.0 --port 8000
 ```
-*(Or simply run: `make dev`)*
+*(Or use the shortcut: `make dev`)*
 
-Verify service endpoints:
-- **Interactive Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Health Check:** [http://localhost:8000/health](http://localhost:8000/health)
-- **Taskpane UI:** [http://localhost:8000/taskpane/index.html](http://localhost:8000/taskpane/index.html)
+> [!NOTE]
+> The system has a built-in **Smart Mock Fallback Strategy**. Even if no Azure OpenAI API key is supplied in `.env`, you can immediately test 100% of the `/search` catalog queries, Preview Diff cards, and live Excel cell updates!
+
+### Step 1.2: Install HTTPS SSL Certificate for Localhost (Mandatory for Desktop Apps)
+Unlike Excel on the Web, **Excel Desktop Apps on Mac and Windows run inside strict WebView sandboxes (Apple WebKit / Edge WebView2) and strictly require trusted HTTPS endpoints**.
+
+Install Microsoft's official local development certificate:
+```bash
+npx office-addin-dev-certs install
+```
+When prompted by your OS, choose **Yes / Allow** to trust the certificate.
+
+### Step 1.3: Verification Check
+Visit the following endpoints in your browser:
+- Backend Health: [http://localhost:8000/health](http://localhost:8000/health) → `"status": "healthy"`.
+- Taskpane Web UI: [http://localhost:8000/taskpane/index.html](http://localhost:8000/taskpane/index.html).
 
 ---
 
-## 5. Step 4: Standalone Browser Testing (Simulator Mode)
+<a id="part-2"></a>
+## PART II: SIDELOADING & INSTALLATION GUIDE
 
-You can verify the entire workflow in your browser before opening Excel:
-1. Open [http://localhost:8000/taskpane/index.html](http://localhost:8000/taskpane/index.html) in your browser.
-2. Click any suggestion pill (e.g. `🔍 /search Áo thun`) or type `/search Vải` into the chat input.
-3. The chatbot returns relevant catalog items from the Mock Database.
-4. Click `+ Chèn vào Excel` (Insert into Excel).
-5. The **Preview Diff Modal** opens, showing the exact columns to be updated.
-6. Click `Xác nhận ghi (Apply)`: the row is instantly inserted into the simulated worksheet on the **"Bảng tính mẫu"** (Sample Sheet) tab.
+The manifest configuration file is located at:
+`projects/gemini-excel-ai-agent/addin/manifest.xml`
 
 ---
 
-## 6. Step 5: Sideloading into Microsoft Excel
+<a id="sec-a-web"></a>
+### SECTION A: Excel on the Web (Office 365 Browser)
+*The fastest method — works on any operating system without installing software.*
 
-### Method A: Excel on the Web (Fastest & Recommended)
-1. Go to [https://excel.new](https://excel.new) or [https://office.com](https://office.com) and open a new blank workbook.
-2. In the top ribbon, select the **Insert** tab.
-3. Click **Office Add-ins** (or **Add-ins**).
-4. Select the **Upload My Add-in** tab in the popup dialog.
-5. Click **Browse** and select the manifest file:
+1. Open your browser, navigate to [https://excel.new](https://excel.new) (or [https://office.com](https://office.com)) and sign in.
+2. Open a **Blank workbook**.
+3. In the top ribbon, select the **Insert** tab.
+4. Click **Add-ins** (or **Office Add-ins**).
+5. In the dialog, select the top tab: **Upload My Add-in**.
+6. Click **Browse...** and select:
    `projects/gemini-excel-ai-agent/addin/manifest.xml`.
-6. Click **Upload**.
-7. The **"Excel AI Copilot"** taskpane will immediately appear on the right side of your active worksheet!
-
-### Method B: Excel Desktop for Windows
-1. Open Excel on your PC.
-2. Create a local shared folder (e.g., `C:\OfficeManifests`) and copy `addin/manifest.xml` into it.
-3. In Excel, go to **File** > **Options** > **Trust Center** > **Trust Center Settings** > **Trusted Add-in Catalogs**.
-4. Enter `C:\OfficeManifests`, click **Add catalog**, check **Show in Menu**, and click **OK**.
-5. Restart Excel. Go to **Insert** > **My Add-ins** > select **Shared Folder** tab and launch **Excel AI Copilot**.
-
-### Method C: Excel Desktop for macOS
-1. Open Finder on Mac, press `Cmd + Shift + G` and navigate to:
-   `~/Library/Containers/com.microsoft.Excel/Data/Documents/wef/`
-   *(Create the `wef` directory if it does not exist)*.
-2. Copy `addin/manifest.xml` into this `wef/` folder.
-3. Launch Excel for Mac. Go to **Insert** > click the small arrow next to **My Add-ins** > select **AI Agent Copilot**.
+7. Click **Upload**.
+8. **Result:** The **Excel AI Copilot** taskpane immediately docks on the right side of your sheet!
 
 ---
 
-## 7. Verification Test Scenarios
+<a id="sec-b-macos"></a>
+### SECTION B: Excel Desktop App on macOS
+*For native Microsoft Excel installations on Mac.*
 
-### Scenario 1: Slash Command `/search`
-- Type: `/search Áo thun`
-- Result: Returns matching product items (`SP-001`) with price `250,000 đ`. Click the insert button to populate the sheet.
+Excel for Mac automatically discovers local add-ins from a system directory called **`wef` (Web Extension Framework)**.
 
-### Scenario 2: Natural Language Interaction
-- Type: *"Find item SP-002 in stock and insert it as a new row in my table"*
-- Result: Agent detects intent, queries the Mock DB, calculates total price formulas, and presents a Preview Diff card for your confirmation.
+#### Step 1: Copy the manifest into macOS `wef` Directory
+Open Terminal on your Mac and run:
+```bash
+# 1. Create the wef directory if it doesn't exist
+mkdir -p ~/Library/Containers/com.microsoft.Excel/Data/Documents/wef
 
-### Scenario 3: Dedicated Search Catalog Tab
-- Click the **🔍 Tra cứu DB** tab.
-- Search for `Nguyên phụ liệu` or `Vải`.
-- Click `➕ Chèn vào Excel` to write directly to your workbook via `Office.js`!
+# 2. Copy the manifest file into wef
+cp /Users/duc.nguyen/data/projects/success/motives/motivesidp-ai-learning/ai-architecture/projects/gemini-excel-ai-agent/addin/manifest.xml ~/Library/Containers/com.microsoft.Excel/Data/Documents/wef/
+```
+
+*(Alternatively, in **Finder**, press `Cmd + Shift + G`, paste `~/Library/Containers/com.microsoft.Excel/Data/Documents/wef/`, and drag `manifest.xml` there).*
+
+#### Step 2: Open the Add-in in Excel for Mac
+1. Launch **Microsoft Excel** on your Mac.
+2. Open any workbook.
+3. In the ribbon, click the **Insert** tab.
+4. Next to the **My Add-ins** button, click the small **downward arrow (drop-down menu)**.
+5. Under **Developer Add-ins**, you will see **AI Agent Copilot**.
+6. Click **AI Agent Copilot**:
+   - The Taskpane will open on the right edge.
+   - It is ready for action!
+
+*(Tip: If it does not appear right away, quit Excel completely with `Cmd + Q` and restart).*
+
+---
+
+<a id="sec-c-windows"></a>
+### SECTION C: Excel Desktop App on Windows
+*For Microsoft Excel on Windows 10/11.*
+
+#### Method C.1: Shared Folder Catalog (Official Microsoft Standard)
+1. Create a folder on your drive: `C:\OfficeManifests`.
+2. Copy `addin/manifest.xml` into `C:\OfficeManifests`.
+3. Right-click `C:\OfficeManifests` > **Properties** > **Sharing** tab.
+4. Click **Share...** > select your Windows account > click **Share** > **Done**.
+5. Copy the generated network UNC path, e.g., `\\localhost\OfficeManifests`.
+6. Open **Excel Desktop** on Windows:
+   - Go to **File** > **Options** (bottom-left).
+   - Select **Trust Center** > click **Trust Center Settings...**.
+   - On the left, choose **Trusted Add-in Catalogs**.
+   - In **Catalog Url**, paste: `\\localhost\OfficeManifests`.
+   - Click **Add catalog**.
+   - **Check the box "Show in Menu"** next to the path.
+   - Click **OK** > **OK**.
+7. Restart Excel. Go to **Insert** > **My Add-ins** > click the **Shared Folder** tab at the top > select **AI Agent Copilot** > click **Add**.
+
+#### Method C.2: Automatic CLI Command (Developer Shortcut)
+In your Windows terminal, run:
+```bash
+npx office-addin-debugging start addin/manifest.xml desktop --app excel
+```
+This automatically registers the manifest in your Windows registry and opens Excel with the plugin pre-attached to the ribbon.
+
+---
+
+<a id="sec-d-admin"></a>
+### SECTION D: Centralized Deployment for Enterprise (Microsoft 365 Admin Center)
+*For IT Administrators with Microsoft 365 Business / Enterprise subscriptions.*
+
+This method requires **zero manual configuration on end-user machines**:
+1. Sign in to the admin portal: [https://admin.microsoft.com](https://admin.microsoft.com).
+2. Go to **Settings** > **Integrated apps**.
+3. Click **Upload custom apps** > select **Office Add-in**.
+4. Choose **Upload manifest file (.xml)** and select `addin/manifest.xml`.
+5. Select target users: *Entire organization* or specific departments (Accounting, Procurement, Sales).
+6. Click **Deploy**.
+7. **Result:** Within hours, the **AI Copilot** button appears automatically on the Ribbon of every employee's Excel app (both Windows and Mac)!
+
+---
+
+<a id="part-3"></a>
+## PART III: DETAILED FEATURE USER GUIDE
+
+<a id="user-31"></a>
+### 3.1. Opening & Pinning the AI Copilot Taskpane
+- Click the **Motives AI** ribbon button: **"Mở AI Copilot"** to open the sidebar.
+- A green status light in the header indicates **Online** connectivity.
+
+---
+
+<a id="user-32"></a>
+### 3.2. Fast Catalog Query with `/search` Slash Command
+Query the simulated enterprise database directly from chat:
+1. In the input box at the bottom, type:
+   ```
+   /search <keyword>
+   ```
+   *Examples:*
+   - `/search Áo thun`
+   - `/search SP-002`
+   - `/search Vải`
+   - `/search Carton`
+2. Press **Enter**.
+3. The chatbot returns product cards with SKU, name, unit price (formatted in VND), and stock level.
+4. Click **`+ Chèn vào Excel`** below any item to start row insertion.
+
+---
+
+<a id="user-33"></a>
+### 3.3. Browsing Catalog & 1-Click Insert via "DB Search" Tab
+If you prefer a visual search interface:
+1. Click the **🔍 Tra cứu DB** tab in the taskpane navigation.
+2. Enter any search term or leave blank to browse all items.
+3. Click **➕ Chèn vào Excel** on any product card.
+
+---
+
+<a id="user-34"></a>
+### 3.4. Human-in-the-Loop Safety Protocol: Preview Diff Modal
+To ensure AI never accidentally overwrites critical spreadsheet data:
+1. Whenever a row insertion is triggered, a **⚡ Preview Diff Modal** pops up:
+   - Displays the target Row number and target Sheet name.
+   - Shows a table mapping each Column header to its proposed new value.
+2. Review the data:
+   - Click **Xác nhận ghi (Apply)**: `Office.js` immediately inserts the row and highlights it in pale green for 2 seconds.
+   - Click **Hủy bỏ (Cancel)**: Discards the action safely without modifying the worksheet.
+
+---
+
+<a id="user-35"></a>
+### 3.5. Natural Language ReAct Commands
+You can also chat in natural Vietnamese or English:
+- *"Tìm mã SP-003 rồi thêm vào bảng giúp tôi"*
+- *"Thêm sản phẩm vải kháng khuẩn vào dòng tiếp theo"*
+- *"Find item SP-001 in stock and add it to my sheet"*
+
+The Agent uses ReAct tool calling to search the database and construct the row insertion proposal automatically.
+
+---
+
+<a id="user-36"></a>
+### 3.6. Dynamic Formula Recalculation
+When the AI inserts a row:
+- The **Thành tiền** (Total Amount) column receives a dynamic Excel formula: `=D<row>*E<row>` (Quantity × Unit Price).
+- If you edit the Quantity in Column D on the sheet, Excel will automatically recalculate the Total Amount using native calculation engine.
+
+---
+
+<a id="part-4"></a>
+## PART IV: TROUBLESHOOTING & FAQ
+
+### Issue 1: Blank Taskpane on Excel Desktop
+- **Cause:** Missing local HTTPS SSL certificate. Desktop WebView blocks insecure HTTP connections.
+- **Fix:**
+  1. In terminal, run: `npx office-addin-dev-certs install`.
+  2. Accept the certificate prompt.
+  3. Restart Excel.
+
+### Issue 2: Copilot Button Missing on Mac
+- **Fix:**
+  1. Verify the file is named exactly `manifest.xml` in `~/Library/Containers/com.microsoft.Excel/Data/Documents/wef/`.
+  2. Fully quit Excel (`Cmd + Q`), then reopen.
+  3. Check the drop-down menu next to the **My Add-ins** button on the **Insert** tab.
+
+### Issue 3: "Cannot connect to server" Message
+- **Fix:** Verify the backend is running (`poetry run uvicorn excel_agent.main:app` on port 8000) and that [http://localhost:8000/health](http://localhost:8000/health) returns healthy.
+
+### Issue 4: How to Inspect / Debug Console Logs on Desktop
+- **On macOS:** Enable Web Inspector by running:
+  ```bash
+  defaults write com.microsoft.Excel OfficeWebAddinDeveloperExtras -bool true
+  ```
+  Then right-click inside the taskpane and select **Inspect Element**.
+- **On Windows:** Use the free **Microsoft Edge DevTools Preview** from the Microsoft Store to attach to the WebView2 runtime.
