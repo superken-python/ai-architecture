@@ -1,7 +1,8 @@
 # CMB-10 · Excel Agent Add-in — trợ lý AI trong Excel nối với agent của hệ thống
 
 **Tổ hợp:** [CMB-10](../../docs/02-skill-map/generated/to-hop-ky-nang.md#cmb-10) · Trợ lý AI trong Excel nối với agent
-doanh nghiệp — Nhóm 7 + Nhóm 6 · **Người thực hiện:** <tên> · **Trạng thái:** nghiên cứu khả thi — chỉ tài liệu, chưa có code
+doanh nghiệp — Nhóm 7 + Nhóm 6 · **Người thực hiện:** <tên> · **Trạng thái:** nghiên cứu khả thi xong · **POC 0.1 chạy được**
+(web app mô phỏng, chưa gắn vào Excel thật)
 
 Một khung chat AI gắn vào Excel (Office Add-in dạng task pane). Người dùng gõ yêu cầu bằng tiếng Việt; chatbot chuyển yêu
 cầu cho **agent của hệ thống** (giả định: [Data Agent OS — CMB-09](../cmb-09-data-agent-os/README.md) trên AgentOS/Agno).
@@ -27,7 +28,28 @@ nhận và hoàn tác được bằng Ctrl+Z.
 | 2 | [Giải pháp và kiến trúc](docs/02-giai-phap-kien-truc.md) | 4 phương án (tự xây / mua / không add-in / Copilot skills), kiến trúc đề xuất, luồng tìm → chèn dòng, kết nối agent qua AG-UI, bộ công cụ Excel, xác thực và bảo mật, triển khai, ADR |
 | 3 | [Tính năng mở rộng](docs/03-tinh-nang-mo-rong.md) | 41 tính năng trong 7 nhóm, mức rủi ro R0–R3, API Office.js + requirement set, giai đoạn POC/MVP/Sau |
 | 4 | [Đánh giá khả thi và kế hoạch POC](docs/04-danh-gia-kha-thi.md) | kết luận, 14 bằng chứng đã kiểm chứng kèm nguồn, điểm chưa kiểm chứng, 12 rủi ro, ước lượng công sức, kế hoạch POC + tiêu chí go/no-go, câu hỏi mở |
-| 5 | [ADR-07 · Runtime agent](docs/05-adr-runtime-agent.md) | AgentOS/Agno so với Pydantic AI, Microsoft Agent Framework, LangGraph, Mastra, Google ADK, OpenAI Agents SDK, low-code: giữ Agno, AG-UI làm giao kèo, thứ tự phương án dự phòng |
+| 5 | [ADR-07 · Runtime agent](docs/05-adr-runtime-agent.md) | AgentOS/Agno so với Pydantic AI, Microsoft Agent Framework, LangGraph, Mastra, Google ADK, OpenAI Agents SDK, low-code: giữ Agno, AG-UI làm giao kèo, thứ tự phương án dự phòng · **ADR-08:** agent viết bằng OpenAI Agents SDK, AgentOS chỉ làm runtime |
+| 6 | [POC: hướng dẫn cài đặt và sử dụng](docs/06-poc-huong-dan-su-dung.md) | kiến trúc POC, cấu trúc mã nguồn, chạy, hai luồng (chat → file Excel → xem dữ liệu; `/search` → chọn → ghi vào cột/thêm dòng), API, thay API thật, kiểm thử, giới hạn |
+
+## Chạy POC
+
+```bash
+cd projects/cmb-10-excel-agent-addin
+make setup   # uv sync + tạo .env
+make dev     # mở http://127.0.0.1:7777
+make test    # 38 test, không cần mạng hay API key
+```
+
+Chưa có `OPENAI_API_KEY` thì POC chạy **chế độ offline** (luật cố định) để thử giao diện; điền key vào `.env`
+(`OPENAI_MODEL=gpt-5-mini`) rồi chạy lại `make dev` là dùng gpt-5-mini với agent điều phối. Chi tiết:
+[tài liệu 06](docs/06-poc-huong-dan-su-dung.md).
+
+| Thành phần | POC dùng |
+|---|---|
+| Agent | **OpenAI Agents SDK** 0.23.1 — `Điều phối` (triage) handoff sang `Excel Report Agent` / `Data Search Agent`; model **gpt-5-mini** |
+| Runtime + giao thức | **AgentOS** (Agno 3.1.3) phục vụ endpoint **AG-UI** `/agui` qua adapter tự viết `OpenAIAgentsAdapter`; không viết agent bằng Agno |
+| API hệ thống | API dữ liệu giả lập (`/datasets`, `/search`, `/export` → file `.xlsx`) — thay bằng API thật qua `DATA_API_URL` |
+| Giao diện | web app (HTML + JS thuần): khung chat AG-UI + bảng xem Excel, chọn cột/dòng, ghi có xác nhận, hoàn tác |
 
 ```mermaid
 flowchart LR
@@ -68,7 +90,7 @@ flowchart LR
 
 - So với baseline: <điền sau pilot>
 - Quy ra giờ công: <thời gian tiết kiệm mỗi tác vụ × số tác vụ mỗi tuần × số người dùng>
-- Demo: <điền sau POC-1>
+- Demo: POC 0.1 — [tài liệu 06](docs/06-poc-huong-dan-su-dung.md) (chưa đo với gpt-5-mini thật)
 - Giới hạn và rủi ro: xem [đánh giá khả thi, mục 4](docs/04-danh-gia-kha-thi.md#4-rủi-ro-và-cách-giảm)
 
 ## Kỹ năng sẽ luyện
@@ -77,4 +99,4 @@ flowchart LR
 `EFF-07` kiểm chứng trước khi ghi · `LLM-06` an toàn (prompt injection, quyền) · `LLM-04` đánh giá (golden set tác vụ,
 trajectory) · `LLM-08` text-to-SQL · `EFF-03` tinh gọn ngữ cảnh · `DATA-05` chất lượng dữ liệu · `DATA-06` tiếng Việt ·
 `OPS-06` tracing · `OPS-08` bảo mật dữ liệu — xem [danh mục kỹ năng](../../docs/02-skill-map/generated/README.md). Ngoài
-catalog: TypeScript/React, Office.js, Microsoft Entra ID (MSAL.js).
+catalog: TypeScript/React, Office.js, Microsoft Entra ID (MSAL.js), OpenAI Agents SDK (đã dùng ở POC).

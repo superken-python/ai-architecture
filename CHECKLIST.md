@@ -77,6 +77,13 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
       [nghiên cứu khả thi](projects/cmb-10-excel-agent-addin/README.md) (phân loại CMB-10, 4 phương án, kiến trúc AG-UI,
       41 tính năng), trả lời 9 câu hỏi mở rồi làm P0 → POC theo
       [kế hoạch POC](projects/cmb-10-excel-agent-addin/docs/04-danh-gia-kha-thi.md#6-kế-hoạch-poc).
+- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — điền `OPENAI_API_KEY` vào `.env`, chạy POC 0.1 với `gpt-5-mini`
+      (các câu ở [hướng dẫn §5](projects/cmb-10-excel-agent-addin/docs/06-poc-huong-dan-su-dung.md#5-sử-dụng)); ghi lại
+      độ trễ, số token, câu nào agent hiểu sai.
+- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — chủ dự án review POC 0.1 và
+      [ADR-08](projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md#bổ-sung--adr-08--agent-viết-bằng-openai-agents-sdk-agentos-chỉ-làm-runtime)
+      (mất frontend tools: agent chỉ thấy trạng thái bảng do giao diện gửi lên); quyết định bước tiếp: đưa giao diện vào
+      task pane Office add-in, nối API dữ liệu thật.
 - [ ] **P2** Dự án của hướng chuyên sâu đã chọn — mốc cuối tháng 6.
 
 ## Giai đoạn 5 · Production (dự kiến)

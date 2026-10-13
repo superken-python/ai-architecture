@@ -1,6 +1,7 @@
 # 05 · ADR-07 · Runtime agent cho add-in: AgentOS/Agno hay framework open source khác?
 
-- **Trạng thái:** đề xuất — chờ chủ dự án duyệt
+- **Trạng thái:** phần *AgentOS làm runtime, AG-UI làm giao kèo* — giữ; phần *viết agent bằng Agno* — **được thay bởi
+  [ADR-08](#bổ-sung--adr-08--agent-viết-bằng-openai-agents-sdk-agentos-chỉ-làm-runtime)** (chủ dự án chọn OpenAI Agents SDK)
 - **Ngày:** 2026-10-13
 - **Phiên bản đã xem xét** (đọc mã nguồn hoặc metadata gói trên PyPI/npm cùng ngày): `agno` 3.1.3 · `pydantic-ai-slim`
   2.55.0 · `agent-framework` 1.21.0 + `agent-framework-ag-ui` 1.5.1 · `langgraph` 1.2.15 + `ag-ui-langgraph` 0.0.47 +
@@ -88,3 +89,61 @@ AgentOS UI ở production thì phải tính chi phí này.
 - [AG-UI — danh sách tích hợp](https://github.com/ag-ui-protocol/ag-ui).
 - Add-in Excel AI open source: [open-excel](https://github.com/BuWH/open-excel),
   [office-agents](https://www.sourcepulse.org/projects/25972602), [pi-for-excel](https://www.sourcepulse.org/projects/25516876).
+
+---
+
+## Bổ sung · ADR-08 · Agent viết bằng OpenAI Agents SDK, AgentOS chỉ làm runtime
+
+- **Trạng thái:** chấp nhận — chủ dự án chọn ngày 2026-10-13, áp dụng từ [POC 0.1](06-poc-huong-dan-su-dung.md)
+- **Thay cho:** ADR-06 ([tài liệu 02](02-giai-phap-kien-truc.md#9-quyết-định-kiến-trúc)) và phần "viết agent bằng
+  Agno" của ADR-07. Phần "AgentOS làm runtime, AG-UI làm giao kèo" của ADR-07 giữ nguyên.
+
+### Bối cảnh
+
+Yêu cầu của chủ dự án: stack là **AgentOS + AG-UI + OpenAI Agents SDK**; agent và tool viết bằng OpenAI Agents SDK, **không
+viết agent bằng Agno SDK**; model **gpt-5-mini**; có **agent điều hướng** nếu cần.
+
+ADR-07 loại OpenAI Agents SDK vì SDK chưa có AG-UI. Xem lại: AgentOS 3.1 có lớp `BaseExternalAgent` để bọc agent của
+framework khác (Agno đã viết sẵn adapter cho Claude Agent SDK, LangGraph, DSPy). Bọc OpenAI Agents SDK bằng lớp này thì
+AgentOS lo phần AG-UI, session, REST — lý do loại ở ADR-07 không còn là rào cản.
+
+### Quyết định
+
+1. **Agent, tool, handoff, model: OpenAI Agents SDK** (`Agent`, `function_tool`, `handoffs`, `Runner`). Agent `Điều phối`
+   (triage) chuyển việc cho `Excel Report Agent` và `Data Search Agent`; model `gpt-5-mini`, reasoning `low`.
+   `USE_TRIAGE=false` gộp thành một agent đủ tool khi muốn bớt một lượt gọi model.
+2. **AgentOS chỉ làm runtime phục vụ:** endpoint AG-UI `/agui`, REST `/agents/{id}/runs`, lưu session (SQLite ở POC,
+   PostgreSQL khi lên MVP). Không dùng `agno.agent.Agent`.
+3. **Nối hai bên bằng `OpenAIAgentsAdapter`** (`src/excel_agent/agents/runtime/agentos_adapter.py`, khoảng 250 dòng): chạy
+   `Runner.run_streamed`, đổi sự kiện của SDK sang sự kiện AgentOS — bảng đối chiếu ở
+   [tài liệu 06 §2](06-poc-huong-dan-su-dung.md#2-kiến-trúc-poc).
+4. **Ghi dữ liệu theo mẫu "agent đề xuất → người dùng xác nhận trên giao diện → API ghi xác định"**, không dùng frontend
+   tools. Agent trả kết quả (file, danh sách tìm được) qua `TOOL_CALL_RESULT`; giao diện hiện xem trước; người dùng bấm
+   xác nhận; lớp kiểm chứng ghi. Trạng thái giao diện (file, cột, dòng đang chọn) gửi lên qua `context` của AG-UI.
+
+### Đánh đổi
+
+| | Nội dung |
+|---|---|
+| Được | Agent là code OpenAI Agents SDK thuần, không phụ thuộc Agno — đổi runtime không phải viết lại agent |
+| Được | Dùng sẵn handoff, guardrail, `needs_approval`, `RunState` của SDK; AgentOS vẫn lo AG-UI, session, REST |
+| Được | Mẫu xác nhận trên giao diện đơn giản hơn tạm dừng/tiếp tục, và đặt cổng ghi ở nơi agent không vượt qua được (giữ tinh thần ADR-03) |
+| Mất | **Frontend tools (tiêu chí T1):** adapter không đưa công cụ do client khai báo vào agent, không tạm dừng/tiếp tục run qua AG-UI. Agent không tự đọc sheet giữa run, chỉ thấy những gì giao diện gửi trong `context` |
+| Mất | **Dùng lại trực tiếp agent Agno của CMB-09 (T2):** gọi CMB-09 qua API hoặc MCP như một tool, không chạy chung runtime |
+| Phải tự làm | Bảo trì adapter khi Agno hoặc SDK đổi API: khóa phiên bản (`agno==3.1.3`, `openai-agents==0.23.1`), giữ test integration chạy qua AgentOS thật |
+| Phải tự làm | Lịch sử hội thoại do AgentOS lưu; adapter đưa lại 20 message gần nhất vào input (kết quả tool cắt còn 1.500 ký tự), không dùng `Session` của SDK |
+| Phải tự làm | Trace: tắt trace mặc định của SDK (không gửi lên OpenAI); trace của AgentOS không nhìn vào trong run của SDK → cần trace processor OpenTelemetry (`OPS-06`) ở MVP |
+
+### Hệ quả cho add-in Excel thật
+
+- Ghi vào sheet: add-in nhận kết quả agent, xem trước, người dùng xác nhận rồi ghi bằng Office.js (`TableRowCollection.add`,
+  `Range.values`) — cùng mẫu với POC, không cần frontend tools.
+- Đọc sheet: add-in gửi tóm tắt bảng đang mở (tên bảng, tiêu đề cột, vùng chọn, vài dòng mẫu) trong `context`. Tác vụ cần
+  agent tự đọc thêm giữa run (ví dụ "so cột A với dữ liệu hệ thống rồi sửa các dòng lệch") chưa làm được.
+
+### Điều kiện xem lại
+
+- Có tác vụ quan trọng cần agent đọc sheet giữa run mà `context` không đủ → bổ sung tạm dừng/tiếp tục vào adapter (dựa trên
+  `needs_approval` / `RunState` của SDK nối với cơ chế tạm dừng của AgentOS), hoặc quay về ADR-06.
+- Agno ra adapter chính thức cho OpenAI Agents SDK → bỏ adapter tự viết.
+- OpenAI Agents SDK có AG-UI chính thức → xem có còn cần AgentOS không (session, REST, xác thực).

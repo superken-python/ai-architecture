@@ -1,0 +1,162 @@
+[
+ {
+  "Mã SP": "SP-001",
+  "Tên sản phẩm": "Laptop văn phòng 14 inch",
+  "Nhóm hàng": "Máy tính",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 15900000,
+  "Tồn kho": 220
+ },
+ {
+  "Mã SP": "SP-002",
+  "Tên sản phẩm": "Laptop đồ họa 16 inch",
+  "Nhóm hàng": "Máy tính",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 32500000,
+  "Tồn kho": 31
+ },
+ {
+  "Mã SP": "SP-003",
+  "Tên sản phẩm": "Màn hình 24 inch",
+  "Nhóm hàng": "Màn hình",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 3450000,
+  "Tồn kho": 113
+ },
+ {
+  "Mã SP": "SP-004",
+  "Tên sản phẩm": "Màn hình 27 inch 2K",
+  "Nhóm hàng": "Màn hình",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 6200000,
+  "Tồn kho": 51
+ },
+ {
+  "Mã SP": "SP-005",
+  "Tên sản phẩm": "Bàn phím cơ",
+  "Nhóm hàng": "Phụ kiện",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 1250000,
+  "Tồn kho": 69
+ },
+ {
+  "Mã SP": "SP-006",
+  "Tên sản phẩm": "Chuột không dây",
+  "Nhóm hàng": "Phụ kiện",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 390000,
+  "Tồn kho": 112
+ },
+ {
+  "Mã SP": "SP-007",
+  "Tên sản phẩm": "Tai nghe hội nghị",
+  "Nhóm hàng": "Phụ kiện",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 1890000,
+  "Tồn kho": 137
+ },
+ {
+  "Mã SP": "SP-008",
+  "Tên sản phẩm": "Webcam Full HD",
+  "Nhóm hàng": "Phụ kiện",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 990000,
+  "Tồn kho": 89
+ },
+ {
+  "Mã SP": "SP-009",
+  "Tên sản phẩm": "Máy in laser A4",
+  "Nhóm hàng": "Thiết bị văn phòng",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 4750000,
+  "Tồn kho": 67
+ },
+ {
+  "Mã SP": "SP-010",
+  "Tên sản phẩm": "Giấy in A4 70gsm",
+  "Nhóm hàng": "Văn phòng phẩm",
+  "Đơn vị": "Thùng",
+  "Đơn giá (VND)": 520000,
+  "Tồn kho": 229
+ },
+ {
+  "Mã SP": "SP-011",
+  "Tên sản phẩm": "Mực in laser",
+  "Nhóm hàng": "Văn phòng phẩm",
+  "Đơn vị": "Hộp",
+  "Đơn giá (VND)": 860000,
+  "Tồn kho": 185
+ },
+ {
+  "Mã SP": "SP-012",
+  "Tên sản phẩm": "Router Wi-Fi 6",
+  "Nhóm hàng": "Thiết bị mạng",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 2350000,
+  "Tồn kho": 16
+ },
+ {
+  "Mã SP": "SP-013",
+  "Tên sản phẩm": "Switch 24 cổng",
+  "Nhóm hàng": "Thiết bị mạng",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 5400000,
+  "Tồn kho": 214
+ },
+ {
+  "Mã SP": "SP-014",
+  "Tên sản phẩm": "Ổ cứng SSD 1TB",
+  "Nhóm hàng": "Linh kiện",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 1990000,
+  "Tồn kho": 117
+ },
+ {
+  "Mã SP": "SP-015",
+  "Tên sản phẩm": "RAM 16GB",
+  "Nhóm hàng": "Linh kiện",
+  "Đơn vị": "Thanh",
+  "Đơn giá (VND)": 1150000,
+  "Tồn kho": 147
+ },
+ {
+  "Mã SP": "SP-016",
+  "Tên sản phẩm": "Bộ lưu điện 1000VA",
+  "Nhóm hàng": "Thiết bị văn phòng",
+  "Đơn vị": "Bộ",
+  "Đơn giá (VND)": 2890000,
+  "Tồn kho": 198
+ },
+ {
+  "Mã SP": "SP-017",
+  "Tên sản phẩm": "Máy chiếu văn phòng",
+  "Nhóm hàng": "Thiết bị văn phòng",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 11500000,
+  "Tồn kho": 212
+ },
+ {
+  "Mã SP": "SP-018",
+  "Tên sản phẩm": "Ghế công thái học",
+  "Nhóm hàng": "Nội thất",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 4200000,
+  "Tồn kho": 134
+ },
+ {
+  "Mã SP": "SP-019",
+  "Tên sản phẩm": "Bàn nâng hạ",
+  "Nhóm hàng": "Nội thất",
+  "Đơn vị": "Chiếc",
+  "Đơn giá (VND)": 7900000,
+  "Tồn kho": 226
+ },
+ {
+  "Mã SP": "SP-020",
+  "Tên sản phẩm": "Phần mềm diệt virus 1 năm",
+  "Nhóm hàng": "Phần mềm",
+  "Đơn vị": "Bản quyền",
+  "Đơn giá (VND)": 450000,
+  "Tồn kho": 249
+ }
+]

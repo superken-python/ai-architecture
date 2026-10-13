@@ -1,0 +1,39 @@
+# Danh mục dataset của API dữ liệu giả lập (thay cho ERP/CRM thật trong POC).
+# type: text | number | money | date — dùng để định dạng file Excel và ép kiểu khi ghi.
+datasets:
+  - name: khach_hang
+    title: Khách hàng
+    key: Mã KH
+    columns:
+      - {name: Mã KH, type: text}
+      - {name: Tên khách hàng, type: text}
+      - {name: Phân khúc, type: text}
+      - {name: Thành phố, type: text}
+      - {name: Điện thoại, type: text}
+      - {name: Email, type: text}
+      - {name: Hạn mức nợ (VND), type: money}
+      - {name: Ngày tạo, type: date}
+  - name: san_pham
+    title: Sản phẩm
+    key: Mã SP
+    columns:
+      - {name: Mã SP, type: text}
+      - {name: Tên sản phẩm, type: text}
+      - {name: Nhóm hàng, type: text}
+      - {name: Đơn vị, type: text}
+      - {name: Đơn giá (VND), type: money}
+      - {name: Tồn kho, type: number}
+  - name: don_hang
+    title: Đơn hàng
+    key: Mã ĐH
+    columns:
+      - {name: Mã ĐH, type: text}
+      - {name: Ngày đặt, type: date}
+      - {name: Mã KH, type: text}
+      - {name: Tên khách hàng, type: text}
+      - {name: Mã SP, type: text}
+      - {name: Tên sản phẩm, type: text}
+      - {name: Số lượng, type: number}
+      - {name: Đơn giá (VND), type: money}
+      - {name: Thành tiền (VND), type: money}
+      - {name: Trạng thái, type: text}
