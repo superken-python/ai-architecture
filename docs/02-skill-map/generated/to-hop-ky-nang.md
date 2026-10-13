@@ -15,6 +15,7 @@ Dự án thật hiếm khi thuộc một nhóm. Mỗi tổ hợp dưới đây n
 | [CMB-07 · Tổng đài thông minh](#cmb-07) | 6·LLM/RAG → 7·Agent → 2·Thời gian → 8·Tối ưu |
 | [CMB-08 · Phân loại lai ML + LLM (cascade tiết kiệm token)](#cmb-08) | 1·Bảng → 6·LLM/RAG |
 | [CMB-09 · Hỏi số liệu bằng tiếng Việt (text-to-SQL agent)](#cmb-09) | 6·LLM/RAG → 7·Agent |
+| [CMB-10 · Trợ lý AI trong Excel nối với agent doanh nghiệp (Office add-in)](#cmb-10) | 6·LLM/RAG → 7·Agent |
 
 <a id="cmb-01"></a>
 
@@ -240,3 +241,34 @@ Dự án thật hiếm khi thuộc một nhóm. Mỗi tổ hợp dưới đây n
 - Truy vấn được phép đọc bảng nhạy cảm.
 
 **Metric end-to-end:** Tỷ lệ câu trả lời có con số đúng tuyệt đối trên golden set; tỷ lệ hỏi lại đúng lúc với câu mơ hồ.
+
+<a id="cmb-10"></a>
+
+## CMB-10 · Trợ lý AI trong Excel nối với agent doanh nghiệp (Office add-in)
+
+**Luồng:** Yêu cầu tiếng Việt trong khung chat của Excel → hiểu yêu cầu, ánh xạ vào bảng/cột (Nhóm 6) → agent gọi công cụ chạy trong Excel (tìm theo cột, chèn/cập nhật dòng) và công cụ của hệ thống doanh nghiệp (tra ERP/CRM, text-to-SQL), người dùng duyệt trước khi ghi (Nhóm 7)  
+**Ví dụ:** tìm khách theo mã rồi chèn dòng đơn hàng mới, kéo số liệu từ ERP vào bảng Excel, đối chiếu danh sách trong sheet với dữ liệu gốc
+
+| Kỹ năng | Tầng | Vai trò |
+|---|---|---|
+| [LLM-05](mang/llm.md#llm-05) Tool calling và điều phối workflow/agent | Dùng chung trong họ |  |
+| [LLM-02](mang/llm.md#llm-02) Structured output và kiểm chứng đầu ra | Dùng chung trong họ | 🔗 keo ở điểm nối |
+| [LLM-06](mang/llm.md#llm-06) An toàn và bảo mật hệ LLM | Dùng chung trong họ | 🔗 keo ở điểm nối |
+| [LLM-04](mang/llm.md#llm-04) Đánh giá hệ LLM (evals) | Dùng chung trong họ |  |
+| [LLM-08](mang/llm.md#llm-08) Text-to-SQL và hỏi đáp số liệu | Dùng chung trong họ |  |
+| [EFF-03](mang/eff.md#eff-03) Tinh gọn ngữ cảnh đầu vào | Dùng chung trong họ |  |
+| [EFF-07](mang/eff.md#eff-07) Kiểm chứng xác định và "không lỗi im lặng" | Dùng chung trong họ | 🔗 keo ở điểm nối |
+| [DATA-05](mang/data.md#data-05) Kiểm định chất lượng dữ liệu và nhãn | Nền tảng chung |  |
+| [DATA-06](mang/data.md#data-06) Văn bản tiếng Việt và dữ liệu phi cấu trúc | Dùng chung trong họ |  |
+| [OPS-06](mang/ops.md#ops-06) LLMOps — tracing, chi phí, độ trễ | Dùng chung trong họ |  |
+| [OPS-08](mang/ops.md#ops-08) Bảo mật dữ liệu và tuân thủ | Cầu nối liên họ |  |
+
+**Bẫy khi ghép:**
+
+- Gửi cả sheet cho LLM để "tìm" — tốn token, vượt giới hạn đọc của Excel và lộ dữ liệu; code tìm và lọc, LLM chỉ chọn bảng, cột, điều kiện.
+- Ghi vào sheet không qua xem trước và xác nhận, hoặc ghi lệch cột vì tiêu đề gộp ô, nhiều dòng tiêu đề, kiểu dữ liệu lẫn lộn.
+- Nội dung ô hoặc file nhận từ bên ngoài chứa chỉ dẫn độc hại (prompt injection) khiến agent sửa dữ liệu hoặc gửi dữ liệu ra ngoài.
+- Agent backend gọi hệ thống nghiệp vụ bằng quyền dịch vụ rộng hơn quyền của người đang dùng Excel.
+- Tìm kiếm tiếng Việt trượt vì khác dấu, Unicode NFC/NFD, khoảng trắng thừa hoặc số lưu dạng chữ.
+
+**Metric end-to-end:** Tỷ lệ tác vụ đúng hoàn toàn (đúng dòng tìm thấy, đúng giá trị từng cột khi ghi) trên bộ workbook mẫu; số lần ghi sai lọt qua sau xác nhận (mục tiêu 0); thời gian và chi phí token mỗi tác vụ so với làm tay.

@@ -73,6 +73,10 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 - [ ] **P1** `projects/realtime-voice-translate/` — chủ dự án review
       [kế hoạch triển khai](projects/realtime-voice-translate/docs/01-ke-hoach-trien-khai.md), trả lời câu hỏi mở (mục 16,
       gồm yêu cầu số 7 còn trống), rồi làm P0: thu golden set + benchmark model trên máy GPU 8 GB.
+- [ ] **P1** `projects/cmb-10-excel-agent-addin/` — chủ dự án review
+      [nghiên cứu khả thi](projects/cmb-10-excel-agent-addin/README.md) (phân loại CMB-10, 4 phương án, kiến trúc AG-UI,
+      41 tính năng), trả lời 9 câu hỏi mở rồi làm P0 → POC theo
+      [kế hoạch POC](projects/cmb-10-excel-agent-addin/docs/04-danh-gia-kha-thi.md#6-kế-hoạch-poc).
 - [ ] **P2** Dự án của hướng chuyên sâu đã chọn — mốc cuối tháng 6.
 
 ## Giai đoạn 5 · Production (dự kiến)

@@ -10,24 +10,33 @@ Quy ước khi thêm một mục:
 
 ---
 
-## 2026-10-13 · Nghiên cứu GPT Excel Agent Chatbot (chỉ Markdown)
+## 2026-10-13 · Bài toán mới CMB-10 — trợ lý AI trong Excel nối với agent của hệ thống (chỉ tài liệu)
 
 **Đã làm**
 
-- Tạo [dự án gpt-excel-agent-chatbot](projects/gpt-excel-agent-chatbot/README.md), ba tài liệu trong `docs/`:
-  mô tả bài toán, solution approach, đánh giá khả thi và kế hoạch kiểm chứng; đối chiếu nguồn Microsoft.
-- Bổ sung liên kết trong bản đồ bài toán và danh sách dự án; chưa tạo code, manifest hay dữ liệu Excel.
+- Phân loại: Nhóm 7 + Nhóm 6 → thêm tổ hợp **CMB-10** vào `catalog/combinations.yaml` (11 kỹ năng, 3 kỹ năng keo, 5 bẫy,
+  metric end-to-end); thêm ví dụ vào Nhóm 7 (`problems.yaml`) và CMB-10 vào hướng "LLM ứng dụng & Agent"
+  (`roadmap.yaml`); `make catalog` sinh lại 5 trang; số tổ hợp 9 → 10 trong README; thêm ví dụ phân rã vào bản đồ bài toán.
+- `projects/cmb-10-excel-agent-addin/`: README (framing theo mẫu + kết luận nhanh) và 4 tài liệu nghiên cứu — mô tả bài
+  toán và phân loại; giải pháp và kiến trúc (4 phương án, kết nối AG-UI, bộ công cụ Excel, bảo mật, triển khai, ADR);
+  41 tính năng mở rộng; đánh giá khả thi (14 bằng chứng có nguồn, 12 rủi ro, ước lượng công sức, kế hoạch POC + go/no-go).
+- Kiểm chứng: requirement set Excel (mới nhất ExcelApi 1.21) và API tìm/chèn/gộp hoàn tác trong `@types/office-js`
+  1.0.611; mã nguồn `agno` 3.1.1 và 3.1.3 (AG-UI frontend tools + tạm dừng/tiếp tục run, REST, MCP, JWT); phiên bản npm
+  của AG-UI client, CopilotKit, MSAL.js; tài liệu Claude for Excel và Microsoft Graph Excel API.
 
-**Quyết định**
+**Quyết định** (đề xuất, chờ duyệt)
 
-- Xếp G7 chính, G6 hỗ trợ; giữ nguyên 8 nhóm doanh nghiệp.
-- Đề xuất Task Pane Add-in + Office.js + adapter tới agent hiện có; MVP search theo cột và thêm một record
-  vào Excel Table. Chèn cả hàng worksheet và xử lý cloud qua Graph được phân tích như phạm vi riêng.
+- Không thêm nhóm thứ 9: "plugin trong Excel" là kênh giao diện, bài toán là tổ hợp G7 + G6.
+- Phương án A (tự xây add-in React + Office.js, nối AgentOS qua AG-UI, cổng ghi đặt ở add-in) làm hướng chính; phương án B
+  (Claude for Excel/Copilot + agent hệ thống qua MCP) chỉ chạy thử song song nếu công ty đã có license.
+- "Code tìm và tính, LLM chọn tham số"; mọi lệnh ghi qua kiểm chứng + xem trước + xác nhận + một bước hoàn tác.
 
 **Còn mở**
 
-- Excel build/tenant, schema workbook, API/auth và khả năng tiếp tục client tool của agent; cần POC chứng minh
-  hiệu năng, độ đúng khi ghi và xử lý retry trước khi kết luận production → [CHECKLIST.md](CHECKLIST.md).
+- 9 câu hỏi mở (agent hệ thống nào, phiên bản Excel, tenant/admin, license, chính sách dữ liệu, hệ thống nghiệp vụ,
+  workbook mẫu, mạng, nhân lực) → [CHECKLIST.md](CHECKLIST.md).
+- `learn.microsoft.com` bị chặn trong môi trường nghiên cứu nên đã đọc bản Markdown gốc trên GitHub của Microsoft; chưa
+  chạy thử trên Excel thật.
 
 ## 2026-10-09 · Kế hoạch dự án Realtime Voice Translate (chỉ tài liệu)
 

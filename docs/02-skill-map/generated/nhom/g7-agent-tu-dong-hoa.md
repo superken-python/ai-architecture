@@ -4,7 +4,7 @@
 
 > “Làm giúp tôi cả chuỗi việc này.” — Khối C · Hành động
 
-**Ví dụ trong doanh nghiệp:** xử lý hồ sơ vay từ đầu đến cuối, đối soát, trợ lý thao tác trên CRM/ERP, tự động lập báo cáo.
+**Ví dụ trong doanh nghiệp:** xử lý hồ sơ vay từ đầu đến cuối, đối soát, trợ lý thao tác trên CRM/ERP, tự động lập báo cáo, trợ lý AI ngay trong Excel/Office (add-in) gọi agent của hệ thống.
 
 | Đầu vào | Kỹ thuật chính | Đầu ra | Quyết định kinh doanh |
 |---|---|---|---|
@@ -136,3 +136,4 @@ Thứ tự đã tôn trọng tiên quyết. Kỹ năng đánh dấu *(tiên quy�
 - [CMB-04 · Phát hiện rồi giải thích (cảnh báo gian lận cho điều tra viên)](../to-hop-ky-nang.md#cmb-04) — Chấm điểm bất thường (Nhóm 3) → LLM tóm tắt bằng chứng cho từng cảnh báo (Nhóm 6) → hàng đợi xử lý + ghi nhận phản hồi (Nhóm 7)
 - [CMB-07 · Tổng đài thông minh](../to-hop-ky-nang.md#cmb-07) — Ghi âm → ASR → phân loại/tóm tắt (Nhóm 6) → chuyển ticket (Nhóm 7); lưu lượng lịch sử → dự báo cuộc gọi (Nhóm 2) → xếp ca (Nhóm 8)
 - [CMB-09 · Hỏi số liệu bằng tiếng Việt (text-to-SQL agent)](../to-hop-ky-nang.md#cmb-09) — Câu hỏi tự nhiên → chọn bảng/metric (schema linking) → sinh và kiểm tra SQL → chạy → diễn giải kết quả (Nhóm 6 + 7)
+- [CMB-10 · Trợ lý AI trong Excel nối với agent doanh nghiệp (Office add-in)](../to-hop-ky-nang.md#cmb-10) — Yêu cầu tiếng Việt trong khung chat của Excel → hiểu yêu cầu, ánh xạ vào bảng/cột (Nhóm 6) → agent gọi công cụ chạy trong Excel (tìm theo cột, chèn/cập nhật dòng) và công cụ của hệ thống doanh nghiệp (tra ERP/CRM, text-to-SQL), người dùng duyệt trước khi ghi (Nhóm 7)

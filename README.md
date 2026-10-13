@@ -36,7 +36,7 @@ ai-architecture/
 ├── catalog/                    # NGUỒN DỮ LIỆU DUY NHẤT (YAML) cho bài toán, kỹ năng, tổ hợp
 │   ├── problems.yaml           #   8 nhóm, 2 họ, ma trận giai đoạn 1
 │   ├── skills.yaml             #   10 mảng, 65 kỹ năng
-│   ├── combinations.yaml       #   9 tổ hợp dự án nhiều nhóm
+│   ├── combinations.yaml       #   10 tổ hợp dự án nhiều nhóm
 │   └── roadmap.yaml            #   lộ trình 4 giai đoạn, từng bước + mức mục tiêu
 ├── docs/
 │   ├── 00-setup/               # chuẩn bị môi trường (đọc đầu tiên)

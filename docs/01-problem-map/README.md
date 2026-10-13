@@ -45,7 +45,9 @@ flowchart TD
 ```
 
 > Dự án thực tế thường ghép nhiều nhóm. Ví dụ: xử lý hồ sơ vay = Nhóm 5 (đọc giấy tờ) + Nhóm 1 (chấm điểm
-> tín dụng) + Nhóm 7 (điều phối quy trình). Tách dự án thành bài toán con rồi nhận diện từng phần —
+> tín dụng) + Nhóm 7 (điều phối quy trình). Trợ lý AI trong Excel gọi agent của hệ thống = Nhóm 7 (thao tác trên
+> Excel và hệ thống nghiệp vụ) + Nhóm 6 (hiểu yêu cầu, hỏi đáp số liệu) — tổ hợp
+> [CMB-10](../02-skill-map/generated/to-hop-ky-nang.md#cmb-10). Tách dự án thành bài toán con rồi nhận diện từng phần —
 > xem [tổ hợp kỹ năng](../02-skill-map/02-ky-nang-ket-hop.md).
 
 ## Use case bổ sung · Chatbot AI thao tác Excel

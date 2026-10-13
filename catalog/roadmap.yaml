@@ -266,7 +266,7 @@ stages:
       - id: llm-agent
         name: LLM ứng dụng & Agent
         groups: [G6, G7]
-        combos: [CMB-03, CMB-07, CMB-08, CMB-09]
+        combos: [CMB-03, CMB-07, CMB-08, CMB-09, CMB-10]
         skills:
           - {id: LLM-05, level: intermediate}
           - {id: LLM-06, level: intermediate}
