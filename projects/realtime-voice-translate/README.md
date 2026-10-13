@@ -22,7 +22,7 @@ Nền tảng cấu trúc: [best practice dự án Python AI](../python-ai-projec
 |---|---|---|
 | Tách câu | Silero VAD (CPU) | — |
 | Nhận dạng + phân biệt ngôn ngữ | Whisper `large-v3-turbo` qua faster-whisper, `int8_float16` (~1,5 GB) | Qwen3-ASR-0.6B · Whisper `large-v3` |
-| Dịch | Qwen2.5-7B-Instruct qua llama.cpp, `Q4_K_M` (~4.68 GB, tối ưu xuất sắc Nhật - Anh - Việt) | Qwen2.5-3B-Instruct · Hy-MT2-1.8B · TranslateGemma-4B |
+| Dịch | Qwen2.5-7B-Instruct qua llama.cpp, `Q5_K_M` (~5.44 GB; quay về `Q4_K_M` bằng `RVT_MT_MODEL_FILE=qwen2.5-7b-instruct-q4_k_m.gguf`) | Qwen2.5-3B-Instruct · Hy-MT2-1.8B · TranslateGemma-4B |
 | Giao thức | WebSocket + PCM16 16 kHz | WebRTC khi thêm đọc to bản dịch |
 | Triển khai | Docker Compose ngay trên máy GPU: `ai` + `mt` (phần AI), `web` (phần FE, HTTPS nội bộ); `make deploy` | ngrok/tunnel khi cần truy cập từ xa |
 

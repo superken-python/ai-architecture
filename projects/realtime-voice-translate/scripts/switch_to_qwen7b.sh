@@ -3,7 +3,7 @@
 # Script: switch_to_qwen7b.sh
 # Purpose: Xóa các model dịch cũ (mt-model.gguf, Qwen 3B, Hy-MT, TranslateGemma)
 #          để giải phóng dung lượng ổ đĩa, sau đó tải model mới
-#          Qwen 2.5 - 7B Instruct GGUF (giữ nguyên tên gốc qwen2.5-7b-instruct-q4_k_m.gguf).
+#          Qwen 2.5 - 7B Instruct GGUF (giữ nguyên tên gốc qwen2.5-7b-instruct-q5_k_m.gguf).
 # ==============================================================================
 set -euo pipefail
 
@@ -11,9 +11,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 MODELS_DIR="${PROJECT_ROOT}/models"
 
-QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
-TARGET_FILE="${MODELS_DIR}/qwen2.5-7b-instruct-q4_k_m.gguf"
-SYMLINK_FILE="${MODELS_DIR}/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
+QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q5_K_M.gguf"
+TARGET_FILE="${MODELS_DIR}/qwen2.5-7b-instruct-q5_k_m.gguf"
+SYMLINK_FILE="${MODELS_DIR}/Qwen2.5-7B-Instruct-Q5_K_M.gguf"
 
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -91,7 +91,7 @@ fi
 
 # 2. Tải model mới Qwen 2.5 - 7B Instruct
 echo -e "\n${CYAN}==================================================================${NC}"
-echo -e "${CYAN}📥 TẢI MODEL MỚI: Qwen2.5-7B-Instruct Q4_K_M (~4.68 GB)${NC}"
+echo -e "${CYAN}📥 TẢI MODEL MỚI: Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB)${NC}"
 echo -e "${CYAN}==================================================================${NC}"
 echo -e "Source: ${QWEN_URL}"
 echo -e "Target: ${TARGET_FILE}"
@@ -115,9 +115,9 @@ if [ -t 0 ] && [[ ${FORCE} -eq 0 ]]; then
 fi
 
 if [[ "${DO_DOWNLOAD}" =~ ^[Yy]$ ]]; then
-    echo -e "\n${CYAN}⏳ Đang tải file... (~4.68 GB, vui lòng đợi vài phút tuỳ thuộc tốc độ mạng)${NC}"
+    echo -e "\n${CYAN}⏳ Đang tải file... (~5.44 GB, vui lòng đợi vài phút tuỳ thuộc tốc độ mạng)${NC}"
     if curl -L --fail --progress-bar -C - -o "${TARGET_FILE}" "${QWEN_URL}"; then
-        ln -sf "qwen2.5-7b-instruct-q4_k_m.gguf" "${SYMLINK_FILE}" 2>/dev/null || true
+        ln -sf "qwen2.5-7b-instruct-q5_k_m.gguf" "${SYMLINK_FILE}" 2>/dev/null || true
         FILE_SIZE=$(du -h "${TARGET_FILE}" | cut -f1)
         echo -e "\n${GREEN}🎉 TẢI THÀNH CÔNG MODEL QWEN 2.5 - 7B! (${FILE_SIZE})${NC}"
         echo -e "   File đích: ${TARGET_FILE}"
@@ -127,7 +127,7 @@ if [[ "${DO_DOWNLOAD}" =~ ^[Yy]$ ]]; then
     fi
 else
     echo -e "\n${YELLOW}Bỏ qua bước tải model. Bạn có thể tải sau bằng lệnh:${NC}"
-    echo -e "  curl -L -C - -o models/qwen2.5-7b-instruct-q4_k_m.gguf ${QWEN_URL}"
+    echo -e "  curl -L -C - -o models/qwen2.5-7b-instruct-q5_k_m.gguf ${QWEN_URL}"
 fi
 
 echo -e "\n${CYAN}==================================================================${NC}"

@@ -5,10 +5,10 @@ services:
     runtime: nvidia
     restart: unless-stopped
     command: >-
-      -m /models/qwen2.5-7b-instruct-q4_k_m.gguf
+      -m /models/${RVT_MT_MODEL_FILE:-qwen2.5-7b-instruct-q5_k_m.gguf}
       --host 0.0.0.0
       --port 8080
-      -c 16384
+      -c 8192
       --parallel 4
       -ngl 99
     volumes:

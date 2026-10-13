@@ -44,27 +44,27 @@ else
     echo "✓ Silero VAD ${SILERO_VAD_VERSION} already exists: ${VAD_MODEL}"
 fi
 
-# 2. Check or download MT GGUF model (Qwen2.5-7B-Instruct Q4_K_M)
-MT_MODEL="${MODELS_DIR}/qwen2.5-7b-instruct-q4_k_m.gguf"
-QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
+# 2. Check or download MT GGUF model (Qwen2.5-7B-Instruct Q5_K_M)
+MT_MODEL="${MODELS_DIR}/qwen2.5-7b-instruct-q5_k_m.gguf"
+QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q5_K_M.gguf"
 
 if [[ ! -f "${MT_MODEL}" ]]; then
     echo ""
     echo "Notice: Machine Translation GGUF model not found at ${MT_MODEL}"
-    echo "Recommended model: Qwen2.5-7B-Instruct Q4_K_M (~4.68 GB) from HuggingFace:"
+    echo "Recommended model: Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB) from HuggingFace:"
     echo ""
-    echo "  curl -L -C - -o models/qwen2.5-7b-instruct-q4_k_m.gguf \\"
+    echo "  curl -L -C - -o models/qwen2.5-7b-instruct-q5_k_m.gguf \\"
     echo "    ${QWEN_URL}"
     echo ""
     read -p "Do you want to download Qwen2.5-7B-Instruct GGUF now? (y/N): " -n 1 -r || true
     echo ""
     if [[ ${REPLY:-n} =~ ^[Yy]$ ]]; then
-        echo "Downloading Qwen2.5-7B-Instruct GGUF model (~4.68 GB)..."
+        echo "Downloading Qwen2.5-7B-Instruct GGUF model (~5.44 GB)..."
         curl -L --fail --progress-bar -C - -o "${MT_MODEL}" "${QWEN_URL}" || {
-            echo "Failed to download from HuggingFace. You can manually copy any GGUF model to models/qwen2.5-7b-instruct-q4_k_m.gguf"
+            echo "Failed to download from HuggingFace. You can manually copy any GGUF model to models/qwen2.5-7b-instruct-q5_k_m.gguf"
         }
     else
-        echo "Skipping GGUF download. Note: To run GPU stack with llama.cpp, place your GGUF model at models/qwen2.5-7b-instruct-q4_k_m.gguf"
+        echo "Skipping GGUF download. Note: To run GPU stack with llama.cpp, place your GGUF model at models/qwen2.5-7b-instruct-q5_k_m.gguf"
         echo "Or run in dev/CPU mode with: ./start.sh --cpu"
     fi
 else
