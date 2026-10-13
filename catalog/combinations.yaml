@@ -115,3 +115,18 @@ combinations:
       - So sánh chuỗi SQL thay vì so sánh kết quả truy vấn khi đánh giá.
       - Truy vấn được phép đọc bảng nhạy cảm.
     end_to_end_metric: Tỷ lệ câu trả lời có con số đúng tuyệt đối trên golden set; tỷ lệ hỏi lại đúng lúc với câu mơ hồ.
+
+  - id: CMB-10
+    name: Trợ lý AI trong Excel nối với agent doanh nghiệp (Office add-in)
+    groups: [G6, G7]
+    flow: Yêu cầu tiếng Việt trong khung chat của Excel → hiểu yêu cầu, ánh xạ vào bảng/cột (Nhóm 6) → agent gọi công cụ chạy trong Excel (tìm theo cột, chèn/cập nhật dòng) và công cụ của hệ thống doanh nghiệp (tra ERP/CRM, text-to-SQL), người dùng duyệt trước khi ghi (Nhóm 7)
+    examples: [tìm khách theo mã rồi chèn dòng đơn hàng mới, kéo số liệu từ ERP vào bảng Excel, đối chiếu danh sách trong sheet với dữ liệu gốc]
+    skills: [LLM-05, LLM-02, LLM-06, LLM-04, LLM-08, EFF-03, EFF-07, DATA-05, DATA-06, OPS-06, OPS-08]
+    glue: [LLM-02, EFF-07, LLM-06]
+    pitfalls:
+      - Gửi cả sheet cho LLM để "tìm" — tốn token, vượt giới hạn đọc của Excel và lộ dữ liệu; code tìm và lọc, LLM chỉ chọn bảng, cột, điều kiện.
+      - Ghi vào sheet không qua xem trước và xác nhận, hoặc ghi lệch cột vì tiêu đề gộp ô, nhiều dòng tiêu đề, kiểu dữ liệu lẫn lộn.
+      - Nội dung ô hoặc file nhận từ bên ngoài chứa chỉ dẫn độc hại (prompt injection) khiến agent sửa dữ liệu hoặc gửi dữ liệu ra ngoài.
+      - Agent backend gọi hệ thống nghiệp vụ bằng quyền dịch vụ rộng hơn quyền của người đang dùng Excel.
+      - Tìm kiếm tiếng Việt trượt vì khác dấu, Unicode NFC/NFD, khoảng trắng thừa hoặc số lưu dạng chữ.
+    end_to_end_metric: Tỷ lệ tác vụ đúng hoàn toàn (đúng dòng tìm thấy, đúng giá trị từng cột khi ghi) trên bộ workbook mẫu; số lần ghi sai lọt qua sau xác nhận (mục tiêu 0); thời gian và chi phí token mỗi tác vụ so với làm tay.

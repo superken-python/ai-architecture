@@ -179,7 +179,7 @@ groups:
     short: Agent
     block: C
     question: Làm giúp tôi cả chuỗi việc này.
-    examples: [xử lý hồ sơ vay từ đầu đến cuối, đối soát, trợ lý thao tác trên CRM/ERP, tự động lập báo cáo]
+    examples: [xử lý hồ sơ vay từ đầu đến cuối, đối soát, trợ lý thao tác trên CRM/ERP, tự động lập báo cáo, "trợ lý AI ngay trong Excel/Office (add-in) gọi agent của hệ thống"]
     flow:
       input: "Yêu cầu của người dùng + công cụ: API, CRM, ERP"
       technique: LLM gọi công cụ (tool calling, MCP) theo workflow

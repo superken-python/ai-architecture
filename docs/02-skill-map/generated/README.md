@@ -2,7 +2,7 @@
 
 # Bản đồ kỹ năng — phần sinh tự động
 
-Danh mục hiện có **65 kỹ năng** trong **10 mảng**, phủ **8 nhóm bài toán** và **9 tổ hợp** dự án thực tế.
+Danh mục hiện có **65 kỹ năng** trong **10 mảng**, phủ **8 nhóm bài toán** và **10 tổ hợp** dự án thực tế.
 
 | Tầng | Số kỹ năng | Ý nghĩa |
 |---|---:|---|
