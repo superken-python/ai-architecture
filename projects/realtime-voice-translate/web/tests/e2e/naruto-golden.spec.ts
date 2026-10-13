@@ -120,7 +120,7 @@ test.describe('Naruto Episode 2 Golden Audio Test (eval/golden_1)', () => {
         };
 
         // Start continuous turn on side A
-        sendJson({ type: 'turn.start', side: 'A' });
+        sendJson({ type: 'turn.start', side: 'A', source: 'tab' });
 
         const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
         const chunkSize = 1280; // 40ms at 16kHz 16-bit mono

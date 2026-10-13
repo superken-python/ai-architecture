@@ -5,44 +5,59 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type ClientEvent = SessionStart | TurnStart | TurnStop | UtteranceOverrideLang | SidesUpdate | Ping;
+export type ClientEvent =
+  SessionStart | TurnStart | TurnStop | UtteranceOverrideLang | SidesUpdate | Ping | ClientHealth;
 export type Type = "session.start";
 export type Protocol = number;
 export type Rate = number;
 export type Format = string;
 export type Lang = string;
+export type Targets = ("ja" | "en" | "vi")[] | null;
+export type ClientId = string | null;
 export type Type1 = "turn.start";
 export type Side = "A" | "B";
+export type Source = ("mic" | "tab") | null;
 export type Type2 = "turn.stop";
 export type Type3 = "utterance.override_lang";
 export type UtteranceId = number;
 export type Lang1 = "ja" | "en" | "vi";
 export type Type4 = "sides.update";
+export type Targets1 = ("ja" | "en" | "vi")[] | null;
 export type Type5 = "ping";
 export type T = number;
+export type Type6 = "client.health";
+export type AudioContextState = string;
+export type TrackMuted = boolean;
+export type TrackEnded = boolean;
+export type RmsDbfs = number | null;
+export type ChunksSent = number;
+export type DocumentVisible = boolean;
 
 export interface SessionStart {
   type?: Type;
-  protocol: Protocol;
-  audio: AudioConfig;
-  sides: Sides;
+  protocol?: Protocol;
+  audio?: AudioConfig;
+  sides?: Sides;
+  targets?: Targets;
+  client_id?: ClientId;
   [k: string]: unknown;
 }
 export interface AudioConfig {
-  rate: Rate;
-  format: Format;
+  rate?: Rate;
+  format?: Format;
   [k: string]: unknown;
 }
 export interface Sides {
   [k: string]: SideConfig;
 }
 export interface SideConfig {
-  lang: Lang;
+  lang?: Lang;
   [k: string]: unknown;
 }
 export interface TurnStart {
   type?: Type1;
   side: Side;
+  source?: Source;
   [k: string]: unknown;
 }
 export interface TurnStop {
@@ -58,6 +73,7 @@ export interface UtteranceOverrideLang {
 export interface SidesUpdate {
   type?: Type4;
   sides: Sides1;
+  targets?: Targets1;
   [k: string]: unknown;
 }
 export interface Sides1 {
@@ -66,5 +82,15 @@ export interface Sides1 {
 export interface Ping {
   type?: Type5;
   t: T;
+  [k: string]: unknown;
+}
+export interface ClientHealth {
+  type?: Type6;
+  audio_context_state?: AudioContextState;
+  track_muted?: TrackMuted;
+  track_ended?: TrackEnded;
+  rms_dbfs?: RmsDbfs;
+  chunks_sent?: ChunksSent;
+  document_visible?: DocumentVisible;
   [k: string]: unknown;
 }

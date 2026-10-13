@@ -88,6 +88,7 @@ class FasterWhisperEngine(AsrEngine):
         language: Lang | None = None,
         vad_mean: float | None = None,
         initial_prompt: str | None = None,
+        min_avg_logprob: float | None = None,
     ) -> tuple[str, Lang, dict[Lang, float]]:
         # Convert 16bit PCM to float32 normalized [-1, 1]
         audio_int16 = np.frombuffer(audio, np.int16)
@@ -121,6 +122,10 @@ class FasterWhisperEngine(AsrEngine):
                     f"Filtered silent/no-speech segment: '{s.text}' "
                     f"(no_speech_prob={s.no_speech_prob:.2f}, avg_logprob={s.avg_logprob:.2f})"
                 )
+                continue
+            # Vùng VAD bỏ sót (docs 09 §4.1) chỉ giữ chữ Whisper nghe khá chắc
+            if min_avg_logprob is not None and s.avg_logprob < min_avg_logprob:
+                logger.info(f"Filtered low-confidence segment: '{s.text}' (avg_logprob={s.avg_logprob:.2f})")
                 continue
             valid_segments.append(s.text.strip())
 

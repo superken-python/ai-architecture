@@ -194,7 +194,7 @@ async def handle_websocket_connection(websocket: WebSocket):
                             client_sessions[session_id] = event.client_id
                         await session.handle_session_start(event)
                     elif event.type == "turn.start":
-                        await session.handle_turn_start(event.side)
+                        await session.handle_turn_start(event.side, event.source)
                     elif event.type == "turn.stop":
                         await session.handle_turn_stop()
                     elif event.type == "sides.update":

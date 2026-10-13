@@ -9,7 +9,71 @@
 - đề xuất bước tiếp theo;
 - đối chiếu các kỹ thuật được gợi ý từ bên ngoài, và tìm vì sao Nhật → Việt kém hơn Anh, Việt (mục 8, 9).
 
-**Tài liệu phân tích và đề xuất, không đổi code.**
+**Tài liệu phân tích và đề xuất.** Code làm theo mục 6 nằm ở các commit sau `092c437`. Mỗi bước có một ghi chú
+"Cập nhật" ngay dưới đây.
+
+**Cập nhật 2026-10-13: đã làm bước 0 (sửa Nhật → Việt)**, có test
+([`test_mt_ja_vi.py`](../ai/tests/unit/test_mt_ja_vi.py)):
+
+- Trước khi kiểm, bản dịch được làm sạch chữ Nhật còn sót
+  ([`fix_leftovers`](../ai/src/rvt_ai/packs/glossary.py)). Tên, thuật ngữ có trong glossary được thay bằng bản dịch cố
+  định ("火影" → "Hokage"). Katakana còn lại được đổi sang romaji ("カカシ" → "Kakashi"). Kanji không có trong glossary
+  vẫn bị loại.
+- Lượt dịch lại giữ nguyên ngữ cảnh và glossary, chỉ thêm một dòng nhắc "viết hết bằng tiếng Việt". Trước đây, dòng
+  nhắc này thay chỗ của ngữ cảnh.
+- "Sensei" đứng sau dấu câu không còn làm bản dịch bị cắt. Chỉ cắt khi theo sau là câu giải thích, ví dụ "Sensei
+  means…" (`EXPLANATION_AFTER_SENTENCE` trong [`mt_llama.py`](../ai/src/rvt_ai/engines/mt_llama.py)).
+
+**Cập nhật 2026-10-13: đã làm bước 3 (prompt dịch)**, có test:
+
+- **Glossary (§5.2).** [`packs/glossary/naruto.yaml`](../packs/glossary/naruto.yaml) có tên nhân vật, thuật ngữ và quy
+  ước xưng hô tiếng Việt theo cặp nhân vật: Naruto ↔ Sakura xưng "tớ/cậu", học trò với Kakashi xưng "em/thầy",
+  Kakashi với học trò xưng "thầy/các em", người lớn với Hokage xưng "tôi/ngài".
+  - Chọn glossary bằng biến `RVT_GLOSSARIES`, ví dụ `RVT_GLOSSARIES=default,naruto`. Mặc định chỉ có `default`.
+  - Prompt chỉ có những mục xuất hiện trong câu. Mục dài được khớp trước: "カカシ先生" → "thầy Kakashi" rồi mới tới
+    "カカシ".
+- **Ngữ cảnh có bản dịch trước (§5.3).** 2 câu ngay trước được đưa vào dạng "câu nguồn → bản dịch đã hiện". Câu chưa
+  dịch xong thì chỉ có câu nguồn.
+- **Few-shot trung tính (§5.4).** Ví dụ mới gồm một câu xin lỗi, một câu gọi tên, một câu về lịch, một câu bị cắt giữa
+  chừng. Không còn ví dụ "trái Kiki".
+- **Câu cảm thán, câu bị cắt (§5.5).** [`packs/phrasebook/ja.yaml`](../packs/phrasebook/ja.yaml) dịch khoảng 25 câu
+  ngắn bằng bảng tra, không gọi model: "うん" → "Ừ.", "え?" → "Hả?", "くそっ" → "Chết tiệt!". Prompt có thêm luật:
+  câu có thể bị cắt giữa chừng, chỉ dịch phần đang có.
+- Chưa có số chrF trước/sau (cần server, xem bước 1). Điều kiện "chrF không giảm" của bước 3 phải kiểm khi chạy bộ đo
+  trên server.
+
+**Cập nhật 2026-10-13: đã làm bước 1 (bộ đo dịch), chưa có số.**
+
+- [`eval/golden_1/translation/ja-vi.jsonl`](../eval/golden_1/translation/ja-vi.jsonl) có 168 câu: câu tiếng Nhật đã sửa
+  lỗi nghe của phụ đề tự động ("里の長", "手裏剣", "上忍"), người nói và bản dịch tiếng Việt tham chiếu.
+  - Bản dịch do model viết nháp, rồi được soát theo ngữ cảnh, glossary và quy ước xưng hô. Chưa có người bản ngữ duyệt
+    ([README](../eval/golden_1/translation/README.md)).
+  - 168 mục, nhiều hơn 141 câu thoại, vì mỗi mục là một câu nói trọn ý. Có dòng phụ đề chứa hai câu của hai người.
+- (a) **Bộ dịch:** [`eval/mt_eval.py`](../eval/mt_eval.py) dịch các câu đúng y như app: bảng tra, glossary, 2 câu trước
+  kèm bản dịch, làm sạch, dịch lại một lần. Sau đó chấm chrF (n ≤ 6, β = 2, cùng công thức với `sacrebleu`). Các tuỳ
+  chọn `--no-context`, `--glossary ""`, `--pivot-en` để so từng phần.
+- (b) **Cả chuỗi:** `golden_session.py --mt-url http://mt:8080/v1` dịch các câu mà phiên phát lại đã đưa đi dịch, rồi
+  chấm chrF cả bài.
+- Sandbox không chạy được model dịch, nên **chưa có số chrF nào**. Lệnh chạy trên server:
+
+  ```bash
+  docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --api-url http://mt:8080/v1 \
+      --out /tmp/mt_golden_1.json
+  docker exec -it rvt_ai uv run python eval/golden_session.py --golden eval/golden_1 --skip-lines 12-25,180- \
+      --mt-url http://mt:8080/v1
+  ```
+
+**Cập nhật 2026-10-13: đổi model dịch sang Qwen2.5-7B-Instruct Q5_K_M** (một phần của bước 4, §5.6):
+
+- Mọi file compose, script tải model, `start.sh`, `config/models.yaml` và profile `balanced`, `quality` đều trỏ tới
+  `qwen2.5-7b-instruct-q5_k_m.gguf`.
+- Muốn quay lại bản cũ, đặt `RVT_MT_MODEL_FILE=qwen2.5-7b-instruct-q4_k_m.gguf`, không cần sửa file.
+- **VRAM.** File Q5_K_M nặng 5,44 GB, Q4_K_M nặng 4,68 GB, tức thêm khoảng 0,76 GB. Để bù, context của llama.cpp giảm
+  từ 16 384 xuống 8 192 token (4 slot, mỗi slot 2 048 token), bớt khoảng 0,47 GB KV cache. Tổng cộng vẫn thêm khoảng
+  0,3 GB VRAM.
+  - Prompt dài nhất hiện có (glossary, xưng hô, 2 câu trước kèm bản dịch, few-shot) khoảng 2 300 ký tự, cỡ 700–900
+    token. Vẫn vừa một slot.
+- Chưa so được với Q4_K_M bằng chrF và độ trễ. Đây là việc của bước 4 trên GPU thật.
 
 **Cách đo:**
 

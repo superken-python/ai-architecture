@@ -134,7 +134,14 @@ def replay_screen(events: list[dict]) -> dict:
 
 
 def run_session(
-    pcm: np.ndarray, profile: ProfileConfig, asr, models_dir: str, side_lang: str, target: str, latency: str
+    pcm: np.ndarray,
+    profile: ProfileConfig,
+    asr,
+    models_dir: str,
+    side_lang: str,
+    target: str,
+    latency: str,
+    capture: str = "tab",
 ) -> tuple[list[dict], list[tuple[float, str]], list[dict]]:
     loop = VirtualClockLoop()
     asyncio.set_event_loop(loop)
@@ -176,7 +183,7 @@ def run_session(
         await session.handle_session_start(
             SessionStart(sides={"A": SideConfig(lang=side_lang), "B": SideConfig(lang=target)}, targets=[target])
         )
-        await session.handle_turn_start("A")
+        await session.handle_turn_start("A", capture)
         wall = time.time()
         for i in range(n):
             await session.handle_audio_chunk(pcm[i * FRAME : (i + 1) * FRAME].tobytes())
@@ -236,6 +243,9 @@ def main() -> None:
         default="measured",
         help="thời gian mỗi lần nhận dạng: đo thật, hoặc 0,15 s + 0,04 s/giây audio",
     )
+    parser.add_argument(
+        "--capture", choices=("tab", "mic"), default="tab", help="nguồn audio như web gửi lên; dò VAD chỉ chạy với tab"
+    )
     parser.add_argument("--mt-url", default="", help="dịch các câu đã đưa đi dịch bằng llama.cpp ở URL này, chấm chrF")
     parser.add_argument("--glossary", default="default,naruto", help="glossary dùng khi dịch (--mt-url)")
     parser.add_argument("--out", default="", help="ghi báo cáo JSON (kèm mọi thẻ trên màn hình)")
@@ -255,7 +265,7 @@ def main() -> None:
     print(f"Audio {len(pcm) / 16000:.0f} s · profile {profile.name} · ASR {device}/{compute_type}", flush=True)
 
     events, logs, mt_requests = run_session(
-        pcm, profile, asr, args.models_dir, args.side_lang, args.target, args.latency
+        pcm, profile, asr, args.models_dir, args.side_lang, args.target, args.latency, args.capture
     )
     screen = replay_screen(events)
 
@@ -278,6 +288,7 @@ def main() -> None:
         "tail_merged": holds - alone,
         "hallucinations_on_screen": sum(1 for c in screen["finals"] if HALLUCINATION.search(c["text"])),
         "hallucinations_discarded": logged("Discarded"),
+        "vad_probe_finals": logged("VAD probe final"),
         "mt_requests": len(mt_requests),
         "mt_fragments_le6_chars": sum(1 for r in mt_requests if len(norm(r["text"])) <= 6),
     }

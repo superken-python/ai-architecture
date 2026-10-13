@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 
 import numpy as np
 
+from rvt_ai.core.config import settings
 from rvt_ai.core.logging import logger
 from rvt_ai.engines.mt_llama import EXPLANATION_AFTER_SENTENCE
 from rvt_ai.engines.ports import AsrEngine, MtEngine, MtHints, VadEngine
@@ -15,6 +16,7 @@ from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
+from rvt_ai.pipeline.vad_probe import VadProbe, VadProbeConfig, probe_text_ok
 from rvt_contracts.messages import (
     AsrFinal,
     AsrPartial,
@@ -115,6 +117,7 @@ class RVTSession:
         segmenter_config: SegmenterConfig | None = None,
         scheduler: AsrScheduler | None = None,
         glossary: Glossary | None = None,
+        vad_probe: bool | None = None,
     ):
         self.session_id = session_id
         self.vad = vad
@@ -131,6 +134,10 @@ class RVTSession:
         self.targets: list[Lang] | None = None
 
         self.segmenter = Segmenter(segmenter_config or SegmenterConfig())
+        # Dò vùng audio to mà VAD bỏ sót, chỉ khi lượt hiện tại thu âm tab (docs 09 §4.1)
+        self.vad_probe_enabled = settings.VAD_PROBE if vad_probe is None else vad_probe
+        self.probe = VadProbe(VadProbeConfig(preroll_ms=self.segmenter.config.preroll_ms))
+        self.capture_source: str | None = None
         self.current_side: Side | None = None
         self.sides_config: dict[Side, str] = {"A": "auto", "B": "auto"}
         self.sides_prior: dict[Side, dict[Lang, float]] = {
@@ -192,18 +199,21 @@ class RVTSession:
         self.targets = event.targets
         logger.info(f"[{self.session_id}] Sides updated: {self.sides_config}, targets: {self.targets}")
 
-    async def handle_turn_start(self, side: Side) -> None:
+    async def handle_turn_start(self, side: Side, source: str | None = None) -> None:
         self.last_activity_time = time.time()
-        logger.info(f"[{self.session_id}] 🎙️ Turn START on Side {side}")
+        logger.info(f"[{self.session_id}] 🎙️ Turn START on Side {side} (source={source or 'unknown'})")
         if self.current_side != side:
             await self._flush_segmenter()
         self.current_side = side
+        self.capture_source = source
+        self.probe.reset()
         self.vad_state.reset()
 
     async def handle_turn_stop(self) -> None:
         self.last_activity_time = time.time()
         logger.info(f"[{self.session_id}] ⏹️ Turn STOP on Side {self.current_side}")
         await self._flush_segmenter()
+        self.probe.reset()
         self.current_side = None
 
     async def handle_audio_chunk(self, chunk: bytes) -> None:
@@ -219,6 +229,18 @@ class RVTSession:
         # Chỉ gửi event vad khi trạng thái nói thay đổi (Mục 5.4 docs 06: giảm từ 25 event/s xuống vài event/phút)
         if self.segmenter.is_speaking != was_speaking:
             await self.send_event(Vad(side=side, speaking=self.segmenter.is_speaking))
+
+        if self.vad_probe_enabled and self.capture_source == "tab":
+            probe_audio = self.probe.add(chunk, speech_prob, self.segmenter.is_speaking)
+            if probe_audio:
+                # Cấp số câu ngay ở đây, trước chữ tạm của đoạn kế tiếp, để không lệch số với thẻ chữ tạm
+                uid = self.utterance_id_counter
+                self.utterance_id_counter += 1
+                end_ms = self.segmenter.current_time_ms
+                if self.segmenter.is_speaking:
+                    end_ms -= len(self.segmenter.buffer) * 1000 // 32000
+                task = asyncio.create_task(self._process_probe_audio(probe_audio, side, uid, end_ms))
+                self.active_tasks.append(task)
 
         if self.segmenter.is_speaking and not was_speaking:
             logger.info(f"[{self.session_id}] 🗣️ VAD: Speech DETECTED on Side {side} (p={speech_prob:.2f})")
@@ -521,6 +543,35 @@ class RVTSession:
         )
         audio_ms = len(audio) * 1000 // 32000
         await self._emit_final_and_mt(uid, side, text, final_lang, asr_probs, uncertain, audio_ms)
+
+    async def _process_probe_audio(self, audio: bytes, side: Side, uid: int, end_ms: int) -> None:
+        """Nhận dạng một vùng audio to mà VAD bỏ sót (docs 09 §4.1): không prompt, coi VAD bằng 0 để bộ lọc câu bịa
+        luôn áp, chỉ giữ chữ Whisper nghe khá chắc."""
+        force_lang = self.sides_config[side] if self.sides_config[side] != "auto" else None
+        audio_ms = len(audio) * 1000 // 32000
+        try:
+            text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
+                audio,
+                force_lang=force_lang,
+                is_final=True,
+                session_id=self.session_id,
+                vad_mean=0.0,
+                min_avg_logprob=self.probe.config.min_avg_logprob,
+            )
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Probe transcribe error: {e}")
+            return
+        text = (text or "").strip()
+        if not probe_text_ok(text, force_lang):
+            logger.debug(f"[{self.session_id}] VAD probe ({audio_ms}ms) dropped: '{text}'")
+            return
+        lang: Lang = force_lang or detected_lang  # type: ignore[assignment]
+        logger.info(f"[{self.session_id}] 🔎 VAD probe final: '{text}' [lang={lang}, side={side}, {audio_ms}ms]")
+        self.recent_asr_history.append((end_ms, text))
+        self.recent_audio[uid] = audio
+        if len(self.recent_audio) > self.max_cached_utterances:
+            self.recent_audio.popitem(last=False)
+        await self._emit_final_and_mt(uid, side, text, lang, asr_probs, False, audio_ms)
 
     async def _emit_final_and_mt(
         self,

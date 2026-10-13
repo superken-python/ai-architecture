@@ -3,19 +3,66 @@
     "AudioConfig": {
       "properties": {
         "rate": {
+          "default": 16000,
           "title": "Rate",
           "type": "integer"
         },
         "format": {
+          "default": "pcm_s16le",
           "title": "Format",
           "type": "string"
         }
       },
-      "required": [
-        "rate",
-        "format"
-      ],
       "title": "AudioConfig",
+      "type": "object"
+    },
+    "ClientHealth": {
+      "properties": {
+        "type": {
+          "const": "client.health",
+          "default": "client.health",
+          "title": "Type",
+          "type": "string"
+        },
+        "audio_context_state": {
+          "default": "running",
+          "title": "Audio Context State",
+          "type": "string"
+        },
+        "track_muted": {
+          "default": false,
+          "title": "Track Muted",
+          "type": "boolean"
+        },
+        "track_ended": {
+          "default": false,
+          "title": "Track Ended",
+          "type": "boolean"
+        },
+        "rms_dbfs": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rms Dbfs"
+        },
+        "chunks_sent": {
+          "default": 0,
+          "title": "Chunks Sent",
+          "type": "integer"
+        },
+        "document_visible": {
+          "default": true,
+          "title": "Document Visible",
+          "type": "boolean"
+        }
+      },
+      "title": "ClientHealth",
       "type": "object"
     },
     "Ping": {
@@ -46,6 +93,7 @@
           "type": "string"
         },
         "protocol": {
+          "default": 1,
           "title": "Protocol",
           "type": "integer"
         },
@@ -64,26 +112,51 @@
           },
           "title": "Sides",
           "type": "object"
+        },
+        "targets": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "ja",
+                  "en",
+                  "vi"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Targets"
+        },
+        "client_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Client Id"
         }
       },
-      "required": [
-        "protocol",
-        "audio",
-        "sides"
-      ],
       "title": "SessionStart",
       "type": "object"
     },
     "SideConfig": {
       "properties": {
         "lang": {
+          "default": "auto",
           "title": "Lang",
           "type": "string"
         }
       },
-      "required": [
-        "lang"
-      ],
       "title": "SideConfig",
       "type": "object"
     },
@@ -107,6 +180,26 @@
           },
           "title": "Sides",
           "type": "object"
+        },
+        "targets": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "ja",
+                  "en",
+                  "vi"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Targets"
         }
       },
       "required": [
@@ -130,6 +223,22 @@
           ],
           "title": "Side",
           "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "enum": [
+                "mic",
+                "tab"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
         }
       },
       "required": [
@@ -182,6 +291,7 @@
   },
   "discriminator": {
     "mapping": {
+      "client.health": "#/$defs/ClientHealth",
       "ping": "#/$defs/Ping",
       "session.start": "#/$defs/SessionStart",
       "sides.update": "#/$defs/SidesUpdate",
@@ -209,6 +319,9 @@
     },
     {
       "$ref": "#/$defs/Ping"
+    },
+    {
+      "$ref": "#/$defs/ClientHealth"
     }
   ]
 }

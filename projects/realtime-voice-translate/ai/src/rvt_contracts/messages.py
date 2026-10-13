@@ -30,6 +30,8 @@ class SessionStart(BaseModel):
 class TurnStart(BaseModel):
     type: Literal["turn.start"] = "turn.start"
     side: Side
+    # Nguồn audio của lượt này. Bước dò vùng audio to mà VAD bỏ sót chỉ chạy khi thu âm tab (docs 09 §4.1)
+    source: Literal["mic", "tab"] | None = None
 
 
 class TurnStop(BaseModel):

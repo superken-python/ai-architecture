@@ -33,6 +33,10 @@ services:
       - RVT_USE_FAKE=0
       - RVT_MODELS_DIR=/models
       - RVT_MT_API_URL=http://mt:8080/v1
+      # Glossary cho bộ dịch, ví dụ "default,naruto" (docs 09 §5.2)
+      - RVT_GLOSSARIES=${RVT_GLOSSARIES:-default}
+      # Dò vùng audio to mà VAD bỏ sót khi thu âm tab (docs 09 §4.1)
+      - RVT_VAD_PROBE=${RVT_VAD_PROBE:-true}
     volumes:
       - ./models:/models
       - ./config:/app/config:ro

@@ -26,6 +26,7 @@ class FakeAsrEngine:
         language: Lang | None = None,
         vad_mean: float | None = None,
         initial_prompt: str | None = None,
+        min_avg_logprob: float | None = None,
     ) -> tuple[str, Lang, dict[Lang, float]]:
         lang: Lang = language or "vi"
         probs: dict[Lang, float] = {"vi": 0.05, "en": 0.05, "ja": 0.05}
