@@ -1,6 +1,8 @@
 import time
-from rvt_ai.packs.loader import get_pack_registry
+
 from rvt_ai.engines.registry import build_engines_from_profile
+from rvt_ai.packs.loader import get_pack_registry
+
 
 def benchmark_profiles():
     pack_reg = get_pack_registry()
@@ -20,6 +22,7 @@ def benchmark_profiles():
         text, lang, probs = asr.transcribe(sample_pcm)
         asr_time_ms = int((time.time() - t_asr) * 1000)
         print(f"  ASR Transcribe test: {asr_time_ms}ms -> text='{text}' ({lang})")
+
 
 if __name__ == "__main__":
     benchmark_profiles()

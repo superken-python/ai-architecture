@@ -136,17 +136,13 @@ from pydantic import BaseModel, Field
 
 
 class SearchColumnRequest(BaseModel):
-    sheet_name: str | None = Field(
-        default=None, description="Tên worksheet, nếu None lấy sheet hiện tại"
-    )
+    sheet_name: str | None = Field(default=None, description="Tên worksheet, nếu None lấy sheet hiện tại")
     column_identifier: str = Field(
         ...,
         description="Tên tiêu đề cột (ví dụ 'Mã sản phẩm') hoặc chữ cái cột (ví dụ 'B')",
     )
     search_query: str = Field(..., description="Giá trị cần tìm kiếm")
-    match_exact: bool = Field(
-        default=True, description="Tìm chính xác tuyệt đối hay tìm kiếm mờ (fuzzy)"
-    )
+    match_exact: bool = Field(default=True, description="Tìm chính xác tuyệt đối hay tìm kiếm mờ (fuzzy)")
 
 
 class CellMatch(BaseModel):
@@ -158,15 +154,9 @@ class CellMatch(BaseModel):
 
 class SearchColumnResult(BaseModel):
     found: bool = Field(..., description="Có tìm thấy kết quả hay không")
-    matches: list[CellMatch] = Field(
-        default_factory=list, description="Danh sách các ô khớp"
-    )
-    total_scanned_rows: int = Field(
-        ..., description="Số dòng dữ liệu đã quét trong cột"
-    )
-    header_found: bool = Field(
-        ..., description="Có tìm thấy cột theo tên tiêu đề hay không"
-    )
+    matches: list[CellMatch] = Field(default_factory=list, description="Danh sách các ô khớp")
+    total_scanned_rows: int = Field(..., description="Số dòng dữ liệu đã quét trong cột")
+    header_found: bool = Field(..., description="Có tìm thấy cột theo tên tiêu đề hay không")
 ```
 
 ### 4.2. Tool: Chèn nguyên một dòng dữ liệu (`excel_insert_row`)
@@ -177,9 +167,7 @@ from pydantic import BaseModel, Field
 
 
 class ColumnValue(BaseModel):
-    column_name: str = Field(
-        ..., description="Tên cột theo tiêu đề (ví dụ 'Giá bán', 'Số lượng')"
-    )
+    column_name: str = Field(..., description="Tên cột theo tiêu đề (ví dụ 'Giá bán', 'Số lượng')")
     value: Any = Field(..., description="Giá trị cần điền (chuỗi, số, ngày tháng)")
     formula: str | None = Field(
         default=None,
@@ -188,16 +176,12 @@ class ColumnValue(BaseModel):
 
 
 class InsertRowRequest(BaseModel):
-    sheet_name: str | None = Field(
-        default=None, description="Tên worksheet, None là sheet active"
-    )
+    sheet_name: str | None = Field(default=None, description="Tên worksheet, None là sheet active")
     target_row_index: int | None = Field(
         default=None,
         description="Vị trí dòng cần chèn. Nếu None, tự động chèn vào dòng trống cuối bảng",
     )
-    row_values: list[ColumnValue] = Field(
-        ..., description="Danh sách các giá trị tương ứng từng cột"
-    )
+    row_values: list[ColumnValue] = Field(..., description="Danh sách các giá trị tương ứng từng cột")
     highlight_inserted_row: bool = Field(
         default=True,
         description="Bôi màu nhẹ dòng vừa chèn trong 3 giây để người dùng nhận diện",

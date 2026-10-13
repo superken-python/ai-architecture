@@ -285,11 +285,13 @@ Tránh việc truyền hàng loạt biến rời rạc giữa các hàm. Mọi l
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
+
 class EvidenceItem(BaseModel):
     query_id: str
     query_sql: str
     row_count: int
     raw_data_preview: List[Dict[str, Any]]
+
 
 class AgentContext(BaseModel):
     session_id: str
@@ -340,16 +342,17 @@ Không để code Agent phụ thuộc trực tiếp vào SDK của MCP. Class `M
 from typing import Callable, Any
 from pydantic import BaseModel
 
+
 class MCPToolAdapter:
     """Chuyển đổi công cụ từ giao thức MCP sang callable tool của Agent Framework."""
-    
+
     @staticmethod
     def adapt(mcp_tool_spec: dict, mcp_client: Any) -> Callable:
         async def tool_runner(**kwargs):
             # Interceptor: Ghi log, đo lường và gọi MCP Server qua JSON-RPC
             result = await mcp_client.call_tool(mcp_tool_spec["name"], kwargs)
             return result
-            
+
         tool_runner.__name__ = mcp_tool_spec["name"]
         tool_runner.__doc__ = mcp_tool_spec.get("description", "")
         return tool_runner
@@ -391,6 +394,7 @@ from pathlib import Path
 from typing import Dict
 from my_project.domains.base import BaseDomainPack
 
+
 class DomainRegistry:
     _registry: Dict[str, BaseDomainPack] = {}
 
@@ -400,14 +404,14 @@ class DomainRegistry:
         for manifest_path in domains_dir.glob("*/manifest.yaml"):
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest_data = yaml.safe_load(f)
-            
+
             domain_id = manifest_data["domain_id"]
             package_name = manifest_path.parent.name
-            
+
             # Dynamic import domain service/pack
             module = importlib.import_module(f"my_project.domains.{package_name}.service")
             cls._registry[domain_id] = module.get_pack_instance(manifest_data)
-            
+
     @classmethod
     def get_pack(cls, domain_id: str) -> BaseDomainPack:
         if domain_id not in cls._registry:
@@ -428,6 +432,7 @@ class DomainRegistry:
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
+
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -437,10 +442,11 @@ class AppSettings(BaseSettings):
     LLM_TEMPERATURE: float = Field(default=0.0)
     MAX_RESULT_ROWS: int = Field(default=5000)
     LLM_PREVIEW_ROWS: int = Field(default=40)
-    
+
     LANGFUSE_PUBLIC_KEY: str
     LANGFUSE_SECRET_KEY: str
     LANGFUSE_HOST: str = "https://cloud.langfuse.com"
+
 
 settings = AppSettings()
 ```

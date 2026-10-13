@@ -1,15 +1,17 @@
 import asyncio
 import json
-import time
 import sys
+import time
+
 import websockets
+
 
 async def run_smoke_ws(url: str = "ws://localhost:8000/ws"):
     print(f"Connecting to {url}...")
     try:
         async with websockets.connect(url, subprotocols=["rvt.v1"]) as ws:
             print("Connected with subprotocol rvt.v1.")
-            
+
             # 1. Expect session.ready
             ready_raw = await asyncio.wait_for(ws.recv(), timeout=5.0)
             ready = json.loads(ready_raw)
@@ -25,12 +27,16 @@ async def run_smoke_ws(url: str = "ws://localhost:8000/ws"):
             print("✓ ping / pong latency check passed")
 
             # 3. Session Start
-            await ws.send(json.dumps({
-                "type": "session.start",
-                "protocol": 1,
-                "audio": {"rate": 16000, "format": "pcm_s16le"},
-                "sides": {"A": {"lang": "auto"}, "B": {"lang": "auto"}}
-            }))
+            await ws.send(
+                json.dumps(
+                    {
+                        "type": "session.start",
+                        "protocol": 1,
+                        "audio": {"rate": 16000, "format": "pcm_s16le"},
+                        "sides": {"A": {"lang": "auto"}, "B": {"lang": "auto"}},
+                    }
+                )
+            )
             print("✓ session.start sent")
 
             # 4. Turn Start A
@@ -48,7 +54,7 @@ async def run_smoke_ws(url: str = "ws://localhost:8000/ws"):
             # 6. Collect final events
             asr_final = None
             mt_finals = []
-            
+
             while len(mt_finals) < 2 and time.time() - t_start < 8.0:
                 msg_raw = await asyncio.wait_for(ws.recv(), timeout=5.0)
                 if isinstance(msg_raw, str):
@@ -74,6 +80,7 @@ async def run_smoke_ws(url: str = "ws://localhost:8000/ws"):
     except Exception as e:
         print(f"✗ Smoke test failed: {e}", file=sys.stderr)
         return False
+
 
 if __name__ == "__main__":
     target_url = sys.argv[1] if len(sys.argv) > 1 else "ws://localhost:8000/ws"

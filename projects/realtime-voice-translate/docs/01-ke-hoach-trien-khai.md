@@ -338,8 +338,10 @@ Whisper trả xác suất cho 99 ngôn ngữ. Hệ thống chỉ xét 3 tiếng 
 # ai/src/rvt_ai/pipeline/lid_policy.py — rút gọn
 ALLOWED: tuple[Lang, ...] = ("ja", "en", "vi")
 
-def pick_language(asr_probs: dict[str, float], side_prior: dict[Lang, float],
-                  prior_weight: float, uncertain_below: float) -> LangDecision:
+
+def pick_language(
+    asr_probs: dict[str, float], side_prior: dict[Lang, float], prior_weight: float, uncertain_below: float
+) -> LangDecision:
     """Giới hạn LID của Whisper về 3 tiếng rồi kết hợp với prior của nửa màn hình."""
     p = {k: max(asr_probs.get(k, 0.0), 1e-6) for k in ALLOWED}
     z = sum(p.values())
@@ -429,6 +431,7 @@ Server → client:
 Lang = Literal["ja", "en", "vi"]
 Side = Literal["A", "B"]
 
+
 class AsrFinal(BaseModel):
     type: Literal["asr.final"] = "asr.final"
     utterance_id: int
@@ -438,6 +441,7 @@ class AsrFinal(BaseModel):
     lang_probs: dict[Lang, float]
     uncertain: bool
     audio_ms: int
+
 
 ServerEvent = Annotated[
     SessionReady | Vad | AsrPartial | AsrFinal | MtDelta | MtFinal | UtteranceMetrics | ErrorEvent | Pong,

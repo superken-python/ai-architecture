@@ -1,24 +1,25 @@
 import json
 import os
 import time
-from typing import List, Dict, Any
+from typing import Any
 
 from rvt_ai.pipeline.mt_validator import mt_validator
 from rvt_contracts.messages import Lang
 
-def run_evaluation(manifest_path: str = "packs/evals/manifest.jsonl") -> Dict[str, Any]:
+
+def run_evaluation(manifest_path: str = "packs/evals/manifest.jsonl") -> dict[str, Any]:
     print(f"Loading evaluation dataset from {manifest_path}...")
     if not os.path.exists(manifest_path):
         manifest_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packs/evals/manifest.jsonl"))
 
     samples = []
-    with open(manifest_path, "r", encoding="utf-8") as f:
+    with open(manifest_path, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 samples.append(json.loads(line))
 
     print(f"Evaluating {len(samples)} golden samples across 6 translation directions...")
-    
+
     results = []
     for sample in samples:
         sid = sample["id"]
@@ -31,14 +32,16 @@ def run_evaluation(manifest_path: str = "packs/evals/manifest.jsonl") -> Dict[st
             v_res = mt_validator.validate(ref_text, source_lang, target_lang, ref_trans)
             latency_ms = int((time.time() - t0) * 1000)
 
-            results.append({
-                "sample_id": sid,
-                "direction": f"{source_lang}->{target_lang}",
-                "valid": v_res.is_valid,
-                "latency_ms": latency_ms,
-                "input": ref_text,
-                "output": v_res.cleaned_text
-            })
+            results.append(
+                {
+                    "sample_id": sid,
+                    "direction": f"{source_lang}->{target_lang}",
+                    "valid": v_res.is_valid,
+                    "latency_ms": latency_ms,
+                    "input": ref_text,
+                    "output": v_res.cleaned_text,
+                }
+            )
 
     total = len(results)
     valid_count = sum(1 for r in results if r["valid"])
@@ -49,7 +52,7 @@ def run_evaluation(manifest_path: str = "packs/evals/manifest.jsonl") -> Dict[st
         "total_test_cases": total,
         "valid_translations": valid_count,
         "script_validation_rate": f"{accuracy:.1f}%",
-        "details": results
+        "details": results,
     }
 
     os.makedirs("eval/reports", exist_ok=True)
@@ -59,6 +62,7 @@ def run_evaluation(manifest_path: str = "packs/evals/manifest.jsonl") -> Dict[st
 
     print(f"✓ Evaluation complete! Script validation rate: {accuracy:.1f}%. Report saved to {out_path}")
     return report
+
 
 if __name__ == "__main__":
     run_evaluation()
