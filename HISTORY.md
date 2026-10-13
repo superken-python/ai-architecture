@@ -10,7 +10,26 @@ Quy ước khi thêm một mục:
 
 ---
 
-## 2026-10-13 · Bài toán mới CMB-10 — trợ lý AI trong Excel nối với agent của hệ thống (chỉ tài liệu)
+## 2026-10-13 · CMB-10 — ADR-07 chọn runtime agent cho Excel add-in ([#6](https://github.com/superken-python/ai-architecture/pull/6))
+
+**Đã làm**
+
+- So sánh AgentOS/Agno với Pydantic AI, Microsoft Agent Framework, LangGraph, Mastra, Google ADK, OpenAI Agents SDK và nền
+  tảng low-code theo 6 tiêu chí, đọc mã nguồn phần AG-UI của từng framework và giấy phép trong metadata gói →
+  `projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md`.
+
+**Quyết định** (đề xuất, chờ duyệt)
+
+- Giữ AgentOS/Agno (Apache-2.0): duy nhất có sẵn frontend tools + tạm dừng/tiếp tục lưu ở server, xác thực, session, trace,
+  MCP, skill, và dùng chung runtime với CMB-09. AG-UI là giao kèo để backend thay được.
+- Dự phòng theo thứ tự: Pydantic AI → Microsoft Agent Framework → LangGraph (server `langgraph-api` là Elastic-2.0).
+
+**Còn mở**
+
+- Control plane của AgentOS (os.agno.com) trả phí khi nối AgentOS chạy thật — add-in không cần, nhưng CMB-09 cần tính nếu
+  dùng AgentOS UI ở production.
+
+## 2026-10-13 · Bài toán mới CMB-10 — trợ lý AI trong Excel nối với agent của hệ thống (chỉ tài liệu, [#6](https://github.com/superken-python/ai-architecture/pull/6))
 
 **Đã làm**
 

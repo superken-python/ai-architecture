@@ -27,6 +27,7 @@ nhận và hoàn tác được bằng Ctrl+Z.
 | 2 | [Giải pháp và kiến trúc](docs/02-giai-phap-kien-truc.md) | 4 phương án (tự xây / mua / không add-in / Copilot skills), kiến trúc đề xuất, luồng tìm → chèn dòng, kết nối agent qua AG-UI, bộ công cụ Excel, xác thực và bảo mật, triển khai, ADR |
 | 3 | [Tính năng mở rộng](docs/03-tinh-nang-mo-rong.md) | 41 tính năng trong 7 nhóm, mức rủi ro R0–R3, API Office.js + requirement set, giai đoạn POC/MVP/Sau |
 | 4 | [Đánh giá khả thi và kế hoạch POC](docs/04-danh-gia-kha-thi.md) | kết luận, 14 bằng chứng đã kiểm chứng kèm nguồn, điểm chưa kiểm chứng, 12 rủi ro, ước lượng công sức, kế hoạch POC + tiêu chí go/no-go, câu hỏi mở |
+| 5 | [ADR-07 · Runtime agent](docs/05-adr-runtime-agent.md) | AgentOS/Agno so với Pydantic AI, Microsoft Agent Framework, LangGraph, Mastra, Google ADK, OpenAI Agents SDK, low-code: giữ Agno, AG-UI làm giao kèo, thứ tự phương án dự phòng |
 
 ```mermaid
 flowchart LR

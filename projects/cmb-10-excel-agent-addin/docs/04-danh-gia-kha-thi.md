@@ -120,6 +120,8 @@ flowchart LR
 - [ ] **P0-03** App registration Entra (NAA) trên tenant thử; quyền sideload add-in.
 - [ ] **P0-04** Chọn model và ngân sách; chốt chính sách dữ liệu gửi LLM.
 - [ ] **P0-05** Nếu đã có license Claude hoặc Copilot: chạy thử phương án B trên cùng 30 tác vụ, song song với POC.
+- [ ] **P0-06** Duyệt [ADR-07 · runtime agent](05-adr-runtime-agent.md) (giữ AgentOS/Agno; có làm phép thử backend Pydantic AI
+      ở POC-2 không).
 
 ### POC-1 · Luồng tìm → chèn chạy end-to-end
 

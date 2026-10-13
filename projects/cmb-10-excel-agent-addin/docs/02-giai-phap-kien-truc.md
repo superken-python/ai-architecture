@@ -399,3 +399,4 @@ Bản tóm tắt, chờ chủ dự án duyệt:
 | ADR-04 | Code tìm và tính, LLM chọn tham số | chính xác, ít token, không gửi cả sheet đi | — |
 | ADR-05 | Manifest XML trước, unified manifest sau | chạy trên nhiều phiên bản Excel nhất | mọi người dùng đã ở Microsoft 365 đủ mới |
 | ADR-06 | Agent phục vụ add-in là `Agent` Agno chạy cục bộ | frontend tools không chuyển tiếp sang `RemoteAgent` hay adapter OpenAI Agents SDK | Agno hỗ trợ chuyển tiếp |
+| [ADR-07](05-adr-runtime-agent.md) | Giữ AgentOS/Agno làm runtime; dự phòng Pydantic AI → Microsoft Agent Framework → LangGraph | đủ mọi thứ cần ngay trong hộp và dùng chung runtime với CMB-09; AG-UI giữ cho backend thay được | POC lỗi tạm dừng/tiếp tục, Agno đổi API lớn, hoặc công ty chọn framework chuẩn khác |
