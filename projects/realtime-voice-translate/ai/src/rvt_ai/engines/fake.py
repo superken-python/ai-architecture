@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import AsyncGenerator
 
+from rvt_ai.engines.ports import MtHints
 from rvt_contracts.messages import Lang
 
 
@@ -41,7 +42,7 @@ class FakeAsrEngine:
 
 class FakeMtEngine:
     async def translate_stream(
-        self, text: str, source_lang: Lang, target_lang: Lang, context: str = ""
+        self, text: str, source_lang: Lang, target_lang: Lang, context: str = "", hints: MtHints | None = None
     ) -> AsyncGenerator[str, None]:
         translations = {
             ("vi", "ja"): "今日はとてもいい天気ですね。",

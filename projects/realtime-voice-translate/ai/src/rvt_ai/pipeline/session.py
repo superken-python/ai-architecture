@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import re
 import time
 from collections import OrderedDict, deque
@@ -7,7 +8,10 @@ from collections.abc import Awaitable, Callable
 import numpy as np
 
 from rvt_ai.core.logging import logger
-from rvt_ai.engines.ports import AsrEngine, MtEngine, VadEngine
+from rvt_ai.engines.mt_llama import EXPLANATION_AFTER_SENTENCE
+from rvt_ai.engines.ports import AsrEngine, MtEngine, MtHints, VadEngine
+from rvt_ai.packs.glossary import Glossary, get_glossary, get_phrasebook
+from rvt_ai.pipeline.kana import katakana_to_romaji
 from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
@@ -111,6 +115,7 @@ class RVTSession:
         send_event_cb: Callable[[ServerEvent], Awaitable[None]],
         segmenter_config: SegmenterConfig | None = None,
         scheduler: AsrScheduler | None = None,
+        glossary: Glossary | None = None,
     ):
         self.session_id = session_id
         self.vad = vad
@@ -120,6 +125,10 @@ class RVTSession:
         self.send_event = send_event_cb
         self.scheduler = scheduler or AsrScheduler(self.asr.transcribe)
         self.recent_context: deque[str] = deque(maxlen=3)
+        # Glossary tên riêng, thuật ngữ, quy ước xưng hô (docs 09 §5.2), và bản dịch đã chốt của các câu gần đây để
+        # đưa vào ngữ cảnh của câu sau (docs 09 §5.3)
+        self.glossary = glossary if glossary is not None else get_glossary()
+        self.translations: OrderedDict[tuple[str, Lang], str] = OrderedDict()
         self.targets: list[Lang] | None = None
 
         self.segmenter = Segmenter(segmenter_config or SegmenterConfig())
@@ -546,6 +555,28 @@ class RVTSession:
             task = asyncio.create_task(self._run_mt(uid, text, lang, tgt))
             self.active_tasks.append(task)
 
+    def _mt_hints(self, text: str, source: Lang, target: Lang) -> MtHints:
+        """Ngữ cảnh cho một lượt dịch: 2 câu ngay trước kèm bản dịch đã chốt (nếu có), glossary có trong câu, quy ước
+        xưng hô của ngôn ngữ đích (docs 09 §5.2, §5.3)."""
+        prev = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()][-2:]
+        return MtHints(
+            history=[(s, self.translations.get((s, target))) for s in prev],
+            glossary=self.glossary.match(text, source, target),
+            addressing=list(self.glossary.addressing.get(target, [])),
+        )
+
+    def _remember_translation(self, text: str, target: Lang, translation: str) -> None:
+        self.translations[(text, target)] = translation
+        while len(self.translations) > 50:
+            self.translations.popitem(last=False)
+
+    def _fix_leftovers(self, translation: str, source: Lang, target: Lang) -> str:
+        """Bản dịch sang tiếng Việt/Anh còn sót chữ Nhật: thay bằng bản dịch trong glossary, katakana còn lại đổi
+        sang romaji ("カカシ" → "Kakashi"). Chữ kanji không có trong glossary vẫn để bộ kiểm loại (docs 09 §9)."""
+        if source != "ja" or target not in ("vi", "en"):
+            return translation
+        return katakana_to_romaji(self.glossary.fix_leftovers(translation, target))
+
     def _validate_mt(self, text: str, source: Lang, target: Lang, raw: str) -> ValidationResult:
         """Bộ làm sạch bản dịch lỗi thì dùng dòng đầu của bản dịch thô, không đổi thành "[Lỗi dịch]" (docs 08 §3.1)."""
         try:
@@ -568,19 +599,25 @@ class RVTSession:
         if not text:
             return
 
+        # Câu cảm thán ngắn ("うん", "え?"): bảng tra, không gọi model (docs 09 §5.5)
+        phrase = get_phrasebook(source).lookup(text, target)
+        if phrase:
+            self._remember_translation(text, target, phrase)
+            await self.send_event(MtFinal(utterance_id=uid, target=target, text=phrase))
+            return
+
         # Check exact cache first
         cached = mt_validator.get_cached(source, target, text)
         if cached:
+            self._remember_translation(text, target, cached)
             await self.send_event(MtFinal(utterance_id=uid, target=target, text=cached))
             return
 
         full_text = ""
         should_stream = True
-        # Collect prior context without duplicating the current utterance text
-        prev_history = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()]
-        context = " ".join(prev_history[-2:])
+        hints = self._mt_hints(text, source, target)
         try:
-            async for delta in self.mt.translate_stream(text, source, target, context=context):
+            async for delta in self.mt.translate_stream(text, source, target, hints=hints):
                 full_text += delta
                 lower_full = full_text.lower()
                 # Không ngắt ở "—" hay "**": cleanText.ts đã dọn hai ký hiệu này trên từng mt.delta (docs 08 §3.5)
@@ -634,17 +671,15 @@ class RVTSession:
                 ]
                 if any(m in lower_full for m in cutoff_markers):
                     should_stream = False
-                if target in ("vi", "ja") and re.search(
-                    r"([.!?。！？])\s*(?:this\s|the\s|sensei\s|it\s|in\s|meaning:|note:)", lower_full
-                ):
+                if target in ("vi", "ja") and re.search(EXPLANATION_AFTER_SENTENCE, lower_full):
                     should_stream = False
                 if target == "ja" and re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF].*[a-zA-Z]{3,}", full_text):
                     should_stream = False
                 if should_stream:
                     await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))
 
-            # Validate output
-            v_res = self._validate_mt(text, source, target, full_text)
+            # Validate output. Tên, thuật ngữ còn để chữ Nhật được thay trước khi kiểm, thay vì loại cả câu (docs 09 §9)
+            v_res = self._validate_mt(text, source, target, self._fix_leftovers(full_text, source, target))
             if not v_res.is_valid:
                 logger.warning(
                     f"MT output validation failed for {source}->{target}: {v_res.error_reason}. "
@@ -652,12 +687,11 @@ class RVTSession:
                 )
                 try:
                     retry_text = ""
-                    target_name = LANG_NAMES.get(target, target)
-                    async for delta in self.mt.translate_stream(
-                        text, source, target, context=f"Strictly translate completely into {target_name}"
-                    ):
+                    # Giữ nguyên ngữ cảnh và glossary; bản cũ thay ngữ cảnh bằng một dòng lệnh (docs 09 §9)
+                    retry_hints = dataclasses.replace(hints, strict=True)
+                    async for delta in self.mt.translate_stream(text, source, target, hints=retry_hints):
                         retry_text += delta
-                    v_retry = self._validate_mt(text, source, target, retry_text)
+                    v_retry = self._validate_mt(text, source, target, self._fix_leftovers(retry_text, source, target))
                     if v_retry.is_valid:
                         v_res = v_retry
                         logger.info(
@@ -677,6 +711,7 @@ class RVTSession:
             else:
                 logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
                 mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
+                self._remember_translation(text, target, v_res.cleaned_text)
                 await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text))
         except Exception as e:
             logger.error(f"MT failed for {target}: {e}")

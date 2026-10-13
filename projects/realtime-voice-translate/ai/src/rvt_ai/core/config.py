@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     CONFIG_DIR: str = "config"
     PACKS_DIR: str = "packs"
     PROMPTS_DIR: str = "prompts"
+    # Glossary cho bộ dịch: tên file trong packs/glossary, cách nhau bởi dấu phẩy, ví dụ "default,naruto"
+    GLOSSARIES: str = "default"
 
     # Security
     API_KEY: str = ""
