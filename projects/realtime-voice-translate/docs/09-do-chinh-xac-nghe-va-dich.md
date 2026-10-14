@@ -343,7 +343,8 @@
   docker exec -it rvt_ai uv run python eval/mt_compare.py /tmp/mt_qwen.json /tmp/mt_api.json --out /tmp/mt_compare.md
   ```
 
-  - Khoá API truyền qua biến `RVT_MT_API_KEY`, không ghi vào dòng lệnh. Biến này phải có trong container `rvt_ai`.
+  - Khoá API đặt trong biến `RVT_MT_API_KEY` trên máy host trước khi chạy; `-e RVT_MT_API_KEY` chuyển nó vào container.
+    Không ghi khoá vào dòng lệnh hay vào file trong repo.
   - Với API lưu trữ, payload đổi sang dạng API (`hosted_payload` trong `mt_llama.py`): tối đa 4 chuỗi dừng, không
     `top_p`, `max_completion_tokens`. Không có `temperature`, nên hai bên không dùng cùng temperature 0,1. Ghi điều này
     khi báo kết quả.
