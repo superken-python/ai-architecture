@@ -10,6 +10,12 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-14 · Radar agent — so sánh cơ chế agent của 4 framework
+
+- `docs/agent-radar/01-co-che-agent.md`: vòng lặp tool, dừng và kết quả có cấu trúc, điểm can thiệp (hook, middleware,
+  guardrail), tạm dừng/chạy tiếp, nhiều agent, bộ nhớ — Agno 3.1.3, OpenAI Agents SDK 0.23.1, LangGraph 1.2.15 +
+  LangChain 1.4.5, Pydantic AI 2.56.0; đối chiếu trên mã nguồn từng gói.
+
 ## 2026-10-14 · Radar agent cho Nhóm 7 — tài liệu sống, cập nhật hằng tháng
 
 **Đã làm**
