@@ -30,7 +30,7 @@ vậy kết luận ở đây là **danh sách ứng viên để đo**, không ph
    Streaming Sortformer của NVIDIA để tách người nói. Làm được, nhưng phải tự ghép, tự chỉnh độ trễ, và Sortformer chỉ
    tối đa 4 người ở bản trực tiếp chính.
 6. **Bước đầu:** dựng tab "Chỉ nghe" sau một lớp `SttProvider` chung, cắm Soniox và Deepgram trước, đo trên 4–5 bộ
-   audio tiếng Anh và tiếng Việt (mục 7). Chọn theo số đo, không theo quảng cáo.
+   audio tiếng Anh và tiếng Việt (mục 7). Chọn theo số đo, không theo quảng cáo. Chi tiết phương án tự host ở mục 9.
 
 ## 2. Bài toán và tiêu chí chọn
 
@@ -188,7 +188,156 @@ PhoWhisper + Sortformer) để biết khoảng cách nếu cần chạy hoàn to
   người" thay vì gán nhầm.
 - **Tự host:** Sortformer chính chỉ 4 người, chưa có số đo tiếng Việt. Ghép nhãn người với từng từ phải tự làm.
 
-## 9. Nguồn
+## 9. Chi tiết phương án tự host mạnh nhất (Mức 2)
+
+Mục này nói rõ Mức 2 chạy thế nào, cấu hình ra sao, tốn bao nhiêu. Các con số độ trễ, VRAM, DER lấy từ tài liệu của
+dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 10.
+
+### 9.1 Các thành phần
+
+| Phần | Chọn | Vai trò |
+|---|---|---|
+| Nhận dạng tiếng Anh, câu chen | Whisper large-v3 qua **SimulStreaming** | Nhận dạng trực tiếp, chỉ chốt chữ đã ổn định |
+| Nhận dạng tiếng Việt | **ChunkFormer-CTC-Large-Vie** (có phiên streaming, xuất ONNX) hoặc **PhoWhisper-large** | Model chuyên tiếng Việt, đúng chữ hơn Whisper trên các bộ đo chuẩn |
+| Tách người nói | NVIDIA **Streaming Sortformer 4spk v2.1** (NeMo) | Mỗi khung 80 ms cho xác suất của 4 "chỗ" người nói, đánh số theo thứ tự xuất hiện |
+| Lọc đoạn không lời | Silero VAD (như app hiện tại) | Không gửi đoạn im lặng, nhạc vào Whisper, tránh câu bịa |
+| Ghép chữ với người nói | Code tự viết | Gán nhãn người cho từng từ theo thời gian |
+| Khung chạy sẵn để thử nhanh | **WhisperLiveKit** | Đã có WebSocket, backend SimulStreaming, `--diarization` dùng Sortformer |
+
+**Số liệu tiếng Việt đã công bố** (WER, càng thấp càng tốt; mỗi bên tự đo, cách chuẩn hoá khác nhau):
+
+| Bộ đo | PhoWhisper-large | ChunkFormer-CTC-Large-Vie |
+|---|---|---|
+| VIVOS | 4,67 | 4,18 |
+| Common Voice vi | 8,14 | 6,66 |
+| VLSP 2020 Task 1 | 13,75 | 14,09 |
+| VLSP 2020 Task 2 | 26,68 | — |
+
+Đây là giọng đọc, thu sạch. Giọng nói chuyện, nhiều người, có nhạc sẽ kém hơn nhiều: một bộ đo năm 2026 trên dữ liệu
+riêng cho WER khoảng 32–34% (cách tính gốc) với cả hai họ model. Whisper large-v3 nhận đoạn tiếng Anh chen trong câu
+Việt tốt hơn PhoWhisper (bộ đo ViMedCSS).
+
+### 9.2 Cách hoạt động
+
+```text
+Trình duyệt ── PCM16 16 kHz, khung 40 ms ──► Server
+                                              │
+                    ┌─────────────────────────┼─────────────────────────┐
+                    ▼                         ▼                         ▼
+             Silero VAD               Streaming Sortformer        bộ đệm audio
+          (có lời / không)         (80 ms/khung, 4 người)       (ghi lại để đo)
+                    │                         │
+                    ▼                         │
+   Nhận dạng: Whisper large-v3 (SimulStreaming)│
+       hoặc ChunkFormer / PhoWhisper (tiếng Việt)
+                    │  chữ tạm, chữ chốt, thời gian từng từ
+                    ▼                         ▼
+             Ghép: mỗi từ lấy người nói chiếm nhiều khung nhất trong khoảng thời gian của từ
+                    │
+                    ▼
+     Sự kiện gửi trình duyệt: partial / final, speaker, words[], lang
+```
+
+1. **Nhận dạng trực tiếp với SimulStreaming.** Audio được nạp liên tục vào cửa sổ tối đa 30 s. Sau mỗi khúc mới, Whisper
+   giải mã lại, nhưng chính sách **AlignAtt** chỉ cho chốt những từ mà sự chú ý (attention) của model còn nằm cách xa
+   cuối bộ đệm. Từ nào model đang "nhìn" sát cuối audio thì chưa chốt, vì còn có thể đổi khi nghe thêm. Cách này thay
+   cho LocalAgreement (so khớp giữa hai lần giải mã) của whisper_streaming cũ, có độ trễ thấp hơn.
+2. **Tiếng Việt với ChunkFormer.** Model CTC xử lý theo khúc, có ngữ cảnh bên phải. Phiên streaming nhận audio dần dần
+   và trả chữ theo khúc. Model CTC thường không bịa câu dài trong đoạn im lặng như Whisper, nhưng thường không có dấu
+   câu (cần kiểm).
+3. **Tách người nói với Sortformer.** Mỗi khung 80 ms, model trả xác suất cho 4 chỗ người nói. Một bộ nhớ đệm (speaker
+   cache) giữ đặc trưng giọng của những người đã gặp, nên S1 vẫn là S1 sau vài phút im lặng. Hai chỗ cùng cao nghĩa là
+   hai người nói chồng.
+4. **Ghép.** Với mỗi từ có thời gian bắt đầu, kết thúc, lấy người nói chiếm nhiều khung nhất trong khoảng đó. Câu chốt
+   lấy người nói của đa số từ. Đổi người giữa câu thì cắt câu tại đó. Nếu hai người cùng cao, hiện nhãn "nhiều người".
+5. **Chọn ngôn ngữ.** Người dùng chọn Tiếng Việt hoặc English: đi thẳng vào model tương ứng. Chế độ "Tự nhận": Whisper
+   nhận ngôn ngữ từng đoạn, đoạn tiếng Việt đi qua ChunkFormer/PhoWhisper, đoạn tiếng Anh và đoạn trộn đi qua Whisper.
+
+### 9.3 Cấu hình
+
+**SimulStreaming / WhisperLiveKit:**
+
+| Tham số | Giá trị đề xuất ban đầu | Ảnh hưởng |
+|---|---|---|
+| Model | `large-v3` | README cần GPU từ 10 GB VRAM. CPU chạy được nhưng quá chậm cho trực tiếp |
+| `--frame-threshold` (AlignAtt) | 25 (mặc định) | Thấp hơn: chốt sớm hơn, sai nhiều hơn. Cao hơn: chậm hơn, đúng hơn |
+| `--beams` | 1, thử thêm 4 | Beam lớn đúng hơn nhưng tốn GPU, tăng độ trễ |
+| Prompt | Tên người, tên công ty, thuật ngữ | SimulStreaming hỗ trợ prompt thuật ngữ theo lĩnh vực |
+| Ngôn ngữ | Khoá `vi` hoặc `en` khi biết trước | Bớt lỗi nhận nhầm ngôn ngữ |
+| `--diarization` | Bật, backend Sortformer | Cần cài NeMo từ git. Diart bị đánh dấu "không khuyên dùng" |
+
+Bài báo của nhóm SimulStreaming (IWSLT 2025) chạy hai mức độ trễ: khoảng **2 s** (thấp) và **4–5 s** (cao).
+
+**Streaming Sortformer v2.1** (bảng trong model card của NVIDIA; độ trễ là kích thước bộ đệm đầu vào, chưa tính thời
+gian tính toán; RTF đo trên RTX 6000 Ada, batch 1):
+
+| Chế độ | chunk | right ctx | FIFO | update | cache | Độ trễ | RTF | DER DIHARD III | DER CALLHOME |
+|---|---|---|---|---|---|---|---|---|---|
+| Độ trễ thấp (đề xuất) | 6 | 7 | 188 | 144 | 188 | 1,04 s | 0,093 | 19,60 | 11,31 |
+| Độ trễ rất cao | 340 | 40 | 40 | 300 | 188 | 30,4 s | 0,002 | 19,09 | 10,32 |
+
+Ở bản v2 còn có chế độ 0,32 s (DER DIHARD III 19,85). Độ trễ 1,04 s chỉ kém chế độ 30 s khoảng 0,5 điểm DER, nên dùng
+được cho tab trực tiếp. RTF 0,093 nghĩa là 1 giây audio tốn khoảng 0,09 giây GPU.
+
+**Ngân sách độ trễ:** chữ chốt đến sau khoảng 2 s (SimulStreaming), nhãn người nói đến sau khoảng 1,1 s (Sortformer).
+Nhận dạng là phần chậm nhất, nên nhãn người nói có sẵn khi câu chốt tới. Chữ tạm hiện sớm hơn, khoảng dưới 1 s, nhưng
+chưa có nhãn.
+
+**Phần cứng:**
+
+- **Tối thiểu cho 1 luồng:** 1 GPU 24 GB (L4, RTX 4090, A10). Whisper large-v3 cần từ 10 GB theo README, còn lại cho
+  Sortformer, ChunkFormer, VAD và bộ đệm.
+- **GPU 8 GB của server hiện tại không đủ** cho large-v3 cùng Sortformer theo mức tối thiểu 10 GB của README.
+- **Nhiều luồng cùng lúc:** L40S 48 GB hoặc A100 80 GB. Phải đo số luồng thật, vì SimulStreaming giải mã lại liên tục và
+  tốn GPU hơn nhận dạng theo câu.
+
+**Phần mềm:** Python, PyTorch CUDA, NVIDIA NeMo (bản git), SimulStreaming hoặc WhisperLiveKit, gói `chunkformer`.
+PhoWhisper có checkpoint dạng Hugging Face; muốn chạy trong SimulStreaming phải chuyển sang định dạng `.pt` của
+openai-whisper. Bước này chưa được kiểm.
+
+### 9.4 Chi phí
+
+Theo yêu cầu không xét chi phí khi chọn, nhưng ghi lại để so.
+
+**Thuê GPU theo giờ** (giá on-demand năm 2026 từ các trang so sánh, không phải bảng giá chính thức; thay đổi theo vùng):
+
+| GPU | Neocloud (RunPod, Lambda…) | Hyperscaler (AWS, GCP, Azure) |
+|---|---|---|
+| L4 24 GB | 0,20–0,50 USD/giờ | từ 0,71 USD/giờ (GCP G2) |
+| L40S 48 GB | 0,92–0,99 USD/giờ | 1,20–2,50 USD/giờ |
+| A100 80 GB | 1,39–1,49 USD/giờ | 3,67–5,03 USD/giờ |
+| H100 80 GB | 2,64–3,99 USD/giờ | 6,88–12,29 USD/giờ |
+
+- **Chạy liên tục 24/7:** một L4 trên GCP khoảng 0,71 × 24 × 30 ≈ **510 USD/tháng**, một L40S trên neocloud khoảng
+  **700 USD/tháng**. Giá trên mỗi giờ nghe bằng giá GPU chia cho số luồng chạy cùng lúc.
+- **So với dịch vụ online:** Soniox công bố khoảng 0,12 USD cho mỗi giờ nghe tiếng Việt trực tiếp. Ở mức đó, tự host chỉ
+  rẻ hơn khi rất nhiều luồng chạy cùng lúc, hoặc khi đã có sẵn máy.
+- **Máy riêng:** chỉ tốn phần cứng một lần và điện, không tính theo giờ nghe.
+- **Chi phí lớn nhất là công làm:** ghép nhận dạng với tách người nói, chọn model theo ngôn ngữ, chỉnh độ trễ, xử lý câu
+  bịa và đứt luồng, làm bộ đo. Ước tính 2–4 tuần cho bản dùng được, chưa tính tối ưu nhiều luồng. Đây là ước tính, chưa
+  có số đo.
+
+### 9.5 Cách thử, theo thứ tự
+
+1. **Chạy WhisperLiveKit nguyên bản** trên 1 GPU 24 GB: backend SimulStreaming, `large-v3`, bật `--diarization` với
+   Sortformer. Đưa 5 bộ audio ở mục 7 qua, đo WER, DER, độ trễ.
+2. **Thay phần tiếng Việt:** chạy ChunkFormer streaming (và PhoWhisper nếu chuyển được định dạng) trên cùng audio tiếng
+   Việt, so WER với Whisper large-v3.
+3. **Đo Sortformer với giọng Việt:** bộ 3 (2–4 người) ở mục 7, so DER với số tiếng Anh ở bảng trên.
+4. **So với Soniox, Deepgram** trên cùng audio. Chỉ giữ Mức 2 nếu chữ tiếng Việt không kém rõ, hoặc khi buộc phải chạy
+   local vì riêng tư.
+
+### 9.6 Rủi ro riêng của Mức 2
+
+- **Giấy phép:** WhisperLiveKit ghi SimulStreaming theo giấy phép kép; phải kiểm trước khi dùng cho sản phẩm. Kiểm thêm
+  giấy phép của PhoWhisper, ChunkFormer, model Sortformer.
+- **Tối đa 4 người** ở bản Sortformer chính. Người thứ năm sẽ bị gán vào một trong 4 chỗ.
+- **Chưa có số cho tiếng Việt** ở cả Sortformer lẫn SimulStreaming.
+- **NeMo cài từ git:** dễ vỡ khi cập nhật; nên đóng băng phiên bản trong Docker image.
+- **Whisper vẫn bịa câu** ở đoạn nhạc, im lặng. Vẫn cần VAD và bộ lọc như app hiện tại (doc 08 §3.3).
+- **GPU hiện có 8 GB không đủ:** cần GPU mới hoặc thuê cloud trước khi thử.
+
+## 10. Nguồn
 
 Dịch vụ online:
 
@@ -232,3 +381,18 @@ Tự host:
   [Modal: Parakeet multitalker](https://modal.com/docs/examples/parakeet_multitalker);
   [NVIDIA Nemotron ASR streaming](https://catalog.ngc.nvidia.com/orgs/nvidia/collections/nemotron-asr-streaming).
 - [phostt (sherpa-onnx Zipformer tiếng Việt)](https://docs.rs/crate/phostt/latest).
+
+Chi tiết tự host (mục 9):
+
+- [SimulStreaming](https://github.com/ufal/SimulStreaming); [bài báo CUNI IWSLT 2025](https://arxiv.org/html/2506.17077);
+  [WhisperLiveKit](https://github.com/QuentinFuxa/WhisperLiveKit);
+  [README WhisperLiveKit](https://cdn.jsdelivr.net/gh/quentinfuxa/whisperlivekit@main/README.md).
+- [Streaming Sortformer 4spk v2.1](https://huggingface.co/nvidia/diar_streaming_sortformer_4spk-v2.1);
+  [v2](https://huggingface.co/nvidia/diar_streaming_sortformer_4spk-v2);
+  [Nemotron-3-Diarization](https://huggingface.co/nvidia/Nemotron-3-Diarization);
+  [Modal: Sortformer 2.1](https://modal.com/docs/examples/sortformer2_1_speaker_diarization).
+- [PhoWhisper (GitHub)](https://github.com/VinAIResearch/PhoWhisper);
+  [VietASR (chunk 640 ms)](https://arxiv.org/pdf/2505.21527).
+- Giá GPU: [Hostinger](https://www.hostinger.com/tutorials/?p=158956), [D-Central](https://d-central.tech/cloud-gpu-pricing/),
+  [Jarvislabs](https://jarvislabs.ai/blog/a100-price), [Spheron](https://www.spheron.network/blog/h100-price-per-hour-2026/),
+  [GPUnex](https://www.gpunex.com/blog/cloud-gpu-pricing-comparison-2026).
