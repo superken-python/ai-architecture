@@ -46,6 +46,8 @@ services:
       - ../packs:/app/packs:ro
       - ../prompts:/app/prompts:ro
       - ../ai/src:/app/src:ro
+      # Bộ đo (golden, mt_eval.py, golden_session.py) chạy bằng docker exec rvt_ai (docs 09)
+      - ../eval:/app/eval:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
       interval: 3s
