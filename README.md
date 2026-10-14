@@ -10,6 +10,7 @@ Bản đồ học và làm AI trong doanh nghiệp: từ **các bài toán thị
 | [00 · Setup](docs/00-setup/README.md) | Chuẩn bị môi trường: công cụ, Python/uv, API key, GPU, dữ liệu | ✅ |
 | [01 · Bản đồ bài toán](docs/01-problem-map/README.md) | 8 nhóm bài toán AI doanh nghiệp, 4 khối, cách nhận diện, lộ trình 6 tháng | ✅ |
 | [02 · Bản đồ kỹ năng](docs/02-skill-map/README.md) | 65 kỹ năng × 10 mảng × 3 mức; dùng chung / riêng / kết hợp; tiết kiệm token & độ chính xác | ✅ |
+| [Radar agent · Nhóm 7](docs/agent-radar/README.md) | Chọn framework/công cụ cho agent: 19 framework + 18 công cụ hỗ trợ, vòng Adopt/Trial/Assess/Hold, số liệu registry cập nhật tự động hằng tháng | 🔄 |
 | [Trang web lộ trình](web/README.md) | Lộ trình 4 giai đoạn từng bước, cơ bản → nâng cao, tự đánh dấu tiến độ — GitHub Pages | ✅ |
 | [03 · Labs](labs/README.md) | Bài lab ngắn cho từng kỹ năng, theo thứ tự lộ trình | ⏳ |
 | [04 · Dự án](projects/README.md) | Dự án luyện tập cho 8 nhóm và các tổ hợp | ⏳ |
@@ -37,13 +38,15 @@ ai-architecture/
 │   ├── problems.yaml           #   8 nhóm, 2 họ, ma trận giai đoạn 1
 │   ├── skills.yaml             #   10 mảng, 65 kỹ năng
 │   ├── combinations.yaml       #   10 tổ hợp dự án nhiều nhóm
-│   └── roadmap.yaml            #   lộ trình 4 giai đoạn, từng bước + mức mục tiêu
+│   ├── roadmap.yaml            #   lộ trình 4 giai đoạn, từng bước + mức mục tiêu
+│   └── agent_landscape.yaml    #   radar framework agent (+ .snapshot.json do `make landscape-refresh` kéo)
 ├── docs/
 │   ├── 00-setup/               # chuẩn bị môi trường (đọc đầu tiên)
 │   ├── 01-problem-map/         # giai đoạn 1 — bản đồ bài toán (+ file .docx gốc)
-│   └── 02-skill-map/           # giai đoạn 2 — bản đồ kỹ năng
-│       ├── 0x-*.md             #   tài liệu viết tay: kiến trúc, kết hợp, token, lộ trình
-│       └── generated/          #   SINH TỰ ĐỘNG từ catalog/: ma trận, thẻ kỹ năng, lộ trình theo nhóm
+│   ├── 02-skill-map/           # giai đoạn 2 — bản đồ kỹ năng
+│   │   ├── 0x-*.md             #   tài liệu viết tay: kiến trúc, kết hợp, token, lộ trình
+│   │   └── generated/          #   SINH TỰ ĐỘNG từ catalog/: ma trận, thẻ kỹ năng, lộ trình theo nhóm
+│   └── agent-radar/            # tài liệu sống: radar framework agent (Nhóm 7), bảng sinh từ catalog/agent_landscape.*
 ├── web/                        # trang web lộ trình (HTML/CSS/JS thuần) → GitHub Pages
 ├── src/aiarch/                 # thư viện dùng chung (catalog: kiểm tra + sinh Markdown; site: sinh trang web)
 ├── labs/                       # giai đoạn 3 — lab theo kỹ năng: labs/<id>-<mức>-<tên>/

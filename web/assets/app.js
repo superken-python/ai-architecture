@@ -240,7 +240,7 @@
         </div>
         <div class="card">
           <h3>Tài liệu chi tiết trên GitHub</h3>
-          <ul class="list-dots">${["setup", "problem_map", "skill_map", "architecture", "combining", "tokens", "checklist", "history"]
+          <ul class="list-dots">${["setup", "problem_map", "skill_map", "architecture", "combining", "tokens", "agent_landscape", "checklist", "history"]
             .map((k) => `<li>${docLink(k)}</li>`)
             .join("")}</ul>
         </div>

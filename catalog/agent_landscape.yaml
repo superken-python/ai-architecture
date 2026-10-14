@@ -1,0 +1,482 @@
+# Radar framework & công cụ cho Nhóm 7 (AI Agent và tự động hóa) — dữ liệu do NGƯỜI duyệt.
+#
+# Số liệu tự động (phiên bản, ngày phát hành, giấy phép trên registry, số bản major 12 tháng, sao GitHub) KHÔNG ghi ở
+# đây: `make landscape-refresh` kéo về catalog/agent_landscape.snapshot.json, `make landscape` sinh bảng trong
+# docs/agent-radar/generated/. Quy trình cập nhật: docs/agent-radar/README.md §6.
+#
+# Quy ước
+#   ring:      adopt (dùng mặc định trong repo) · trial (đáng dùng thử cho dự án phù hợp) · assess (theo dõi, thử nhỏ)
+#              · hold (không chọn cho việc mới)
+#   features:  yes · partial · no · "?" (chưa kiểm). Ý nghĩa từng cột: docs/agent-radar/README.md §2
+#   verified:  source (đã đọc mã nguồn) · docs (tài liệu/registry chính thức) · secondary (blog, bài so sánh, hiểu biết
+#              chung — cần kiểm lại trước khi dựa vào)
+#   reviewed:  ngày người duyệt nội dung của mục này (không phải ngày kéo số liệu)
+
+version: 1
+reviewed: 2026-10-14
+
+categories:
+  orchestration: Điều phối bằng đồ thị / workflow — luồng do code định nghĩa
+  sdk: SDK agent gọn — vòng lặp tool do model dẫn
+  vendor: SDK của nhà cung cấp model
+  runtime: Runtime đầy đủ — API, session, UI, trace đi kèm
+  multi_agent: Đa agent theo vai trò / hội thoại
+  data: Agent xoay quanh dữ liệu, RAG, tối ưu prompt
+  typescript: Hệ TypeScript
+
+feature_columns:
+  routing: Điều hướng (graph = code định nghĩa nhánh; llm = model chọn agent/tool)
+  hitl: Tạm dừng chờ người duyệt / nhập liệu
+  durable: Chạy bền (resume sau lỗi, checkpoint lưu DB)
+  otel: Phát trace OpenTelemetry
+  mcp: Dùng MCP server làm tool
+  a2a: Giao thức A2A
+  agui: Giao thức AG-UI (frontend tools, stream sự kiện tới giao diện)
+  eval: Công cụ eval đi kèm
+
+frameworks:
+  - id: agno
+    name: Agno + AgentOS
+    category: runtime
+    lang: [python]
+    packages: {pypi: [agno]}
+    repo: agno-agi/agno
+    license_note: SDK + runtime Apache-2.0; control plane os.agno.com trả phí (không bắt buộc)
+    ring: adopt
+    features: {routing: both, hitl: "yes", durable: partial, otel: "yes", mcp: "yes", a2a: "yes", agui: "yes", eval: "yes"}
+    strengths:
+      - AgentOS có sẵn API/SSE, session lưu DB, JWT/RBAC, trace, MCP client + server, A2A, Skills
+      - Frontend tools qua AG-UI chạy sẵn (run tạm dừng → client chạy tool → chạy tiếp), trạng thái lưu ở server
+      - Workflows (bước, router, điều kiện, vòng lặp) cho luồng cố định; Team cho điều hướng bằng model
+    weaknesses:
+      - Đổi API nhanh (2.0 09/2025 → 3.0 08/2026) — cần khóa phiên bản và test hồi quy
+      - Thành viên của Team không nhận frontend tools (3.1.3) — agent dùng tool phía client phải là agent chạy trực tiếp
+    choose_when: Cần runtime đầy đủ nhanh, agent nối giao diện (add-in, web) qua AG-UI, dùng chung với CMB-09
+    used_in: [CMB-10 (POC 0.2, ADR-09), CMB-09 (thiết kế)]
+    verified: source
+    reviewed: 2026-10-14
+    sources:
+      - projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md
+      - https://github.com/agno-agi/agno
+
+  - id: langgraph
+    name: LangGraph
+    category: orchestration
+    lang: [python, typescript]
+    packages: {pypi: [langgraph], npm: ["@langchain/langgraph"]}
+    repo: langchain-ai/langgraph
+    license_note: Thư viện MIT; server langgraph-api là Elastic-2.0 (không phải OSI); LangSmith trả phí
+    ring: trial
+    features: {routing: both, hitl: "yes", durable: "yes", otel: partial, mcp: "yes", a2a: partial, agui: "yes", eval: partial}
+    strengths:
+      - Luồng là đồ thị code định nghĩa — điều hướng chính xác, dễ kiểm toán
+      - Checkpointer (PostgreSQL), interrupt chờ người duyệt, xem lại/quay lui từng bước — trưởng thành nhất
+      - Cộng đồng và tài liệu lớn nhất; bản Python và TypeScript
+    weaknesses:
+      - Viết dài hơn SDK gọn; tracing/eval tốt nhất nằm ở LangSmith (thương mại)
+      - Frontend tools qua AG-UI phải tự nối vào state của graph
+    choose_when: Luồng nhiều bước, nhiều nhánh, cần audit và duyệt người (ngân hàng, bảo hiểm, đối soát)
+    used_in: []
+    verified: source
+    reviewed: 2026-10-14
+    sources:
+      - projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md
+      - https://github.com/langchain-ai/langgraph
+
+  - id: pydantic-ai
+    name: Pydantic AI
+    category: sdk
+    lang: [python]
+    packages: {pypi: [pydantic-ai-slim]}
+    repo: pydantic/pydantic-ai
+    license_note: MIT; Logfire SDK MIT, backend Logfire là dịch vụ (có thể gửi OTel sang Langfuse thay thế)
+    ring: trial
+    features: {routing: both, hitl: "yes", durable: "yes", otel: "yes", mcp: "yes", a2a: "yes", agui: "yes", eval: "yes"}
+    strengths:
+      - Kiểu dữ liệu chặt (Pydantic), output có cấu trúc, lỗi rõ
+      - OTel có sẵn; pydantic-evals; chạy bền qua Temporal/DBOS/Prefect
+      - AGUIAdapter + ExternalToolset cho frontend tools
+    weaknesses:
+      - Là thư viện — API, xác thực, session phải tự dựng
+      - Đổi major nhanh (1.0 09/2025 → 2.0 06/2026); client gửi lại toàn bộ lịch sử khi dùng AG-UI
+    choose_when: Dịch vụ agent nhỏ, ưu tiên kiểu dữ liệu chặt và OTel; đội đã quen Pydantic/FastAPI
+    used_in: []
+    verified: source
+    reviewed: 2026-10-14
+    sources:
+      - projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md
+      - https://github.com/pydantic/pydantic-ai
+
+  - id: microsoft-agent-framework
+    name: Microsoft Agent Framework
+    category: orchestration
+    lang: [python, dotnet]
+    packages: {pypi: [agent-framework]}
+    repo: microsoft/agent-framework
+    license_note: MIT; kế thừa AutoGen + Semantic Kernel; GA 1.0 tháng 4/2026
+    ring: assess
+    features: {routing: both, hitl: "yes", durable: partial, otel: "yes", mcp: "yes", a2a: "yes", agui: "yes", eval: partial}
+    strengths:
+      - Workflow có checkpoint; agent + workflow trong một SDK cho cả Python và .NET
+      - OTel theo quy ước GenAI; AG-UI, MCP, A2A chính thức
+      - Hợp hệ Azure / Microsoft 365 / Foundry
+    weaknesses:
+      - Kho trạng thái duyệt AG-UI mặc định trong bộ nhớ — chạy nhiều instance phải tự thay
+      - Một số phần còn preview; mạnh nhất khi dùng cùng Azure
+    choose_when: Công ty chuẩn hóa trên Azure/.NET/Microsoft 365
+    used_in: []
+    verified: source
+    reviewed: 2026-10-14
+    sources:
+      - projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md
+      - https://github.com/microsoft/agent-framework
+
+  - id: google-adk
+    name: Google Agent Development Kit (ADK)
+    category: orchestration
+    lang: [python, java, go, typescript]
+    packages: {pypi: [google-adk]}
+    repo: google/adk-python
+    license_note: Apache-2.0
+    ring: assess
+    features: {routing: both, hitl: "yes", durable: partial, otel: "yes", mcp: "yes", a2a: "yes", agui: "yes", eval: "yes"}
+    strengths:
+      - Eval có sẵn (`adk eval`), chấm cả quỹ đạo gọi tool; dev UI để debug
+      - Agent tuần tự / song song / vòng lặp do code định nghĩa + chuyển giao bằng model
+      - A2A do Google khởi xướng; nhiều ngôn ngữ
+    weaknesses:
+      - Mạnh nhất với Gemini/Vertex; 2.0 mới (2026) nên còn đổi API
+    choose_when: Dùng Google Cloud/Gemini, hoặc cần eval quỹ đạo ngay trong framework
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/google/adk-python
+      - https://github.com/ag-ui-protocol/ag-ui
+
+  - id: openai-agents
+    name: OpenAI Agents SDK
+    category: vendor
+    lang: [python, typescript]
+    packages: {pypi: [openai-agents], npm: ["@openai/agents"]}
+    repo: openai/openai-agents-python
+    license_note: MIT; trace mặc định gửi lên nền tảng OpenAI (tắt được, đổi sang OTel qua processor)
+    ring: hold
+    features: {routing: llm, hitl: "yes", durable: partial, otel: partial, mcp: "yes", a2a: "no", agui: "no", eval: partial}
+    strengths:
+      - "Rất gọn: Agent, tool, handoff, guardrail; `needs_approval` + RunState cho duyệt người"
+      - Bản Python và TypeScript; dùng tốt nhất với model OpenAI (Responses API)
+    weaknesses:
+      - AG-UI chưa có (README AG-UI ghi "In Progress") — phải tự viết adapter, mất frontend tools
+      - Handoff do model quyết định, kém chắc chắn hơn đồ thị
+    choose_when: Hệ thống dùng GPT là chính, không cần frontend tools, muốn ít code nhất
+    used_in: [CMB-10 POC 0.1 (ADR-08, đã thay bằng Agno)]
+    verified: source
+    reviewed: 2026-10-14
+    sources:
+      - projects/cmb-10-excel-agent-addin/docs/05-adr-runtime-agent.md
+      - https://github.com/ag-ui-protocol/ag-ui
+
+  - id: claude-agent-sdk
+    name: Claude Agent SDK
+    category: vendor
+    lang: [python, typescript]
+    packages: {pypi: [claude-agent-sdk]}
+    repo: anthropics/claude-agent-sdk-python
+    license_note: MIT; chạy với model Claude
+    ring: assess
+    features: {routing: llm, hitl: "yes", durable: partial, otel: partial, mcp: "yes", a2a: "no", agui: "yes", eval: "no"}
+    strengths:
+      - "Vòng lặp agent của Claude Code: đọc/sửa file, chạy lệnh, subagent, skill, hook kiểm soát quyền"
+      - Có tích hợp AG-UI chính thức trong repo AG-UI
+    weaknesses:
+      - Gắn với model Claude; thiên về agent làm việc trên máy/repo hơn là agent nghiệp vụ nhiều hệ thống
+    choose_when: Agent tự động hóa công việc trên file/repo/terminal, đã dùng Claude
+    used_in: []
+    verified: docs
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/anthropics/claude-agent-sdk-python
+      - https://github.com/ag-ui-protocol/ag-ui
+
+  - id: strands-agents
+    name: Strands Agents (AWS)
+    category: sdk
+    lang: [python, typescript]
+    packages: {pypi: [strands-agents]}
+    repo: strands-agents/sdk-python
+    license_note: Apache-2.0
+    ring: assess
+    features: {routing: both, hitl: partial, durable: partial, otel: "yes", mcp: "yes", a2a: "yes", agui: "yes", eval: "?"}
+    strengths:
+      - Gọn, model-driven; graph/swarm cho đa agent; OTel có sẵn
+      - Triển khai lên Amazon Bedrock AgentCore (có AG-UI chính thức)
+    weaknesses:
+      - Hợp nhất khi ở AWS; tính năng HITL/chạy bền chưa kiểm
+    choose_when: Hạ tầng AWS, muốn SDK gọn có OTel
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/ag-ui-protocol/ag-ui
+
+  - id: crewai
+    name: CrewAI
+    category: multi_agent
+    lang: [python]
+    packages: {pypi: [crewai]}
+    repo: crewAIInc/crewAI
+    license_note: MIT (repo); nền tảng CrewAI AMP trả phí
+    ring: assess
+    features: {routing: both, hitl: partial, durable: partial, otel: "yes", mcp: "yes", a2a: partial, agui: "yes", eval: partial}
+    strengths:
+      - Đa agent theo vai trò viết nhanh; Flows (code định nghĩa) cho luồng chặt
+      - Cộng đồng lớn, nhiều ví dụ
+    weaknesses:
+      - Crew (model tự phối hợp) khó kiểm soát và khó debug; nhiều lượt gọi model
+    choose_when: Nguyên mẫu đa agent nhanh; luồng sản xuất nên viết bằng Flows
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/crewAIInc/crewAI
+      - https://github.com/ag-ui-protocol/ag-ui
+
+  - id: llamaindex
+    name: LlamaIndex (Agents / Workflows)
+    category: data
+    lang: [python, typescript]
+    packages: {pypi: [llama-index-core]}
+    repo: run-llama/llama_index
+    license_note: MIT; LlamaCloud trả phí
+    ring: assess
+    features: {routing: both, hitl: "yes", durable: partial, otel: partial, mcp: "yes", a2a: "?", agui: "yes", eval: "yes"}
+    strengths:
+      - Mạnh nhất khi agent xoay quanh tài liệu, RAG, trích xuất; Workflows hướng sự kiện
+    weaknesses:
+      - Phần agent tổng quát không phải thế mạnh chính
+    choose_when: Agent nặng RAG / xử lý tài liệu (Nhóm 6 + 7)
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/run-llama/llama_index
+
+  - id: haystack
+    name: Haystack (deepset)
+    category: data
+    lang: [python]
+    packages: {pypi: [haystack-ai]}
+    repo: deepset-ai/haystack
+    license_note: Apache-2.0
+    ring: assess
+    features: {routing: graph, hitl: partial, durable: "?", otel: "yes", mcp: "yes", a2a: "?", agui: "?", eval: "yes"}
+    strengths:
+      - Pipeline rõ ràng cho RAG/agent production; 3.0 (07/2026)
+    weaknesses:
+      - Ít dùng cho agent nhiều bước nối giao diện
+    choose_when: Pipeline RAG/agent cần cấu trúc rõ, chạy lâu dài
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/deepset-ai/haystack
+
+  - id: dspy
+    name: DSPy
+    category: data
+    lang: [python]
+    packages: {pypi: [dspy]}
+    repo: stanfordnlp/dspy
+    license_note: MIT
+    ring: trial
+    features: {routing: graph, hitl: "no", durable: "no", otel: partial, mcp: "yes", a2a: "no", agui: "no", eval: "yes"}
+    strengths:
+      - Tối ưu prompt / few-shot tự động theo bộ eval — biến "viết prompt" thành bài toán đo được
+    weaknesses:
+      - Không phải runtime phục vụ; dùng kèm framework khác
+    choose_when: Đã có golden set và muốn tối ưu độ chính xác của một bước LLM (phân loại, trích xuất, chọn tool)
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/stanfordnlp/dspy
+
+  - id: mastra
+    name: Mastra
+    category: typescript
+    lang: [typescript]
+    packages: {npm: ["@mastra/core"]}
+    repo: mastra-ai/mastra
+    license_note: Apache-2.0 (core); 1.0 tháng 1/2026
+    ring: assess
+    features: {routing: both, hitl: "yes", durable: partial, otel: "yes", mcp: "yes", a2a: "yes", agui: "yes", eval: "yes"}
+    strengths:
+      - "Runtime TypeScript đầy đủ: agent, workflow suspend/resume, memory, eval/scorer, tracing"
+    weaknesses:
+      - Khác ngôn ngữ với các dự án Python trong repo
+    choose_when: Backend agent viết bằng TypeScript / Next.js
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/mastra-ai/mastra
+
+  - id: vercel-ai-sdk
+    name: Vercel AI SDK
+    category: typescript
+    lang: [typescript]
+    packages: {npm: [ai]}
+    repo: vercel/ai
+    license_note: Apache-2.0
+    ring: assess
+    features: {routing: llm, hitl: partial, durable: "no", otel: "yes", mcp: "yes", a2a: "no", agui: "?", eval: "no"}
+    strengths:
+      - Vòng lặp tool + stream UI tốt nhất cho ứng dụng React/Next.js; telemetry OTel
+    weaknesses:
+      - Là thư viện gọi model + UI, không phải runtime agent
+    choose_when: Giao diện chat trong ứng dụng web TypeScript
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/vercel/ai
+
+  - id: ag2
+    name: AG2 (nhánh cộng đồng của AutoGen 0.2)
+    category: multi_agent
+    lang: [python]
+    packages: {pypi: [ag2]}
+    repo: ag2ai/ag2
+    license_note: Apache-2.0
+    ring: hold
+    features: {routing: llm, hitl: "yes", durable: "?", otel: "yes", mcp: "yes", a2a: "?", agui: "yes", eval: "?"}
+    strengths:
+      - Mẫu hội thoại đa agent quen thuộc của AutoGen; có AG-UI
+    weaknesses:
+      - Hội thoại do model dẫn khó kiểm soát; dễ nhầm với AutoGen của Microsoft (đang bảo trì)
+    choose_when: Đã có code AutoGen 0.2 cần chạy tiếp
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/ag-ui-protocol/ag-ui
+
+  - id: autogen
+    name: AutoGen (Microsoft) / Semantic Kernel
+    category: multi_agent
+    lang: [python, dotnet]
+    packages: {pypi: [autogen-agentchat, semantic-kernel]}
+    repo: microsoft/autogen
+    license_note: MIT; Microsoft đưa hai dự án vào Microsoft Agent Framework
+    ring: hold
+    features: {routing: llm, hitl: partial, durable: partial, otel: "yes", mcp: "yes", a2a: "?", agui: "no", eval: "?"}
+    strengths:
+      - Nhiều code mẫu cũ
+    weaknesses:
+      - autogen-agentchat không phát hành từ 09/2025 — dùng Microsoft Agent Framework cho việc mới
+    choose_when: Không chọn cho việc mới
+    used_in: []
+    verified: docs
+    reviewed: 2026-10-14
+    sources:
+      - https://pypi.org/project/autogen-agentchat/
+
+  - id: smolagents
+    name: smolagents (Hugging Face)
+    category: sdk
+    lang: [python]
+    packages: {pypi: [smolagents]}
+    repo: huggingface/smolagents
+    license_note: Apache-2.0
+    ring: hold
+    features: {routing: llm, hitl: "no", durable: "no", otel: partial, mcp: "yes", a2a: "no", agui: "no", eval: "no"}
+    strengths:
+      - Agent viết code Python để gọi tool; gọn, hợp model mở
+    weaknesses:
+      - Chạy code do model sinh cần sandbox; nhịp phát hành chậm lại (bản cuối 05/2026)
+    choose_when: Nghiên cứu, thử model mở
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/huggingface/smolagents
+
+  - id: hermes-agent
+    name: Hermes Agent (Nous Research)
+    category: sdk
+    lang: [python]
+    packages: {pypi: [hermes-agent]}
+    repo: NousResearch/hermes-agent
+    license_note: MIT
+    ring: assess
+    features: {routing: llm, hitl: "?", durable: "?", otel: "?", mcp: "?", a2a: "?", agui: "?", eval: "?"}
+    strengths:
+      - Agent tự tạo và cải thiện skill từ kinh nghiệm, có bộ nhớ lâu dài; tăng trưởng cộng đồng rất nhanh năm 2026
+    weaknesses:
+      - Còn 0.x; giống sản phẩm agent cá nhân hơn là framework cho quy trình doanh nghiệp — chưa kiểm
+    choose_when: Theo dõi ý tưởng "agent tự học skill"; chưa dùng cho production
+    used_in: []
+    verified: secondary
+    reviewed: 2026-10-14
+    sources:
+      - https://www.firecrawl.dev/blog/best-open-source-agent-frameworks
+
+  - id: google-antigravity
+    name: Google Antigravity SDK
+    category: vendor
+    lang: [python]
+    packages: {pypi: [google-antigravity]}
+    repo: google-antigravity/antigravity-sdk-python
+    license_note: Apache-2.0
+    ring: assess
+    features: {routing: "?", hitl: "?", durable: "?", otel: "?", mcp: "?", a2a: "?", agui: "yes", eval: "?"}
+    strengths:
+      - SDK agent mới của Google, có AG-UI chính thức
+    weaknesses:
+      - Còn 0.1.x — chưa đủ ổn định để đánh giá
+    choose_when: Chỉ theo dõi
+    used_in: []
+    verified: docs
+    reviewed: 2026-10-14
+    sources:
+      - https://github.com/ag-ui-protocol/ag-ui
+
+# Lớp hỗ trợ: không phải framework agent nhưng quyết định chất lượng khi chạy thật.
+supporting:
+  - {id: mcp, name: MCP (Model Context Protocol) SDK, layer: protocol, packages: {pypi: [mcp]}, ring: adopt,
+     note: "Chuẩn nối tool/dữ liệu vào agent; bản Python 2.x (2026)"}
+  - {id: a2a, name: A2A (Agent2Agent) SDK, layer: protocol, packages: {pypi: [a2a-sdk]}, ring: trial,
+     note: "Agent gọi agent qua mạng; 1.x từ 2026"}
+  - {id: ag-ui, name: AG-UI protocol, layer: protocol, packages: {pypi: [ag-ui-protocol], npm: ["@ag-ui/core"]}, ring: adopt,
+     note: "Agent ↔ giao diện, frontend tools; 1.0 (09/2026); dùng ở CMB-10"}
+  - {id: otel-genai, name: OpenTelemetry GenAI semantic conventions, layer: protocol, packages: {pypi: [openinference-instrumentation]}, ring: trial,
+     note: "Tên span invoke_agent / execute_tool; vẫn ở trạng thái Development — thuộc tính có thể đổi"}
+  - {id: langfuse, name: Langfuse, layer: observability, packages: {pypi: [langfuse]}, ring: adopt,
+     note: "Trace + prompt + eval, MIT, tự host được; nhận OTel từ mọi framework"}
+  - {id: phoenix, name: Arize Phoenix, layer: observability, packages: {pypi: [arize-phoenix]}, ring: assess,
+     note: "Trace + eval tốt; giấy phép Elastic-2.0 (không phải OSI)"}
+  - {id: logfire, name: Pydantic Logfire, layer: observability, packages: {pypi: [logfire]}, ring: assess,
+     note: "SDK MIT dựa trên OTel; backend là dịch vụ"}
+  - {id: langsmith, name: LangSmith, layer: observability, packages: {pypi: [langsmith]}, ring: assess,
+     note: "Tốt nhất cho LangGraph; nền tảng thương mại"}
+  - {id: mlflow, name: MLflow Tracing, layer: observability, packages: {pypi: [mlflow]}, ring: assess,
+     note: "Apache-2.0; hợp khi đã dùng MLflow cho ML cổ điển"}
+  - {id: openllmetry, name: OpenLLMetry (Traceloop), layer: observability, packages: {pypi: [traceloop-sdk]}, ring: assess,
+     note: "Instrumentation OTel cho nhiều SDK LLM"}
+  - {id: deepeval, name: DeepEval, layer: eval, packages: {pypi: [deepeval]}, ring: trial,
+     note: "Metric agent (task completion, tool correctness) + LLM-as-judge, chạy như pytest"}
+  - {id: inspect-ai, name: Inspect AI (UK AISI), layer: eval, packages: {pypi: [inspect-ai]}, ring: trial,
+     note: "Khung eval agent có sandbox, MIT; chấm quỹ đạo và kết quả"}
+  - {id: ragas, name: Ragas, layer: eval, packages: {pypi: [ragas]}, ring: assess,
+     note: "Metric RAG; nhịp phát hành chậm (bản cuối 01/2026)"}
+  - {id: temporal, name: Temporal, layer: durable, packages: {pypi: [temporalio]}, ring: assess,
+     note: "Chạy bền cho luồng dài; tích hợp với Pydantic AI, OpenAI Agents SDK"}
+  - {id: dbos, name: DBOS, layer: durable, packages: {pypi: [dbos]}, ring: assess,
+     note: "Chạy bền dựa trên PostgreSQL, nhẹ hơn Temporal"}
+  - {id: mem0, name: Mem0, layer: memory, packages: {pypi: [mem0ai]}, ring: assess,
+     note: "Bộ nhớ dài hạn cho agent"}
+  - {id: letta, name: Letta, layer: memory, packages: {pypi: [letta]}, ring: assess,
+     note: "Agent có bộ nhớ tự quản (MemGPT cũ)"}
+  - {id: e2b, name: E2B, layer: sandbox, packages: {pypi: [e2b]}, ring: assess,
+     note: "Sandbox cloud để agent chạy code an toàn"}

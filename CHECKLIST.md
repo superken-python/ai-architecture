@@ -98,6 +98,12 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 
 ## Duy trì định kỳ
 
+- [ ] **P1** Bật Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" để workflow
+      [radar agent](docs/agent-radar/README.md) mở PR số liệu hằng tháng; chạy thử bằng "Run workflow".
+- [ ] Mỗi tháng: duyệt PR số liệu radar agent — xem cột **Cờ** trong
+      [bảng so sánh](docs/agent-radar/generated/bang-so-sanh.md), sửa `catalog/agent_landscape.yaml`, `make landscape`.
+- [ ] Mỗi quý: review toàn bộ radar agent, nâng các mục `secondary` lên `docs`/`source`, tìm framework mới.
+
 - [ ] Mỗi tuần: cập nhật [bảng tự đánh giá](docs/02-skill-map/generated/tu-danh-gia.md) cá nhân + 1 paper (`BIZ-06`).
 - [ ] Mỗi quý: rà lại catalog (công cụ lỗi thời, kỹ năng mới), nâng phiên bản thư viện (`uv lock --upgrade`),
       kiểm tra lại số liệu giá/caching trong `docs/02-skill-map/03-tiet-kiem-token-chinh-xac.md`.

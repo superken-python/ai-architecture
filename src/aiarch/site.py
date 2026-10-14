@@ -37,6 +37,7 @@ DOCS = {
     "combining": ("Kỹ năng kết hợp", "docs/02-skill-map/02-ky-nang-ket-hop.md"),
     "tokens": ("Tiết kiệm token, chính xác tuyệt đối", "docs/02-skill-map/03-tiet-kiem-token-chinh-xac.md"),
     "roadmap": ("Lộ trình học (Markdown)", "docs/02-skill-map/04-lo-trinh-hoc.md"),
+    "agent_landscape": ("Radar framework agent (Nhóm 7)", "docs/agent-radar/README.md"),
     "checklist": ("Checklist việc sắp làm", "CHECKLIST.md"),
     "history": ("Lịch sử công việc", "HISTORY.md"),
 }

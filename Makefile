@@ -5,7 +5,7 @@ UV ?= uv
 GROUPS := core tabular timeseries anomaly recsys vision llm agent optimization mlops
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-all $(addprefix setup-,$(GROUPS)) doctor catalog catalog-check site site-serve site-test lint format test check clean
+.PHONY: help setup setup-all $(addprefix setup-,$(GROUPS)) doctor catalog catalog-check landscape landscape-refresh site site-serve site-test lint format test check clean
 
 help: ## Hiện danh sách lệnh
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -32,6 +32,12 @@ catalog: ## Kiểm tra catalog/ và sinh lại docs/02-skill-map/generated/
 
 catalog-check: ## Báo lỗi nếu tài liệu sinh tự động đã cũ (dùng trong CI)
 	$(UV) run python -m aiarch.catalog build --check
+
+landscape: ## Sinh lại bảng radar framework agent (Nhóm 7) từ YAML + snapshot (không cần mạng)
+	$(UV) run python -m aiarch.landscape build
+
+landscape-refresh: ## Kéo số liệu mới từ PyPI/npm (+ GitHub nếu có GITHUB_TOKEN) rồi sinh lại bảng radar
+	$(UV) run python -m aiarch.landscape refresh
 
 site: ## Sinh trang web (GitHub Pages) vào _site/
 	$(UV) run python -m aiarch.site build

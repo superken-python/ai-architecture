@@ -10,6 +10,32 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-14 · Radar agent cho Nhóm 7 — tài liệu sống, cập nhật hằng tháng
+
+**Đã làm**
+
+- `docs/agent-radar/README.md`: kết luận theo nhu cầu, 8 tiêu chí (điều hướng, duyệt người, chạy bền, OTel, MCP, A2A,
+  AG-UI, eval), xu hướng 2026 kèm bằng chứng, kiến trúc tham chiếu cho agent Nhóm 7, cách tự đo bằng golden set, quy
+  trình cập nhật và quy tắc vòng radar.
+- `catalog/agent_landscape.yaml`: 19 framework + 18 công cụ hỗ trợ (giao thức, quan sát, eval, chạy bền, bộ nhớ, sandbox),
+  mỗi mục có vòng Adopt/Trial/Assess/Hold, mức kiểm chứng (source/docs/secondary), ngày review.
+- `src/aiarch/landscape.py` + `make landscape-refresh` / `make landscape`: kéo số liệu PyPI/npm (+ GitHub khi có token)
+  vào `catalog/agent_landscape.snapshot.json`, sinh `docs/agent-radar/generated/bang-so-sanh.md`, gắn cờ gói lâu không
+  phát hành, lên major sau lần review, repo archive, mục quá hạn review. Test `tests/test_landscape.py`.
+- Workflow `.github/workflows/agent-landscape.yml`: ngày 1 hằng tháng kéo số liệu và mở PR nếu có thay đổi.
+
+**Quyết định**
+
+- Adopt: Agno/AgentOS (đang dùng ở CMB-10, CMB-09). Trial: LangGraph, Pydantic AI, DSPy. Hold: AutoGen/Semantic Kernel
+  (đã vào Microsoft Agent Framework), smolagents cho production, OpenAI Agents SDK khi cần AG-UI.
+- Lớp chung: MCP cho tool, AG-UI cho giao diện, OTel → Langfuse cho trace, golden set riêng cho eval.
+
+**Còn mở**
+
+- Nhiều mục ở mức `secondary` — cần đọc tài liệu/mã nguồn trước khi dựa vào; chưa có số sao GitHub (môi trường làm bản
+  này không gọi được GitHub API — workflow hằng tháng sẽ bổ sung).
+- Cần bật quyền "Allow GitHub Actions to create and approve pull requests" để workflow mở PR.
+
 ## 2026-10-13 · CMB-10 — POC 0.2: quay lại agent Agno, công cụ Excel chạy ở add-in, Office add-in cho Excel thật ([#6](https://github.com/superken-python/ai-architecture/pull/6))
 
 **Đã làm**

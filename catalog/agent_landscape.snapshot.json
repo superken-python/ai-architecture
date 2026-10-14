@@ -1,0 +1,464 @@
+{
+ "date": "2026-10-14",
+ "packages": {
+  "npm:@ag-ui/core": {
+   "license": "MIT",
+   "majors": {
+    "0": "2025-04-30",
+    "1": "2026-09-17"
+   },
+   "released": "2026-10-05",
+   "version": "1.0.2"
+  },
+  "npm:@langchain/langgraph": {
+   "license": "MIT",
+   "majors": {
+    "0": "2024-01-18",
+    "1": "2025-10-18"
+   },
+   "released": "2026-10-12",
+   "version": "1.5.0"
+  },
+  "npm:@mastra/core": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2024-10-02",
+    "1": "2026-01-20"
+   },
+   "released": "2026-10-14",
+   "version": "1.77.0"
+  },
+  "npm:@openai/agents": {
+   "license": "MIT",
+   "majors": {
+    "0": "2025-06-03"
+   },
+   "released": "2026-10-08",
+   "version": "0.20.0"
+  },
+  "npm:ai": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2014-02-21",
+    "1": "2014-08-15",
+    "2": "2023-06-14",
+    "3": "2024-02-29",
+    "4": "2024-11-18",
+    "5": "2025-07-31",
+    "6": "2025-12-22",
+    "7": "2026-06-25"
+   },
+   "released": "2026-10-14",
+   "version": "7.0.140"
+  },
+  "pypi:a2a-sdk": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2025-05-20",
+    "1": "2026-04-20"
+   },
+   "released": "2026-10-05",
+   "version": "1.2.2"
+  },
+  "pypi:ag-ui-protocol": {
+   "license": "MIT",
+   "majors": {
+    "0": "2025-04-30",
+    "1": "2026-09-17"
+   },
+   "released": "2026-09-17",
+   "version": "1.0.0"
+  },
+  "pypi:ag2": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2024-11-13",
+    "1": "2026-07-27"
+   },
+   "released": "2026-10-03",
+   "version": "1.1.2"
+  },
+  "pypi:agent-framework": {
+   "license": "MIT License",
+   "majors": {
+    "1": "2026-04-02"
+   },
+   "released": "2026-10-08",
+   "version": "1.21.0"
+  },
+  "pypi:agno": {
+   "license": "Apache Software License",
+   "majors": {
+    "0": "2024-12-24",
+    "1": "2025-01-30",
+    "2": "2025-09-09",
+    "3": "2026-08-24"
+   },
+   "released": "2026-10-12",
+   "version": "3.1.3"
+  },
+  "pypi:arize-phoenix": {
+   "license": "Elastic-2.0",
+   "majors": {
+    "0": "2023-03-23",
+    "1": "2023-11-10",
+    "10": "2025-05-21",
+    "11": "2025-06-25",
+    "12": "2025-09-29",
+    "13": "2026-02-13",
+    "14": "2026-04-07",
+    "15": "2026-04-29",
+    "16": "2026-05-21",
+    "17": "2026-06-02",
+    "18": "2026-07-14",
+    "19": "2026-07-18",
+    "2": "2023-12-20",
+    "20": "2026-08-11",
+    "3": "2024-02-09",
+    "4": "2024-05-09",
+    "5": "2024-09-26",
+    "6": "2024-12-02",
+    "7": "2024-12-09",
+    "8": "2025-02-19",
+    "9": "2025-05-09"
+   },
+   "released": "2026-10-14",
+   "version": "20.21.3"
+  },
+  "pypi:autogen-agentchat": {
+   "license": "MIT License",
+   "majors": {
+    "0": "2024-08-16"
+   },
+   "released": "2025-09-30",
+   "version": "0.7.5"
+  },
+  "pypi:claude-agent-sdk": {
+   "license": "MIT License",
+   "majors": {
+    "0": "2025-09-28"
+   },
+   "released": "2026-10-14",
+   "version": "0.2.166"
+  },
+  "pypi:crewai": {
+   "license": "",
+   "majors": {
+    "0": "2023-11-14",
+    "1": "2025-10-20"
+   },
+   "released": "2026-10-14",
+   "version": "1.15.28"
+  },
+  "pypi:dbos": {
+   "license": "MIT License",
+   "majors": {
+    "0": "2024-08-15",
+    "1": "2025-05-06",
+    "2": "2025-09-25",
+    "3": "2026-09-16"
+   },
+   "released": "2026-09-29",
+   "version": "3.2.0"
+  },
+  "pypi:deepeval": {
+   "license": "Apache Software License",
+   "majors": {
+    "0": "2023-08-15",
+    "1": "2024-08-12",
+    "2": "2024-11-27",
+    "3": "2025-05-27",
+    "4": "2026-05-08"
+   },
+   "released": "2026-10-02",
+   "version": "4.2.8"
+  },
+  "pypi:dspy": {
+   "license": "MIT License",
+   "majors": {
+    "0": "2024-04-14",
+    "2": "2024-09-28",
+    "3": "2025-08-12"
+   },
+   "released": "2026-10-12",
+   "version": "3.4.1"
+  },
+  "pypi:e2b": {
+   "license": "MIT",
+   "majors": {
+    "0": "2023-08-06",
+    "1": "2024-10-16",
+    "2": "2025-08-21"
+   },
+   "released": "2026-10-13",
+   "version": "2.56.0"
+  },
+  "pypi:google-adk": {
+   "license": "Apache Software License",
+   "majors": {
+    "0": "2025-03-17",
+    "1": "2025-05-20",
+    "2": "2026-05-19"
+   },
+   "released": "2026-10-13",
+   "version": "2.12.0"
+  },
+  "pypi:google-antigravity": {
+   "license": "Apache Software License",
+   "majors": {
+    "0": "2026-05-19"
+   },
+   "released": "2026-10-13",
+   "version": "0.1.22"
+  },
+  "pypi:haystack-ai": {
+   "license": "Apache-2.0",
+   "majors": {
+    "2": "2024-03-11",
+    "3": "2026-07-20"
+   },
+   "released": "2026-10-01",
+   "version": "3.3.0"
+  },
+  "pypi:hermes-agent": {
+   "license": "MIT",
+   "majors": {
+    "0": "2026-05-14"
+   },
+   "released": "2026-07-20",
+   "version": "0.19.0"
+  },
+  "pypi:inspect-ai": {
+   "license": "MIT License",
+   "majors": {
+    "0": "2024-04-03"
+   },
+   "released": "2026-10-14",
+   "version": "0.3.280"
+  },
+  "pypi:langfuse": {
+   "license": "MIT",
+   "majors": {
+    "0": "2023-07-12",
+    "1": "2023-08-11",
+    "2": "2023-12-17",
+    "3": "2025-06-05",
+    "4": "2026-03-10"
+   },
+   "released": "2026-10-14",
+   "version": "4.18.0"
+  },
+  "pypi:langgraph": {
+   "license": "MIT",
+   "majors": {
+    "0": "2024-01-08",
+    "1": "2025-10-17"
+   },
+   "released": "2026-10-12",
+   "version": "1.2.15"
+  },
+  "pypi:langsmith": {
+   "license": "MIT",
+   "majors": {
+    "0": "2023-06-26"
+   },
+   "released": "2026-10-13",
+   "version": "0.14.8"
+  },
+  "pypi:letta": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2024-08-07"
+   },
+   "released": "2026-10-12",
+   "version": "0.34.12"
+  },
+  "pypi:llama-index-core": {
+   "license": "MIT",
+   "majors": {
+    "0": "2024-02-02"
+   },
+   "released": "2026-09-21",
+   "version": "0.14.25"
+  },
+  "pypi:logfire": {
+   "license": "MIT",
+   "majors": {
+    "0": "2020-04-20",
+    "1": "2024-09-30",
+    "2": "2024-10-30",
+    "3": "2025-01-07",
+    "4": "2025-07-22",
+    "5": "2026-09-04"
+   },
+   "released": "2026-10-13",
+   "version": "5.2.0"
+  },
+  "pypi:mcp": {
+   "license": "MIT License",
+   "majors": {
+    "0": "2024-11-20",
+    "1": "2024-11-25",
+    "2": "2026-07-28"
+   },
+   "released": "2026-10-02",
+   "version": "2.3.0"
+  },
+  "pypi:mem0ai": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2024-05-18",
+    "1": "2025-10-16",
+    "2": "2026-04-16"
+   },
+   "released": "2026-09-25",
+   "version": "2.2.1"
+  },
+  "pypi:mlflow": {
+   "license": "Apache Software License",
+   "majors": {
+    "0": "2018-06-04",
+    "1": "2019-06-04",
+    "2": "2022-11-15",
+    "3": "2025-06-10"
+   },
+   "released": "2026-10-13",
+   "version": "3.17.1"
+  },
+  "pypi:openai-agents": {
+   "license": "MIT",
+   "majors": {
+    "0": "2025-03-04"
+   },
+   "released": "2026-10-02",
+   "version": "0.23.1"
+  },
+  "pypi:openinference-instrumentation": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2024-03-26"
+   },
+   "released": "2026-10-07",
+   "version": "0.1.71"
+  },
+  "pypi:pydantic-ai-slim": {
+   "license": "MIT",
+   "majors": {
+    "0": "2024-11-25",
+    "1": "2025-09-05",
+    "2": "2026-06-23"
+   },
+   "released": "2026-10-13",
+   "version": "2.56.0"
+  },
+  "pypi:ragas": {
+   "license": "Apache License",
+   "majors": {
+    "0": "2023-05-14"
+   },
+   "released": "2026-01-13",
+   "version": "0.4.3"
+  },
+  "pypi:semantic-kernel": {
+   "license": "MIT License",
+   "majors": {
+    "1": "2024-05-21"
+   },
+   "released": "2026-10-06",
+   "version": "1.45.0"
+  },
+  "pypi:smolagents": {
+   "license": "",
+   "majors": {
+    "0": "2024-12-27",
+    "1": "2024-12-31"
+   },
+   "released": "2026-05-29",
+   "version": "1.26.0"
+  },
+  "pypi:strands-agents": {
+   "license": "Apache Software License",
+   "majors": {
+    "0": "2025-05-14",
+    "1": "2025-07-15"
+   },
+   "released": "2026-10-12",
+   "version": "1.60.0"
+  },
+  "pypi:temporalio": {
+   "license": "MIT",
+   "majors": {
+    "1": "2023-01-05"
+   },
+   "released": "2026-09-30",
+   "version": "1.34.0"
+  },
+  "pypi:traceloop-sdk": {
+   "license": "Apache-2.0",
+   "majors": {
+    "0": "2023-08-08"
+   },
+   "released": "2026-09-29",
+   "version": "0.62.4"
+  }
+ },
+ "repos": {
+  "NousResearch/hermes-agent": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "ag2ai/ag2": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "agno-agi/agno": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "anthropics/claude-agent-sdk-python": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "crewAIInc/crewAI": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "deepset-ai/haystack": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "google-antigravity/antigravity-sdk-python": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "google/adk-python": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "huggingface/smolagents": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "langchain-ai/langgraph": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "mastra-ai/mastra": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "microsoft/agent-framework": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "microsoft/autogen": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "openai/openai-agents-python": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "pydantic/pydantic-ai": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "run-llama/llama_index": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "stanfordnlp/dspy": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "strands-agents/sdk-python": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "vercel/ai": {
+   "error": "HTTP Error 403: Forbidden"
+  }
+ }
+}

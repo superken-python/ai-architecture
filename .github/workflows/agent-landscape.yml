@@ -1,0 +1,61 @@
+# Cập nhật số liệu radar framework agent (Nhóm 7) hằng tháng: PyPI, npm, GitHub → PR để người duyệt xem cờ.
+# Cần bật: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+# Lưu ý: PR tạo bằng GITHUB_TOKEN không tự chạy CI — bấm "Approve and run" hoặc đóng/mở lại PR nếu muốn chạy CI.
+name: Agent landscape
+
+on:
+  schedule:
+    - cron: "17 2 1 * *"  # 02:17 UTC ngày 1 hằng tháng
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: agent-landscape
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài uv
+        run: pip install uv
+
+      - name: Cài môi trường
+        run: uv sync --locked
+
+      - name: Kéo số liệu và sinh lại bảng
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run python -m aiarch.landscape refresh
+
+      - name: Mở hoặc cập nhật PR nếu số liệu đổi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- catalog/agent_landscape.snapshot.json docs/agent-radar/generated; then
+            echo "Số liệu không đổi."
+            exit 0
+          fi
+          branch="bot/agent-landscape-$(date -u +%Y-%m)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add catalog/agent_landscape.snapshot.json docs/agent-radar/generated
+          git commit -m "chore(landscape): số liệu registry $(date -u +%Y-%m-%d)"
+          git push --force origin "$branch"
+          flags=$(grep -cE "⚠|🔄|📦|🕑" docs/agent-radar/generated/bang-so-sanh.md || true)
+          body="Số liệu PyPI/npm/GitHub mới cho radar framework agent (Nhóm 7). Có ${flags} dòng mang cờ cần xem lại (cột **Cờ** trong docs/agent-radar/generated/bang-so-sanh.md). Quy trình: docs/agent-radar/README.md §6."
+          if gh pr view "$branch" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$branch" --body "$body"
+          else
+            gh pr create --base main --head "$branch" --title "chore(landscape): số liệu tháng $(date -u +%Y-%m)" --body "$body"
+          fi
