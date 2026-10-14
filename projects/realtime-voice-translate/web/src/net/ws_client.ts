@@ -99,7 +99,7 @@ class RVTClient {
         // If mic/turn was active before reconnect, re-register turn immediately
         if (store.isMicActive && store.activeSide) {
           console.log(`🎙️ WebSocket reconnected: re-issuing turn.start on Side ${store.activeSide}`);
-          this.send({ type: "turn.start", side: store.activeSide });
+          this.send({ type: "turn.start", side: store.activeSide, source: this.captureSource });
         }
 
         // Heartbeat ping every 2.5s to keep connection alive and detect half-open sockets
@@ -280,7 +280,8 @@ class RVTClient {
       }, 1500);
 
       // 2. Notify backend immediately that turn started
-      this.send({ type: "turn.start", side });
+      // source: server chỉ dò vùng audio to mà VAD bỏ sót khi thu âm tab (docs 09 §4.1)
+      this.send({ type: "turn.start", side, source });
       useStore.getState().setMicActive(true);
       useStore.getState().setActiveSide(side);
 

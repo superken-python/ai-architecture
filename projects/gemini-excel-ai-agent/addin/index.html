@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel AI Agent Copilot</title>
+  <!-- Microsoft Office JavaScript API -->
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">🤖</div>
+        <div>
+          <h1 class="header-title">Excel AI Copilot</h1>
+          <div class="badge-row">
+            <span class="badge badge-tech">Agno AgentOS</span>
+            <span class="badge badge-model">Azure gpt-5-mini</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <span id="connection-status" class="status-indicator status-online" title="Backend đã sẵn sàng"></span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-chat" id="btn-tab-chat">💬 Hội thoại</button>
+      <button class="tab-btn" data-tab="tab-search" id="btn-tab-search">🔍 Tra cứu DB</button>
+      <button class="tab-btn" data-tab="tab-sim" id="btn-tab-sim">📊 Bảng tính mẫu</button>
+    </nav>
+
+    <!-- Tab 1: AI Chat & Slash Commands -->
+    <main class="tab-content active" id="tab-chat">
+      <!-- Quick Actions / Slash Command Pills -->
+      <div class="quick-actions">
+        <button class="pill-btn" onclick="sendQuickCommand('/search Áo thun')">🔍 /search Áo thun</button>
+        <button class="pill-btn" onclick="sendQuickCommand('/search Vải')">🔍 /search Vải</button>
+        <button class="pill-btn" onclick="sendQuickCommand('/help')">❓ /help</button>
+        <button class="pill-btn" onclick="sendQuickCommand('Tìm mã SP-002 rồi chèn vào dòng tiếp theo')">➕ Chèn SP-002</button>
+      </div>
+
+      <!-- Messages Stream Area -->
+      <div class="messages-container" id="messages-container">
+        <div class="message message-bot">
+          <div class="message-avatar">🤖</div>
+          <div class="message-body">
+            <p><strong>Xin chào!</strong> Tôi là trợ lý AI nhúng Excel (Agno AgentOS + Azure gpt-5-mini).</p>
+            <p>Tôi có thể giúp bạn:</p>
+            <ul>
+              <li>Tra cứu nhanh danh mục nội bộ: dùng lệnh <code>/search &lt;từ khóa&gt;</code></li>
+              <li>Tự động tìm kiếm theo cột và chèn cả dòng dữ liệu vào Excel</li>
+              <li>Kiểm tra dữ liệu trước khi chèn qua thẻ <strong>Preview Diff</strong></li>
+            </ul>
+            <p>Hãy thử gõ câu hỏi hoặc bấm các nút gợi ý phía trên!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <footer class="chat-input-area">
+        <form id="chat-form" onsubmit="handleChatSubmit(event)">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="user-input" 
+              placeholder="Gõ lệnh /search &lt;tên&gt; hoặc chat tự nhiên..." 
+              autocomplete="off"
+            />
+            <button type="submit" id="btn-send" title="Gửi (Enter)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </footer>
+    </main>
+
+    <!-- Tab 2: Dedicated /search Database Catalog -->
+    <section class="tab-content" id="tab-search">
+      <div class="search-panel">
+        <div class="search-bar">
+          <input 
+            type="text" 
+            id="db-search-input" 
+            placeholder="Tìm theo mã SKU, tên hàng (vd: SP-001, Vải, Áo)..." 
+            onkeyup="if(event.key==='Enter') executeDbSearch()"
+          />
+          <button class="btn-primary" onclick="executeDbSearch()">Tìm kiếm</button>
+        </div>
+        <div class="search-results-header">
+          <span id="search-count-label">Danh mục sản phẩm doanh nghiệp:</span>
+        </div>
+        <div class="search-results-list" id="search-results-container">
+          <!-- Các thẻ sản phẩm được render động ở đây -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Fallback Excel Simulator (dùng khi mở trong trình duyệt thông thường) -->
+    <section class="tab-content" id="tab-sim">
+      <div class="simulator-panel">
+        <div class="simulator-header">
+          <span class="sheet-title">Worksheet: <strong>Bán Hàng Quý 4</strong></span>
+          <button class="btn-sm" onclick="resetSimTable()">Khôi phục bảng gốc</button>
+        </div>
+        <div class="table-responsive">
+          <table class="excel-grid" id="excel-sim-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mã hàng</th>
+                <th>Tên sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody id="sim-table-body">
+              <tr>
+                <td>1</td>
+                <td>SP-001</td>
+                <td>Áo thun Polo Nam Cotton Cao Cấp</td>
+                <td>Thời trang nam</td>
+                <td>2</td>
+                <td>250,000</td>
+                <td>500,000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="sim-notice">
+          ℹ️ Khi mở trong Microsoft Excel thật, dữ liệu sẽ được đọc/ghi trực tiếp vào workbook của bạn qua <strong>Office.js API</strong>. Khi mở trên trình duyệt web này, bảng trên đóng vai trò giả lập visual feedback.
+        </p>
+      </div>
+    </section>
+
+    <!-- Modal: Preview Diff (Human-in-the-Loop Confirmation Card) -->
+    <div class="modal-backdrop" id="preview-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">⚡ Xác nhận ghi dữ liệu vào Excel</h3>
+          <button class="btn-close" onclick="closePreviewModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body-content">
+          <!-- Render thông tin chi tiết các ô sẽ thay đổi -->
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closePreviewModal()">Hủy bỏ</button>
+          <button class="btn-apply" id="btn-confirm-apply" onclick="applyPreviewAction()">Xác nhận ghi (Apply)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

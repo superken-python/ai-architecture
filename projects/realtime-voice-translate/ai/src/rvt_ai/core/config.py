@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     CONFIG_DIR: str = "config"
     PACKS_DIR: str = "packs"
     PROMPTS_DIR: str = "prompts"
+    # Glossary cho bộ dịch: tên file trong packs/glossary, cách nhau bởi dấu phẩy, ví dụ "default,naruto"
+    GLOSSARIES: str = "default"
+    # Khi thu âm tab: nhận dạng thêm vùng audio to mà VAD bỏ sót (docs 09 §4.1). Tắt bằng RVT_VAD_PROBE=false
+    VAD_PROBE: bool = True
 
     # Security
     API_KEY: str = ""

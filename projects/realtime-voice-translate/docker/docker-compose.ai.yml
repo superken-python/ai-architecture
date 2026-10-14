@@ -5,10 +5,10 @@ services:
     runtime: nvidia
     restart: unless-stopped
     command: >-
-      -m /models/qwen2.5-7b-instruct-q4_k_m.gguf
+      -m /models/${RVT_MT_MODEL_FILE:-qwen2.5-7b-instruct-q5_k_m.gguf}
       --host 0.0.0.0
       --port 8080
-      -c 16384
+      -c ${RVT_MT_CTX_SIZE:-8192}
       --parallel 4
       -ngl 99
     volumes:
@@ -35,6 +35,10 @@ services:
       - RVT_USE_FAKE=0
       - RVT_MODELS_DIR=/models
       - RVT_MT_API_URL=http://mt:8080/v1
+      # Glossary cho bộ dịch, ví dụ "default,naruto" (docs 09 §5.2)
+      - RVT_GLOSSARIES=${RVT_GLOSSARIES:-default}
+      # Dò vùng audio to mà VAD bỏ sót khi thu âm tab (docs 09 §4.1)
+      - RVT_VAD_PROBE=${RVT_VAD_PROBE:-true}
       - RVT_PROFILE=balanced
     volumes:
       - ../models:/models
@@ -42,6 +46,8 @@ services:
       - ../packs:/app/packs:ro
       - ../prompts:/app/prompts:ro
       - ../ai/src:/app/src:ro
+      # Bộ đo (golden, mt_eval.py, golden_session.py) chạy bằng docker exec rvt_ai (docs 09)
+      - ../eval:/app/eval:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
       interval: 3s

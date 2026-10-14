@@ -45,7 +45,7 @@ class _FakeAsyncClient:
     async def __aexit__(self, *exc) -> bool:
         return False
 
-    def stream(self, method: str, url: str, json: dict) -> _FakeStream:
+    def stream(self, method: str, url: str, json: dict, headers: dict | None = None) -> _FakeStream:
         _FakeAsyncClient.payloads.append(json)
         return _FakeStream(_FakeResponse(_FakeAsyncClient.deltas))
 
@@ -65,3 +65,21 @@ async def test_llama_request_does_not_stop_at_dash_or_bold(monkeypatch):
     assert "**" not in stop
     assert "\n" in stop  # vẫn dừng ở xuống dòng để chặn ghi chú nhiều dòng
     assert out == "Đợi đã — ê!"
+
+
+@pytest.mark.asyncio
+async def test_api_key_is_sent_and_payload_is_hosted(monkeypatch):
+    # Gọi API lưu trữ: gửi khoá, tên model, và payload đã đổi sang dạng API (docs 09 §5.6)
+    seen = {}
+
+    class _Client(_FakeAsyncClient):
+        def stream(self, method, url, json, headers=None):
+            seen.update(json=json, headers=headers, url=url)
+            return _FakeStream(_FakeResponse(["data: [DONE]"]))
+
+    monkeypatch.setattr("rvt_ai.engines.mt_llama.httpx.AsyncClient", _Client)
+    engine = LlamaCppMtEngine(api_url="https://api.example/v1", api_key="k-test", model="m-test")
+    [_ async for _ in engine.translate_stream("ありがとう", "ja", "vi")]
+    assert seen["headers"] == {"Authorization": "Bearer k-test"}
+    assert seen["json"]["model"] == "m-test" and len(seen["json"]["stop"]) <= 4
+    assert "top_p" not in seen["json"]

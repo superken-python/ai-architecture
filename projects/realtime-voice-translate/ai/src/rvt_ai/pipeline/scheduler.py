@@ -35,10 +35,11 @@ class AsrScheduler:
 
     def __init__(self, transcribe_fn: Callable[..., Any]):
         self.transcribe_fn = transcribe_fn
-        self._final_queue: asyncio.Queue[tuple[bytes, str | None, float | None, PromptArg, asyncio.Future]] = (
+        # (audio, force_lang, vad_mean, prompt, tham số thêm cho engine, future)
+        self._final_queue: asyncio.Queue[tuple[bytes, str | None, float | None, PromptArg, dict, asyncio.Future]] = (
             asyncio.Queue()
         )
-        self._pending_partials: dict[str, tuple[bytes, str | None, float | None, PromptArg, asyncio.Future]] = {}
+        self._pending_partials: dict[str, tuple[bytes, str | None, float | None, PromptArg, dict, asyncio.Future]] = {}
         self._has_work = asyncio.Event()
         self._worker_task: asyncio.Task | None = None
         self._running = False
@@ -61,8 +62,9 @@ class AsrScheduler:
         force_lang: str | None,
         vad_mean: float | None = None,
         initial_prompt: str | None = None,
+        **extra: Any,
     ) -> Any:
-        kwargs: dict[str, Any] = {}
+        kwargs: dict[str, Any] = dict(extra)
         if vad_mean is not None:
             kwargs["vad_mean"] = vad_mean
         if initial_prompt is not None:
@@ -77,12 +79,14 @@ class AsrScheduler:
             try:
                 # 1. Prioritize all Final jobs
                 if not self._final_queue.empty():
-                    audio, force_lang, vad_mean, initial_prompt, future = await self._final_queue.get()
+                    audio, force_lang, vad_mean, initial_prompt, extra, future = await self._final_queue.get()
                     try:
                         # Dựng prompt lúc lượt này thật sự chạy, không phải lúc xếp hàng: khi GPU bận, lượt trước có thể
                         # chưa xong lúc đoạn này được chốt (docs 08 §3.8)
                         prompt = _resolve_prompt(initial_prompt)
-                        res = await asyncio.to_thread(self._run_transcribe, audio, force_lang, vad_mean, prompt)
+                        res = await asyncio.to_thread(
+                            self._run_transcribe, audio, force_lang, vad_mean, prompt, **extra
+                        )
                         if not future.done():
                             future.set_result(res)
                         self.completed_finals += 1
@@ -97,10 +101,12 @@ class AsrScheduler:
 
                 # 2. Process latest partial job (if any)
                 if self._pending_partials:
-                    sess_id, (audio, force_lang, vad_mean, initial_prompt, future) = self._pending_partials.popitem()
+                    _, (audio, force_lang, vad_mean, initial_prompt, extra, future) = self._pending_partials.popitem()
                     try:
                         prompt = _resolve_prompt(initial_prompt)
-                        res = await asyncio.to_thread(self._run_transcribe, audio, force_lang, vad_mean, prompt)
+                        res = await asyncio.to_thread(
+                            self._run_transcribe, audio, force_lang, vad_mean, prompt, **extra
+                        )
                         if not future.done():
                             future.set_result(res)
                         self.completed_partials += 1
@@ -125,13 +131,16 @@ class AsrScheduler:
         session_id: str = "default",
         vad_mean: float | None = None,
         initial_prompt: PromptArg = None,
+        min_avg_logprob: float | None = None,
     ) -> Any:
         self._ensure_worker()
+        # Tham số chỉ một số lượt dùng: không truyền khi không đặt, để engine cũ (chỉ nhận audio, ngôn ngữ) vẫn chạy
+        extra: dict[str, Any] = {} if min_avg_logprob is None else {"min_avg_logprob": min_avg_logprob}
         loop = asyncio.get_running_loop()
 
         if is_final:
             future: asyncio.Future = loop.create_future()
-            await self._final_queue.put((audio, force_lang, vad_mean, initial_prompt, future))
+            await self._final_queue.put((audio, force_lang, vad_mean, initial_prompt, extra, future))
             self._has_work.set()
             return await future
         else:
@@ -148,7 +157,7 @@ class AsrScheduler:
                 self.dropped_partials += 1
 
             future = loop.create_future()
-            self._pending_partials[session_id] = (audio, force_lang, vad_mean, initial_prompt, future)
+            self._pending_partials[session_id] = (audio, force_lang, vad_mean, initial_prompt, extra, future)
             self._has_work.set()
             return await future
 

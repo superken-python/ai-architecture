@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp 
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:type="TaskPaneApp">
+
+  <!-- Định danh duy nhất cho Add-in -->
+  <Id>d3b07384-d113-4960-93cb-93b593ef9081</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Motives Enterprise AI</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="AI Agent Copilot" />
+  <Description DefaultValue="Trợ lý AI Agent Agno nhúng Microsoft Excel kết nối dữ liệu doanh nghiệp hai chiều" />
+  <IconUrl DefaultValue="https://localhost:8000/taskpane/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:8000/taskpane/assets/icon-64.png" />
+  <SupportUrl DefaultValue="https://localhost:8000/docs" />
+
+  <!-- Yêu cầu tối thiểu Office API -->
+  <Hosts>
+    <Host Name="Workbook" />
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:8000/taskpane/index.html" />
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <!-- Đặt nút trên thanh Ribbon của Excel -->
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <CustomTab id="MotivesAiTab">
+              <Group id="MotivesAiGroup">
+                <Label resid="GroupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon16" />
+                  <bt:Image size="32" resid="Icon32" />
+                  <bt:Image size="80" resid="Icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="OpenTaskpaneButton">
+                  <Label resid="ButtonLabel" />
+                  <Supertip>
+                    <Title resid="ButtonTitle" />
+                    <Description resid="ButtonDesc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon16" />
+                    <bt:Image size="32" resid="Icon32" />
+                    <bt:Image size="80" resid="Icon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>MotivesTaskpane</TaskpaneId>
+                    <SourceLocation resid="TaskpaneUrl" />
+                  </Action>
+                </Control>
+              </Group>
+              <Label resid="TabLabel" />
+            </CustomTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon16" DefaultValue="https://localhost:8000/taskpane/assets/icon-16.png" />
+        <bt:Image id="Icon32" DefaultValue="https://localhost:8000/taskpane/assets/icon-32.png" />
+        <bt:Image id="Icon80" DefaultValue="https://localhost:8000/taskpane/assets/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="TaskpaneUrl" DefaultValue="https://localhost:8000/taskpane/index.html" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GroupLabel" DefaultValue="Motives AI" />
+        <bt:String id="ButtonLabel" DefaultValue="Mở AI Copilot" />
+        <bt:String id="ButtonTitle" DefaultValue="Excel AI Agent Copilot" />
+        <bt:String id="TabLabel" DefaultValue="Motives AI" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="ButtonDesc" DefaultValue="Mở thanh trợ lý AI Agent để tra cứu DB và tự động hóa thao tác Excel" />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

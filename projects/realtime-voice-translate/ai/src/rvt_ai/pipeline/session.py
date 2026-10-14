@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import re
 import time
 from collections import OrderedDict, deque
@@ -6,12 +7,16 @@ from collections.abc import Awaitable, Callable
 
 import numpy as np
 
+from rvt_ai.core.config import settings
 from rvt_ai.core.logging import logger
-from rvt_ai.engines.ports import AsrEngine, MtEngine, VadEngine
+from rvt_ai.engines.mt_llama import EXPLANATION_AFTER_SENTENCE
+from rvt_ai.engines.ports import AsrEngine, MtEngine, MtHints, VadEngine
+from rvt_ai.packs.glossary import Glossary, fix_leftovers, get_glossary, get_phrasebook
 from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
+from rvt_ai.pipeline.vad_probe import VadProbe, VadProbeConfig, probe_text_ok
 from rvt_contracts.messages import (
     AsrFinal,
     AsrPartial,
@@ -111,6 +116,8 @@ class RVTSession:
         send_event_cb: Callable[[ServerEvent], Awaitable[None]],
         segmenter_config: SegmenterConfig | None = None,
         scheduler: AsrScheduler | None = None,
+        glossary: Glossary | None = None,
+        vad_probe: bool | None = None,
     ):
         self.session_id = session_id
         self.vad = vad
@@ -120,9 +127,17 @@ class RVTSession:
         self.send_event = send_event_cb
         self.scheduler = scheduler or AsrScheduler(self.asr.transcribe)
         self.recent_context: deque[str] = deque(maxlen=3)
+        # Glossary tên riêng, thuật ngữ, quy ước xưng hô (docs 09 §5.2), và bản dịch đã chốt của các câu gần đây để
+        # đưa vào ngữ cảnh của câu sau (docs 09 §5.3)
+        self.glossary = glossary if glossary is not None else get_glossary()
+        self.translations: OrderedDict[tuple[str, Lang], str] = OrderedDict()
         self.targets: list[Lang] | None = None
 
         self.segmenter = Segmenter(segmenter_config or SegmenterConfig())
+        # Dò vùng audio to mà VAD bỏ sót, chỉ khi lượt hiện tại thu âm tab (docs 09 §4.1)
+        self.vad_probe_enabled = settings.VAD_PROBE if vad_probe is None else vad_probe
+        self.probe = VadProbe(VadProbeConfig(preroll_ms=self.segmenter.config.preroll_ms))
+        self.capture_source: str | None = None
         self.current_side: Side | None = None
         self.sides_config: dict[Side, str] = {"A": "auto", "B": "auto"}
         self.sides_prior: dict[Side, dict[Lang, float]] = {
@@ -184,18 +199,21 @@ class RVTSession:
         self.targets = event.targets
         logger.info(f"[{self.session_id}] Sides updated: {self.sides_config}, targets: {self.targets}")
 
-    async def handle_turn_start(self, side: Side) -> None:
+    async def handle_turn_start(self, side: Side, source: str | None = None) -> None:
         self.last_activity_time = time.time()
-        logger.info(f"[{self.session_id}] 🎙️ Turn START on Side {side}")
+        logger.info(f"[{self.session_id}] 🎙️ Turn START on Side {side} (source={source or 'unknown'})")
         if self.current_side != side:
             await self._flush_segmenter()
         self.current_side = side
+        self.capture_source = source
+        self.probe.reset()
         self.vad_state.reset()
 
     async def handle_turn_stop(self) -> None:
         self.last_activity_time = time.time()
         logger.info(f"[{self.session_id}] ⏹️ Turn STOP on Side {self.current_side}")
         await self._flush_segmenter()
+        self.probe.reset()
         self.current_side = None
 
     async def handle_audio_chunk(self, chunk: bytes) -> None:
@@ -211,6 +229,18 @@ class RVTSession:
         # Chỉ gửi event vad khi trạng thái nói thay đổi (Mục 5.4 docs 06: giảm từ 25 event/s xuống vài event/phút)
         if self.segmenter.is_speaking != was_speaking:
             await self.send_event(Vad(side=side, speaking=self.segmenter.is_speaking))
+
+        if self.vad_probe_enabled and self.capture_source == "tab":
+            probe_audio = self.probe.add(chunk, speech_prob, self.segmenter.is_speaking)
+            if probe_audio:
+                # Cấp số câu ngay ở đây, trước chữ tạm của đoạn kế tiếp, để không lệch số với thẻ chữ tạm
+                uid = self.utterance_id_counter
+                self.utterance_id_counter += 1
+                end_ms = self.segmenter.current_time_ms
+                if self.segmenter.is_speaking:
+                    end_ms -= len(self.segmenter.buffer) * 1000 // 32000
+                task = asyncio.create_task(self._process_probe_audio(probe_audio, side, uid, end_ms))
+                self.active_tasks.append(task)
 
         if self.segmenter.is_speaking and not was_speaking:
             logger.info(f"[{self.session_id}] 🗣️ VAD: Speech DETECTED on Side {side} (p={speech_prob:.2f})")
@@ -514,6 +544,35 @@ class RVTSession:
         audio_ms = len(audio) * 1000 // 32000
         await self._emit_final_and_mt(uid, side, text, final_lang, asr_probs, uncertain, audio_ms)
 
+    async def _process_probe_audio(self, audio: bytes, side: Side, uid: int, end_ms: int) -> None:
+        """Nhận dạng một vùng audio to mà VAD bỏ sót (docs 09 §4.1): không prompt, coi VAD bằng 0 để bộ lọc câu bịa
+        luôn áp, chỉ giữ chữ Whisper nghe khá chắc."""
+        force_lang = self.sides_config[side] if self.sides_config[side] != "auto" else None
+        audio_ms = len(audio) * 1000 // 32000
+        try:
+            text, detected_lang, asr_probs = await self.scheduler.execute_transcribe(
+                audio,
+                force_lang=force_lang,
+                is_final=True,
+                session_id=self.session_id,
+                vad_mean=0.0,
+                min_avg_logprob=self.probe.config.min_avg_logprob,
+            )
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Probe transcribe error: {e}")
+            return
+        text = (text or "").strip()
+        if not probe_text_ok(text, force_lang):
+            logger.debug(f"[{self.session_id}] VAD probe ({audio_ms}ms) dropped: '{text}'")
+            return
+        lang: Lang = force_lang or detected_lang  # type: ignore[assignment]
+        logger.info(f"[{self.session_id}] 🔎 VAD probe final: '{text}' [lang={lang}, side={side}, {audio_ms}ms]")
+        self.recent_asr_history.append((end_ms, text))
+        self.recent_audio[uid] = audio
+        if len(self.recent_audio) > self.max_cached_utterances:
+            self.recent_audio.popitem(last=False)
+        await self._emit_final_and_mt(uid, side, text, lang, asr_probs, False, audio_ms)
+
     async def _emit_final_and_mt(
         self,
         uid: int,
@@ -546,6 +605,24 @@ class RVTSession:
             task = asyncio.create_task(self._run_mt(uid, text, lang, tgt))
             self.active_tasks.append(task)
 
+    def _mt_hints(self, text: str, source: Lang, target: Lang) -> MtHints:
+        """Ngữ cảnh cho một lượt dịch: 2 câu ngay trước kèm bản dịch đã chốt (nếu có), glossary có trong câu, quy ước
+        xưng hô của ngôn ngữ đích (docs 09 §5.2, §5.3)."""
+        prev = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()][-2:]
+        return MtHints(
+            history=[(s, self.translations.get((s, target))) for s in prev],
+            glossary=self.glossary.match(text, source, target),
+            addressing=list(self.glossary.addressing.get(target, [])),
+        )
+
+    def _remember_translation(self, text: str, target: Lang, translation: str) -> None:
+        self.translations[(text, target)] = translation
+        while len(self.translations) > 50:
+            self.translations.popitem(last=False)
+
+    def _fix_leftovers(self, translation: str, source: Lang, target: Lang) -> str:
+        return fix_leftovers(translation, source, target, self.glossary)
+
     def _validate_mt(self, text: str, source: Lang, target: Lang, raw: str) -> ValidationResult:
         """Bộ làm sạch bản dịch lỗi thì dùng dòng đầu của bản dịch thô, không đổi thành "[Lỗi dịch]" (docs 08 §3.1)."""
         try:
@@ -568,19 +645,25 @@ class RVTSession:
         if not text:
             return
 
+        # Câu cảm thán ngắn ("うん", "え?"): bảng tra, không gọi model (docs 09 §5.5)
+        phrase = get_phrasebook(source).lookup(text, target)
+        if phrase:
+            self._remember_translation(text, target, phrase)
+            await self.send_event(MtFinal(utterance_id=uid, target=target, text=phrase))
+            return
+
         # Check exact cache first
         cached = mt_validator.get_cached(source, target, text)
         if cached:
+            self._remember_translation(text, target, cached)
             await self.send_event(MtFinal(utterance_id=uid, target=target, text=cached))
             return
 
         full_text = ""
         should_stream = True
-        # Collect prior context without duplicating the current utterance text
-        prev_history = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()]
-        context = " ".join(prev_history[-2:])
+        hints = self._mt_hints(text, source, target)
         try:
-            async for delta in self.mt.translate_stream(text, source, target, context=context):
+            async for delta in self.mt.translate_stream(text, source, target, hints=hints):
                 full_text += delta
                 lower_full = full_text.lower()
                 # Không ngắt ở "—" hay "**": cleanText.ts đã dọn hai ký hiệu này trên từng mt.delta (docs 08 §3.5)
@@ -634,17 +717,15 @@ class RVTSession:
                 ]
                 if any(m in lower_full for m in cutoff_markers):
                     should_stream = False
-                if target in ("vi", "ja") and re.search(
-                    r"([.!?。！？])\s*(?:this\s|the\s|sensei\s|it\s|in\s|meaning:|note:)", lower_full
-                ):
+                if target in ("vi", "ja") and re.search(EXPLANATION_AFTER_SENTENCE, lower_full):
                     should_stream = False
                 if target == "ja" and re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF].*[a-zA-Z]{3,}", full_text):
                     should_stream = False
                 if should_stream:
                     await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))
 
-            # Validate output
-            v_res = self._validate_mt(text, source, target, full_text)
+            # Validate output. Tên, thuật ngữ còn để chữ Nhật được thay trước khi kiểm, thay vì loại cả câu (docs 09 §9)
+            v_res = self._validate_mt(text, source, target, self._fix_leftovers(full_text, source, target))
             if not v_res.is_valid:
                 logger.warning(
                     f"MT output validation failed for {source}->{target}: {v_res.error_reason}. "
@@ -652,12 +733,11 @@ class RVTSession:
                 )
                 try:
                     retry_text = ""
-                    target_name = LANG_NAMES.get(target, target)
-                    async for delta in self.mt.translate_stream(
-                        text, source, target, context=f"Strictly translate completely into {target_name}"
-                    ):
+                    # Giữ nguyên ngữ cảnh và glossary; bản cũ thay ngữ cảnh bằng một dòng lệnh (docs 09 §9)
+                    retry_hints = dataclasses.replace(hints, strict=True)
+                    async for delta in self.mt.translate_stream(text, source, target, hints=retry_hints):
                         retry_text += delta
-                    v_retry = self._validate_mt(text, source, target, retry_text)
+                    v_retry = self._validate_mt(text, source, target, self._fix_leftovers(retry_text, source, target))
                     if v_retry.is_valid:
                         v_res = v_retry
                         logger.info(
@@ -677,6 +757,7 @@ class RVTSession:
             else:
                 logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
                 mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
+                self._remember_translation(text, target, v_res.cleaned_text)
                 await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text))
         except Exception as e:
             logger.error(f"MT failed for {target}: {e}")

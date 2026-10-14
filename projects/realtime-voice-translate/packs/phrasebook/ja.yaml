@@ -1,0 +1,27 @@
+# Câu ngắn tiếng Nhật dịch bằng bảng tra, không gọi model (docs 09 §5.5): nhanh, và model không tự thêm chữ.
+# Khớp cả câu sau khi bỏ khoảng trắng và dấu "。、…" ở hai đầu; "?" và "!" vẫn được tính.
+phrases:
+  - {ja: "うん", vi: "Ừ.", en: "Yeah.", variants: ["ん", "うむ"]}
+  - {ja: "はい", vi: "Vâng.", en: "Yes."}
+  - {ja: "いいえ", vi: "Không.", en: "No."}
+  - {ja: "え?", vi: "Hả?", en: "Huh?", variants: ["えっ?", "へ?", "は?", "はぁ?", "はあ?"]}
+  - {ja: "え", vi: "Ơ...", en: "Eh...", variants: ["えっ", "えー"]}
+  - {ja: "あ", vi: "A!", en: "Ah!", variants: ["あっ", "あ!"]}
+  - {ja: "ああ", vi: "À.", en: "Ah."}
+  - {ja: "はぁ", vi: "Haizz...", en: "Sigh...", variants: ["はあ", "ふう"]}
+  - {ja: "えっと", vi: "Ờm...", en: "Um...", variants: ["えーと", "あの"]}
+  - {ja: "くそ", vi: "Chết tiệt!", en: "Damn it!", variants: ["くそっ", "くそ!", "くっそ"]}
+  - {ja: "よし", vi: "Được rồi!", en: "All right!", variants: ["よし!"]}
+  - {ja: "なるほど", vi: "Ra vậy.", en: "I see."}
+  - {ja: "おはよう", vi: "Chào buổi sáng!", en: "Good morning!", variants: ["おはようございます"]}
+  - {ja: "ありがとう", vi: "Cảm ơn.", en: "Thanks.", variants: ["ありがとうございます"]}
+  - {ja: "ごめん", vi: "Xin lỗi.", en: "Sorry.", variants: ["ごめんなさい", "すみません"]}
+  - {ja: "嘘", vi: "Không thể nào!", en: "No way!", variants: ["嘘!", "うそ", "うそ!"]}
+  - {ja: "マジかよ", vi: "Thật hả?", en: "Seriously?", variants: ["マジで?", "マジか"]}
+  - {ja: "まさか", vi: "Không lẽ...", en: "No way..."}
+  - {ja: "何?", vi: "Cái gì?", en: "What?", variants: ["なに?", "なんだ?", "何!?"]}
+  - {ja: "待って", vi: "Chờ đã!", en: "Wait!", variants: ["待て", "待って!", "ちょっと待って"]}
+  - {ja: "分かってる", vi: "Biết rồi.", en: "I know.", variants: ["わかってる", "分かってるよ", "わかってるよ"]}
+  - {ja: "今だ", vi: "Ngay bây giờ!", en: "Now!", variants: ["今だ!"]}
+  - {ja: "うわ", vi: "Oa!", en: "Whoa!", variants: ["うわっ", "うわあ"]}
+  - {ja: "大丈夫", vi: "Không sao.", en: "It's okay.", variants: ["大丈夫?"]}

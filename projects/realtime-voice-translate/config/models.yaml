@@ -22,5 +22,5 @@ models:
   mt:
     qwen2.5-7b:
       repo: "bartowski/Qwen2.5-7B-Instruct-GGUF"
-      file: "qwen2.5-7b-instruct-q4_k_m.gguf"
+      file: "qwen2.5-7b-instruct-q5_k_m.gguf"
       license: "Apache-2.0"

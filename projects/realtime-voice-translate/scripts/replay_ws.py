@@ -78,7 +78,8 @@ async def stream(args: argparse.Namespace) -> tuple[list[float], list[tuple[floa
                 }
             )
         )
-        await ws.send(json.dumps({"type": "turn.start", "side": "A"}))
+        # Audio của video: như web khi thu âm tab, để server bật bước dò VAD (docs 09 §4.1)
+        await ws.send(json.dumps({"type": "turn.start", "side": "A", "source": "tab"}))
         t0 = time.monotonic()
 
         async def receive() -> None:

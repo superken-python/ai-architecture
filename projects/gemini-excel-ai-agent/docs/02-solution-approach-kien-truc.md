@@ -47,8 +47,8 @@ flowchart TB
 
     subgraph Tier3 ["TẦNG 3: AI AGENT RUNTIME & ENTERPRISE TOOLS"]
         direction TB
-        AgentOrch["Agent Orchestrator<br/>(ReAct Loop / LangGraph / Agno)"]
-        LLMHub["LLM Model Engine<br/>(Gemini 2.5/3 / OpenAI / vLLM)"]
+        AgentOrch["Agno AgentOS Orchestrator<br/>(ReAct Loop / Tools / Sessions)"]
+        LLMHub["Azure OpenAI Engine<br/>(Model: gpt-5-mini)"]
         Tracing["Langfuse Tracing<br/>(Observability, Latency & Cost)"]
         EnterpriseMCP["Enterprise Tools Hub (MCP)<br/>(PostgreSQL, ERP API, Vector RAG)"]
         AgentOrch <--> LLMHub

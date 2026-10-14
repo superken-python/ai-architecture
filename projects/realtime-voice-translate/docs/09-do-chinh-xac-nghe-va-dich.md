@@ -9,7 +9,97 @@
 - đề xuất bước tiếp theo;
 - đối chiếu các kỹ thuật được gợi ý từ bên ngoài, và tìm vì sao Nhật → Việt kém hơn Anh, Việt (mục 8, 9).
 
-**Tài liệu phân tích và đề xuất, không đổi code.**
+**Tài liệu phân tích và đề xuất.** Code làm theo mục 6 nằm ở các commit sau `092c437`. Mỗi bước có một ghi chú
+"Cập nhật" ngay dưới đây.
+
+**Cập nhật 2026-10-13: đã làm bước 0 (sửa Nhật → Việt)**, có test
+([`test_mt_ja_vi.py`](../ai/tests/unit/test_mt_ja_vi.py)):
+
+- Trước khi kiểm, bản dịch được làm sạch chữ Nhật còn sót
+  ([`fix_leftovers`](../ai/src/rvt_ai/packs/glossary.py)). Tên, thuật ngữ có trong glossary được thay bằng bản dịch cố
+  định ("火影" → "Hokage"). Katakana còn lại được đổi sang romaji ("カカシ" → "Kakashi"). Kanji không có trong glossary
+  vẫn bị loại.
+- Lượt dịch lại giữ nguyên ngữ cảnh và glossary, chỉ thêm một dòng nhắc "viết hết bằng tiếng Việt". Trước đây, dòng
+  nhắc này thay chỗ của ngữ cảnh.
+- "Sensei" đứng sau dấu câu không còn làm bản dịch bị cắt. Chỉ cắt khi theo sau là câu giải thích, ví dụ "Sensei
+  means…" (`EXPLANATION_AFTER_SENTENCE` trong [`mt_llama.py`](../ai/src/rvt_ai/engines/mt_llama.py)).
+
+**Cập nhật 2026-10-13: đã làm bước 2 (dò VAD)**, có test ([`test_vad_probe.py`](../ai/tests/unit/test_vad_probe.py)):
+
+- [`vad_probe.py`](../ai/src/rvt_ai/pipeline/vad_probe.py) làm đúng §4.1. Khung to hơn −30 dBFS, VAD dưới 0,25, lúc
+  segmenter không ở trong câu nào, được gom thành vùng: hở tối đa 480 ms, vùng 2–6 s. Vùng được gửi đi nhận dạng như một
+  đoạn chốt không prompt, với `vad_mean = 0` để bộ lọc câu bịa luôn áp.
+  - Chỉ giữ chữ có `avg_logprob` ≥ −0,5 (tham số mới `min_avg_logprob` của engine), có ít nhất 4 ký tự, có chữ Nhật khi
+    nửa đó khoá tiếng Nhật, và không phải tiếng hét.
+  - Khi VAD bắt đầu bắt, vùng kết thúc. 400 ms cuối của vùng được bỏ, vì segmenter đã lấy làm preroll.
+- **Chỉ chạy khi thu âm tab.** `turn.start` có thêm trường `source` (`"mic"` hoặc `"tab"`), web gửi kèm cả khi kết nối
+  lại. Tắt hẳn bằng `RVT_VAD_PROBE=false`.
+- Phát lại golden_1 bằng `golden_session.py --capture tab` (Whisper giả lập như ở đầu tài liệu). Con số khớp ước lượng ở
+  §4.1:
+
+| golden_1 | `--capture mic` (không dò) | `--capture tab` |
+|---|---|---|
+| CER | 0,134 | **0,114** |
+| Ký tự lời thoại bắt được | 93,6% | 95,7% |
+| Câu thoại bắt được | 139/141 | **141/141** |
+| Câu bịa trên màn hình | 2 | 2 |
+| Lượt nhận dạng | 794 | 820 |
+
+- 2 thẻ mới là hai câu đang bị mất: "引っかかった!引っかかったよ!すみません先生!…" ở giây 46 và "危ない!逃げて!やられちゃうよ!" ở
+  giây 546.
+- **Chưa kiểm trên video khác.** Đây là điều kiện cuối của bước 2 trong mục 6, cần golden mới (bước 5). Nếu thấy câu rác
+  trong đoạn nhạc, tắt bằng `RVT_VAD_PROBE=false`.
+
+**Cập nhật 2026-10-13: đã làm bước 3 (prompt dịch)**, có test:
+
+- **Glossary (§5.2).** [`packs/glossary/naruto.yaml`](../packs/glossary/naruto.yaml) có tên nhân vật, thuật ngữ và quy
+  ước xưng hô tiếng Việt theo cặp nhân vật: Naruto ↔ Sakura xưng "tớ/cậu", học trò với Kakashi xưng "em/thầy",
+  Kakashi với học trò xưng "thầy/các em", người lớn với Hokage xưng "tôi/ngài".
+  - Chọn glossary bằng biến `RVT_GLOSSARIES`, ví dụ `RVT_GLOSSARIES=default,naruto`. Mặc định chỉ có `default`.
+  - Prompt chỉ có những mục xuất hiện trong câu. Mục dài được khớp trước: "カカシ先生" → "thầy Kakashi" rồi mới tới
+    "カカシ".
+- **Ngữ cảnh có bản dịch trước (§5.3).** 2 câu ngay trước được đưa vào dạng "câu nguồn → bản dịch đã hiện". Câu chưa
+  dịch xong thì chỉ có câu nguồn.
+- **Few-shot trung tính (§5.4).** Ví dụ mới gồm một câu xin lỗi, một câu gọi tên, một câu về lịch, một câu bị cắt giữa
+  chừng. Không còn ví dụ "trái Kiki".
+- **Câu cảm thán, câu bị cắt (§5.5).** [`packs/phrasebook/ja.yaml`](../packs/phrasebook/ja.yaml) dịch khoảng 25 câu
+  ngắn bằng bảng tra, không gọi model: "うん" → "Ừ.", "え?" → "Hả?", "くそっ" → "Chết tiệt!". Prompt có thêm luật:
+  câu có thể bị cắt giữa chừng, chỉ dịch phần đang có.
+- Chưa có số chrF trước/sau (cần server, xem bước 1). Điều kiện "chrF không giảm" của bước 3 phải kiểm khi chạy bộ đo
+  trên server.
+
+**Cập nhật 2026-10-13: đã làm bước 1 (bộ đo dịch), chưa có số.**
+
+- [`eval/golden_1/translation/ja-vi.jsonl`](../eval/golden_1/translation/ja-vi.jsonl) có 168 câu: câu tiếng Nhật đã sửa
+  lỗi nghe của phụ đề tự động ("里の長", "手裏剣", "上忍"), người nói và bản dịch tiếng Việt tham chiếu.
+  - Bản dịch do model viết nháp, rồi được soát theo ngữ cảnh, glossary và quy ước xưng hô. Chưa có người bản ngữ duyệt
+    ([README](../eval/golden_1/translation/README.md)).
+  - 168 mục, nhiều hơn 141 câu thoại, vì mỗi mục là một câu nói trọn ý. Có dòng phụ đề chứa hai câu của hai người.
+- (a) **Bộ dịch:** [`eval/mt_eval.py`](../eval/mt_eval.py) dịch các câu đúng y như app: bảng tra, glossary, 2 câu trước
+  kèm bản dịch, làm sạch, dịch lại một lần. Sau đó chấm chrF (n ≤ 6, β = 2, cùng công thức với `sacrebleu`). Các tuỳ
+  chọn `--no-context`, `--glossary ""`, `--pivot-en` để so từng phần.
+- (b) **Cả chuỗi:** `golden_session.py --mt-url http://mt:8080/v1` dịch các câu mà phiên phát lại đã đưa đi dịch, rồi
+  chấm chrF cả bài.
+- Sandbox không chạy được model dịch, nên **chưa có số chrF nào**. Lệnh chạy trên server:
+
+  ```bash
+  docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --api-url http://mt:8080/v1 \
+      --out /tmp/mt_golden_1.json
+  docker exec -it rvt_ai uv run python eval/golden_session.py --golden eval/golden_1 --skip-lines 12-25,180- \
+      --mt-url http://mt:8080/v1
+  ```
+
+**Cập nhật 2026-10-13: đổi model dịch sang Qwen2.5-7B-Instruct Q5_K_M** (một phần của bước 4, §5.6):
+
+- Mọi file compose, script tải model, `start.sh`, `config/models.yaml` và profile `balanced`, `quality` đều trỏ tới
+  `qwen2.5-7b-instruct-q5_k_m.gguf`.
+- Muốn quay lại bản cũ, đặt `RVT_MT_MODEL_FILE=qwen2.5-7b-instruct-q4_k_m.gguf`, không cần sửa file.
+- **VRAM.** File Q5_K_M nặng 5,44 GB, Q4_K_M nặng 4,68 GB, tức thêm khoảng 0,76 GB. Để bù, context của llama.cpp giảm
+  từ 16 384 xuống 8 192 token (4 slot, mỗi slot 2 048 token), bớt khoảng 0,47 GB KV cache. Tổng cộng vẫn thêm khoảng
+  0,3 GB VRAM.
+  - Prompt dài nhất hiện có (glossary, xưng hô, 2 câu trước kèm bản dịch, few-shot) khoảng 2 300 ký tự, cỡ 700–900
+    token. Vẫn vừa một slot.
+- Chưa so được với Q4_K_M bằng chrF và độ trễ. Đây là việc của bước 4 trên GPU thật.
 
 **Cách đo:**
 
@@ -242,17 +332,35 @@
   - một model chuyên dịch như Hunyuan-MT-7B. Repo đã có thư mục prompt `prompts/mt/hy-mt`, có lẽ để dành cho model
     này;
   - một model 7–9B mới hơn, như Qwen3-8B.
+- **Cách so chất lượng dịch với một model API** (không đo độ trễ hay nghe): cùng 168 câu, cùng glossary và ngữ cảnh.
+  Chạy hai lần `eval/mt_eval.py` với `--label` khác nhau, rồi so bằng `eval/mt_compare.py`:
+
+  ```bash
+  docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --api-url http://mt:8080/v1 \
+      --label qwen-q5 --out /tmp/mt_qwen.json
+  docker exec -e RVT_MT_API_KEY -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 \
+      --api-url https://api.openai.com/v1 --model <tên model> --label <tên model> --out /tmp/mt_api.json
+  docker exec -it rvt_ai uv run python eval/mt_compare.py /tmp/mt_qwen.json /tmp/mt_api.json --out /tmp/mt_compare.md
+  ```
+
+  - Khoá API đặt trong biến `RVT_MT_API_KEY` trên máy host trước khi chạy; `-e RVT_MT_API_KEY` chuyển nó vào container.
+    Không ghi khoá vào dòng lệnh hay vào file trong repo.
+  - Với API lưu trữ, payload đổi sang dạng API (`hosted_payload` trong `mt_llama.py`): tối đa 4 chuỗi dừng, không
+    `top_p`, `max_completion_tokens`. Không có `temperature`, nên hai bên không dùng cùng temperature 0,1. Ghi điều này
+    khi báo kết quả.
+  - Đọc bảng `mt_compare.md` cùng điểm. chrF thiên về cách diễn đạt giống bản tham chiếu, mà bản tham chiếu do một model
+    viết nháp. Nên đọc khoảng 20 câu chênh nhiều nhất trước khi kết luận.
 - Chỉ đổi khi chrF ở cả (a) lẫn (b) tăng, và độ trễ p95 của bản dịch không tăng đáng kể.
 
 ## 6. Lộ trình đề xuất
 
 | Bước | Nội dung | Tầng | Công | Xong khi |
 |---|---|---|---|---|
-| 0 · Sửa Nhật → Việt | §9: bản dịch có chữ Nhật bị loại và dịch lại không ngữ cảnh; bản dịch bị cắt ở "Sensei" | server | 0,5 ngày | test mới đỏ ở bản cũ, xanh ở bản sửa; bản dịch có tên riêng không bị loại, không bị cắt |
-| 1 · Đo dịch | §5.1: bản dịch tham chiếu cho golden_1, script chấm chrF cho bộ dịch và cả chuỗi | eval + server | 1–2 ngày | có chrF của bản hiện tại, chạy lại được bằng một lệnh |
-| 2 · Dò VAD | §4.1: dò vùng audio to mà VAD bỏ sót, chỉ khi thu âm tab; engine trả thêm `avg_logprob` | server | 1 ngày | golden_1: 141/141 câu, CER ≤ 0,12, câu bịa trên màn hình không tăng; kiểm trên ít nhất một video khác |
-| 3 · Prompt dịch | §5.2–5.5, §9: glossary kèm cách xưng hô, ngữ cảnh có bản dịch trước, few-shot trung tính, bảng tra câu cảm thán | server | 1–2 ngày | chrF ở bước 1 không giảm; tên riêng có trong glossary được dịch đúng |
-| 4 · So model | §4.4, §5.6, §9: large-v3 (đo lại cả beam), các model dịch, dịch qua tiếng Anh, đo trên GPU thật | server | 1–2 ngày | chọn theo CER, chrF và độ trễ p95 |
+| 0 · Sửa Nhật → Việt | §9: bản dịch có chữ Nhật bị loại và dịch lại không ngữ cảnh; bản dịch bị cắt ở "Sensei" | server | 0,5 ngày | test mới đỏ ở bản cũ, xanh ở bản sửa; bản dịch có tên riêng không bị loại, không bị cắt. **Đã làm** |
+| 1 · Đo dịch | §5.1: bản dịch tham chiếu cho golden_1, script chấm chrF cho bộ dịch và cả chuỗi | eval + server | 1–2 ngày | có chrF của bản hiện tại, chạy lại được bằng một lệnh. **Đã có bộ đo và lệnh chạy, chưa có số:** cần chạy trên server |
+| 2 · Dò VAD | §4.1: dò vùng audio to mà VAD bỏ sót, chỉ khi thu âm tab; engine trả thêm `avg_logprob` | server | 1 ngày | golden_1: 141/141 câu, CER ≤ 0,12, câu bịa trên màn hình không tăng; kiểm trên ít nhất một video khác. **Đã làm:** 141/141, CER 0,114, câu bịa 2 → 2; còn kiểm trên video khác |
+| 3 · Prompt dịch | §5.2–5.5, §9: glossary kèm cách xưng hô, ngữ cảnh có bản dịch trước, few-shot trung tính, bảng tra câu cảm thán | server | 1–2 ngày | chrF ở bước 1 không giảm; tên riêng có trong glossary được dịch đúng. **Đã làm**, còn kiểm chrF trên server |
+| 4 · So model | §4.4, §5.6, §9: large-v3 (đo lại cả beam), các model dịch, dịch qua tiếng Anh, đo trên GPU thật | server | 1–2 ngày | chọn theo CER, chrF và độ trễ p95. **Đã đổi sang Qwen Q5_K_M**, chưa so bằng số |
 | 5 · Thêm golden | 2–3 video khác loại (phim người đóng, vlog, hai người nói qua mic); sửa tên riêng sai trong đáp án golden_1 | eval | 1–2 ngày | các số ở bước 2–4 được đo trên ít nhất 2 golden |
 
 ## 7. Rủi ro

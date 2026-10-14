@@ -16,12 +16,18 @@ Cách chạy:
   40 ms được đưa vào đúng nhịp như web app gửi lên, nên 14 phút audio chỉ mất bằng thời gian GPU nhận dạng.
 - ASR: `FasterWhisperEngine` thật theo profile. Mỗi lần nhận dạng "tốn" đúng thời gian chạy thật trên máy (`--latency
   measured`), hoặc theo mô hình cố định 0,15 s + 0,04 s cho mỗi giây audio (`--latency model`).
-- MT: không gọi model dịch. Script ghi lại câu nguồn được đưa đi dịch, vì cần biết dịch cái gì, chưa cần chất lượng.
+- MT: trong lúc phát lại không gọi model dịch, chỉ ghi lại câu nguồn được đưa đi dịch. Có `--mt-url` thì sau khi phát
+  xong, các câu đó được dịch lần lượt như app (`mt_eval.AppLikeTranslator`: glossary, 2 câu trước kèm bản dịch) và chấm
+  chrF cả bài so với `<golden>/translation/ja-vi.jsonl`. Chữ nghe sai và câu cắt khác nhau nên không ghép được từng câu;
+  điểm này đi cùng `mt_eval.py` (dịch câu nguồn đúng) để tách phần lỗi do nghe với phần lỗi do dịch (docs 09 §5.1).
 
 Xem docs/08-ra-soat-ban-cai-dat-07.md §2.
 
     docker exec -it rvt_ai uv run python eval/golden_session.py --golden eval/golden_1 --skip-lines 12-25,180- \\
         --out /tmp/golden_1_session.json
+    # kèm chấm dịch cả chuỗi
+    docker exec -it rvt_ai uv run python eval/golden_session.py --golden eval/golden_1 --skip-lines 12-25,180- \\
+        --mt-url http://mt:8080/v1
 """
 
 import argparse
@@ -128,7 +134,14 @@ def replay_screen(events: list[dict]) -> dict:
 
 
 def run_session(
-    pcm: np.ndarray, profile: ProfileConfig, asr, models_dir: str, side_lang: str, target: str, latency: str
+    pcm: np.ndarray,
+    profile: ProfileConfig,
+    asr,
+    models_dir: str,
+    side_lang: str,
+    target: str,
+    latency: str,
+    capture: str = "tab",
 ) -> tuple[list[dict], list[tuple[float, str]], list[dict]]:
     loop = VirtualClockLoop()
     asyncio.set_event_loop(loop)
@@ -170,7 +183,7 @@ def run_session(
         await session.handle_session_start(
             SessionStart(sides={"A": SideConfig(lang=side_lang), "B": SideConfig(lang=target)}, targets=[target])
         )
-        await session.handle_turn_start("A")
+        await session.handle_turn_start("A", capture)
         wall = time.time()
         for i in range(n):
             await session.handle_audio_chunk(pcm[i * FRAME : (i + 1) * FRAME].tobytes())
@@ -185,6 +198,28 @@ def run_session(
 
     loop.run_until_complete(drive())
     return events, logs, mt_requests
+
+
+def translate_requests(mt_requests: list[dict], golden: str, api_url: str, glossary: str, target: str) -> dict:
+    """Dịch các câu session đã đưa đi dịch, theo đúng thứ tự, rồi chấm chrF cả bài so với bản dịch tham chiếu."""
+    from mt_eval import PACKS, AppLikeTranslator, chrf_score, chrf_stats, load_references, translate_all
+    from rvt_ai.engines.mt_llama import LlamaCppMtEngine
+    from rvt_ai.packs.glossary import load_glossary
+
+    if target != "vi":
+        raise SystemExit("--mt-url: bản dịch tham chiếu hiện chỉ có tiếng Việt")
+    names = [n for n in glossary.split(",") if n.strip()]
+    translator = AppLikeTranslator(LlamaCppMtEngine(api_url=api_url), load_glossary(names, packs_dir=PACKS))
+    outs, secs = asyncio.run(translate_all([r["text"] for r in mt_requests], translator))
+    for r, o in zip(mt_requests, outs, strict=True):
+        r["mt"] = o
+    refs = " ".join(r["vi"] for r in load_references(golden))
+    secs.sort()
+    return {
+        "mt_chrf_document": round(chrf_score(chrf_stats(" ".join(outs), refs)), 2),
+        "mt_retries": translator.retries,
+        "mt_latency_p50_s": round(secs[len(secs) // 2], 3) if secs else None,
+    }
 
 
 def main() -> None:
@@ -208,6 +243,11 @@ def main() -> None:
         default="measured",
         help="thời gian mỗi lần nhận dạng: đo thật, hoặc 0,15 s + 0,04 s/giây audio",
     )
+    parser.add_argument(
+        "--capture", choices=("tab", "mic"), default="tab", help="nguồn audio như web gửi lên; dò VAD chỉ chạy với tab"
+    )
+    parser.add_argument("--mt-url", default="", help="dịch các câu đã đưa đi dịch bằng llama.cpp ở URL này, chấm chrF")
+    parser.add_argument("--glossary", default="default,naruto", help="glossary dùng khi dịch (--mt-url)")
     parser.add_argument("--out", default="", help="ghi báo cáo JSON (kèm mọi thẻ trên màn hình)")
     args = parser.parse_args()
 
@@ -225,7 +265,7 @@ def main() -> None:
     print(f"Audio {len(pcm) / 16000:.0f} s · profile {profile.name} · ASR {device}/{compute_type}", flush=True)
 
     events, logs, mt_requests = run_session(
-        pcm, profile, asr, args.models_dir, args.side_lang, args.target, args.latency
+        pcm, profile, asr, args.models_dir, args.side_lang, args.target, args.latency, args.capture
     )
     screen = replay_screen(events)
 
@@ -248,12 +288,15 @@ def main() -> None:
         "tail_merged": holds - alone,
         "hallucinations_on_screen": sum(1 for c in screen["finals"] if HALLUCINATION.search(c["text"])),
         "hallucinations_discarded": logged("Discarded"),
+        "vad_probe_finals": logged("VAD probe final"),
         "mt_requests": len(mt_requests),
         "mt_fragments_le6_chars": sum(1 for r in mt_requests if len(norm(r["text"])) <= 6),
     }
     ref_lines = Path(ref_path).read_text(encoding="utf-8").splitlines()
     result = score(ref_lines, parse_ranges(args.skip_lines), text)
     summary.update({k: v for k, v in result.items() if k != "missed_lines"})
+    if args.mt_url:
+        summary.update(translate_requests(mt_requests, args.golden, args.mt_url, args.glossary, args.target))
     if args.max_seconds:
         print("(--max-seconds: điểm so với toàn bộ phụ đề nên tỉ lệ bắt được sẽ thấp — chỉ dùng để so trước/sau)")
     print(json.dumps(summary, ensure_ascii=False, indent=1))
