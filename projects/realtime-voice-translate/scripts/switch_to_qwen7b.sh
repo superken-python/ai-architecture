@@ -14,6 +14,7 @@ MODELS_DIR="${PROJECT_ROOT}/models"
 QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q5_K_M.gguf"
 TARGET_FILE="${MODELS_DIR}/qwen2.5-7b-instruct-q5_k_m.gguf"
 SYMLINK_FILE="${MODELS_DIR}/Qwen2.5-7B-Instruct-Q5_K_M.gguf"
+MODEL_LABEL="Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB)"
 
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -22,7 +23,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${CYAN}==================================================================${NC}"
-echo -e "${CYAN}   🚀 NÂNG CẤP MODEL DỊCH SANG QWEN 2.5 - 7B INSTRUCT (GGUF)     ${NC}"
+echo -e "${CYAN}   🚀 NÂNG CẤP MODEL DỊCH SANG QWEN 2.5 - 7B INSTRUCT Q5_K_M (GGUF)${NC}"
 echo -e "${CYAN}==================================================================${NC}"
 
 mkdir -p "${MODELS_DIR}"
@@ -44,11 +45,11 @@ done
 
 df -h "${PROJECT_ROOT}"
 
-# 1. Tìm các file model cũ cần xoá (bao gồm cả mt-model.gguf cũ, qwen 3b, hy-mt, translategemma)
+# 1. Tìm các file model cũ cần xoá (bao gồm cả mt-model.gguf cũ, qwen 3b, hy-mt, translategemma, q4_k_m)
 OLD_FILES=()
 while IFS= read -r -d '' f; do
     OLD_FILES+=("$f")
-done < <(find "${MODELS_DIR}" -maxdepth 1 -type f \( -iname "*hy-mt*" -o -iname "*translategemma*" -o -iname "*qwen2.5-3b*" -o -name "mt-model.gguf" \) -print0)
+done < <(find "${MODELS_DIR}" -maxdepth 1 -type f \( -iname "*hy-mt*" -o -iname "*translategemma*" -o -iname "*qwen2.5-3b*" -o -iname "*q4_k_m*" -o -name "mt-model.gguf" \) -print0)
 
 # Xóa broken symlinks nếu có
 find "${MODELS_DIR}" -maxdepth 1 -xtype l -delete 2>/dev/null || true
@@ -91,7 +92,7 @@ fi
 
 # 2. Tải model mới Qwen 2.5 - 7B Instruct
 echo -e "\n${CYAN}==================================================================${NC}"
-echo -e "${CYAN}📥 TẢI MODEL MỚI: Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB)${NC}"
+echo -e "${CYAN}📥 TẢI MODEL: ${MODEL_LABEL}${NC}"
 echo -e "${CYAN}==================================================================${NC}"
 echo -e "Source: ${QWEN_URL}"
 echo -e "Target: ${TARGET_FILE}"
@@ -109,17 +110,37 @@ fi
 
 DO_DOWNLOAD="y"
 if [ -t 0 ] && [[ ${FORCE} -eq 0 ]]; then
-    echo -e "\n${CYAN}Bắt đầu tải model Qwen 2.5 - 7B ngay bây giờ? [Y/n]${NC}"
+    echo -e "\n${CYAN}Bắt đầu tải model ${MODEL_LABEL} ngay bây giờ? [Y/n]${NC}"
     read -r -p "Xác nhận (mặc định Y): " USER_DL || USER_DL="y"
     DO_DOWNLOAD="${USER_DL:-y}"
 fi
 
 if [[ "${DO_DOWNLOAD}" =~ ^[Yy]$ ]]; then
-    echo -e "\n${CYAN}⏳ Đang tải file... (~5.44 GB, vui lòng đợi vài phút tuỳ thuộc tốc độ mạng)${NC}"
-    if curl -L --fail --progress-bar -C - -o "${TARGET_FILE}" "${QWEN_URL}"; then
-        ln -sf "qwen2.5-7b-instruct-q5_k_m.gguf" "${SYMLINK_FILE}" 2>/dev/null || true
+    echo -e "\n${CYAN}⏳ Đang tải file... (${MODEL_LABEL}, vui lòng đợi vài phút tuỳ thuộc tốc độ mạng)${NC}"
+    DOWNLOAD_SUCCESS=0
+    if curl -L --fail --progress-bar -C - \
+        --retry 10 --retry-delay 3 --retry-connrefused --connect-timeout 30 \
+        -o "${TARGET_FILE}" "${QWEN_URL}"; then
+        DOWNLOAD_SUCCESS=1
+    elif command -v uv >/dev/null 2>&1 && [ -d "${PROJECT_ROOT}/ai" ]; then
+        echo -e "\n${YELLOW}⚠️  curl gặp sự cố kết nối, tự động chuyển sang tải bằng huggingface_hub qua uv...${NC}"
+        if (cd "${PROJECT_ROOT}/ai" && uv run python -c "
+from huggingface_hub import hf_hub_download
+hf_hub_download(
+    repo_id='bartowski/Qwen2.5-7B-Instruct-GGUF',
+    filename='Qwen2.5-7B-Instruct-Q5_K_M.gguf',
+    local_dir='../models',
+)
+"); then
+            ln -sf "Qwen2.5-7B-Instruct-Q5_K_M.gguf" "${TARGET_FILE}" 2>/dev/null || true
+            DOWNLOAD_SUCCESS=1
+        fi
+    fi
+
+    if [[ ${DOWNLOAD_SUCCESS} -eq 1 ]]; then
+        ln -sf "$(basename "${TARGET_FILE}")" "${SYMLINK_FILE}" 2>/dev/null || true
         FILE_SIZE=$(du -h "${TARGET_FILE}" | cut -f1)
-        echo -e "\n${GREEN}🎉 TẢI THÀNH CÔNG MODEL QWEN 2.5 - 7B! (${FILE_SIZE})${NC}"
+        echo -e "\n${GREEN}🎉 TẢI THÀNH CÔNG MODEL! (${FILE_SIZE})${NC}"
         echo -e "   File đích: ${TARGET_FILE}"
     else
         echo -e "\n${RED}❌ Tải thất bại. Vui lòng kiểm tra lại kết nối mạng hoặc tải thủ công vào ${TARGET_FILE}.${NC}"
@@ -127,7 +148,7 @@ if [[ "${DO_DOWNLOAD}" =~ ^[Yy]$ ]]; then
     fi
 else
     echo -e "\n${YELLOW}Bỏ qua bước tải model. Bạn có thể tải sau bằng lệnh:${NC}"
-    echo -e "  curl -L -C - -o models/qwen2.5-7b-instruct-q5_k_m.gguf ${QWEN_URL}"
+    echo -e "  curl -L -C - --retry 10 --retry-delay 3 --retry-connrefused --connect-timeout 30 -o \"models/$(basename "${TARGET_FILE}")\" \"${QWEN_URL}\""
 fi
 
 echo -e "\n${CYAN}==================================================================${NC}"

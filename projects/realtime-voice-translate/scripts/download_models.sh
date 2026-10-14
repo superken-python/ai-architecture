@@ -45,26 +45,35 @@ else
 fi
 
 # 2. Check or download MT GGUF model (Qwen2.5-7B-Instruct Q5_K_M)
-MT_MODEL="${MODELS_DIR}/qwen2.5-7b-instruct-q5_k_m.gguf"
+MT_FILE_NAME="${RVT_MT_MODEL_FILE:-qwen2.5-7b-instruct-q5_k_m.gguf}"
+MT_MODEL="${MODELS_DIR}/${MT_FILE_NAME}"
+MODEL_LABEL="Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB)"
 QWEN_URL="https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q5_K_M.gguf"
+SYMLINK_TARGET="Qwen2.5-7B-Instruct-Q5_K_M.gguf"
 
 if [[ ! -f "${MT_MODEL}" ]]; then
     echo ""
     echo "Notice: Machine Translation GGUF model not found at ${MT_MODEL}"
-    echo "Recommended model: Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB) from HuggingFace:"
+    echo "Recommended model: ${MODEL_LABEL} from HuggingFace:"
     echo ""
-    echo "  curl -L -C - -o models/qwen2.5-7b-instruct-q5_k_m.gguf \\"
-    echo "    ${QWEN_URL}"
+    echo "  curl -L -C - --retry 10 --retry-delay 3 --retry-connrefused --connect-timeout 30 \\"
+    echo "    -o \"models/${MT_FILE_NAME}\" \\"
+    echo "    \"${QWEN_URL}\""
     echo ""
-    read -p "Do you want to download Qwen2.5-7B-Instruct GGUF now? (y/N): " -n 1 -r || true
+    read -p "Do you want to download ${MODEL_LABEL} now? (y/N): " -n 1 -r || true
     echo ""
     if [[ ${REPLY:-n} =~ ^[Yy]$ ]]; then
-        echo "Downloading Qwen2.5-7B-Instruct GGUF model (~5.44 GB)..."
-        curl -L --fail --progress-bar -C - -o "${MT_MODEL}" "${QWEN_URL}" || {
-            echo "Failed to download from HuggingFace. You can manually copy any GGUF model to models/qwen2.5-7b-instruct-q5_k_m.gguf"
-        }
+        echo "Downloading ${MODEL_LABEL}..."
+        if curl -L --fail --progress-bar -C - \
+            --retry 10 --retry-delay 3 --retry-connrefused --connect-timeout 30 \
+            -o "${MT_MODEL}" "${QWEN_URL}"; then
+            ln -sf "${MT_FILE_NAME}" "${MODELS_DIR}/${SYMLINK_TARGET}" 2>/dev/null || true
+            echo "✓ Download complete: ${MT_MODEL}"
+        else
+            echo "Failed to download from HuggingFace. You can manually copy any GGUF model to models/${MT_FILE_NAME}"
+        fi
     else
-        echo "Skipping GGUF download. Note: To run GPU stack with llama.cpp, place your GGUF model at models/qwen2.5-7b-instruct-q5_k_m.gguf"
+        echo "Skipping GGUF download. Note: To run GPU stack with llama.cpp, place your GGUF model at models/${MT_FILE_NAME}"
         echo "Or run in dev/CPU mode with: ./start.sh --cpu"
     fi
 else

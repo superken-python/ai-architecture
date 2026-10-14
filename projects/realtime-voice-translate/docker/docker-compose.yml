@@ -8,7 +8,7 @@ services:
       -m /models/${RVT_MT_MODEL_FILE:-qwen2.5-7b-instruct-q5_k_m.gguf}
       --host 0.0.0.0
       --port 8080
-      -c 8192
+      -c ${RVT_MT_CTX_SIZE:-8192}
       --parallel 4
       -ngl 99
     volumes:
