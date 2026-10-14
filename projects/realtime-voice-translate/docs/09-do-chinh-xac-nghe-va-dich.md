@@ -336,9 +336,9 @@
   Chạy hai lần `eval/mt_eval.py` với `--label` khác nhau, rồi so bằng `eval/mt_compare.py`:
 
   ```bash
-  docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --api-url http://mt:8080/v1 \\
+  docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --api-url http://mt:8080/v1 \
       --label qwen-q5 --out /tmp/mt_qwen.json
-  docker exec -e RVT_MT_API_KEY -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 \\
+  docker exec -e RVT_MT_API_KEY -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 \
       --api-url https://api.openai.com/v1 --model <tên model> --label <tên model> --out /tmp/mt_api.json
   docker exec -it rvt_ai uv run python eval/mt_compare.py /tmp/mt_qwen.json /tmp/mt_api.json --out /tmp/mt_compare.md
   ```
