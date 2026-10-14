@@ -332,6 +332,23 @@
   - một model chuyên dịch như Hunyuan-MT-7B. Repo đã có thư mục prompt `prompts/mt/hy-mt`, có lẽ để dành cho model
     này;
   - một model 7–9B mới hơn, như Qwen3-8B.
+- **Cách so chất lượng dịch với một model API** (không đo độ trễ hay nghe): cùng 168 câu, cùng glossary và ngữ cảnh.
+  Chạy hai lần `eval/mt_eval.py` với `--label` khác nhau, rồi so bằng `eval/mt_compare.py`:
+
+  ```bash
+  docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --api-url http://mt:8080/v1 \\
+      --label qwen-q5 --out /tmp/mt_qwen.json
+  docker exec -e RVT_MT_API_KEY -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 \\
+      --api-url https://api.openai.com/v1 --model <tên model> --label <tên model> --out /tmp/mt_api.json
+  docker exec -it rvt_ai uv run python eval/mt_compare.py /tmp/mt_qwen.json /tmp/mt_api.json --out /tmp/mt_compare.md
+  ```
+
+  - Khoá API truyền qua biến `RVT_MT_API_KEY`, không ghi vào dòng lệnh. Biến này phải có trong container `rvt_ai`.
+  - Với API lưu trữ, payload đổi sang dạng API (`hosted_payload` trong `mt_llama.py`): tối đa 4 chuỗi dừng, không
+    `top_p`, `max_completion_tokens`. Không có `temperature`, nên hai bên không dùng cùng temperature 0,1. Ghi điều này
+    khi báo kết quả.
+  - Đọc bảng `mt_compare.md` cùng điểm. chrF thiên về cách diễn đạt giống bản tham chiếu, mà bản tham chiếu do một model
+    viết nháp. Nên đọc khoảng 20 câu chênh nhiều nhất trước khi kết luận.
 - Chỉ đổi khi chrF ở cả (a) lẫn (b) tăng, và độ trễ p95 của bản dịch không tăng đáng kể.
 
 ## 6. Lộ trình đề xuất

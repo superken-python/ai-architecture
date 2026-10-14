@@ -129,6 +129,17 @@ def main() -> None:
     parser.add_argument("--no-context", action="store_true", help="không đưa 2 câu trước vào prompt")
     parser.add_argument("--pivot-en", action="store_true", help="dịch Nhật → Anh → Việt")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument(
+        "--model",
+        default="",
+        help="tên model khi gọi API lưu trữ (ví dụ một model OpenAI); để trống với llama.cpp cục bộ",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.environ.get("RVT_MT_API_KEY", ""),
+        help="khoá API (đọc từ RVT_MT_API_KEY để không lộ trên dòng lệnh); có khoá thì gọi API lưu trữ",
+    )
+    parser.add_argument("--label", default="", help="nhãn của lần chạy, ghi vào báo cáo để so sánh")
     parser.add_argument("--out", default="")
     args = parser.parse_args()
 
@@ -136,7 +147,7 @@ def main() -> None:
     if args.limit:
         refs = refs[: args.limit]
     glossary = load_glossary([n for n in args.glossary.split(",") if n.strip()], packs_dir=PACKS)
-    engine = LlamaCppMtEngine(api_url=args.api_url, timeout_sec=args.timeout)
+    engine = LlamaCppMtEngine(api_url=args.api_url, timeout_sec=args.timeout, api_key=args.api_key, model=args.model)
     translator = AppLikeTranslator(engine, glossary, use_context=not args.no_context, pivot_en=args.pivot_en)
     outs, secs = asyncio.run(translate_all([r["ja"] for r in refs], translator))
 
@@ -154,6 +165,7 @@ def main() -> None:
         "glossary": args.glossary,
         "context": not args.no_context,
         "pivot_en": args.pivot_en,
+        "label": args.label or args.model or args.api_url,
     }
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     worst = sorted(zip(sentence, refs, outs, strict=True), key=lambda x: x[0])[:10]

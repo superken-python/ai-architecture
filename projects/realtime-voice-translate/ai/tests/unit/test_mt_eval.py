@@ -32,3 +32,30 @@ def test_golden_1_references_are_complete():
     assert all(r["ja"].strip() and r["vi"].strip() for r in refs)
     assert not any(mt_eval.JA_REGEX.search(r["vi"]) for r in refs)
     assert [r["id"] for r in refs] == list(range(1, len(refs) + 1))
+
+
+def test_hosted_payload_fits_api_limits():
+    # API lưu trữ nhận tối đa 4 chuỗi dừng và không nhận top_p (docs 09 §5.6)
+    from rvt_ai.engines.mt_llama import hosted_payload
+
+    local = {"messages": [], "stream": True, "max_tokens": 64, "temperature": 0.1, "top_p": 0.7, "stop": ["\n"] * 25}
+    out = hosted_payload(local, "some-model")
+    assert out["model"] == "some-model" and out["stop"] == ["\n"]
+    assert "top_p" not in out and "temperature" not in out and "max_tokens" not in out
+    assert out["max_completion_tokens"] == 1024
+    assert "model" not in hosted_payload(local, "")
+
+
+def test_compare_script_rejects_different_sentence_sets(tmp_path):
+    import json
+    import subprocess
+    import sys
+
+    script = os.path.join(EVAL, "mt_compare.py")
+    row = {"id": 1, "speaker": "x", "ja": "a", "vi": "b", "mt": "b", "chrf": 100.0}
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    summary = {"chrf_corpus": 1, "chrf_sentence_mean": 1, "with_japanese_left": 0, "retries": 0, "latency_p95_s": 0}
+    a.write_text(json.dumps({**summary, "rows": [row]}), encoding="utf-8")
+    b.write_text(json.dumps({**summary, "rows": [{**row, "id": 2}]}), encoding="utf-8")
+    result = subprocess.run([sys.executable, script, str(a), str(b)], capture_output=True, text=True)
+    assert result.returncode != 0 and "không cùng bộ câu" in result.stderr

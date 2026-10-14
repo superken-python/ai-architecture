@@ -111,10 +111,30 @@ def build_messages(
     ]
 
 
+def hosted_payload(payload: dict, model: str) -> dict:
+    """Đổi payload của llama.cpp sang dạng API lưu trữ kiểu OpenAI (docs 09 §5.6, để so model).
+
+    API đó nhận tối đa 4 chuỗi dừng, không nhận top_p, và model mới có thể từ chối temperature khác mặc định hoặc dùng
+    max_completion_tokens thay max_tokens. Model suy luận còn tính token suy nghĩ vào giới hạn, nên giới hạn được nâng.
+    Bỏ các chuỗi dừng còn lại không sao: mt_validator và _is_babble vẫn bắt phần giải thích.
+    """
+    out = {k: v for k, v in payload.items() if k not in ("top_p", "temperature", "stop", "max_tokens")}
+    out["max_completion_tokens"] = max(1024, payload["max_tokens"])
+    out["stop"] = ["\n"]
+    if model:
+        out["model"] = model
+    return out
+
+
 class LlamaCppMtEngine(MtEngine):
-    def __init__(self, api_url: str = "http://mt:8080/v1", timeout_sec: float = 5.0):
+    def __init__(
+        self, api_url: str = "http://mt:8080/v1", timeout_sec: float = 5.0, api_key: str = "", model: str = ""
+    ):
         self.api_url = api_url.rstrip("/")
         self.timeout_sec = timeout_sec
+        # api_key khác rỗng: đang gọi API lưu trữ, không phải llama.cpp cục bộ (chỉ dùng cho so sánh model)
+        self.api_key = api_key
+        self.model = model
         self.prompt_loader = get_prompt_loader()
 
     @staticmethod
@@ -276,10 +296,17 @@ class LlamaCppMtEngine(MtEngine):
             ],
         }
 
+        headers: dict[str, str] = {}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+            payload = hosted_payload(payload, self.model)
+
         accumulated = ""
         async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
             try:
-                async with client.stream("POST", f"{self.api_url}/chat/completions", json=payload) as response:
+                async with client.stream(
+                    "POST", f"{self.api_url}/chat/completions", json=payload, headers=headers
+                ) as response:
                     response.raise_for_status()
                     async for line in response.aiter_lines():
                         if line.startswith("data: "):
