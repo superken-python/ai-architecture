@@ -16,7 +16,7 @@ Tài liệu này so các cách làm từ tốt nhất tới đơn giản nhất,
 
 **Lưu ý về nguồn.** Phần lớn số liệu về độ trễ, độ chính xác, ngôn ngữ hỗ trợ là do chính nhà cung cấp công bố, hoặc
 từ các trang so sánh không độc lập. Không có bộ đo chung nào cho tiếng Việt nói tự nhiên, nhiều người, có nhạc nền. Vì
-vậy kết luận ở đây là **danh sách ứng viên để đo**, không phải bảng xếp hạng cuối. Nguồn ở mục 11.
+vậy kết luận ở đây là **danh sách ứng viên để đo**, không phải bảng xếp hạng cuối. Nguồn ở mục 13.
 
 ## 1. Kết luận
 
@@ -37,6 +37,9 @@ vậy kết luận ở đây là **danh sách ứng viên để đo**, không ph
 7. **Trước mắt (mục 10):** tối ưu app hiện tại cho một người nói. Bỏ model dịch khi chỉ nghe để dành GPU cho phần nghe,
    dùng PhoWhisper cho tiếng Việt, làm bộ đo tiếng Anh và tiếng Việt. Song song đo Soniox, Deepgram trên cùng bộ đo để
    có mốc so sánh.
+8. **Theo hạ tầng (mục 11):** 8 GB đủ cho model chuyên tiếng Việt cỡ 0,6–1,5B; 24–32 GB cho phép chạy nhiều model,
+   model top bảng xếp hạng tiếng Anh và sửa lỗi bằng LLM; 48–80 GB cho fine-tune trên dữ liệu riêng. Muốn gần mức online
+   thì cần dữ liệu và bộ đo của mình, không phải AI agent (mục 12).
 
 ## 2. Bài toán và tiêu chí chọn
 
@@ -197,7 +200,7 @@ PhoWhisper + Sortformer) để biết khoảng cách nếu cần chạy hoàn to
 ## 9. Chi tiết phương án tự host mạnh nhất (Mức 2)
 
 Mục này nói rõ Mức 2 chạy thế nào, cấu hình ra sao, tốn bao nhiêu. Các con số độ trễ, VRAM, DER lấy từ tài liệu của
-dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 11.
+dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 13.
 
 ### 9.1 Các thành phần
 
@@ -430,7 +433,109 @@ Mỗi mục là một phép thử riêng, đo bằng bước A, giữ khi có l�
 - Lớp `SttProvider` trong app (việc 6). Bước E chỉ cần script đo, chưa cần cắm vào app.
 - GPU 24 GB, SimulStreaming, Sortformer (mục 9).
 
-## 11. Nguồn
+## 11. Lộ trình theo hạ tầng: chỉ phần nghe, một người nói, độ chính xác cao nhất
+
+Giả định: chế độ chỉ nghe, không chạy model dịch, cả GPU dành cho phần nghe. Các con số VRAM là ước tính từ số tham số,
+**phải đo lại** trên máy thật. Thứ hạng trên bảng xếp hạng chỉ là điểm xuất phát; quyết định theo bộ đo của mình (mục
+10.2).
+
+### 11.1 VRAM 8 GB (GPU hiện tại)
+
+| Ngôn ngữ | Ứng viên | Ghi chú |
+|---|---|---|
+| Tiếng Việt | **Parakeet-CTC-0.6B Vietnamese** (NVIDIA) | Huấn luyện trên hơn 4 000 giờ tiếng Việt, có dấu câu và thời gian từng từ, kèm n-gram LM (KenLM). Trên Vietnamese Open ASR Leaderboard, phần bảng xem được: O-WER trung bình 13,39, thấp nhất trong các dòng hiển thị (PhoWhisper-medium 17,98, Qwen3-ASR-1.7B 20,45). Chạy bằng NeMo, cần thêm engine mới. Giấy phép NVIDIA Community Model License |
+| Tiếng Việt | **PhoWhisper-large** qua CTranslate2 | Dùng được engine hiện có (mục 10.3) |
+| Tiếng Việt | ChunkFormer-CTC-Large-Vie | Dự phòng; cần engine CTC |
+| Tiếng Anh | Whisper large-v3 hoặc large-v3-turbo (int8_float16) | Đang dùng turbo |
+| Tiếng Anh | Parakeet-TDT-0.6B (NVIDIA) | Nhanh; một nguồn năm 2026 xếp nó đứng đầu trung bình WER, các nguồn khác xếp sau Cohere, IBM |
+
+Cách chạy: như app hiện tại (VAD cắt đoạn, chữ tạm 800 ms – 1,2 s, câu chốt), cộng các phép thử ở mục 10.4. Khoá ngôn
+ngữ theo phiên, chỉ nạp model của ngôn ngữ đó.
+
+### 11.2 VRAM 24 GB (L4, RTX 4090, A10)
+
+- **Hai tầng model:** model nhanh cho chữ tạm (Parakeet, turbo), model chính xác hơn cho câu chốt.
+- **Tiếng Anh, câu chốt:** các model đầu bảng Open ASR Leaderboard (mức WER trung bình khoảng 5,3–5,6%, cách nhau dưới
+  một điểm): **Granite Speech 4.1 2B** (IBM), **Cohere Transcribe 2B**, **Canary-Qwen-2.5B** (NVIDIA). Đều là encoder
+  Conformer cộng bộ giải mã LLM, chính xác hơn nhưng chậm hơn CTC/TDT. Phải kiểm giấy phép và tốc độ trên mỗi câu.
+- **Tiếng Việt:** chạy song song hai model (ví dụ Parakeet-vi và PhoWhisper-large), chọn hoặc gộp kết quả câu chốt (gộp
+  kiểu ROVER, hoặc chấm lại bằng n-gram LM tiếng Việt). Lợi ích phải đo; không có số công bố cho tiếng Việt.
+- **Nghe trực tiếp mượt hơn:** SimulStreaming với Whisper large-v3 (cần từ 10 GB) cho chế độ trộn Anh–Việt.
+- **Sửa lỗi bằng LLM (thử nghiệm):** một LLM 7–8B lượng tử 4-bit sửa dấu câu, chữ hoa, tên riêng theo danh sách của
+  phiên, dựa trên vài câu trước. Các nghiên cứu "generative error correction" cho thấy giảm WER, nhưng chưa có số riêng
+  cho tiếng Việt, và LLM có thể đổi đúng thành sai. Chỉ cho sửa dấu câu, chữ hoa và tên trong danh sách, giữ bản gốc để
+  so.
+
+### 11.3 VRAM 32 GB (RTX 5090)
+
+Như 24 GB, cộng:
+
+- LLM sửa lỗi lớn hơn (khoảng 14B, 4-bit) và vẫn đủ chỗ cho hai model nghe.
+- **Fine-tune ngay trên máy** các model 0,6–1,5B (Parakeet-vi, PhoWhisper, Whisper) bằng LoRA trên dữ liệu của mình. Đây
+  là bước tăng độ chính xác lớn nhất có thể làm local (mục 12).
+
+### 11.4 VRAM 48–80 GB (L40S, A100, H100)
+
+- **Fine-tune đầy đủ** Whisper large-v3 hoặc PhoWhisper-large trên vài trăm giờ dữ liệu cùng lĩnh vực.
+- Chạy nhiều model cùng lúc để gộp kết quả, LLM sửa lỗi cỡ lớn, nhiều phiên song song.
+- Model audio-LLM đa ngôn ngữ như Qwen3-ASR (0,6B và 1,7B, 52 ngôn ngữ). Trên bảng tiếng Việt kể trên, Qwen3-ASR-1.7B
+  kém Parakeet-vi và PhoWhisper, nên không ưu tiên cho tiếng Việt.
+
+### 11.5 Online API (mức cao nhất, không cần GPU)
+
+| Thứ tự thử | Dịch vụ | Lý do |
+|---|---|---|
+| 1 | **Soniox** (`stt-rt-v5`) | Công bố WER tiếng Việt 5,4%, tiếng Anh 6,5%, trực tiếp dưới 200 ms (số tự công bố) |
+| 2 | **Deepgram** (Nova-3) | Có trang riêng cho tiếng Việt trực tiếp, dưới 300 ms |
+| 3 | OpenAI `gpt-4o-transcribe` / `gpt-realtime-whisper`, Azure, Speechmatics, ElevenLabs | Một người nói thì không cần tách người, nên nhóm này cũng dùng được; chất lượng tiếng Việt phải đo |
+
+Với một người nói, tiêu chí tách người nói ở mục 3 không còn quan trọng, nên nhóm 3 trở thành ứng viên ngang hàng. Chọn
+theo WER trên bộ 1, 2 (mục 10.2).
+
+**Bảng tổng hợp:**
+
+| Hạ tầng | Tiếng Việt | Tiếng Anh | Kỹ thuật thêm | Công làm |
+|---|---|---|---|---|
+| 8 GB | Parakeet-vi hoặc PhoWhisper-large | large-v3 / turbo | Khoá ngôn ngữ, beam 5 câu chốt, đoạn dài hơn, two-pass | Nhỏ–vừa |
+| 24 GB | Hai model, gộp kết quả | Granite / Cohere / Canary cho câu chốt | Hai tầng model, SimulStreaming, LLM sửa dấu câu và tên | Vừa |
+| 32 GB | Như trên, fine-tune LoRA | Như trên | LLM sửa lỗi lớn hơn | Vừa–lớn |
+| 48–80 GB | Fine-tune đầy đủ | Fine-tune đầy đủ | Gộp nhiều model | Lớn |
+| Online | Soniox, Deepgram | Soniox, Deepgram, OpenAI | Danh sách từ khoá của dịch vụ | Nhỏ |
+
+## 12. Kỹ năng và cách làm để đạt gần mức online
+
+**Không cần "AI agent" để tăng độ chính xác.** Độ chính xác đến từ bốn thứ: model, dữ liệu, bộ đo và chất lượng audio
+đầu vào. Agent không thay được thứ nào trong đó.
+
+**Các dịch vụ online có lợi thế gì:** dữ liệu gán nhãn rất lớn, huấn luyện lại liên tục, model viết riêng cho chế độ
+trực tiếp, và đội ngũ chuyên làm việc này. Với tiếng Việt nói chung, khó vượt họ bằng model công khai. Nhưng trong **một
+lĩnh vực hẹp** (cùng kiểu người nói, cùng thuật ngữ), model nhỏ fine-tune trên dữ liệu của mình có thể bằng hoặc hơn. Ví
+dụ: VietASR báo cáo đạt chất lượng ngang công nghiệp chỉ với 50 giờ tiếng Việt có nhãn, cộng tiền huấn luyện trên lượng
+lớn audio không nhãn. Đây là đánh giá, phải kiểm bằng bộ đo.
+
+**Kỹ năng cần, theo thứ tự quan trọng:**
+
+1. **Đo lường:** làm bộ đo (bản chép tay chuẩn), tính WER đúng cách cho tiếng Việt, chạy lại tự động sau mỗi thay đổi.
+   Không có bước này thì mọi thay đổi đều là đoán.
+2. **Audio đầu vào:** mức thu, AGC, giảm ồn, chọn ngưỡng VAD, xử lý mic xa. Lỗi ở đây không model nào sửa được.
+3. **Phục vụ model:** NeMo, CTranslate2, có thể TensorRT; quản lý VRAM; chế độ trực tiếp (cắt đoạn, chữ tạm, chốt câu).
+4. **Dữ liệu:** thu và gán nhãn 50–500 giờ audio đúng lĩnh vực; quy chuẩn chép tay (số, từ tiếng Anh, tên riêng).
+5. **Fine-tune:** LoRA hoặc fine-tune đầy đủ cho Whisper, Parakeet; tránh model quên kiến thức chung.
+6. **LLM sửa lỗi có rào chắn:** chỉ cho sửa những gì được phép, luôn so với bản gốc.
+
+**AI giúp được ở đâu:**
+
+- **Agent viết code** (như Claude Code): viết nhanh engine mới, script đo, script fine-tune, chạy thử nghiệm hàng loạt.
+  Tăng tốc độ làm, không tăng độ chính xác của model.
+- **Model mạnh chép nháp dữ liệu:** dùng dịch vụ online tốt nhất chép nháp audio của mình, rồi người sửa lại. Cách này
+  làm dữ liệu fine-tune và bộ đo nhanh hơn nhiều so với chép tay từ đầu. Cần kiểm điều khoản dịch vụ khi dùng kết quả để
+  huấn luyện.
+- **LLM sửa lỗi sau nhận dạng:** là một kỹ thuật trong pipeline (mục 11.2), không phải agent.
+
+**Nhân lực tối thiểu:** một người làm ML/speech (đo, phục vụ model, fine-tune), một người backend/web, ngân sách gán
+nhãn dữ liệu.
+
+## 13. Nguồn
 
 Dịch vụ online:
 
@@ -489,3 +594,21 @@ Chi tiết tự host (mục 9):
 - Giá GPU: [Hostinger](https://www.hostinger.com/tutorials/?p=158956), [D-Central](https://d-central.tech/cloud-gpu-pricing/),
   [Jarvislabs](https://jarvislabs.ai/blog/a100-price), [Spheron](https://www.spheron.network/blog/h100-price-per-hour-2026/),
   [GPUnex](https://www.gpunex.com/blog/cloud-gpu-pricing-comparison-2026).
+
+Lộ trình theo hạ tầng và kỹ năng (mục 11, 12):
+
+- Parakeet tiếng Việt: [model card](https://build.nvidia.com/nvidia/parakeet-ctc-0_6b-vi/modelcard),
+  [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/-/collections/parakeet-ctc-0.6b-vi/-),
+  [diễn đàn NVIDIA](https://forums.developer.nvidia.com/t/parakeet-ctc-vietnamese-is-the-original-arpa-lm-available-for-n-gram-lm-interpolation-fine-tuning/365453).
+- [Vietnamese Open ASR Leaderboard](https://vietaudio-team-vietnamese-asr-leaderboard.hf.space/);
+  [Handy: model theo ngôn ngữ](https://models.handy.computer/languages/vi).
+- Open ASR Leaderboard: [GitHub](https://github.com/huggingface/open_asr_leaderboard),
+  [The Decoder](https://the-decoder.com/open-asr-leaderboard-tests-more-than-60-speech-recognition-models-for-accuracy-and-speed/),
+  [Cohere Transcribe](https://rits.shanghai.nyu.edu/ai/cohere-transcribe-2b-open-source-asr-model-takes-1-on-leaderboard/),
+  [Northflank](https://northflank.com/blog/best-open-source-speech-to-text-stt-model-in-2026-benchmarks),
+  [Slator](https://tech.slator.com/?p=109142).
+- [Gladia: model mã nguồn mở 2026](https://www.gladia.io/blog/best-open-source-speech-to-text-models) (Qwen3-ASR).
+- Sửa lỗi bằng LLM: [CoVoGER](https://preview.aclanthology.org/setup/2025.emnlp-main.320),
+  [LLM-based ASR và Whisper, có tiếng Việt](https://arxiv.org/pdf/2412.00721),
+  [GER với LLM](https://arxiv.org/html/2307.04172v1).
+- [VietASR: 50 giờ có nhãn](https://arxiv.org/abs/2505.21527v2).
