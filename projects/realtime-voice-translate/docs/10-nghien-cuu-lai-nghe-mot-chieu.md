@@ -432,6 +432,7 @@ Chưa chạy được ở đây vì sandbox không vào được YouTube, TED. S
 | 1 · Tiếng Anh | TED "Inside the mind of a master procrastinator" (Tim Urban) | khoảng 14 phút | Bản ghi của TED, trên ted.com và kênh YouTube TED | TED: CC BY-NC-ND (chỉ dùng phi thương mại, không sửa) |
 | 1 · Tiếng Anh | TED "The power of vulnerability" (Brené Brown) | khoảng 20 phút | Như trên | Như trên |
 | 1 · Tiếng Anh, dự phòng | TED-LIUM 3, phần test dài (11 bài TED nguyên bài) | mỗi bài 10–20 phút | Chép tay, dùng làm bộ đo dài trong các bài báo | CC BY-NC-ND 3.0, tải ở OpenSLR 51 |
+| 2 · Tiếng Việt (ưu tiên) | Bài TED của Trần Văn Phúc, `https://www.ted.com/talks/van_phuc_tr_n_di_b…` (link chưa đầy đủ) | chưa rõ | Người dùng xác nhận nói 100% tiếng Việt; chạy `--list` để kiểm có transcript tiếng Việt do người làm | Như TED |
 | 2 · Tiếng Việt | TEDxUAH "Viết mới biết" (Huỳnh Vĩnh Sơn, 2022) | khoảng 20 phút | Có trang transcript trên ted.com; phải kiểm đó là bản tiếng Việt (một nguồn cho thấy bản tiếng Anh) | Như TED; có chen từ tiếng Anh |
 | 2 · Tiếng Việt | TEDxHoangMinhGiamSt "Tại sao người cao tuổi lại là đại dương xanh ở Việt Nam?" (2022) | chưa rõ | Transcript tiếng Việt trên ted.com | Như TED |
 | 2 · Tiếng Việt, dự phòng | VietMed (hội thoại y khoa) | 16 giờ có nhãn | Chép tay | CC BY 4.0; lĩnh vực hẹp |
