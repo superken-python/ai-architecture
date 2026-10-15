@@ -9,11 +9,14 @@ giá là chưa ổn, nên phía UI sẽ làm lại từ đầu. Bước đầu t
 - chưa dịch, chưa hai chiều;
 - không giới hạn cấu hình server hay chi phí: chọn theo chất lượng trước.
 
+**Cập nhật 2026-10-15: thu hẹp phạm vi.** Làm trước **độ chính xác của một chiều, một người nói, một phiên**, trên app
+hiện tại (không đổi kiến trúc). Nhiều người nói, tách người nói và tab UI mới để sau. Kế hoạch ở mục 10.
+
 Tài liệu này so các cách làm từ tốt nhất tới đơn giản nhất, cả dịch vụ online lẫn model tự host, rồi đề xuất cách thử.
 
 **Lưu ý về nguồn.** Phần lớn số liệu về độ trễ, độ chính xác, ngôn ngữ hỗ trợ là do chính nhà cung cấp công bố, hoặc
 từ các trang so sánh không độc lập. Không có bộ đo chung nào cho tiếng Việt nói tự nhiên, nhiều người, có nhạc nền. Vì
-vậy kết luận ở đây là **danh sách ứng viên để đo**, không phải bảng xếp hạng cuối. Nguồn ở mục 9.
+vậy kết luận ở đây là **danh sách ứng viên để đo**, không phải bảng xếp hạng cuối. Nguồn ở mục 11.
 
 ## 1. Kết luận
 
@@ -31,6 +34,9 @@ vậy kết luận ở đây là **danh sách ứng viên để đo**, không ph
    tối đa 4 người ở bản trực tiếp chính.
 6. **Bước đầu:** dựng tab "Chỉ nghe" sau một lớp `SttProvider` chung, cắm Soniox và Deepgram trước, đo trên 4–5 bộ
    audio tiếng Anh và tiếng Việt (mục 7). Chọn theo số đo, không theo quảng cáo. Chi tiết phương án tự host ở mục 9.
+7. **Trước mắt (mục 10):** tối ưu app hiện tại cho một người nói. Bỏ model dịch khi chỉ nghe để dành GPU cho phần nghe,
+   dùng PhoWhisper cho tiếng Việt, làm bộ đo tiếng Anh và tiếng Việt. Song song đo Soniox, Deepgram trên cùng bộ đo để
+   có mốc so sánh.
 
 ## 2. Bài toán và tiêu chí chọn
 
@@ -191,7 +197,7 @@ PhoWhisper + Sortformer) để biết khoảng cách nếu cần chạy hoàn to
 ## 9. Chi tiết phương án tự host mạnh nhất (Mức 2)
 
 Mục này nói rõ Mức 2 chạy thế nào, cấu hình ra sao, tốn bao nhiêu. Các con số độ trễ, VRAM, DER lấy từ tài liệu của
-dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 10.
+dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 11.
 
 ### 9.1 Các thành phần
 
@@ -337,7 +343,94 @@ Theo yêu cầu không xét chi phí khi chọn, nhưng ghi lại để so.
 - **Whisper vẫn bịa câu** ở đoạn nhạc, im lặng. Vẫn cần VAD và bộ lọc như app hiện tại (doc 08 §3.3).
 - **GPU hiện có 8 GB không đủ:** cần GPU mới hoặc thuê cloud trước khi thử.
 
-## 10. Nguồn
+## 10. Kế hoạch trước mắt: app hiện tại, một chiều, một người nói, một phiên
+
+**Mục tiêu:** chữ hiện ra đúng nhất có thể khi một người nói liên tục bằng tiếng Việt hoặc tiếng Anh, trong một phiên.
+Giữ nguyên kiến trúc hiện tại: web thu âm → WebSocket → Silero VAD + segmenter → faster-whisper. Chưa làm tách người nói
+(việc 3) và tab UI mới (việc 4); hai việc này để sau khi có số đo.
+
+**Vì sao app hiện tại thua các phương án ở mục 3:**
+
+- GPU 8 GB đang chia cho model dịch Qwen2.5-7B Q5_K_M (khoảng 5,4 GB), nên phần nghe chỉ dùng được large-v3-turbo int8.
+- Một model cho mọi ngôn ngữ, chưa có model chuyên tiếng Việt.
+- Mọi lần chỉnh trước đây (doc 07–09) đều đo trên một video phim tiếng Nhật (golden_1). Chưa có số nào cho tiếng Việt
+  hay tiếng Anh.
+
+### 10.1 Thứ tự làm
+
+| Bước | Việc | Thay đổi | Xong khi |
+|---|---|---|---|
+| A | Bộ đo tiếng Việt, tiếng Anh (một người) | eval | Có WER, CER, độ trễ của bản hiện tại trên 2 bộ audio |
+| B | Chế độ chỉ nghe: không nạp, không gọi model dịch | server, cấu hình | GPU chỉ còn phần nghe; số ở bước A không giảm |
+| C | Tiếng Việt dùng PhoWhisper-large; tiếng Anh giữ large-v3-turbo hoặc thử large-v3 | server, model | WER tiếng Việt giảm rõ so với bước A |
+| D | Chỉnh tham số cho một người nói (mục 10.4) | cấu hình | Mỗi thay đổi được giữ chỉ khi WER giảm mà độ trễ không tăng quá mức đặt ra |
+| E (song song) | Đo Soniox, Deepgram trên cùng 2 bộ audio | eval | Có mốc chữ tốt nhất để so với bước C, D |
+
+Bước A làm trước vì mọi bước sau đều cần số để biết có lợi hay không. Đây là thứ tự đã chọn (việc 1, 2, 5 ở trao đổi
+ngày 2026-10-14), chỉ đổi lên làm bộ đo trước.
+
+### 10.2 Bước A — Bộ đo một người nói
+
+- **Bộ 1:** tiếng Anh, một người, 10–20 phút (podcast, bài giảng), có bản chép tay do người làm, không dùng phụ đề tự
+  động.
+- **Bộ 2:** tiếng Việt, một người, 10–20 phút (tin tức, bài giảng), cũng có bản chép tay chuẩn.
+- Nên có thêm một đoạn ngắn đọc qua mic thật ở khoảng 1–2 m, vì đó là cách người dùng sẽ nói.
+- **Số đo:**
+  - WER theo từ, sau chuẩn hoá chữ thường và bỏ dấu câu, **giữ dấu thanh** tiếng Việt. Thêm CER để so với các số cũ.
+  - Độ trễ: tới chữ tạm đầu tiên, tới câu chốt (p50, p95).
+  - Độ ổn định: số ký tự đã hiện bị sửa trên mỗi phút.
+  - Số câu bịa (chữ hiện ra ở đoạn không có lời).
+- **Công cụ:** `eval/golden_session.py` đã chạy cả phiên theo đồng hồ ảo, nhận `--side-lang vi` hoặc `en`. Phần chấm
+  hiện dùng CER theo ký tự (dành cho tiếng Nhật), cần thêm WER cho tiếng Việt và tiếng Anh.
+
+### 10.3 Bước B, C — Chế độ chỉ nghe và model theo ngôn ngữ
+
+- **Chỉ nghe:** phiên không có ngôn ngữ đích thì không gọi bộ dịch. Server khởi động không có container `mt`, nên GPU
+  chỉ còn faster-whisper và Silero VAD.
+- **Khoá ngôn ngữ cho phiên:** người dùng chọn Tiếng Việt hoặc English. Không tự nhận ngôn ngữ, vì với một người nói
+  một phiên thì việc này chỉ thêm rủi ro nhận nhầm.
+- **Tiếng Việt: PhoWhisper-large.** Cùng kiến trúc Whisper, nên chuyển được sang CTranslate2 và chạy bằng
+  `FasterWhisperEngine` hiện có:
+
+  ```bash
+  ct2-transformers-converter --model vinai/PhoWhisper-large --output_dir models/phowhisper-large-ct2 \
+      --quantization int8_float16
+  ```
+
+  Chưa chạy thử ở đây. Phải kiểm: file tokenizer có đủ không, VRAM, tốc độ mỗi lượt nhận dạng (PhoWhisper-large không
+  có bản turbo, nên chậm hơn large-v3-turbo).
+- **Tiếng Anh:** giữ large-v3-turbo. Khi đã bỏ model dịch, thử thêm large-v3 (không turbo) và so trên bộ 1.
+- **Phương án dự phòng cho tiếng Việt:** ChunkFormer-CTC-Large-Vie. Cần thêm một engine mới (CTC, không phải Whisper),
+  nên chỉ làm nếu PhoWhisper không đạt.
+
+### 10.4 Bước D — Chỉnh cho một người nói
+
+Mỗi mục là một phép thử riêng, đo bằng bước A, giữ khi có lợi:
+
+| Thử | Lý do | Rủi ro |
+|---|---|---|
+| Đoạn dài hơn: `max_ms` 4 000 → 6 000–8 000 ms | Một người nói liền; Whisper đúng hơn khi có nhiều ngữ cảnh, ít cắt giữa từ | Câu chốt đến muộn hơn |
+| `beam_size` 5 cho câu chốt (chữ tạm giữ 1) | Đã bỏ model dịch nên GPU còn dư. Trên golden_1 tiếng Nhật không có lợi (doc 09 §4.3), nhưng giọng rõ một người có thể khác | Chậm hơn mỗi lượt |
+| Prompt ngữ cảnh 2 câu trước (đã có) cộng danh sách tên riêng của phiên | Tên người, tên công ty, thuật ngữ | Trên golden_1 có thêm câu bịa (doc 09 §4.2); phải đo lại |
+| Ngưỡng VAD cho mic 1–2 m | Ngưỡng 0,4/0,25 hiện tại chọn cho tiếng Nhật trong phim | Bắt nhầm tiếng ồn |
+| Sửa lại sau (two-pass): sau mỗi 15–20 s, nhận dạng lại cả đoạn với beam lớn, thay các câu chốt gần nhất | Lượt dài hơn, nhiều ngữ cảnh hơn thì đúng hơn | Chữ đã chốt vẫn đổi; UI cần đánh dấu câu đã sửa |
+
+### 10.5 Bước E — Mốc so sánh online
+
+- Gửi đúng audio của bộ 1, 2 qua luồng trực tiếp của Soniox và Deepgram, chấm bằng cùng cách ở bước A.
+- Không cần sửa app: một script đo riêng, gửi audio theo nhịp thời gian thật như `scripts/replay_ws.py`.
+- **Quy tắc quyết định (đề xuất):** nếu WER tiếng Việt của bản local sau bước C, D kém mốc online tốt nhất quá vài điểm
+  tuyệt đối, cân nhắc dùng online cho tiếng Việt. Ngưỡng cụ thể chốt sau khi thấy số ở bước A.
+
+### 10.6 Chưa làm ở giai đoạn này
+
+- Tách người nói, nhãn S1, S2 (việc 3).
+- Tab "Chỉ nghe" mới (việc 4). Trước mắt dùng màn hình hiện tại, khoá nửa A theo ngôn ngữ cần đo, không chọn ngôn ngữ
+  đích.
+- Lớp `SttProvider` trong app (việc 6). Bước E chỉ cần script đo, chưa cần cắm vào app.
+- GPU 24 GB, SimulStreaming, Sortformer (mục 9).
+
+## 11. Nguồn
 
 Dịch vụ online:
 
