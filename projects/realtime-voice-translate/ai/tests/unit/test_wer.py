@@ -28,3 +28,24 @@ def test_score_text_skips_lines():
     ref = ["xin chào", "[nhạc mở đầu]", "hôm nay trời đẹp"]
     result = wer_mod.score_text(ref, [(2, 2)], "Xin chào. Hôm nay trời đẹp!")
     assert result["wer"] == 0 and result["ref_words"] == 6
+
+
+def test_vtt_to_lines_keeps_manual_cue_text_once():
+    fetch = pytest.importorskip("fetch_golden")
+    vtt = """WEBVTT
+Kind: captions
+Language: vi
+
+1
+00:00:01.000 --> 00:00:03.500
+<c>Xin chào</c> các bạn,
+
+2
+00:00:03.500 --> 00:00:06.000 align:start position:0%
+hôm nay chúng ta nói về
+chữ viết.
+
+00:00:06.000 --> 00:00:07.000
+hôm nay chúng ta nói về chữ viết.
+"""
+    assert fetch.vtt_to_lines(vtt) == ["Xin chào các bạn,", "hôm nay chúng ta nói về chữ viết."]

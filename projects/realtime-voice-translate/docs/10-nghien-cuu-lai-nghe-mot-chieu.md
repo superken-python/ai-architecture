@@ -381,8 +381,11 @@ Giữ nguyên kiến trúc hiện tại: web thu âm → WebSocket → Silero VA
   tới Hugging Face; lần đầu tải torch CPU và PhoWhisper (khoảng 3 GB). Chưa chạy thử được ở đây.
 - **Bộ đo:** [`eval/wer.py`](../eval/wer.py) tính WER theo từ và CER, giữ dấu thanh. `golden_session.py` tự thêm `wer`,
   `cer` khi `--side-lang vi` hoặc `en`, và dùng được profile `listen`. Còn thiếu chính bộ audio có bản chép tay (bộ 1,
-  bộ 2): cần người chọn video và chép tay.
+  bộ 2): xem danh sách nguồn ở mục 10.2 và `eval/fetch_golden.py`.
 - **Chưa làm:** Parakeet-CTC-0.6B Vietnamese (mục 11.1) cần NeMo và một engine mới; làm sau khi có số của PhoWhisper.
+- **Giấy phép PhoWhisper:** file LICENSE trong repo GitHub VinAIResearch/PhoWhisper là BSD 3-Clause (Copyright 2024
+  VinAI). Model card trên Hugging Face chưa đọc được trực tiếp. PhoWhisper fine-tune từ Whisper (MIT). README yêu cầu
+  trích dẫn bài báo khi dùng để công bố kết quả hoặc đưa vào phần mềm khác.
 
 ### 10.1 Thứ tự làm
 
@@ -410,6 +413,37 @@ ngày 2026-10-14), chỉ đổi lên làm bộ đo trước.
   - Số câu bịa (chữ hiện ra ở đoạn không có lời).
 - **Công cụ:** `eval/golden_session.py` đã chạy cả phiên theo đồng hồ ảo, nhận `--side-lang vi` hoặc `en`. Phần chấm
   hiện dùng CER theo ký tự (dành cho tiếng Nhật), cần thêm WER cho tiếng Việt và tiếng Anh.
+
+**Nguồn audio có bản chép tay do người làm** (cập nhật 2026-10-15). YouTube dùng được, với một điều kiện: video phải
+có **phụ đề do người tải lên**, không phải phụ đề tự động. Phụ đề tự động là đầu ra của một model nhận dạng khác, không
+dùng làm đáp án được. [`eval/fetch_golden.py`](../eval/fetch_golden.py) kiểm điều này, tải audio cùng phụ đề người làm,
+và dừng nếu chỉ có phụ đề tự động:
+
+```bash
+uv run --no-project --with yt-dlp python eval/fetch_golden.py URL --list            # xem có phụ đề người làm không
+uv run --no-project --with yt-dlp python eval/fetch_golden.py URL --lang vi --name golden_vi_1
+```
+
+Script cũng nhận link ted.com. Audio không commit (`eval/.gitignore`); phụ đề, `url.txt`, `source.json` thì commit.
+Chưa chạy được ở đây vì sandbox không vào được YouTube, TED. Sau khi tải, nên nghe lại vài đoạn để chắc phụ đề khớp lời.
+
+| Bộ | Ứng viên | Độ dài | Bản chép tay | Giấy phép, ghi chú |
+|---|---|---|---|---|
+| 1 · Tiếng Anh | TED "Inside the mind of a master procrastinator" (Tim Urban) | khoảng 14 phút | Bản ghi của TED, trên ted.com và kênh YouTube TED | TED: CC BY-NC-ND (chỉ dùng phi thương mại, không sửa) |
+| 1 · Tiếng Anh | TED "The power of vulnerability" (Brené Brown) | khoảng 20 phút | Như trên | Như trên |
+| 1 · Tiếng Anh, dự phòng | TED-LIUM 3, phần test dài (11 bài TED nguyên bài) | mỗi bài 10–20 phút | Chép tay, dùng làm bộ đo dài trong các bài báo | CC BY-NC-ND 3.0, tải ở OpenSLR 51 |
+| 2 · Tiếng Việt | TEDxUAH "Viết mới biết" (Huỳnh Vĩnh Sơn, 2022) | khoảng 20 phút | Có trang transcript trên ted.com; phải kiểm đó là bản tiếng Việt (một nguồn cho thấy bản tiếng Anh) | Như TED; có chen từ tiếng Anh |
+| 2 · Tiếng Việt | TEDxHoangMinhGiamSt "Tại sao người cao tuổi lại là đại dương xanh ở Việt Nam?" (2022) | chưa rõ | Transcript tiếng Việt trên ted.com | Như TED |
+| 2 · Tiếng Việt, dự phòng | VietMed (hội thoại y khoa) | 16 giờ có nhãn | Chép tay | CC BY 4.0; lĩnh vực hẹp |
+| 2 · Tiếng Việt, dự phòng | FLEURS tiếng Việt, ghép các câu test thành 10–15 phút | câu ngắn | Chép tay | Giọng đọc, không phải nói tự nhiên; giấy phép cần kiểm trên model card |
+| 2 · Tiếng Việt, dự phòng | VLSP 2020/2021 | — | Chép tay | Phải đăng ký, chỉ dùng nghiên cứu |
+
+Ghi chú:
+- Bản ghi TEDx do tình nguyện viên làm và có người duyệt trước khi đăng. Chương trình TED Translators đang tạm dừng để
+  chuyển sang CaptionHub, nên một số bài có thể chưa có transcript.
+- Kênh TEDx trên YouTube thường chỉ có phụ đề tự động, nên tải qua link ted.com hoặc chạy `--list` để kiểm trước.
+- Tải video YouTube có thể trái điều khoản của YouTube. Chỉ dùng để đo nội bộ, ưu tiên video TED hoặc video gắn giấy
+  phép Creative Commons.
 
 ### 10.3 Bước B, C — Chế độ chỉ nghe và model theo ngôn ngữ
 
@@ -637,3 +671,18 @@ Lộ trình theo hạ tầng và kỹ năng (mục 11, 12):
   [LLM-based ASR và Whisper, có tiếng Việt](https://arxiv.org/pdf/2412.00721),
   [GER với LLM](https://arxiv.org/html/2307.04172v1).
 - [VietASR: 50 giờ có nhãn](https://arxiv.org/abs/2505.21527v2).
+
+Nguồn audio để đo, giấy phép PhoWhisper (mục 10):
+
+- [PhoWhisper GitHub](https://github.com/VinAIResearch/PhoWhisper),
+  [LICENSE](https://raw.githubusercontent.com/VinAIResearch/PhoWhisper/main/LICENSE).
+- TED: [Tim Urban](https://amara.org/videos/135ZqIglxZ0K/info/inside-the-mind-of-a-master-procrastinator-tim-urban),
+  [Viết mới biết](https://www.ted.com/talks/son_huynh_vinh_write_to_know_vi_t_m_i_bi_t),
+  [Đại dương xanh](https://www.ted.com/talks/anh_ngo_thuy_why_is_elderly_people_market_a_blue_ocean_in_vietnam),
+  [TEDx translations](https://www.ted.com/pages/tedx-translations),
+  [điều khoản TED Translators](https://www.ted.com/participate/translate/translator-resources/otp-terms-and-conditions).
+- [TED-LIUM 3](https://voxkitchen.readthedocs.io/en/latest/datasets/tedlium3/),
+  [long-form benchmarks](https://arxiv.org/pdf/2309.15013).
+- [VietMed](https://arxiv.org/html/2404.05659);
+  [danh sách dữ liệu tiếng Việt](https://github.com/lienlt10/awesome-vietnamese-speech-datasets).
+- [YouTube Creative Commons](https://support.google.com/youtube/answer/2797468?hl=en-GB).
