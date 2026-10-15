@@ -51,7 +51,7 @@ def vtt_to_lines(vtt: str) -> list[str]:
 
 def _manual_track(info: dict, lang: str) -> str | None:
     """Mã phụ đề người làm khớp ngôn ngữ (vi, vi-VN, en-US...)."""
-    for code in (info.get("subtitles") or {}):
+    for code in info.get("subtitles") or {}:
         if code == lang or code.split("-")[0] == lang:
             return code
     return None
