@@ -1,0 +1,28 @@
+name: "listen"
+description: "Chỉ nghe, không dịch, một người nói, GPU 8 GB (docs 10 §10, §11.1)"
+# Khoá ngôn ngữ theo phiên (nửa A của web): tiếng Việt dùng PhoWhisper-large, tiếng Anh dùng large-v3-turbo.
+# Không có container dịch, nên cả GPU dành cho phần nghe.
+vad:
+  engine: "silero"
+  # Bắt đầu bằng ngưỡng của profile balanced; chỉnh lại theo bộ đo tiếng Việt, tiếng Anh (docs 10 §10.4)
+  threshold: 0.4
+  neg_threshold: 0.25
+  min_speech_ms: 200
+  min_silence_ms: 500
+  speech_pad_ms: 200
+  preroll_ms: 400
+  max_ms: 4000
+  hard_max_ms: 6000
+  partial_interval_ms: 800
+asr:
+  engine: "faster-whisper"
+  model: "large-v3-turbo"
+  models:
+    # Thư mục models/phowhisper-large-ct2, tạo bằng scripts/prepare_listen_models.sh. Chưa có thì dùng large-v3-turbo.
+    vi: "phowhisper-large-ct2"
+    en: "large-v3-turbo"
+  device: "cuda"
+  compute_type: "int8_float16"
+mt:
+  engine: "none"
+  model: "none"

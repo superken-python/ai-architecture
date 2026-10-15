@@ -28,6 +28,9 @@ Xem docs/08-ra-soat-ban-cai-dat-07.md §2.
     # kèm chấm dịch cả chuỗi
     docker exec -it rvt_ai uv run python eval/golden_session.py --golden eval/golden_1 --skip-lines 12-25,180- \\
         --mt-url http://mt:8080/v1
+    # chế độ chỉ nghe, tiếng Việt một người nói: thêm WER, CER (docs 10 §10.2)
+    docker exec -it rvt_ai uv run python eval/golden_session.py --golden eval/golden_vi_1 --side-lang vi \\
+        --profile packs/profiles/listen.yaml --capture mic
 """
 
 import argparse
@@ -49,10 +52,12 @@ import yaml
 from golden_eval import load_audio, norm, parse_ranges, score
 from loguru import logger
 from rvt_ai.engines.asr_whisper import FasterWhisperEngine
+from rvt_ai.engines.registry import build_asr_engine
 from rvt_ai.engines.vad_silero import SileroVadEngine
 from rvt_ai.packs.loader import ProfileConfig
 from rvt_ai.pipeline.segmenter import SegmenterConfig
 from rvt_contracts.messages import MtFinal, SessionStart, SideConfig
+from wer import score_text
 
 FRAME = 640  # 40 ms PCM16 mono 16 kHz, như AudioWorklet của web app
 HALLUCINATION = re.compile(r"ご視聴|チャンネル登録|^[\s・…。]*(?:おわり|終わり|字幕)[\s・…。！!]*$")
@@ -175,7 +180,10 @@ def run_session(
 
     cfg = SegmenterConfig(**profile.vad.model_dump(exclude={"engine"}))
     vad = SileroVadEngine(model_dir=models_dir)
-    session = session_mod.RVTSession("golden", vad, asr, None, send_event, segmenter_config=cfg)
+    # Bộ dịch không được gọi (_run_mt bị thay bằng record_mt), chỉ cần khác None để session đưa câu đi dịch. Profile chỉ
+    # nghe (mt: none) thì không có bộ dịch, như trên server (docs 10 §10.3).
+    mt = None if profile.mt.engine == "none" else object()
+    session = session_mod.RVTSession("golden", vad, asr, mt, send_event, segmenter_config=cfg)
     session._run_mt = types.MethodType(record_mt, session)
     n = len(pcm) // FRAME
 
@@ -261,7 +269,11 @@ def main() -> None:
     compute_type = args.compute_type or profile.asr.compute_type
     if device == "cpu" and compute_type == "int8_float16":
         compute_type = "int8"
-    asr = FasterWhisperEngine(model_size=profile.asr.model, device=device, compute_type=compute_type)
+    if profile.asr.models:
+        # Mỗi ngôn ngữ một model, như profile listen (docs 10 §10.3)
+        asr = build_asr_engine(profile.asr, device=device, compute_type=compute_type)
+    else:
+        asr = FasterWhisperEngine(model_size=profile.asr.model, device=device, compute_type=compute_type)
     print(f"Audio {len(pcm) / 16000:.0f} s · profile {profile.name} · ASR {device}/{compute_type}", flush=True)
 
     events, logs, mt_requests = run_session(
@@ -295,6 +307,10 @@ def main() -> None:
     ref_lines = Path(ref_path).read_text(encoding="utf-8").splitlines()
     result = score(ref_lines, parse_ranges(args.skip_lines), text)
     summary.update({k: v for k, v in result.items() if k != "missed_lines"})
+    if args.side_lang in ("vi", "en"):
+        # Tiếng Việt, tiếng Anh: WER theo từ, giữ dấu thanh (docs 10 §10.2)
+        spaced = " ".join(c["text"] for c in screen["finals"])
+        summary.update(score_text(ref_lines, parse_ranges(args.skip_lines), spaced))
     if args.mt_url:
         summary.update(translate_requests(mt_requests, args.golden, args.mt_url, args.glossary, args.target))
     if args.max_seconds:

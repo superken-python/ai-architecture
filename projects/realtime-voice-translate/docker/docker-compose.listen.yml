@@ -1,0 +1,55 @@
+# Chế độ chỉ nghe trên GPU 8 GB (docs 10 §10): không có container dịch (mt), cả GPU dành cho phần nghe.
+# Khởi động: ./start.sh --listen. Chuẩn bị model: ./scripts/prepare_listen_models.sh
+services:
+  ai:
+    build:
+      context: ../ai
+      dockerfile: Dockerfile
+    container_name: rvt_ai
+    runtime: nvidia
+    restart: unless-stopped
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - RVT_USE_FAKE=0
+      - RVT_MODELS_DIR=/models
+      - RVT_PROFILE=listen
+      - RVT_VAD_PROBE=${RVT_VAD_PROBE:-true}
+      # beam_size cho câu chốt; 1 như trước, thử 5 khi đo (docs 10 §10.4)
+      - RVT_ASR_FINAL_BEAM_SIZE=${RVT_ASR_FINAL_BEAM_SIZE:-1}
+    volumes:
+      - ../models:/models
+      - ../config:/app/config:ro
+      - ../packs:/app/packs:ro
+      - ../prompts:/app/prompts:ro
+      - ../ai/src:/app/src:ro
+      - ../eval:/app/eval:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/ready"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      # Nạp hai model nhận dạng lúc khởi động
+      start_period: 60s
+    networks:
+      - rvt_web_net
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    container_name: rvt_web
+    restart: unless-stopped
+    ports:
+      - "8443:443"
+      - "8080:80"
+    volumes:
+      - ../config/tls:/etc/nginx/tls:ro
+    depends_on:
+      ai:
+        condition: service_healthy
+    networks:
+      - rvt_web_net
+
+networks:
+  rvt_web_net:
+    name: rvt_web_net

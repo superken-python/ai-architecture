@@ -44,7 +44,12 @@ else
     echo "✓ Silero VAD ${SILERO_VAD_VERSION} already exists: ${VAD_MODEL}"
 fi
 
-# 2. Check or download MT GGUF model (Qwen2.5-7B-Instruct Q5_K_M)
+# 2. Check or download MT GGUF model (Qwen2.5-7B-Instruct Q5_K_M). Chế độ chỉ nghe không cần: RVT_SKIP_MT=1
+if [[ "${RVT_SKIP_MT:-0}" == "1" ]]; then
+    echo "Skipping MT GGUF model (RVT_SKIP_MT=1, listen-only)"
+    echo "======================================================"
+    exit 0
+fi
 MT_FILE_NAME="${RVT_MT_MODEL_FILE:-qwen2.5-7b-instruct-q5_k_m.gguf}"
 MT_MODEL="${MODELS_DIR}/${MT_FILE_NAME}"
 MODEL_LABEL="Qwen2.5-7B-Instruct Q5_K_M (~5.44 GB)"

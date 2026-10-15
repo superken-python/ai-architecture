@@ -18,11 +18,15 @@ interface MeetingUtteranceCardProps {
   targetLang: string;
   primaryLang: string;
   fontSize: number;
+  listenOnly: boolean;
 }
 
-const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetLang, primaryLang, fontSize }) => {
+const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetLang, primaryLang, fontSize, listenOnly }) => {
   const rawTrans = u.translations[targetLang];
-  const trans = rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? "" : "… đang dịch");
+  // Chỉ nghe: không có bản dịch, dòng chính là chữ gốc (docs 10 §10.3)
+  const trans = listenOnly
+    ? u.originalText
+    : rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? "" : "… đang dịch");
   const spokenLang = u.originalLang || primaryLang;
   const conf = u.langProbs?.[spokenLang] ? ` ${Math.round(u.langProbs[spokenLang] * 100)}%` : "";
 
@@ -47,9 +51,11 @@ const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetL
         {!u.isFinal && <span style={{ color: '#f59e0b', fontStyle: 'italic' }}>● đang xử lý...</span>}
       </div>
 
-      <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
-        {u.originalText}
-      </div>
+      {!listenOnly && (
+        <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+          {u.originalText}
+        </div>
+      )}
 
       <div style={{ fontSize: `${fontSize + 2}px`, fontWeight: 600, color: '#f8fafc', lineHeight: 1.35 }}>
         {trans || (u.isFinal ? u.originalText : "… đang dịch")}
@@ -77,7 +83,8 @@ const App: React.FC = () => {
     setMeetingMode,
     setSideConfig,
     clearError,
-    clearHistory
+    clearHistory,
+    listenOnly
   } = useStore();
 
   const handleMeetingModeChange = (mode: boolean) => {
@@ -238,7 +245,9 @@ const App: React.FC = () => {
           } else {
             // Other side spoke: main text is translation into this side's language
             const rawTrans = u.translations[primaryLang];
-            mainText = rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? u.originalText : "… đang dịch");
+            mainText = listenOnly
+              ? u.originalText
+              : rawTrans ? cleanTranslationText(rawTrans) : (u.isFinal ? u.originalText : "… đang dịch");
           }
 
           const hasBadge = (isOriginal && !!badgeText) || !u.isFinal;
@@ -509,6 +518,7 @@ const App: React.FC = () => {
                     targetLang={targetLang}
                     primaryLang={primaryLang}
                     fontSize={fontSizeA}
+                    listenOnly={listenOnly}
                   />
                 );
               })

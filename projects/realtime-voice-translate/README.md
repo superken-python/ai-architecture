@@ -56,6 +56,9 @@ Nền tảng cấu trúc: [best practice dự án Python AI](../python-ai-projec
 
 - So với baseline: <điền sau P5>
 - Demo: `make up` → điện thoại cùng Wi-Fi (đã cài CA nội bộ) mở `https://<IP máy GPU>:8443`
+- Chỉ nghe (tiếng Việt, tiếng Anh, GPU 8 GB, không dịch): `make models-listen` rồi `make up-listen`; xoá model không dùng
+  bằng `make clean-models` (xem trước) và `make clean-models YES=1` (xoá). Xem
+  [docs/10](docs/10-nghien-cuu-lai-nghe-mot-chieu.md) §10.
 - Giới hạn và rủi ro: xem mục 14 của kế hoạch
 
 ## Kỹ năng sẽ luyện

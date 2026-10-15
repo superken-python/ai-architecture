@@ -24,6 +24,9 @@ class VadConfig(BaseModel):
 class AsrConfig(BaseModel):
     engine: str = "fake"
     model: str = "fake"
+    # Model riêng theo ngôn ngữ của phiên, ví dụ {"vi": "phowhisper-large-ct2"}: tên model faster-whisper, repo Hugging
+    # Face, hoặc thư mục đã chuyển sang CTranslate2 trong models/ (docs 10 §10.3). Ngôn ngữ khác dùng `model`.
+    models: dict[str, str] = {}
     device: str = "cpu"
     compute_type: str = "float32"
 

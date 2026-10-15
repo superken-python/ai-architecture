@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ProfileType = Literal["fake", "cpu-dev", "fast", "balanced", "quality"]
+ProfileType = Literal["fake", "cpu-dev", "fast", "balanced", "quality", "listen"]
 
 
 class Settings(BaseSettings):
@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     GLOSSARIES: str = "default"
     # Khi thu âm tab: nhận dạng thêm vùng audio to mà VAD bỏ sót (docs 09 §4.1). Tắt bằng RVT_VAD_PROBE=false
     VAD_PROBE: bool = True
+    # beam_size cho lượt nhận dạng chốt câu; chữ tạm luôn dùng 1 (docs 10 §10.4). 1 = như trước
+    ASR_FINAL_BEAM_SIZE: int = 1
 
     # Security
     API_KEY: str = ""

@@ -359,6 +359,31 @@ Giữ nguyên kiến trúc hiện tại: web thu âm → WebSocket → Silero VA
 - Mọi lần chỉnh trước đây (doc 07–09) đều đo trên một video phim tiếng Nhật (golden_1). Chưa có số nào cho tiếng Việt
   hay tiếng Anh.
 
+**Cập nhật 2026-10-15: đã làm bước B, C và phần chấm WER của bước A**, có test. Chưa chạy trên GPU thật, chưa có số.
+
+- **Profile `listen`** ([`packs/profiles/listen.yaml`](../packs/profiles/listen.yaml)): `mt.engine: none`, tiếng Việt
+  dùng `phowhisper-large-ct2`, tiếng Anh dùng `large-v3-turbo`, `int8_float16`.
+  - Server không tạo bộ dịch; session chỉ gửi chữ nhận dạng. API `/v1/translate` trả 503.
+  - [`LanguageRoutedAsrEngine`](../ai/src/rvt_ai/engines/asr_routed.py) nạp mọi model lúc khởi động và chọn model theo
+    ngôn ngữ khoá của phiên. Thiếu thư mục PhoWhisper thì tiếng Việt tạm dùng large-v3-turbo, có cảnh báo trong log.
+  - `RVT_ASR_FINAL_BEAM_SIZE` (mặc định 1) đặt beam cho câu chốt, để thử ở bước D.
+  - Web nhận `models.mt = "none"` trong `session.ready` và hiện chữ gốc thay cho "… đang dịch".
+- **Chạy** (trên máy GPU):
+
+  ```bash
+  ./scripts/prepare_listen_models.sh   # Silero VAD, PhoWhisper-large → CTranslate2, large-v3-turbo
+  ./start.sh --listen --build          # chỉ container ai và web, không có container dịch
+  ./scripts/remove_unused_models.sh    # liệt kê model không dùng (Qwen .gguf, model Whisper cũ)
+  ./scripts/remove_unused_models.sh --yes
+  ```
+
+  Trên web: khoá nửa A là Tiếng Việt hoặc English, rồi bật mic. `prepare_listen_models.sh` cần `uv` trên máy và mạng
+  tới Hugging Face; lần đầu tải torch CPU và PhoWhisper (khoảng 3 GB). Chưa chạy thử được ở đây.
+- **Bộ đo:** [`eval/wer.py`](../eval/wer.py) tính WER theo từ và CER, giữ dấu thanh. `golden_session.py` tự thêm `wer`,
+  `cer` khi `--side-lang vi` hoặc `en`, và dùng được profile `listen`. Còn thiếu chính bộ audio có bản chép tay (bộ 1,
+  bộ 2): cần người chọn video và chép tay.
+- **Chưa làm:** Parakeet-CTC-0.6B Vietnamese (mục 11.1) cần NeMo và một engine mới; làm sau khi có số của PhoWhisper.
+
 ### 10.1 Thứ tự làm
 
 | Bước | Việc | Thay đổi | Xong khi |

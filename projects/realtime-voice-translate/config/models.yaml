@@ -6,6 +6,13 @@ models:
       device: "cuda"
       compute_type: "int8_float16"
       license: "MIT"
+    phowhisper-large-ct2:
+      # Tiếng Việt cho profile listen; chuyển sang CTranslate2 bằng scripts/prepare_listen_models.sh (docs 10 §10.3)
+      repo: "vinai/PhoWhisper-large"
+      dir: "phowhisper-large-ct2"
+      device: "cuda"
+      compute_type: "int8_float16"
+      license: "chưa kiểm"  # xem repo VinAIResearch/PhoWhisper trước khi dùng cho sản phẩm
     tiny:
       repo: "Systran/faster-whisper-tiny"
       revision: "main"
