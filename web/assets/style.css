@@ -384,6 +384,17 @@ a.skill-card:hover { text-decoration: none; border-color: var(--border-strong); 
 .group-card { display: flex; flex-direction: column; gap: 8px; color: var(--text); }
 a.group-card:hover { text-decoration: none; border-color: var(--border-strong); }
 .group-card .q { color: var(--text-2); font-size: 0.92rem; margin: 0; }
+
+/* ───────── trang tài liệu ───────── */
+.doc-section + .doc-section { margin-top: 8px; }
+.doc-section { scroll-margin-top: 72px; } /* nhảy tới nhóm mà tiêu đề không bị header dính che */
+@media (max-width: 760px) { .doc-section { scroll-margin-top: 112px; } }
+.doc-section > .muted { margin-top: 4px; }
+.doc-card { display: flex; flex-direction: column; gap: 8px; color: var(--text); min-width: 0; }
+a.doc-card:hover { text-decoration: none; border-color: var(--border-strong); }
+.doc-card h3 { margin: 0; font-size: 1rem; }
+.doc-card p { margin: 0; color: var(--text-2); font-size: 0.92rem; }
+.doc-card .doc-path { margin-top: auto; color: var(--text-3); overflow-wrap: anywhere; }
 .group-num { font-size: 0.8rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
 
 .quiz { display: flex; flex-direction: column; gap: 14px; }

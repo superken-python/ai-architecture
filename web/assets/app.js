@@ -239,9 +239,9 @@
             .join("")}</ul>
         </div>
         <div class="card">
-          <h3>Tài liệu chi tiết trên GitHub</h3>
-          <ul class="list-dots">${["setup", "problem_map", "skill_map", "architecture", "combining", "tokens", "agent_landscape", "checklist", "history"]
-            .map((k) => `<li>${docLink(k)}</li>`)
+          <div class="spread"><h3>Tài liệu</h3><a href="#/tai-lieu">Tất cả →</a></div>
+          <ul class="list-dots">${D.meta.doc_sections
+            .map((sec) => `<li><a href="#/tai-lieu/${esc(sec.id)}">${esc(sec.title)}</a> <span class="muted">· ${sec.items.length} tài liệu</span></li>`)
             .join("")}</ul>
         </div>
       </div>`,
@@ -803,6 +803,40 @@
     };
   }
 
+  // ───────────────────────── trang: tài liệu ─────────────────────────
+  function docCard(key) {
+    const d = D.meta.docs[key];
+    return `<a class="card doc-card" href="${esc(d.url)}" target="_blank" rel="noopener">
+      <div class="spread"><h3>${esc(d.title)}</h3>${d.tag ? `<span class="badge">${esc(d.tag)}</span>` : ""}</div>
+      <p>${esc(d.desc)}</p>
+      <span class="mono doc-path">${esc(d.path)}</span>
+    </a>`;
+  }
+
+  function pageDocs(param) {
+    const sections = D.meta.doc_sections;
+    const jump = sections
+      .map((sec) => `<a class="chip" href="#/tai-lieu/${esc(sec.id)}">${esc(sec.title)} <span class="mono">${sec.items.length}</span></a>`)
+      .join("");
+    const body = sections
+      .map(
+        (sec) => `<section class="doc-section" id="docs-${esc(sec.id)}">
+          <div class="section-title"><h2>${esc(sec.title)}</h2></div>
+          <p class="muted">${esc(sec.desc)}</p>
+          <div class="grid grid-2">${sec.items.map(docCard).join("")}</div>
+        </section>`
+      )
+      .join("");
+    return {
+      title: "Tài liệu",
+      focus: param && sections.some((sec) => sec.id === param) ? `docs-${param}` : null,
+      html: `<div class="page-head"><h1>Tài liệu</h1>
+          <p>Tài liệu viết tay của repo, chia theo chủ đề. Mỗi thẻ mở bản Markdown trên GitHub.</p>
+          <div class="row">${jump}</div></div>
+        ${body}`,
+    };
+  }
+
   function pageNotFound() {
     return { title: "Không tìm thấy", html: `<div class="page-head"><h1>Không tìm thấy trang</h1><p><a href="#/">Về trang tổng quan</a></p></div>` };
   }
@@ -815,6 +849,7 @@
     nhom: (p) => (p ? pageGroup(p) : pageGroups()),
     "ma-tran": pageMatrix,
     "to-hop": pageCombos,
+    "tai-lieu": pageDocs,
     "tien-do": pageProgress,
   };
   const app = () => document.getElementById("app");
@@ -836,6 +871,12 @@
       if (a.getAttribute("data-nav") === path) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
     });
+    // Menu cuộn ngang trên mobile: kéo mục đang mở vào giữa tầm nhìn (chỉ cuộn menu, không cuộn trang).
+    const nav = document.querySelector(".site-nav");
+    const current = nav && nav.querySelector('[aria-current="page"]');
+    if (current && nav.scrollWidth > nav.clientWidth) {
+      nav.scrollLeft = current.offsetLeft - nav.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+    }
     if (page.after) page.after();
     if (keepScroll) window.scrollTo(0, y);
     else if (page.focus && document.getElementById(page.focus)) document.getElementById(page.focus).scrollIntoView({ block: "start" });

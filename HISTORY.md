@@ -10,6 +10,20 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-17 · Trang web: menu "Tài liệu" gom mọi tài liệu theo chủ đề
+
+**Đã làm**
+
+- Menu mới **Tài liệu** (`#/tai-lieu`, nhảy thẳng tới nhóm bằng `#/tai-lieu/<nhóm>`): 21 tài liệu chia 4 nhóm — Nền tảng
+  lộ trình, AI Agent (Nhóm 7), Lab và dự án, Theo dõi công việc; mỗi thẻ có mô tả một dòng, nhãn (Tài liệu sống, Có code
+  chạy được, Tự học, ...) và đường dẫn trong repo, mở bản Markdown trên GitHub.
+- Nhóm AI Agent đưa lên web các tài liệu trước đây chưa có: so sánh cơ chế agent, harness Agno → LangChain, lab LLM-05,
+  bảng so sánh framework, 4 bài tự học `docs/self-practices`.
+- Trang Tổng quan: thẻ tài liệu rút gọn thành lối tắt tới 4 nhóm. Menu cuộn ngang trên mobile tự kéo mục đang mở vào
+  tầm nhìn.
+- Danh sách tài liệu nằm một chỗ: `DOC_SECTIONS` trong `src/aiarch/site.py`. Test mới: mọi đường dẫn phải tồn tại, mỗi
+  tài liệu thuộc đúng một nhóm và có mô tả. Smoke test thêm 2 route.
+
 ## 2026-10-17 · Harness agent: Agno → LangChain, cải tiến theo Claude Code + lab LLM-05 đầu tiên
 
 **Đã làm**

@@ -36,3 +36,15 @@ def test_embedded_json_cannot_close_script_tag(tmp_path):
     start = html.index('<script id="catalog-data"')
     end = html.index("</script>", start)
     assert "</" not in html[start + 1 : end].split(">", 1)[1]
+
+
+def test_docs_menu_links_existing_files():
+    data = site.site_data(c.load(), "owner/repo")
+    docs, sections = data["meta"]["docs"], data["meta"]["doc_sections"]
+    listed = [key for sec in sections for key in sec["items"]]
+    assert len(listed) == len(set(listed)), "một tài liệu chỉ nằm ở một nhóm"
+    assert set(listed) == set(docs)
+    for key, doc in docs.items():
+        assert (c.REPO_ROOT / doc["path"]).is_file(), f"{key}: không có file {doc['path']}"
+        assert doc["url"] == f"https://github.com/owner/repo/blob/main/{doc['path']}"
+        assert doc["desc"], f"{key}: thiếu mô tả"

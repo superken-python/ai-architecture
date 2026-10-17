@@ -47,6 +47,8 @@ def routes() -> list[str]:
         "ma-tran",
         "to-hop",
         f"to-hop/{cat.combinations[0]['id']}",
+        "tai-lieu",
+        "tai-lieu/agent",
         "tien-do",
         "khong-ton-tai",
     ]
