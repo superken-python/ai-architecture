@@ -99,9 +99,13 @@ def draft(state: ReportState) -> dict:
         f"Tóm tắt tối đa {state['summary_limit']} ý.\n"
         f"Phản hồi kiểm tra lần trước: {state.get('feedback', '')}"
     )
-    narrative = asyncio.run(generate_narrative(
-        state["evidence"], instruction, state.get("report", ""),
-    ))
+    narrative = asyncio.run(
+        generate_narrative(
+            state["evidence"],
+            instruction,
+            state.get("report", ""),
+        )
+    )
     return {"narrative": narrative.model_dump(), "attempt": state["attempt"] + 1}
 
 
@@ -127,15 +131,17 @@ def finalize(state: ReportState) -> dict:
     revision = state.get("revision", 0) + 1
     narrative = Narrative.model_validate(state["narrative"])
     report = render_report(state["evidence"], narrative, revision)
-    return {"revision": revision, "report": report,
-            "messages": [AIMessage(content=report)]}
+    return {"revision": revision, "report": report, "messages": [AIMessage(content=report)]}
 
 
 def build_graph(checkpointer):
     builder = StateGraph(ReportState)
     for name, node in [
-        ("prepare_turn", prepare_turn), ("gather_context", gather_context),
-        ("draft", draft), ("gate", gate), ("finalize", finalize),
+        ("prepare_turn", prepare_turn),
+        ("gather_context", gather_context),
+        ("draft", draft),
+        ("gate", gate),
+        ("finalize", finalize),
     ]:
         builder.add_node(name, node)
     builder.add_edge(START, "prepare_turn")
@@ -165,10 +171,15 @@ def main():
         if args.history:
             for snapshot in graph.get_state_history(config):
                 values = snapshot.values
-                print(snapshot.config["configurable"].get("checkpoint_id"),
-                      "revision=", values.get("revision", 0),
-                      "attempt=", values.get("attempt", 0),
-                      "next=", snapshot.next)
+                print(
+                    snapshot.config["configurable"].get("checkpoint_id"),
+                    "revision=",
+                    values.get("revision", 0),
+                    "attempt=",
+                    values.get("attempt", 0),
+                    "next=",
+                    snapshot.next,
+                )
             return
         if args.show:
             values = graph.get_state(config).values
@@ -176,12 +187,15 @@ def main():
             return
         if not args.instruction:
             parser.error("Cần instruction hoặc --show/--history")
-        state = graph.invoke({
-            "messages": [HumanMessage(content=args.instruction)],
-            "instruction": args.instruction,
-            "refresh": args.refresh,
-            "summary_limit": args.summary_limit,
-        }, config)
+        state = graph.invoke(
+            {
+                "messages": [HumanMessage(content=args.instruction)],
+                "instruction": args.instruction,
+                "refresh": args.refresh,
+                "summary_limit": args.summary_limit,
+            },
+            config,
+        )
         save_local_report(f"lg-{args.thread_id}", state["revision"], state["report"])
         print(state["report"])
 
@@ -257,10 +271,12 @@ from langgraph.types import interrupt
 
 
 def human_review(state):
-    decision = interrupt({
-        "proposed_narrative": state["narrative"],
-        "proposed_revision": state.get("revision", 0) + 1,
-    })
+    decision = interrupt(
+        {
+            "proposed_narrative": state["narrative"],
+            "proposed_revision": state.get("revision", 0) + 1,
+        }
+    )
     if decision.get("approved") is not True:
         raise ValueError("Người review chưa chấp nhận bản nháp")
     return {}

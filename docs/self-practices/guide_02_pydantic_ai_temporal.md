@@ -157,7 +157,8 @@ class ReportWorkflow:
         async with self.lock:
             fingerprint = json.dumps(
                 {"instruction": data.instruction, "evidence": data.evidence},
-                sort_keys=True, ensure_ascii=False,
+                sort_keys=True,
+                ensure_ascii=False,
             )
             if data.request_id in self.processed:
                 saved = self.processed[data.request_id]
@@ -186,8 +187,7 @@ class ReportWorkflow:
 
     @workflow.query
     def state(self) -> dict:
-        return {**self.latest, "approved": self.approved,
-                "request_ids": list(self.processed)}
+        return {**self.latest, "approved": self.approved, "request_ids": list(self.processed)}
 
     @workflow.signal
     def approve(self):
@@ -250,7 +250,9 @@ async def main(args: list[str]):
     client = await Client.connect("localhost:7233")
     if command == "new":
         await client.start_workflow(
-            ReportWorkflow.run, id=thread_id, task_queue=TASK_QUEUE,
+            ReportWorkflow.run,
+            id=thread_id,
+            task_queue=TASK_QUEUE,
         )
         print("Đã mở workflow", thread_id)
         return
