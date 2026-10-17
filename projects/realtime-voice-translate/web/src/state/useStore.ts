@@ -21,6 +21,8 @@ interface AppState {
   connected: boolean;
   sessionReady: boolean;
   sessionId: string | null;
+  // Server chạy profile chỉ nghe (models.mt = "none"): không có bản dịch, hiện chữ gốc (docs 10 §10.3)
+  listenOnly: boolean;
   activeSide: Side | null;
   isMicActive: boolean;
   vadSpeaking: Record<Side, boolean>;
@@ -52,6 +54,7 @@ export const useStore = create<AppState>((set, get) => ({
   connected: false,
   sessionReady: false,
   sessionId: null,
+  listenOnly: false,
   activeSide: null,
   isMicActive: false,
   vadSpeaking: { A: false, B: false },
@@ -93,6 +96,7 @@ export const useStore = create<AppState>((set, get) => ({
           return {
             sessionReady: true,
             sessionId: event.session_id,
+            listenOnly: event.models?.mt === "none",
             errorMessage: null
           };
 

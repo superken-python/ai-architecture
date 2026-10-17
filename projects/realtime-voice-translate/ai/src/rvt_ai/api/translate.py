@@ -25,6 +25,8 @@ def detect_text_lang(text: str) -> Lang:
 @router.post("/translate", response_model=TranslateResponse)
 async def translate_text(req: TranslateRequest, request: Request) -> TranslateResponse:
     mt_engine = request.app.state.mt_engine
+    if mt_engine is None:
+        raise HTTPException(status_code=503, detail="Translation is disabled (listen-only profile)")
     source_lang = req.source or detect_text_lang(req.text)
     targets: list[Lang] = [tgt for tgt in ["ja", "en", "vi"] if tgt != source_lang]
 
@@ -53,6 +55,8 @@ async def transcribe_audio(request: Request, file: UploadFile = File(...)) -> Tr
 async def speech_translate(request: Request, file: UploadFile = File(...)) -> SpeechTranslateResponse:
     asr_engine = request.app.state.asr_engine
     mt_engine = request.app.state.mt_engine
+    if mt_engine is None:
+        raise HTTPException(status_code=503, detail="Translation is disabled (listen-only profile)")
     audio_bytes = await file.read()
     if not audio_bytes:
         raise HTTPException(status_code=400, detail="Empty audio file")

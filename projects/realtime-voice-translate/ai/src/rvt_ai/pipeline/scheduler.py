@@ -132,10 +132,12 @@ class AsrScheduler:
         vad_mean: float | None = None,
         initial_prompt: PromptArg = None,
         min_avg_logprob: float | None = None,
+        beam_size: int | None = None,
     ) -> Any:
         self._ensure_worker()
         # Tham số chỉ một số lượt dùng: không truyền khi không đặt, để engine cũ (chỉ nhận audio, ngôn ngữ) vẫn chạy
-        extra: dict[str, Any] = {} if min_avg_logprob is None else {"min_avg_logprob": min_avg_logprob}
+        options = {"min_avg_logprob": min_avg_logprob, "beam_size": beam_size}
+        extra: dict[str, Any] = {k: v for k, v in options.items() if v is not None}
         loop = asyncio.get_running_loop()
 
         if is_final:

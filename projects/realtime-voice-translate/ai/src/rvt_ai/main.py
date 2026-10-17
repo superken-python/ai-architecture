@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
 
         vad_engine = FakeVadEngine()
         asr_engine = FakeAsrEngine()
-        mt_engine = FakeMtEngine()
+        mt_engine = None if profile.mt.engine == "none" else FakeMtEngine()
 
     app.state.vad_engine = vad_engine
     app.state.asr_engine = asr_engine

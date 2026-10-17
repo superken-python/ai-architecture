@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Default parameters
-MODE="auto" # "auto", "gpu", "cpu"
+MODE="auto" # "auto", "gpu", "cpu", "listen"
 REBUILD=""
 ACTION="up"
 
@@ -31,6 +31,7 @@ usage() {
     echo "Options:"
     echo "  --gpu          Force GPU mode (requires NVIDIA Docker runtime & CUDA)"
     echo "  --cpu          Force CPU/dev mode (no GPU required, uses fake/CPU engine)"
+    echo "  --listen       Listen-only on an 8 GB GPU: speech to text, no translation container (docs 10 §10)"
     echo "  --build        Rebuild Docker images before starting"
     echo "  --down, stop   Stop all running containers"
     echo "  --restart      Restart all containers"
@@ -41,6 +42,7 @@ usage() {
     echo "Examples:"
     echo "  ./start.sh                # Auto-detect hardware & start in background"
     echo "  ./start.sh --cpu          # Start in CPU/fake mode"
+    echo "  ./start.sh --listen       # Listen-only (Vietnamese/English speech to text)"
     echo "  ./start.sh --build        # Rebuild images & start"
     echo "  ./start.sh --down         # Stop all services"
     exit 0
@@ -55,6 +57,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --cpu)
             MODE="cpu"
+            shift
+            ;;
+        --listen)
+            MODE="listen"
             shift
             ;;
         --build)
@@ -89,18 +95,21 @@ done
 
 # Action handlers: status, logs, down
 if [[ "${ACTION}" == "status" ]]; then
-    docker compose -f docker/docker-compose.yml ps 2>/dev/null || docker compose -f docker/docker-compose.cpu.yml ps
+    for f in docker/docker-compose.yml docker/docker-compose.listen.yml docker/docker-compose.cpu.yml; do
+        docker compose -f "${f}" ps 2>/dev/null || true
+    done
     exit 0
 fi
 
 if [[ "${ACTION}" == "logs" ]]; then
-    docker compose -f docker/docker-compose.yml logs -f 2>/dev/null || docker compose -f docker/docker-compose.cpu.yml logs -f
+    docker logs -f rvt_ai
     exit 0
 fi
 
 if [[ "${ACTION}" == "down" ]]; then
     echo -e "${YELLOW}Stopping all RVT services...${NC}"
     docker compose -f docker/docker-compose.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f docker/docker-compose.listen.yml down --remove-orphans 2>/dev/null || true
     docker compose -f docker/docker-compose.cpu.yml down --remove-orphans 2>/dev/null || true
     echo -e "${GREEN}✓ All services stopped.${NC}"
     exit 0
@@ -171,10 +180,18 @@ fi
 if [[ "${ACTION}" == "restart" ]]; then
     echo -e "${YELLOW}Restarting services...${NC}"
     docker compose -f docker/docker-compose.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f docker/docker-compose.listen.yml down --remove-orphans 2>/dev/null || true
     docker compose -f docker/docker-compose.cpu.yml down --remove-orphans 2>/dev/null || true
 fi
 
-if [[ "${MODE}" == "gpu" ]]; then
+if [[ "${MODE}" == "listen" ]]; then
+    COMPOSE_FILE="docker/docker-compose.listen.yml"
+    echo -e "${BLUE}Starting listen-only stack with ${COMPOSE_FILE} (no translation)...${NC}"
+    if [[ ! -f "${PROJECT_ROOT}/models/phowhisper-large-ct2/model.bin" ]]; then
+        echo -e "${YELLOW}! Chưa có models/phowhisper-large-ct2: tiếng Việt sẽ tạm dùng large-v3-turbo.${NC}"
+        echo -e "${YELLOW}  Chuẩn bị model: ${GREEN}./scripts/prepare_listen_models.sh${NC}"
+    fi
+elif [[ "${MODE}" == "gpu" ]]; then
     COMPOSE_FILE="docker/docker-compose.yml"
     echo -e "${BLUE}Starting GPU stack with ${COMPOSE_FILE}...${NC}"
 else

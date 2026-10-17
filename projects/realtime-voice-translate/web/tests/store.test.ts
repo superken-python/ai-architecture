@@ -30,6 +30,18 @@ describe('useStore', () => {
     });
     expect(useStore.getState().sessionReady).toBe(true);
     expect(useStore.getState().sessionId).toBe('test-session-123');
+    expect(useStore.getState().listenOnly).toBe(false);
+  });
+
+  it('marks listen-only sessions when the server has no translation model', () => {
+    useStore.getState().handleServerEvent({
+      type: 'session.ready',
+      session_id: 'listen-1',
+      profile: 'listen',
+      pack_revision: 'rev-2',
+      models: { vad: 'silero', asr: 'faster-whisper', mt: 'none' },
+    });
+    expect(useStore.getState().listenOnly).toBe(true);
   });
 
   it('handles VAD events', () => {

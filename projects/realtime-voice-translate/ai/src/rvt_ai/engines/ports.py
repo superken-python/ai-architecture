@@ -25,9 +25,10 @@ class AsrEngine(Protocol):
         vad_mean: float | None = None,
         initial_prompt: str | None = None,
         min_avg_logprob: float | None = None,
+        beam_size: int | None = None,
     ) -> tuple[str, Lang, dict[Lang, float]]:
         """Transcribes audio to text, optionally forcing a language and providing context prompt.
-        min_avg_logprob drops decoded segments Whisper is unsure about.
+        min_avg_logprob drops decoded segments Whisper is unsure about; beam_size overrides greedy decoding.
         Returns (text, language, language_probs)"""
         ...
 

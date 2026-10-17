@@ -6,6 +6,16 @@ models:
       device: "cuda"
       compute_type: "int8_float16"
       license: "MIT"
+    phowhisper-large-ct2:
+      # Tiếng Việt cho profile listen; chuyển sang CTranslate2 bằng scripts/prepare_listen_models.sh (docs 10 §10.3)
+      repo: "vinai/PhoWhisper-large"
+      dir: "phowhisper-large-ct2"
+      device: "cuda"
+      compute_type: "int8_float16"
+      # LICENSE trong github.com/VinAIResearch/PhoWhisper: BSD 3-Clause, Copyright (c) 2024 VinAI (kiểm 2026-10-15).
+      # Model card trên Hugging Face chưa đọc được trực tiếp. Fine-tune từ OpenAI Whisper (MIT). README yêu cầu trích
+      # dẫn bài báo PhoWhisper (ICLR 2024 Tiny Papers) khi dùng để công bố kết quả hoặc đưa vào phần mềm khác.
+      license: "BSD-3-Clause"
     tiny:
       repo: "Systran/faster-whisper-tiny"
       revision: "main"

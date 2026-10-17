@@ -112,7 +112,7 @@ class RVTSession:
         session_id: str,
         vad: VadEngine,
         asr: AsrEngine,
-        mt: MtEngine,
+        mt: MtEngine | None,
         send_event_cb: Callable[[ServerEvent], Awaitable[None]],
         segmenter_config: SegmenterConfig | None = None,
         scheduler: AsrScheduler | None = None,
@@ -293,7 +293,7 @@ class RVTSession:
         )
 
         # Re-translate to the other two targets
-        targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != new_lang]
+        targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != new_lang] if self.mt is not None else []
         for tgt in targets:
             task = asyncio.create_task(self._run_mt(utterance_id, text, new_lang, tgt))
             self.active_tasks.append(task)
@@ -437,6 +437,7 @@ class RVTSession:
                 session_id=self.session_id,
                 vad_mean=vad_mean,
                 initial_prompt=(lambda: self._context_prompt(start_ms)) if use_prompt else None,
+                beam_size=settings.ASR_FINAL_BEAM_SIZE if settings.ASR_FINAL_BEAM_SIZE > 1 else None,
             )
         except Exception as e:
             logger.error(f"[{self.session_id}] Final transcribe error: {e}")
@@ -596,7 +597,9 @@ class RVTSession:
             )
         )
 
-        # 4. Trigger MT for targets
+        # 4. Trigger MT for targets. Không có bộ dịch: chế độ chỉ nghe (docs 10 §10.3)
+        if self.mt is None:
+            return
         if self.targets:
             targets = [tgt for tgt in self.targets if tgt != lang]
         else:

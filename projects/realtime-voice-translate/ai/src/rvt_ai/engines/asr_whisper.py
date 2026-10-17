@@ -89,6 +89,7 @@ class FasterWhisperEngine(AsrEngine):
         vad_mean: float | None = None,
         initial_prompt: str | None = None,
         min_avg_logprob: float | None = None,
+        beam_size: int | None = None,
     ) -> tuple[str, Lang, dict[Lang, float]]:
         # Convert 16bit PCM to float32 normalized [-1, 1]
         audio_int16 = np.frombuffer(audio, np.int16)
@@ -103,7 +104,7 @@ class FasterWhisperEngine(AsrEngine):
 
         segments, info = self.model.transcribe(
             audio_float32,
-            beam_size=1,
+            beam_size=beam_size or 1,
             language=language,
             temperature=0.0,
             vad_filter=False,

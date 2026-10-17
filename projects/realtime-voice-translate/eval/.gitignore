@@ -1,0 +1,4 @@
+# Audio tải từ YouTube/TED bằng fetch_golden.py: không commit, tải lại từ url.txt (docs 10 §10.2).
+# golden_1 có sẵn audio trong repo từ trước, giữ nguyên.
+golden_vi_*/audio/
+golden_en_*/audio/
