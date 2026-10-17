@@ -57,6 +57,10 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 - [ ] **P2** Tuần 11: `ml-07` BM25 vs embedding vs hybrid trên văn bản tiếng Việt
 - [ ] **P2** Tuần 13–14: `llm-04` golden set + LLM-as-judge · `eff-02` prompt caching · `eff-07` lớp kiểm chứng
 - [ ] **P2** Lab "thanh ngang chữ T" cho G2, G3, G4, G5, G7, G8 (baseline tối thiểu mỗi nhóm)
+- [x] **G7** `llm-05` harness agent bằng LangChain tương đương Agno + cải tiến theo Claude Code
+      ([lab](labs/llm-05-trung-cap-harness-langchain/README.md), [tài liệu](docs/agent-radar/02-harness-agno-sang-langchain.md))
+- [ ] **P2** `llm-05`: chạy `eval_golden.py` với model thật (gpt-5-mini và một model local), ghi điểm + token + chi phí
+- [ ] **P2** `llm-05`: endpoint AG-UI cho harness LangChain (thay AgentOS cho CMB-10), test resume nhiều interrupt cùng lúc
 
 ## Giai đoạn 4 · Dự án luyện tập
 

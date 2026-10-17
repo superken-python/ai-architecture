@@ -10,6 +10,30 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-17 · Harness agent: Agno → LangChain, cải tiến theo Claude Code + lab LLM-05 đầu tiên
+
+**Đã làm**
+
+- `docs/agent-radar/02-harness-agno-sang-langchain.md`: một run của Agno 3.1.3 đi qua những bước nào (có dẫn mã
+  nguồn), 6 hành vi đã đo bằng thí nghiệm, bảng 5 run; ánh xạ sang LangChain 1.4.6 / LangGraph 1.2.16; toàn bộ code
+  từng mảnh; 8 lớp cải tiến theo Claude Code và bộ đo vàng.
+- `labs/llm-05-trung-cap-harness-langchain/`: lab đầu tiên của repo. Package `harness/` (model kịch bản + model thật,
+  tool server + tool client qua `interrupt()`, instructions động, cửa sổ N run, memory theo user, giới hạn, người
+  duyệt; `improved.py`: file luật, đọc trước khi ghi có dấu vân tay, kiểm chứng sau khi ghi, `<system-reminder>`,
+  quyền theo vai trò, subagent, todo, tóm tắt/xoá kết quả tool cũ), `demo.py`, `eval_golden.py`.
+- 39 test (24 hành vi + 15 đồng bộ tài liệu–code), chạy bằng `uv run --no-project --with ...` — không thêm gói vào
+  lockfile chung.
+
+**Quyết định**
+
+- Code trong tài liệu sinh nguyên văn từ file của lab; `test_doc_sync.py` đỏ khi hai bên lệch.
+- Sửa có chủ ý so với Agno: thiếu `user_id` thì không đọc/ghi memory (Agno dùng `"default"` chung); trần số bước
+  dừng hẳn (`exit_behavior="end"`) và có thêm trần số lượt model.
+
+**Còn mở** (chuyển sang CHECKLIST)
+
+- Chạy `eval_golden.py` với model thật; endpoint AG-UI cho harness LangChain; test resume nhiều interrupt cùng lúc.
+
 ## 2026-10-14 · Radar agent — so sánh cơ chế agent của 4 framework
 
 - `docs/agent-radar/01-co-che-agent.md`: vòng lặp tool, dừng và kết quả có cấu trúc, điểm can thiệp (hook, middleware,

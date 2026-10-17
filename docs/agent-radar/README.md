@@ -7,6 +7,7 @@
 | Review gần nhất | 2026-10-14 |
 | Bảng so sánh đầy đủ | [generated/bang-so-sanh.md](generated/bang-so-sanh.md) — radar, 8 tiêu chí × 19 framework, số liệu registry, cờ cần xem lại |
 | So sánh cơ chế agent | [01-co-che-agent.md](01-co-che-agent.md) — vòng lặp tool, điểm can thiệp, tạm dừng/chạy tiếp, nhiều agent, bộ nhớ: Agno · OpenAI Agents SDK · LangGraph · Pydantic AI |
+| Harness Agno → LangChain | [02-harness-agno-sang-langchain.md](02-harness-agno-sang-langchain.md) — Agno chạy một run ra sao (đã đo), dựng lại bằng LangChain có code đầy đủ, cải tiến theo Claude Code; code chạy được ở [lab LLM-05](../../labs/llm-05-trung-cap-harness-langchain/README.md) |
 | Dữ liệu | [`catalog/agent_landscape.yaml`](../../catalog/agent_landscape.yaml) (người duyệt) · [`catalog/agent_landscape.snapshot.json`](../../catalog/agent_landscape.snapshot.json) (máy kéo) |
 
 Câu hỏi tài liệu này trả lời: **xây agent cho một quy trình doanh nghiệp cụ thể thì chọn framework và công cụ nào, vì
