@@ -6,13 +6,47 @@
 | Mục tiêu | Hiểu harness của Agno tới mức **tự viết lại được** bằng LangChain, rồi làm harness tốt hơn theo cách Claude Code làm |
 | Phiên bản đã đọc mã và chạy | `agno` 3.1.3 · `langchain` 1.4.6 · `langgraph` 1.2.16 · `langchain-core` 1.6.12 · `langgraph-checkpoint-sqlite` 3.1.2 · `langchain-openai` 1.7.2 |
 | Code chạy được | [`labs/llm-05-trung-cap-harness-langchain/`](../../labs/llm-05-trung-cap-harness-langchain/README.md) — mọi khối code dưới đây là **nguyên văn** file trong lab (test `test_doc_sync.py` bảo đảm điều này) |
-| Đã kiểm chứng | 24 test với model kịch bản: tái hiện từng thí nghiệm đã làm trên Agno, và từng lớp cải tiến |
-| Chưa kiểm chứng | Chạy với model thật (môi trường làm tài liệu không có API key) · server AG-UI cho LangChain · Postgres |
+| Đã kiểm chứng | 39 test với model kịch bản: 24 test hành vi (tái hiện từng thí nghiệm đã làm trên Agno, và từng lớp cải tiến) + 15 test tài liệu khớp code |
+| Chưa kiểm chứng | Chạy với model thật (môi trường làm tài liệu không có API key) · Postgres · server AG-UI (để sau, xem [ưu tiên](#ưu-tiên-và-thứ-tự-học)) |
 | Ngày | 2026-10-17 |
 
 Tài liệu đi theo thứ tự: **agent và harness là gì → Agno chạy một run ra sao (đã đo) → ánh xạ sang LangChain →
 code từng mảnh → cải tiến**. Ví dụ xuyên suốt là trợ lý dữ liệu khách hàng trong Excel, rút gọn từ
 [CMB-10](../../projects/cmb-10-excel-agent-addin/README.md).
+
+## Tóm tắt
+
+- **Harness** là phần code quanh model: dựng ngữ cảnh, chạy vòng lặp gọi tool, dừng, tạm dừng chờ người/client, lưu
+  trữ, và các điểm cho ta chen vào. Model quyết định làm gì; harness quyết định model thấy gì và được làm gì.
+- **Một run của Agno:** system (instructions + memory của user) + N run lịch sử (mặc định 3) + câu hiện tại → vòng
+  lặp model ↔ tool tới khi model không gọi tool nữa (hoặc có tool chờ client/người duyệt → run tạm dừng, lưu DB) →
+  lưu run. Memory được trích nền từ **tin nhắn user**, và run chờ trích xong mới trả lời.
+- **Ba điểm yếu đã đo ở Agno:** `tool_call_limit` không dừng vòng lặp; thiếu `user_id` thì mọi người dùng chung
+  memory `"default"`; model trích xuất memory mất `http_client` tuỳ chỉnh.
+- **LangChain:** `create_agent` + middleware — mỗi tính năng của Agno thành một middleware. Có sẵn: trần dừng hẳn
+  (`exit_behavior="end"`), người duyệt, tóm tắt, todo. Phải tự viết: cửa sổ N run và memory theo user. Tool client =
+  `interrupt()` + `Command(resume=...)`.
+- **Lịch sử, không phải memory, giữ mạch hội thoại** ("còn hạn mức không?" hiểu được nhờ kết quả tool ở run trước).
+  Memory chỉ giữ điều về người dùng và sống lâu hơn cửa sổ lịch sử.
+- **Cải tiến kiểu Claude Code:** luật do người viết, đọc trước khi ghi, kiểm chứng sau khi ghi, nhắc trạng thái ở cuối
+  ngữ cảnh, quyền chặn bằng code, subagent, todo, giữ ngữ cảnh gọn — và đo mọi thay đổi bằng bộ đo vàng.
+- **Mức kiểm chứng:** 39 test với model kịch bản chứng minh harness đưa đúng thứ cho model và chặn đúng chỗ; chưa
+  chứng minh model thật chọn tool đúng (cần chạy `eval_golden.py` với API key).
+
+### Ưu tiên và thứ tự học
+
+Quyết định ngày 2026-10-17: **tập trung agent harness và workflow agent trước; AG-UI và API để sau** — khớp lộ trình
+tự học ([mục 10 "AG-UI và API: học sau CLI"](../self-practices/agent_framework_learning_from_scratch.md#10-ag-ui-và-api-học-sau-cli)).
+
+| Bước | Học gì | Ở đâu |
+|---|---|---|
+| 1. Agent harness | Vòng lặp model ↔ tool, lịch sử, memory, tạm dừng/chạy tiếp, giới hạn, các lớp kiểm soát | Tài liệu này + [lab LLM-05](../../labs/llm-05-trung-cap-harness-langchain/README.md) |
+| 2. Workflow agent | Các bước cố định trong `StateGraph` (rẽ nhánh, gate, người duyệt); bước nào cần tự chọn tool thì đặt một harness nhỏ vào đó; dùng lại checkpointer, `interrupt()`, giới hạn, memory | [Lab 03 LangGraph](../self-practices/guide_03_langgraph.md) |
+| 3. AG-UI / API | Đưa harness hoặc workflow lên giao diện | Để sau ([mục 6](#6-giới-hạn-và-việc-tiếp-theo)) |
+
+Chọn workflow hay agent cho một bước: **biết trước các bước thì dùng workflow** (rẻ hơn, dễ kiểm chứng hơn); chỉ để
+model tự chọn tool ở bước thật sự mở. Hai thứ dùng chung một bộ "viên gạch" — học harness trước là học các viên
+gạch đó.
 
 ## Mục lục
 
@@ -1871,7 +1905,10 @@ def test_golden_eval_runner_scores_scripted_answers():
 
 - **Chưa chạy với model thật.** Mọi test dùng model kịch bản: chúng chứng minh harness đưa đúng thứ cho model và
   chặn đúng chỗ, **không** chứng minh model thật chọn tool đúng. Việc đó là của `eval_golden.py`.
-- **Chưa có server AG-UI.** Muốn thay AgentOS cho CMB-10 phải viết một endpoint nhận `RunAgentInput`, gọi
+- **Bước tiếp theo: workflow agent** (ưu tiên hiện tại). Dựng một `StateGraph` với các bước cố định, mỗi bước là
+  code, một lượt gọi LLM, hoặc một harness từ lab này; đặt người duyệt ở bước rủi ro. Bắt đầu từ
+  [Lab 03 LangGraph](../self-practices/guide_03_langgraph.md).
+- **AG-UI để sau (chủ ý, chưa cần lúc này).** Khi làm: thay AgentOS cho CMB-10 phải viết một endpoint nhận `RunAgentInput`, gọi
   `ask`/`resume` như mục 4.8 và phát sự kiện AG-UI (`RUN_STARTED`, `TEXT_MESSAGE_*`, `TOOL_CALL_START/ARGS/END`,
   `RUN_FINISHED`) từ `agent.stream(...)`. Một interrupt `client_tool` ứng với `TOOL_CALL_*` không có kết quả, đúng như
   AgentOS đang làm. Chưa kiểm gói adapter AG-UI có sẵn nào cho LangGraph.

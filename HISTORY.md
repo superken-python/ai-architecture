@@ -29,10 +29,13 @@ Quy ước khi thêm một mục:
 - Code trong tài liệu sinh nguyên văn từ file của lab; `test_doc_sync.py` đỏ khi hai bên lệch.
 - Sửa có chủ ý so với Agno: thiếu `user_id` thì không đọc/ghi memory (Agno dùng `"default"` chung); trần số bước
   dừng hẳn (`exit_behavior="end"`) và có thêm trần số lượt model.
+- **Ưu tiên:** tập trung agent harness và workflow agent trước; AG-UI và API để sau (khớp
+  `docs/self-practices` mục 10). Tài liệu 02 có phần Tóm tắt và bảng thứ tự học harness → workflow → AG-UI.
 
 **Còn mở** (chuyển sang CHECKLIST)
 
-- Chạy `eval_golden.py` với model thật; endpoint AG-UI cho harness LangChain; test resume nhiều interrupt cùng lúc.
+- Chạy `eval_golden.py` với model thật; workflow agent bằng `StateGraph` (tiếp theo); test resume nhiều interrupt
+  cùng lúc; endpoint AG-UI (để sau).
 
 ## 2026-10-14 · Radar agent — so sánh cơ chế agent của 4 framework
 

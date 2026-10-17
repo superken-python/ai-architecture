@@ -60,7 +60,11 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 - [x] **G7** `llm-05` harness agent bằng LangChain tương đương Agno + cải tiến theo Claude Code
       ([lab](labs/llm-05-trung-cap-harness-langchain/README.md), [tài liệu](docs/agent-radar/02-harness-agno-sang-langchain.md))
 - [ ] **P2** `llm-05`: chạy `eval_golden.py` với model thật (gpt-5-mini và một model local), ghi điểm + token + chi phí
-- [ ] **P2** `llm-05`: endpoint AG-UI cho harness LangChain (thay AgentOS cho CMB-10), test resume nhiều interrupt cùng lúc
+- [ ] **P1** Workflow agent bằng LangGraph `StateGraph` dùng lại các lớp của harness `llm-05` (checkpointer, `interrupt()`,
+      giới hạn, memory); nối với [Lab 03 LangGraph](docs/self-practices/guide_03_langgraph.md). Ưu tiên trước AG-UI.
+- [ ] **P2** `llm-05`: test resume khi nhiều tool client dừng cùng lúc
+- [ ] **P3 · để sau** `llm-05`: endpoint AG-UI cho harness LangChain (thay AgentOS cho CMB-10) — hoãn theo quyết định
+      2026-10-17: tập trung harness và workflow agent trước
 
 ## Giai đoạn 4 · Dự án luyện tập
 

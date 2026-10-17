@@ -50,7 +50,8 @@ OPENAI_API_KEY=... uv run --no-project --python 3.13 $LC python eval_golden.py  
 
 ## Câu hỏi mở rộng
 
-- Viết endpoint AG-UI cho agent này để thay AgentOS trong CMB-10 (tài liệu mục 6).
+- Ghép harness này vào một bước của workflow `StateGraph` ([Lab 03 LangGraph](../../docs/self-practices/guide_03_langgraph.md)).
+- (Để sau) Viết endpoint AG-UI cho agent này để thay AgentOS trong CMB-10 (tài liệu mục 6).
 - Hai tool client được gọi song song: resume thế nào? Viết test.
 - Đo độ trễ thêm vào của `UserMemoryMiddleware` (ghi tuần tự ở `after_agent`) so với Agno (ghi song song); chuyển
   sang chạy nền mà vẫn bảo đảm ghi xong trước khi trả lời.
