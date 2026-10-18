@@ -28,3 +28,12 @@ def resume(agent: Any, value: Any, *, thread: str = "t1", ctx: AgentContext | No
 def pending(out: dict[str, Any]) -> list[Any]:
     """Các interrupt đang chờ (rỗng = run đã kết thúc)."""
     return [i.value for i in out.get("__interrupt__", [])]
+
+
+def resume_all(agent: Any, out: dict[str, Any], results: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+    """Model gọi nhiều tool client trong CÙNG một lượt → nhiều interrupt. Client trả kết quả theo tool_call_id;
+    LangGraph nhận `Command(resume={interrupt_id: giá trị})`. Thiếu kết quả nào thì run vẫn dừng ở interrupt đó."""
+    by_interrupt = {
+        i.id: results[i.value["tool_call_id"]] for i in out["__interrupt__"] if i.value["tool_call_id"] in results
+    }
+    return resume(agent, by_interrupt, **kwargs)

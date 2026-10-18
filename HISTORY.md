@@ -10,6 +10,38 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-18 · Lab 01 Agno chi tiết: 16 phần + project tham chiếu; bổ sung Agno → LangChain
+
+**Đã làm**
+
+- `docs/self-practices/guide_01_agno.md` viết lại thành bài chính của Lab 01: lộ trình 16 phần, Bước 0 nâng MCP lên
+  2.x, `.env` cho OpenAI / model local / model giả, baseline `agno_cli.py` (giữ nguyên, đã chạy lại), bản đồ tính năng
+  Agno, lỗi thường gặp. Năm bài con trong `docs/self-practices/agno/`: 01a (agent, tool, output có schema,
+  streaming), 01b (session, memory, knowledge), 01c (HITL, hook, guardrail, model dự phòng), 01d (MCP client, team,
+  workflow), 01e (AgentOS, AG-UI, A2A, MCP server, eval). Mỗi phần: cơ chế đo trên Agno 3.1.3, code hoàn chỉnh, giải
+  thích, lệnh chạy, checkpoint, bài tập.
+- `labs/llm-05-trung-cap-agno-agentos/`: project tham chiếu (16 module `agno_lab/pNN_*.py`, `mock_llm.py` giả API
+  OpenAI cho chat/stream/embeddings, test chạy server thật bằng tiến trình riêng). 117 test: 74 hành vi + 43 đồng bộ
+  tài liệu–code (`sync_doc.py`). Đã cài sạch từ `requirements.txt` và chạy lại.
+- `docs/agent-radar/02-harness-agno-sang-langchain.md` thêm mục 6: output có schema, `session_state`, guardrail và
+  model dự phòng, RAG, MCP client (`langchain-mcp-adapters`), team, workflow `StateGraph`, nhiều tool client cùng lượt.
+  Lab LangChain thêm 7 module, 23 test hành vi; tổng 72 test.
+- Lab 00 thêm một ghi chú trỏ sang Bước 0 (mcp 2.x); trang web thêm thẻ lab Agno.
+
+**Quyết định**
+
+- Lab 01 dùng **mcp 2.x**: `agno[mcp]` 3.1.3 cần `mcp>=2.1` (với mcp 1.30, `from agno.tools.mcp import MCPTools` lỗi
+  `MCPError`). Sửa tối thiểu code Lab 00: `MCPServer` + `ToolError` + `--http` ở server, một dòng `is_error` ở client;
+  các file Lab 00 khác giữ nguyên văn (`ruff.toml` của lab bỏ qua hai cảnh báo lint thay vì sửa code người học).
+- Lab LangChain giữ **mcp 1.x**: `langchain-mcp-adapters` 0.3.2 cần `mcp<2`. Hai lab vì vậy dùng hai môi trường riêng.
+- Học offline bằng model giả có kênh theo system prompt: test tất định cho team, memory, tóm tắt session; ghi rõ mock
+  chỉ chứng minh code nối đúng, không chứng minh chất lượng model.
+
+**Còn mở** (đã chuyển sang CHECKLIST)
+
+- Chạy lại 16 phần với model thật; nối Claude Code vào MCP server của AgentOS và JWT (chưa kiểm chứng); đặt harness
+  vào một node của workflow LangChain.
+
 ## 2026-10-17 · Trang web: menu "Tài liệu" gom mọi tài liệu theo chủ đề
 
 **Đã làm**

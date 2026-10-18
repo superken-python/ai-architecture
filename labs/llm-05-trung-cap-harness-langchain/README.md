@@ -18,11 +18,12 @@ Ba khách hàng giả trong `harness/data.py`. Không có dữ liệu thật, kh
 
 ## Cài đặt
 
-Phiên bản đã chạy: `langchain` 1.4.6, `langgraph` 1.2.16, `langgraph-checkpoint-sqlite` 3.1.2, `langchain-openai` 1.7.2,
-Python 3.13. Từ thư mục gốc repo:
+Phiên bản đã chạy: `langchain` 1.4.6, `langgraph` 1.2.16, `langgraph-checkpoint-sqlite` 3.1.2, `langchain-openai` 1.7.2;
+mục 6 thêm `langchain-mcp-adapters` 0.3.2, `mcp` 1.30.0, `numpy` 2.3.4. Python 3.13. Từ thư mục gốc repo:
 
 ```bash
-LC='--with langchain==1.4.6 --with langgraph==1.2.16 --with langgraph-checkpoint-sqlite==3.1.2 --with langchain-openai==1.7.2'
+LC='--with langchain==1.4.6 --with langgraph==1.2.16 --with langgraph-checkpoint-sqlite==3.1.2 --with langchain-openai==1.7.2
+    --with langchain-mcp-adapters==0.3.2 --with mcp==1.30.0 --with numpy==2.3.4'
 uv run --no-project --python 3.13 $LC --with pytest python -m pytest labs/llm-05-trung-cap-harness-langchain
 cd labs/llm-05-trung-cap-harness-langchain
 uv run --no-project --python 3.13 $LC python demo.py             # harness tương đương Agno
@@ -39,11 +40,15 @@ OPENAI_API_KEY=... uv run --no-project --python 3.13 $LC python eval_golden.py  
 4. Đổi `num_history_runs`, `limit_exit` trong test rồi xem test nào đỏ và vì sao.
 5. Đọc `harness/improved.py` và `tests/test_improved.py`; chạy `demo.py --improved`, tìm `<system-reminder>`.
 6. Có API key: chạy `eval_golden.py`, sửa docstring một tool, chạy lại, so điểm.
+7. Đọc mục 6 của tài liệu (phần còn lại của Lab 01 Agno): `harness/structured.py` → `state.py` → `guards.py` →
+   `knowledge.py` → `mcp_tools.py` → `team.py` → `workflow.py`, mỗi file với test trong `tests/test_agno_mapping.py`
+   và `tests/test_workflow.py`; so cột "khác biệt đã đo" với hành vi bạn thấy ở lab Agno.
 
 ## Kiểm tra kết quả
 
-- [ ] 39 test xanh: 24 test hành vi (`test_parity.py`, `test_improved.py`) + 15 test đồng bộ tài liệu–code
-      (`test_doc_sync.py`; sửa code xong chạy `python sync_doc.py`).
+- [ ] 72 test xanh: 47 test hành vi (`test_parity.py`, `test_improved.py`, `test_agno_mapping.py`,
+      `test_workflow.py`) + 25 test đồng bộ tài liệu–code (`test_doc_sync.py`; sửa code xong chạy `python sync_doc.py`).
+- [ ] Giải thích được vì sao post-hook của Agno để lại câu vi phạm trong `content` còn `@after_agent` thì không (mục 6.3).
 - [ ] Giải thích được vì sao `exit_behavior="continue"` cho model 9 lượt còn `"end"` chỉ 3 lượt.
 - [ ] Chỉ ra trong `demo.py` run nào mất run 1 khỏi lịch sử, và cái gì của run 1 vẫn còn.
 - [ ] Với model thật: `eval_golden.py` in số ca đạt, token vào/ra và chi phí.
@@ -51,8 +56,8 @@ OPENAI_API_KEY=... uv run --no-project --python 3.13 $LC python eval_golden.py  
 ## Câu hỏi mở rộng
 
 - Ghép harness này vào một bước của workflow `StateGraph` ([Lab 03 LangGraph](../../docs/self-practices/guide_03_langgraph.md)).
-- (Để sau) Viết endpoint AG-UI cho agent này để thay AgentOS trong CMB-10 (tài liệu mục 6).
-- Hai tool client được gọi song song: resume thế nào? Viết test.
+- (Để sau) Viết endpoint AG-UI cho agent này để thay AgentOS trong CMB-10 (tài liệu mục 7).
+- Đặt harness của mục 4 vào node `write` của workflow mục 6.7 (bước cần tự chọn tool) và giữ người duyệt ở node `review`.
 - Đo độ trễ thêm vào của `UserMemoryMiddleware` (ghi tuần tự ở `after_agent`) so với Agno (ghi song song); chuyển
   sang chạy nền mà vẫn bảo đảm ghi xong trước khi trả lời.
 - Thêm `LLMToolSelectorMiddleware` khi số tool > 15 và đo bằng bộ đo vàng.

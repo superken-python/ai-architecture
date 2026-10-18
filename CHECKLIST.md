@@ -60,9 +60,15 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 - [x] **G7** `llm-05` harness agent bằng LangChain tương đương Agno + cải tiến theo Claude Code
       ([lab](labs/llm-05-trung-cap-harness-langchain/README.md), [tài liệu](docs/agent-radar/02-harness-agno-sang-langchain.md))
 - [ ] **P2** `llm-05`: chạy `eval_golden.py` với model thật (gpt-5-mini và một model local), ghi điểm + token + chi phí
-- [ ] **P1** Workflow agent bằng LangGraph `StateGraph` dùng lại các lớp của harness `llm-05` (checkpointer, `interrupt()`,
-      giới hạn, memory); nối với [Lab 03 LangGraph](docs/self-practices/guide_03_langgraph.md). Ưu tiên trước AG-UI.
-- [ ] **P2** `llm-05`: test resume khi nhiều tool client dừng cùng lúc
+- [x] **P1** Workflow agent bằng LangGraph `StateGraph` (song song, vòng sửa có giới hạn, rẽ nhánh, `interrupt()` duyệt,
+      lưu bền) — [mục 6.7](docs/agent-radar/02-harness-agno-sang-langchain.md#67-workflow), cùng cấu trúc Phần 11 Lab 01
+- [ ] **P2** `llm-05`: đặt harness của mục 4 vào một node của workflow mục 6.7 (bước cần tự chọn tool), giữ người duyệt
+      ở node `review`; nối với [Lab 03 LangGraph](docs/self-practices/guide_03_langgraph.md)
+- [x] **P2** `llm-05`: test resume khi nhiều tool client dừng cùng lúc (`resume_all`, mục 6.8)
+- [x] **G7** Lab 01 Agno chi tiết: baseline + 16 phần có code, cơ chế đã đo và checkpoint
+      ([tài liệu](docs/self-practices/guide_01_agno.md), [project tham chiếu](labs/llm-05-trung-cap-agno-agentos/README.md))
+- [ ] **P2** Lab 01: chạy lại 16 phần với model thật (gpt-5-mini và một model local), ghi chỗ hành vi khác `mock_llm`
+- [ ] **P3** Lab 01: kiểm chứng nối Claude Code vào MCP server của AgentOS (`claude mcp add`, Phần 15) và JWT của AgentOS
 - [ ] **P3 · để sau** `llm-05`: endpoint AG-UI cho harness LangChain (thay AgentOS cho CMB-10) — hoãn theo quyết định
       2026-10-17: tập trung harness và workflow agent trước
 

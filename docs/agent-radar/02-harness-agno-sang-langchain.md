@@ -4,11 +4,11 @@
 |---|---|
 | Thuộc nhóm | [Nhóm 7 · AI Agent và tự động hóa quy trình](../02-skill-map/generated/nhom/g7-agent-tu-dong-hoa.md) · kỹ năng [LLM-05](../02-skill-map/generated/mang/llm.md#llm-05) |
 | Mục tiêu | Hiểu harness của Agno tới mức **tự viết lại được** bằng LangChain, rồi làm harness tốt hơn theo cách Claude Code làm |
-| Phiên bản đã đọc mã và chạy | `agno` 3.1.3 · `langchain` 1.4.6 · `langgraph` 1.2.16 · `langchain-core` 1.6.12 · `langgraph-checkpoint-sqlite` 3.1.2 · `langchain-openai` 1.7.2 |
+| Phiên bản đã đọc mã và chạy | `agno` 3.1.3 · `langchain` 1.4.6 · `langgraph` 1.2.16 · `langchain-core` 1.6.12 · `langgraph-checkpoint-sqlite` 3.1.2 · `langchain-openai` 1.7.2 · `langchain-mcp-adapters` 0.3.2 + `mcp` 1.30.0 (mục 6.5) |
 | Code chạy được | [`labs/llm-05-trung-cap-harness-langchain/`](../../labs/llm-05-trung-cap-harness-langchain/README.md) — mọi khối code dưới đây là **nguyên văn** file trong lab (test `test_doc_sync.py` bảo đảm điều này) |
-| Đã kiểm chứng | 39 test với model kịch bản: 24 test hành vi (tái hiện từng thí nghiệm đã làm trên Agno, và từng lớp cải tiến) + 15 test tài liệu khớp code |
+| Đã kiểm chứng | 72 test với model kịch bản: 47 test hành vi (tái hiện từng thí nghiệm đã làm trên Agno, từng lớp cải tiến, và các tính năng còn lại của Lab 01 ở mục 6) + 25 test tài liệu khớp code |
 | Chưa kiểm chứng | Chạy với model thật (môi trường làm tài liệu không có API key) · Postgres · server AG-UI (để sau, xem [ưu tiên](#ưu-tiên-và-thứ-tự-học)) |
-| Ngày | 2026-10-17 |
+| Ngày | 2026-10-17 · bổ sung mục 6 ngày 2026-10-18 |
 
 Tài liệu đi theo thứ tự: **agent và harness là gì → Agno chạy một run ra sao (đã đo) → ánh xạ sang LangChain →
 code từng mảnh → cải tiến**. Ví dụ xuyên suốt là trợ lý dữ liệu khách hàng trong Excel, rút gọn từ
@@ -30,7 +30,9 @@ code từng mảnh → cải tiến**. Ví dụ xuyên suốt là trợ lý dữ
   Memory chỉ giữ điều về người dùng và sống lâu hơn cửa sổ lịch sử.
 - **Cải tiến kiểu Claude Code:** luật do người viết, đọc trước khi ghi, kiểm chứng sau khi ghi, nhắc trạng thái ở cuối
   ngữ cảnh, quyền chặn bằng code, subagent, todo, giữ ngữ cảnh gọn — và đo mọi thay đổi bằng bộ đo vàng.
-- **Mức kiểm chứng:** 39 test với model kịch bản chứng minh harness đưa đúng thứ cho model và chặn đúng chỗ; chưa
+- **Phần còn lại của Agno** (mục 6): output có schema, `session_state`, guardrail, RAG, MCP client, team, workflow
+  `StateGraph`, nhiều tool client cùng lượt — mỗi thứ một module, có test và cột "khác biệt đã đo".
+- **Mức kiểm chứng:** 72 test với model kịch bản chứng minh harness đưa đúng thứ cho model và chặn đúng chỗ; chưa
   chứng minh model thật chọn tool đúng (cần chạy `eval_golden.py` với API key).
 
 ### Ưu tiên và thứ tự học
@@ -41,8 +43,8 @@ tự học ([mục 10 "AG-UI và API: học sau CLI"](../self-practices/agent_fr
 | Bước | Học gì | Ở đâu |
 |---|---|---|
 | 1. Agent harness | Vòng lặp model ↔ tool, lịch sử, memory, tạm dừng/chạy tiếp, giới hạn, các lớp kiểm soát | Tài liệu này + [lab LLM-05](../../labs/llm-05-trung-cap-harness-langchain/README.md) |
-| 2. Workflow agent | Các bước cố định trong `StateGraph` (rẽ nhánh, gate, người duyệt); bước nào cần tự chọn tool thì đặt một harness nhỏ vào đó; dùng lại checkpointer, `interrupt()`, giới hạn, memory | [Lab 03 LangGraph](../self-practices/guide_03_langgraph.md) |
-| 3. AG-UI / API | Đưa harness hoặc workflow lên giao diện | Để sau ([mục 6](#6-giới-hạn-và-việc-tiếp-theo)) |
+| 2. Workflow agent | Các bước cố định trong `StateGraph` (rẽ nhánh, gate, người duyệt); bước nào cần tự chọn tool thì đặt một harness nhỏ vào đó; dùng lại checkpointer, `interrupt()`, giới hạn, memory | [Mục 6.7](#67-workflow) + [Lab 03 LangGraph](../self-practices/guide_03_langgraph.md) |
+| 3. AG-UI / API | Đưa harness hoặc workflow lên giao diện | Để sau ([mục 7](#7-giới-hạn-và-việc-tiếp-theo)) |
 
 Chọn workflow hay agent cho một bước: **biết trước các bước thì dùng workflow** (rẻ hơn, dễ kiểm chứng hơn); chỉ để
 model tự chọn tool ở bước thật sự mở. Hai thứ dùng chung một bộ "viên gạch" — học harness trước là học các viên
@@ -55,7 +57,8 @@ gạch đó.
 3. [Ánh xạ Agno sang LangChain](#3-ánh-xạ-agno-sang-langchain)
 4. [Dựng lại bằng LangChain, từng mảnh](#4-dựng-lại-bằng-langchain-từng-mảnh)
 5. [Cải tiến harness theo Claude Code](#5-cải-tiến-harness-theo-claude-code)
-6. [Giới hạn và việc tiếp theo](#6-giới-hạn-và-việc-tiếp-theo)
+6. [Phần còn lại của Agno trong LangChain](#6-phần-còn-lại-của-agno-trong-langchain)
+7. [Giới hạn và việc tiếp theo](#7-giới-hạn-và-việc-tiếp-theo)
 
 ## 1. Agent và harness
 
@@ -190,7 +193,8 @@ before_agent → [ before_model → wrap_model_call(gọi model) → after_model
 | `external_execution=True` (tool client) | tool gọi `interrupt()`; client trả `Command(resume=...)` | `harness/tools.py` | Resume chạy lại thân tool từ đầu tới `interrupt()` |
 | `requires_confirmation=True` | `HumanInTheLoopMiddleware(interrupt_on=...)` | `harness/agent.py` | Quyết định: approve / edit / reject / respond |
 | `continue_run` | `invoke(Command(resume=...), cùng thread_id)` | `harness/run.py` | |
-| AgentOS + AG-UI | không có sẵn trong lab | — | Phải tự viết server (mục 6) |
+| `output_schema`, `session_state`, guardrail, knowledge, MCP, team, workflow | xem bảng ở mục 6 | `harness/structured.py` … `workflow.py` | Mục 6 |
+| AgentOS + AG-UI | không có sẵn trong lab | — | Phải tự viết server (mục 7) |
 
 ## 4. Dựng lại bằng LangChain, từng mảnh
 
@@ -209,13 +213,21 @@ labs/llm-05-trung-cap-harness-langchain/
 │   ├── history.py       # cửa sổ N run
 │   ├── memory.py        # memory dài hạn theo user
 │   ├── agent.py         # ráp harness tương đương Agno
-│   ├── run.py           # ask / resume / pending
-│   └── improved.py      # các lớp cải tiến kiểu Claude Code
+│   ├── run.py           # ask / resume / pending / resume_all
+│   ├── improved.py      # các lớp cải tiến kiểu Claude Code
+│   ├── structured.py    # mục 6.1: output có schema
+│   ├── state.py         # mục 6.2: state của session
+│   ├── guards.py        # mục 6.3: guardrail, hook, model dự phòng
+│   ├── knowledge.py     # mục 6.4: RAG
+│   ├── mcp_tools.py     # mục 6.5: MCP client
+│   ├── team.py          # mục 6.6: team
+│   └── workflow.py      # mục 6.7: workflow StateGraph
 ├── rules/agent-rules.md # file luật dự án (vai trò như CLAUDE.md)
+├── mcp_customer_server.py # MCP server nhỏ (mcp 1.x) cho mục 6.5
 ├── demo.py              # 5 run, in ra model thấy gì
 ├── eval_golden.py       # bộ đo vàng
 ├── sync_doc.py          # cập nhật code trong tài liệu này theo file của lab
-└── tests/               # test_parity.py, test_improved.py, test_doc_sync.py
+└── tests/               # test_parity.py, test_improved.py, test_agno_mapping.py, test_workflow.py, test_doc_sync.py
 ```
 
 Chạy toàn bộ test (không đụng tới lockfile của repo):
@@ -223,7 +235,8 @@ Chạy toàn bộ test (không đụng tới lockfile của repo):
 ```bash
 uv run --no-project --python 3.13 \
   --with "langchain==1.4.6" --with "langgraph==1.2.16" \
-  --with "langgraph-checkpoint-sqlite==3.1.2" --with "langchain-openai==1.7.2" --with pytest \
+  --with "langgraph-checkpoint-sqlite==3.1.2" --with "langchain-openai==1.7.2" \
+  --with "langchain-mcp-adapters==0.3.2" --with "mcp==1.30.0" --with "numpy==2.3.4" --with pytest \
   python -m pytest labs/llm-05-trung-cap-harness-langchain
 ```
 
@@ -283,6 +296,13 @@ def call(name: str, **args: Any) -> AIMessage:
     return AIMessage(content="", tool_calls=[{"name": name, "args": args, "id": f"call_{uuid.uuid4().hex[:12]}"}])
 
 
+def _tool_name(tool: Any) -> str:
+    """Tên tool dù là BaseTool, dict schema, hay class Pydantic (with_structured_output truyền class)."""
+    if isinstance(tool, dict):
+        return tool.get("name") or tool.get("function", {}).get("name", "?")
+    return getattr(tool, "name", None) or getattr(tool, "__name__", "?")
+
+
 class ScriptedChatModel(BaseChatModel):
     """Model giả: trả lần lượt `steps`, ghi lại input của từng lần gọi."""
 
@@ -295,7 +315,7 @@ class ScriptedChatModel(BaseChatModel):
         return "scripted"
 
     def bind_tools(self, tools: Any, **kwargs: Any) -> ScriptedChatModel:
-        self.bound_tools.append([getattr(t, "name", None) or t.get("name", "?") for t in tools])
+        self.bound_tools.append([_tool_name(t) for t in tools])
         return self
 
     def _generate(self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kwargs: Any):
@@ -874,6 +894,15 @@ def resume(agent: Any, value: Any, *, thread: str = "t1", ctx: AgentContext | No
 def pending(out: dict[str, Any]) -> list[Any]:
     """Các interrupt đang chờ (rỗng = run đã kết thúc)."""
     return [i.value for i in out.get("__interrupt__", [])]
+
+
+def resume_all(agent: Any, out: dict[str, Any], results: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+    """Model gọi nhiều tool client trong CÙNG một lượt → nhiều interrupt. Client trả kết quả theo tool_call_id;
+    LangGraph nhận `Command(resume={interrupt_id: giá trị})`. Thiếu kết quả nào thì run vẫn dừng ở interrupt đó."""
+    by_interrupt = {
+        i.id: results[i.value["tool_call_id"]] for i in out["__interrupt__"] if i.value["tool_call_id"] in results
+    }
+    return resume(agent, by_interrupt, **kwargs)
 ```
 
 Vòng đời một request từ add-in, với tool client và người duyệt:
@@ -1456,12 +1485,21 @@ class ToolPolicyMiddleware(AgentMiddleware):
 
 # ---------------------------------------------------------------- 6. Subagent
 def make_subagent_tool(
-    name: str, description: str, model: BaseChatModel, tools: Sequence[BaseTool], system_prompt: str
+    name: str,
+    description: str,
+    model: BaseChatModel,
+    tools: Sequence[BaseTool],
+    system_prompt: str,
+    *,
+    return_direct: bool = False,
 ) -> BaseTool:
-    """Một agent con chạy với ngữ cảnh riêng; agent chính chỉ nhận câu trả lời cuối (không nhận các bước giữa)."""
+    """Một agent con chạy với ngữ cảnh riêng; agent chính chỉ nhận câu trả lời cuối (không nhận các bước giữa).
+
+    `return_direct=True`: run của agent chính dừng ngay, trả nguyên văn câu của agent con (như Team mode="route").
+    """
     sub = create_agent(model, tools=list(tools), system_prompt=system_prompt, checkpointer=False, name=name)
 
-    @tool(name, description=description)
+    @tool(name, description=description, return_direct=return_direct)
     def run_subagent(task: str) -> str:
         out = sub.invoke({"messages": [HumanMessage(content=task)]})
         final = next((m for m in reversed(out["messages"]) if isinstance(m, AIMessage) and not m.tool_calls), None)
@@ -1901,13 +1939,950 @@ def test_golden_eval_runner_scores_scripted_answers():
     assert report(results).startswith("Đạt 3/4")
 ```
 
-## 6. Giới hạn và việc tiếp theo
+## 6. Phần còn lại của Agno trong LangChain
+
+Mục 1–5 dựng **harness**: lịch sử, memory, giới hạn, tool client, người duyệt. [Lab 01 Agno](../self-practices/guide_01_agno.md)
+có 16 phần; mục này ánh xạ các phần còn lại sang LangChain/LangGraph. Mỗi dòng có module và test đã chạy (model kịch
+bản); cột cuối là chỗ hai framework **khác nhau** khi đo cùng một tình huống.
+
+| Lab 01 Agno | LangChain / LangGraph | File | Khác biệt đã đo |
+|---|---|---|---|
+| Phần 2 · `output_schema` | `create_agent(response_format=ToolStrategy(Schema))` | `harness/structured.py` | Agno: sai schema thì WARNING, `content` là chuỗi, status COMPLETED. LangChain: gửi lỗi validate cho model và **cho thử lại** |
+| Phần 4 · `session_state` | trường riêng trong `state_schema` + tool trả `Command(update=...)` + `@dynamic_prompt` | `harness/state.py` | Prompt đọc lại state trước **mỗi** lượt gọi model (Agno: mỗi run) |
+| Phần 8 · pre/post hook, guardrail, fallback | `@before_agent`, `@after_agent`, `PIIMiddleware`, `ModelFallbackMiddleware` | `harness/guards.py` | Agno: post-hook chặn mà `content` vẫn giữ câu vi phạm. LangChain: thay hẳn message (cùng `id`) |
+| Phần 6 · `Knowledge` | vector store + tool tìm kiếm có `filter` | `harness/knowledge.py` | Gần như 1–1: upsert theo id, xoá theo id, lọc metadata |
+| Phần 9 · `MCPTools` | `langchain-mcp-adapters` (`MultiServerMCPClient`) | `harness/mcp_tools.py` | Adapter 0.3.2 cần **mcp<2**, Agno 3.1.3 cần **mcp>=2.1** → không chung một môi trường |
+| Phần 10 · `Team` | agent trưởng nhóm + agent con làm tool (`make_subagent_tool`) | `harness/team.py` | `route` = tool `return_direct=True`; thành viên chỉ nhận `task` ở cả hai |
+| Phần 11 · `Workflow` | `StateGraph` | `harness/workflow.py` | Node có `interrupt()` chạy lại từ đầu khi resume |
+| Phần 7/13 · nhiều tool client cùng lượt | nhiều `interrupt()` + `Command(resume={interrupt_id: ...})` | `harness/run.py` (`resume_all`) | Trả thiếu kết quả thì run vẫn dừng ở interrupt còn lại |
+
+Chưa ánh xạ trong lab: AgentOS (REST, trace), AG-UI, A2A, MCP server và eval của Lab 01 (Phần 12–16). Phía LangChain,
+các vai này thường do LangGraph Platform/`langgraph dev`, LangSmith và adapter AG-UI của bên thứ ba đảm nhận; lab
+**chưa** kiểm chứng gói nào trong số đó.
+
+Cài thêm cho mục này: `langchain-mcp-adapters` 0.3.2, `mcp` 1.30.0, `numpy` 2.3.4 (lệnh đầy đủ ở [mục 4.0](#40-cài-đặt-và-chạy)).
+
+### 6.1 Output có schema
+
+`ToolStrategy(Schema)` biến schema thành một tool; model "trả kết quả" bằng cách gọi tool đó, LangChain validate
+bằng Pydantic rồi đặt object vào `structured_response`. Đã đo:
+
+- Một lần gọi model nếu output hợp lệ; ToolMessage `Returning structured response: ...` được thêm vào lịch sử.
+- Sai schema: ToolMessage `Error: Failed to parse structured output for tool 'CustomerBrief': ...` quay về model, model
+  sửa ở lượt sau. `handle_errors=False` thì ném `StructuredOutputValidationError`.
+- Model trả lời bằng chữ thay vì gọi tool kết quả: LangChain gọi model thêm lượt nữa; tool được bind với
+  `tool_choice="any"` để ép gọi tool.
+- `ProviderStrategy(Schema)` dùng structured output gốc của provider (giống `output_schema` của Agno gửi
+  `response_format` json_schema).
+
+```python
+# file: harness/structured.py
+"""Output có schema — Agno `output_schema` ↔ LangChain `create_agent(response_format=...)`.
+
+`ToolStrategy(Schema)`: model trả kết quả bằng cách GỌI một tool mang tên schema; LangChain validate bằng Pydantic.
+Khác Agno 3.1.3 (đã đo cả hai):
+- Sai schema: Agno chỉ log WARNING, `content` là chuỗi, status vẫn COMPLETED. LangChain (handle_errors=True, mặc định)
+  gửi lỗi validate về cho model trong một ToolMessage và cho thử lại; handle_errors=False thì ném
+  StructuredOutputValidationError.
+- Model trả lời bằng chữ thay vì gọi tool kết quả: LangChain gọi model thêm lượt nữa (và bind tool với
+  tool_choice="any" để ép gọi tool).
+`ProviderStrategy(Schema)`: dùng structured output gốc của provider (response_format json_schema), không qua tool.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Literal
+
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy
+from langchain_core.language_models import BaseChatModel
+from pydantic import BaseModel, Field
+
+from harness.data import CustomerDB
+from harness.tools import make_server_tools
+
+
+class CustomerBrief(BaseModel):
+    """Tóm tắt một khách hàng cho người phụ trách."""  # docstring thành mô tả của tool kết quả
+
+    customer_id: str = Field(pattern=r"^KH-\d{4}$", description="Mã khách hàng, ví dụ KH-0012")
+    summary: str = Field(min_length=10, description="Tình hình công nợ và giao hàng, một hai câu")
+    risk: Literal["thấp", "trung bình", "cao"]
+
+
+def build_brief_agent(model: BaseChatModel, db: CustomerDB, *, retry_on_error: bool = True) -> Any:
+    search = make_server_tools(db)[0]  # chỉ cho đọc
+    return create_agent(
+        model,
+        tools=[search],
+        system_prompt="Tra cứu khách hàng bằng search_customers rồi trả tóm tắt đúng schema.",
+        response_format=ToolStrategy(CustomerBrief, handle_errors=retry_on_error),
+        name="brief-agent",
+    )
+
+
+def brief(agent: Any, question: str) -> CustomerBrief:
+    """Kết quả đã validate nằm ở `structured_response`, tách khỏi message cuối."""
+    return agent.invoke({"messages": [{"role": "user", "content": question}]})["structured_response"]
+```
+
+### 6.2 State của session
+
+```python
+# file: harness/state.py
+"""State của session — Agno `session_state` ↔ trường riêng trong state của LangGraph.
+
+- `session_state={"revision": 0, ...}` ↔ `class DraftState(AgentState): revision: NotRequired[int]` + `state_schema=`.
+- Tool nhận `run_context` rồi sửa `run_context.session_state` ↔ tool nhận `runtime: ToolRuntime`, trả
+  `Command(update={...})`.
+- `"{revision}"` trong instructions ↔ `@dynamic_prompt` đọc `request.state`, chạy trước MỖI lượt gọi model.
+- Lưu theo `session_id` trong db ↔ lưu theo `thread_id` trong checkpointer.
+
+Tham số `runtime` bị ẩn khỏi schema gửi cho model, giống `run_context` của Agno.
+"""
+
+from __future__ import annotations
+
+from typing import Any, NotRequired
+
+from langchain.agents import AgentState, create_agent
+from langchain.agents.middleware import ModelRequest, dynamic_prompt
+from langchain.tools import ToolRuntime, tool
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import ToolMessage
+from langgraph.types import Checkpointer, Command
+
+
+class DraftState(AgentState):
+    revision: NotRequired[int]
+    notes: NotRequired[list[str]]
+
+
+@tool
+def record_revision(note: str, runtime: ToolRuntime) -> Command:
+    """Ghi nhận đã viết xong một phiên bản thư, kèm ghi chú ngắn về thay đổi. Chỉ gọi SAU khi đã viết xong."""
+    revision = runtime.state.get("revision", 0) + 1
+    notes = [*runtime.state.get("notes", []), f"v{revision}: {note}"]
+    reply = ToolMessage(f"Đã ghi nhận phiên bản v{revision}", tool_call_id=runtime.tool_call_id)
+    return Command(update={"revision": revision, "notes": notes, "messages": [reply]})
+
+
+@dynamic_prompt
+def revision_prompt(request: ModelRequest) -> str:
+    return (
+        "Bạn soạn thư cho khách hàng theo nhiều phiên bản trong cùng một phiên làm việc.\n"
+        f"Phiên bản hiện tại: v{request.state.get('revision', 0)}. Viết xong một bản thì gọi record_revision."
+    )
+
+
+def build_state_agent(model: BaseChatModel, checkpointer: Checkpointer) -> Any:
+    return create_agent(
+        model,
+        tools=[record_revision],
+        state_schema=DraftState,
+        middleware=[revision_prompt],
+        checkpointer=checkpointer,
+        name="draft-agent",
+    )
+```
+
+Test đo được: system prompt của ba lượt gọi model lần lượt là `v0` (trước khi gọi tool), `v1` (ngay sau tool, cùng
+run) và `v1` (run sau): `@dynamic_prompt` chạy trước mỗi lượt gọi model, trong khi `{revision}` của Agno chỉ được
+thay một lần đầu run. Tham số `runtime` không có trong schema gửi cho model.
+
+### 6.3 Guardrail, hook và model dự phòng
+
+```python
+# file: harness/guards.py
+"""Guardrail, pre/post hook và model dự phòng — Agno Phần 8 ↔ middleware của LangChain.
+
+- `pre_hooks` + `InputCheckError` ↔ `@before_agent(can_jump_to=["end"])` trả `{"jump_to": "end"}`.
+  Cả hai không gọi model.
+- `PIIDetectionGuardrail(mask_pii=True)` ↔ `PIIMiddleware("email", strategy="redact" | "mask")`.
+  Agno che thành `***********`; LangChain thành `[REDACTED_EMAIL]` (redact) hoặc `lan@****.vn` (mask).
+- `post_hooks` + `OutputCheckError` ↔ `@after_agent` trả message CÙNG `id` để ghi đè.
+  Agno: status ERROR nhưng `content` vẫn là output vi phạm. LangChain: message vi phạm bị thay hẳn.
+- `FallbackConfig(on_error=[model])` ↔ `ModelFallbackMiddleware(model)`.
+  Cả hai không ghi lại model nào đã trả lời; cần thì tự ghi.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any
+
+from langchain.agents import AgentState, create_agent
+from langchain.agents.middleware import ModelFallbackMiddleware, PIIMiddleware, after_agent, before_agent
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import AIMessage
+from langgraph.runtime import Runtime
+
+from harness.data import CustomerDB
+from harness.tools import make_server_tools
+
+BLOCKED_URL = "[bị chặn] Câu trả lời chứa URL — không được dẫn nguồn web."
+
+
+@before_agent(can_jump_to=["end"])
+def require_customer_id(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+    """Chặn TRƯỚC khi gọi model: yêu cầu phải nêu mã khách hàng."""
+    if not re.search(r"KH-\d{4}", state["messages"][-1].text):
+        return {"messages": [AIMessage("Yêu cầu phải nêu mã khách hàng dạng KH-0012.")], "jump_to": "end"}
+    return None
+
+
+@after_agent
+def no_external_urls(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+    """Kiểm tra SAU khi có câu trả lời: message mới cùng id thay message cũ (reducer add_messages)."""
+    last = state["messages"][-1]
+    if isinstance(last, AIMessage) and re.search(r"https?://", last.text):
+        return {"messages": [AIMessage(id=last.id, content=BLOCKED_URL)]}
+    return None
+
+
+def build_guarded_agent(model: BaseChatModel, db: CustomerDB, *, fallback: BaseChatModel | None = None) -> Any:
+    middleware: list[Any] = [
+        require_customer_id,
+        PIIMiddleware("email", strategy="redact", apply_to_input=True),  # model thấy [REDACTED_EMAIL]
+        no_external_urls,
+    ]
+    if fallback is not None:
+        middleware.append(ModelFallbackMiddleware(fallback))  # model chính lỗi → thử model này
+    return create_agent(model, tools=make_server_tools(db)[:1], middleware=middleware, name="guarded-agent")
+```
+
+`@before_agent(can_jump_to=["end"])` trả `{"jump_to": "end"}` để kết thúc run trước lượt gọi model đầu tiên.
+`@after_agent` chạy một lần khi run xong; trả `AIMessage` cùng `id` với message cuối thì reducer `add_messages`
+**thay** message đó, nên câu vi phạm không còn trong state. `PIIMiddleware(apply_to_input=True)` che email trước
+khi model thấy, và state cũng chỉ giữ bản đã che.
+
+### 6.4 Knowledge (RAG)
+
+```python
+# file: harness/knowledge.py
+"""Knowledge (RAG) — Agno `Knowledge` + `search_knowledge=True` ↔ vector store + một tool tìm kiếm.
+
+| Agno | LangChain |
+|---|---|
+| `kb.insert(name=..., upsert=True)` | `store.add_documents(docs, ids=[...])` — cùng id thì ghi đè |
+| `kb.remove_vectors_by_name(name)` | `store.delete(ids=[...])` |
+| `kb.search(q, filters={"source": ...})` | `store.similarity_search(q, k, filter=lambda d: ...)` |
+| `search_knowledge=True` → tool `search_knowledge_base` | tự viết tool gọi `similarity_search` |
+
+`InMemoryVectorStore` cần numpy. `KeywordEmbeddings` băm từ khoá (giống `/v1/embeddings` của mock_llm ở lab Agno):
+câu chung từ khoá thì gần nhau — đủ để học luồng offline, không phải semantic thật. Production: OpenAIEmbeddings,
+Ollama... và vector DB có lưu bền (pgvector, LanceDB, Qdrant).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import math
+import re
+
+from langchain.tools import BaseTool, tool
+from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
+from langchain_core.vectorstores import InMemoryVectorStore
+
+POLICIES: dict[str, tuple[str, dict]] = {  # id ổn định → (nội dung, metadata)
+    "no-90": ("Nợ trên 90% hạn mức tín dụng: tạm dừng giao hàng mới, báo trưởng phòng tín dụng.", {"source": "policy"}),
+    "no-qua-han": ("Nợ quá hạn 30 ngày: gửi thư nhắc nợ lần một, sau 60 ngày gọi điện.", {"source": "policy"}),
+    "thu-nhac-no": ("Thư nhắc nợ phải nêu tên khách hàng, số tiền nợ và hạn thanh toán.", {"source": "style"}),
+}
+
+
+class KeywordEmbeddings(Embeddings):
+    def __init__(self, dims: int = 256) -> None:
+        self.dims = dims
+
+    def _embed(self, text: str) -> list[float]:
+        vector = [0.0] * self.dims
+        for word in re.findall(r"\w+", text.lower()):
+            vector[int(hashlib.md5(word.encode()).hexdigest(), 16) % self.dims] += 1.0
+        norm = math.sqrt(sum(v * v for v in vector)) or 1.0
+        return [v / norm for v in vector]
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [self._embed(t) for t in texts]
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._embed(text)
+
+
+def index(store: InMemoryVectorStore, docs: dict[str, tuple[str, dict]]) -> dict[str, int]:
+    """Đồng bộ store với nguồn: ghi đè theo id, xoá id đã biến mất khỏi nguồn."""
+    removed = [doc_id for doc_id in store.store if doc_id not in docs]
+    if removed:
+        store.delete(ids=removed)
+    store.add_documents([Document(page_content=text, metadata=meta) for text, meta in docs.values()], ids=list(docs))
+    return {"upserted": len(docs), "removed": len(removed)}
+
+
+def make_policy_tool(store: InMemoryVectorStore) -> BaseTool:
+    @tool
+    def search_policies(query: str) -> str:
+        """Tìm chính sách công nợ của công ty (chỉ chính sách, không có số liệu khách hàng)."""
+        hits = store.similarity_search(query, k=2, filter=lambda doc: doc.metadata["source"] == "policy")
+        return "\n".join(f"[{doc.id}] {doc.page_content}" for doc in hits) or "Không tìm thấy chính sách phù hợp."
+
+    return search_policies
+```
+
+### 6.5 MCP client
+
+Server MCP nhỏ của lab (FastMCP của mcp 1.x, cùng dữ liệu khách hàng):
+
+```python
+# file: mcp_customer_server.py
+"""MCP server nhỏ cho lab: công bố tra cứu khách hàng (dữ liệu của harness/data.py) qua stdio.
+
+Dùng SDK mcp 1.x (FastMCP) vì langchain-mcp-adapters 0.3.2 cần mcp<2. Lab Agno (Agno 3.1.3) thì cần mcp>=2.1:
+hai lab chạy ở hai môi trường riêng.
+
+    python mcp_customer_server.py      # thường không chạy tay: client khởi động nó như một subprocess
+"""
+
+from __future__ import annotations
+
+from harness.data import CustomerDB
+from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.exceptions import ToolError
+
+mcp = FastMCP("customers")
+DB = CustomerDB()
+
+
+@mcp.tool()
+def find_customers(query: str) -> list[dict]:
+    """Tìm khách hàng theo mã (KH-0012), một phần tên hoặc thành phố."""
+    rows = DB.search(query)
+    if not rows:
+        raise ToolError(f"Không thấy khách hàng khớp '{query}'. Thử mã dạng KH-0012 hoặc tên thành phố.")
+    return rows
+
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
+```
+
+```python
+# file: harness/mcp_tools.py
+"""MCP client — Agno `MCPTools` ↔ `langchain-mcp-adapters` (`MultiServerMCPClient`).
+
+Đã đo với langchain-mcp-adapters 0.3.2 (cần mcp<2; lab Agno cần mcp>=2.1 → hai lab, hai môi trường):
+- `get_tools()` đọc danh sách tool + schema từ server, trả `StructuredTool` CHỈ có bản async → agent phải chạy
+  `ainvoke`; `invoke` đồng bộ ném `NotImplementedError: StructuredTool does not support sync invocation`.
+- Mặc định mỗi lần gọi tool mở một session MỚI (với stdio là khởi động lại subprocess server). Muốn giữ một
+  session cho cả run: `async with client.session(name) as s: tools = await load_mcp_tools(s)`.
+- `ToolError` của server tới được model: ToolMessage `status="error"`, nội dung "Error executing tool ...: <lỗi>".
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Any
+
+from langchain.agents import create_agent
+from langchain_core.language_models import BaseChatModel
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_mcp_adapters.tools import load_mcp_tools
+
+LAB = Path(__file__).resolve().parents[1]
+SERVERS = {
+    "customers": {"command": sys.executable, "args": [str(LAB / "mcp_customer_server.py")], "transport": "stdio"},
+}
+
+
+async def ask_with_mcp(model: BaseChatModel, question: str, *, one_session: bool = True) -> dict[str, Any]:
+    client = MultiServerMCPClient(SERVERS)
+    system = "Tra cứu khách hàng bằng tool MCP find_customers; không tự đoán số liệu."
+    if not one_session:
+        agent = create_agent(model, tools=await client.get_tools(), system_prompt=system)
+        return await agent.ainvoke({"messages": [{"role": "user", "content": question}]})
+    async with client.session("customers") as session:  # một subprocess cho cả run
+        agent = create_agent(model, tools=await load_mcp_tools(session), system_prompt=system)
+        return await agent.ainvoke({"messages": [{"role": "user", "content": question}]})
+```
+
+So với `MCPTools` của Agno: cả hai đọc tool + schema từ server, đều cần chạy async. Khác ở mặc định kết nối: Agno mở
+kết nối một lần trong `async with tools:`; adapter mở session mới cho **mỗi lần gọi tool** (với stdio là khởi động
+lại subprocess) trừ khi bạn dùng `client.session(...)` như `ask_with_mcp(one_session=True)`.
+
+### 6.6 Team
+
+`make_subagent_tool` (mục 5.3, lớp 6) nay nhận `return_direct`. Team là một agent trưởng nhóm có các agent con làm tool:
+
+```python
+# file: harness/team.py
+"""Team — Agno `Team(mode=...)` ↔ agent trưởng nhóm có các agent con làm tool (`make_subagent_tool`).
+
+| Agno | LangChain |
+|---|---|
+| `members=[agent, ...]`, `role` của thành viên | mỗi thành viên là một tool; `description` của tool đóng vai `role` |
+| `delegate_task_to_member(member_id, task)` | gọi tool của thành viên với `task` |
+| `mode="coordinate"`: trưởng nhóm tổng hợp | tool thường: kết quả quay về trưởng nhóm, nó viết câu trả lời cuối |
+| `mode="route"`: trả nguyên văn câu trả lời của thành viên | tool `return_direct=True`: run dừng ngay sau tool |
+| `run.member_responses` | các ToolMessage trong `messages` |
+
+Giống Agno: thành viên CHỈ nhận `task` trưởng nhóm viết, không nhận câu hỏi gốc của người dùng.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+
+from langchain.agents import create_agent
+from langchain_core.language_models import BaseChatModel
+
+from harness.data import CustomerDB
+from harness.improved import make_subagent_tool
+from harness.tools import make_server_tools
+
+LEAD = "Bạn là trưởng nhóm chăm sóc khách hàng. Giao tra cứu cho ask_analyst, giao viết thư cho ask_writer."
+ANALYST = "Bạn là chuyên viên tra cứu khách hàng. Chỉ trả số liệu lấy từ tool."
+WRITER = "Bạn là người viết thư cho khách hàng. Không thêm số liệu ngoài phần được giao."
+
+
+def build_team(lead: BaseChatModel, member: Callable[[str], BaseChatModel], db: CustomerDB, mode: str = "coordinate"):
+    """`member(name)` trả model cho từng thành viên (test truyền model kịch bản riêng cho mỗi người)."""
+    direct = mode == "route"
+    analyst = make_subagent_tool(
+        "ask_analyst",
+        "Tra cứu dữ liệu khách hàng: hạn mức, công nợ, trạng thái giao hàng.",
+        member("analyst"),
+        make_server_tools(db)[:1],
+        ANALYST,
+        return_direct=direct,
+    )
+    writer = make_subagent_tool(
+        "ask_writer",
+        "Viết thư cho khách hàng từ dữ liệu được giao.",
+        member("writer"),
+        [],
+        WRITER,
+        return_direct=direct,
+    )
+    return create_agent(lead, tools=[analyst, writer], system_prompt=LEAD, name=f"team-{mode}")
+
+
+def member_answers(out: dict[str, Any]) -> list[tuple[str, str]]:
+    """(tên thành viên, câu trả lời) — tương đương `run.member_responses` của Agno."""
+    return [(m.name, m.content) for m in out["messages"] if m.type == "tool"]
+```
+
+### 6.7 Workflow
+
+Cùng cấu trúc với workflow báo cáo ở [Phần 11 của Lab 01](../self-practices/agno/01d-mcp-team-workflow.md#phần-11--workflow-luồng-do-code-quyết-định),
+áp vào bài toán thư nhắc nợ. Docstring có bảng đối chiếu từng khối `Parallel`, `Loop`, `Router`, `Condition`,
+`HumanReview` với `StateGraph`.
+
+```python
+# file: harness/workflow.py
+"""Workflow — Agno `Workflow` (Phần 11 của Lab 01) ↔ `StateGraph` của LangGraph.
+
+Bài toán: viết thư nhắc nợ cho một khách hàng. Luồng giống workflow báo cáo của Agno, từng khối một:
+
+    START ─┬─ fetch_customer ─┐                     (Agno: Parallel)
+           └─ fetch_policy  ──┴─ prepare ─► mode?   (Agno: Router)
+                 ├─ "chỉ số liệu" → numbers_only (không gọi LLM) ─────────────────┐
+                 └─ write (LLM) → gate ─► ok? → alert? ─► escalate ─► review ─► publish   (Condition, HumanReview)
+                       ▲            │ sai, còn lượt                ▲   └─ không ─┘
+                       └────────────┘ (Agno: Loop, max 3) ── hết lượt → failed → END (Agno: StepOutput(stop=True))
+
+| Agno | LangGraph |
+|---|---|
+| `Step(executor=fn)` | node là hàm nhận state, trả dict cập nhật |
+| `Step(agent=...)` | node gọi model (`with_structured_output`) hoặc một agent |
+| `Parallel(a, b)` | hai cạnh từ START; node có hai cạnh vào chạy sau khi cả hai xong |
+| `Loop(end_condition, max_iterations)` | cạnh có điều kiện quay về `write` + bộ đếm `attempt` trong state |
+| `Router(selector)` / `Condition(evaluator)` | `add_conditional_edges(node, hàm chọn)` |
+| `HumanReview` | `interrupt()` trong node `review`; chạy tiếp bằng `Command(resume=...)` |
+| `session_state` theo `session_id` | state theo `thread_id` trong checkpointer |
+| `continue_run(run_id=..., session_id=...)` | graph mới, cùng checkpointer, `invoke(Command(resume=...), thread_id)` |
+
+Khác Agno: node chứa `interrupt()` chạy lại TỪ ĐẦU khi resume → không đặt side effect trước `interrupt()`.
+"""
+
+from __future__ import annotations
+
+import json
+from typing import Any, NotRequired, TypedDict
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Checkpointer, interrupt
+from pydantic import BaseModel, Field, ValidationError
+
+from harness.data import CustomerDB
+from harness.knowledge import POLICIES
+
+WRITER = "Bạn viết thư nhắc nợ cho khách hàng bằng tiếng Việt, lịch sự, ngắn gọn."
+MAX_DRAFTS = 3
+
+
+class Letter(BaseModel):
+    subject: str = Field(min_length=5)
+    body: str = Field(min_length=20)
+
+
+class LetterFlow(TypedDict):
+    customer_id: str
+    instruction: str
+    customer: NotRequired[dict]
+    policy: NotRequired[str]
+    attempt: NotRequired[int]
+    feedback: NotRequired[str]
+    letter: NotRequired[dict | None]
+    escalation: NotRequired[str | None]
+    status: NotRequired[str]  # drafting | failed | rejected | sent
+    revision: NotRequired[int]  # tăng mỗi lần gửi trong cùng thread, như session_state["revision"] của Agno
+    last_sent: NotRequired[str]
+
+
+def money(value: int) -> str:
+    return f"{value:,}".replace(",", ".")  # 79000000 → 79.000.000
+
+
+def build_workflow(model: BaseChatModel, db: CustomerDB, outbox: list[dict], checkpointer: Checkpointer):
+    # ------------------------------------------------------------ bước hàm thuần (không LLM)
+    def fetch_customer(state: LetterFlow) -> dict:
+        return {"customer": db.get(state["customer_id"])}
+
+    def fetch_policy(state: LetterFlow) -> dict:
+        return {"policy": "\n".join(text for text, meta in POLICIES.values() if meta["source"] == "policy")}
+
+    def prepare(state: LetterFlow) -> dict:
+        return {"attempt": 0, "feedback": "", "letter": None, "escalation": None, "status": "drafting"}
+
+    def numbers_only(state: LetterFlow) -> dict:
+        customer = state["customer"]
+        body = f"Kính gửi {customer['name']}, công nợ hiện tại của quý khách là {money(customer['debt'])} đồng."
+        return {"letter": Letter(subject="Thông báo công nợ", body=body).model_dump()}
+
+    # ------------------------------------------------------------ bước LLM
+    def write(state: LetterFlow) -> dict:
+        request = {
+            "instruction": state["instruction"],
+            "customer": state["customer"],
+            "policy": state["policy"],
+            "previous_letter": state.get("last_sent", ""),
+            "feedback_from_last_attempt": state.get("feedback", ""),
+        }
+        messages = [SystemMessage(WRITER), HumanMessage(json.dumps(request, ensure_ascii=False))]
+        try:
+            letter = model.with_structured_output(Letter).invoke(messages)
+        except ValidationError:
+            return {"letter": None}
+        return {"letter": letter.model_dump()}
+
+    # ------------------------------------------------------------ cổng kiểm tra bằng code
+    def gate(state: LetterFlow) -> dict:
+        customer, letter = state["customer"], state.get("letter")
+        problems: list[str] = []
+        if letter is None:
+            problems.append("Thư không đúng schema Letter")
+        else:
+            if customer["name"] not in letter["body"]:
+                problems.append(f"Thư chưa nêu tên khách hàng {customer['name']}")
+            if money(customer["debt"]) not in letter["body"]:
+                problems.append(f"Thư chưa nêu đúng số tiền nợ {money(customer['debt'])} đồng")
+        return {"attempt": state.get("attempt", 0) + 1, "feedback": "; ".join(problems)}
+
+    def after_gate(state: LetterFlow) -> str:
+        if not state["feedback"]:
+            return "passed"
+        return "write" if state["attempt"] < MAX_DRAFTS else "failed"
+
+    def failed(state: LetterFlow) -> dict:
+        return {"status": "failed"}
+
+    def alert(state: LetterFlow) -> str:
+        customer = state["customer"]
+        return "escalate" if customer["debt"] > 0.9 * customer["credit_limit"] else "review"
+
+    def escalate(state: LetterFlow) -> dict:
+        return {"escalation": "Báo trưởng phòng tín dụng: nợ vượt 90% hạn mức, tạm dừng giao hàng mới."}
+
+    # ------------------------------------------------------------ người duyệt và gửi
+    def review(state: LetterFlow) -> dict:
+        decision = interrupt({"type": "review", "letter": state["letter"], "escalation": state.get("escalation")})
+        return {"status": "approved" if decision.get("approve") else "rejected"}
+
+    def publish(state: LetterFlow) -> dict:
+        revision = state.get("revision", 0) + 1
+        outbox.append({"customer_id": state["customer_id"], "revision": revision, **state["letter"]})
+        return {"status": "sent", "revision": revision, "last_sent": state["letter"]["subject"]}
+
+    # ------------------------------------------------------------ ráp đồ thị
+    graph = StateGraph(LetterFlow)
+    for name, node in [
+        ("fetch_customer", fetch_customer),
+        ("fetch_policy", fetch_policy),
+        ("prepare", prepare),
+        ("numbers_only", numbers_only),
+        ("write", write),
+        ("gate", gate),
+        ("failed", failed),
+        ("escalate", escalate),
+        ("review", review),
+        ("publish", publish),
+    ]:
+        graph.add_node(name, node)
+    graph.add_edge(START, "fetch_customer")
+    graph.add_edge(START, "fetch_policy")
+    graph.add_edge(["fetch_customer", "fetch_policy"], "prepare")  # chờ CẢ HAI nhánh song song
+    graph.add_conditional_edges(
+        "prepare", lambda s: "numbers_only" if "chỉ số liệu" in s["instruction"].lower() else "write"
+    )
+    graph.add_edge("write", "gate")
+    graph.add_conditional_edges("gate", after_gate, {"passed": "alert", "write": "write", "failed": "failed"})
+    graph.add_node("alert", lambda s: {})  # điểm rẽ của Condition
+    graph.add_conditional_edges("alert", alert)
+    graph.add_edge("numbers_only", "alert")
+    graph.add_edge("escalate", "review")
+    graph.add_conditional_edges("review", lambda s: "publish" if s["status"] == "approved" else END)
+    graph.add_edge("publish", END)
+    graph.add_edge("failed", END)
+    return graph.compile(checkpointer=checkpointer)
+
+
+def start(flow: Any, thread: str, customer_id: str, instruction: str) -> dict[str, Any]:
+    return flow.invoke(
+        {"customer_id": customer_id, "instruction": instruction}, {"configurable": {"thread_id": thread}}
+    )
+```
+
+Đọc code:
+
+- Song song: hai cạnh từ `START`, `add_edge(["fetch_customer", "fetch_policy"], "prepare")` chờ cả hai.
+- Vòng sửa có giới hạn: `gate` là code; `after_gate` trả `"write"` khi còn lượt, `"failed"` khi hết, `"passed"` khi đạt.
+- Người duyệt: `review` gọi `interrupt(...)`; khi resume, node này chạy lại **từ đầu** tới `interrupt()` rồi nhận giá
+  trị resume, nên trước `interrupt()` không có side effect. Việc gửi thư nằm ở node `publish` sau đó.
+- `prepare` đặt lại các khoá của một lần chạy; `revision` và `last_sent` giữ qua các lần chạy trên cùng `thread_id`,
+  như `session_state` của workflow Agno.
+
+### 6.8 Nhiều tool client trong cùng một lượt
+
+Câu hỏi mở của lab cũ ("hai tool client được gọi song song: resume thế nào?") đã có lời giải đo được: mỗi tool client
+là một `interrupt()` riêng, có `id` riêng. Client trả kết quả theo `tool_call_id`; `resume_all` (cuối
+[mục 4.8](#48-gọi-agent-một-request-đi-từ-client-vào)) đổi thành `Command(resume={interrupt_id: giá trị})`. Trả một phần thì
+run vẫn dừng ở tool còn thiếu, model chưa được gọi lại.
+
+### 6.9 Test của mục này
+
+```python
+# file: tests/test_agno_mapping.py
+"""Phần còn lại của Agno (Lab 01) dựng bằng LangChain: hành vi đã đo của từng bên, chỗ giống và chỗ khác."""
+
+from __future__ import annotations
+
+import asyncio
+
+import pytest
+from harness.data import CustomerDB
+from harness.guards import BLOCKED_URL, build_guarded_agent
+from harness.knowledge import POLICIES, KeywordEmbeddings, index, make_policy_tool
+from harness.mcp_tools import SERVERS, ask_with_mcp
+from harness.model import ScriptedChatModel, call, say
+from harness.run import pending, resume_all
+from harness.state import build_state_agent
+from harness.structured import CustomerBrief, brief, build_brief_agent
+from harness.team import build_team, member_answers
+from harness.tools import CLIENT_TOOLS
+from langchain.agents import create_agent
+from langchain.agents.structured_output import StructuredOutputValidationError
+from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.checkpoint.memory import InMemorySaver
+
+GOOD = {"customer_id": "KH-0047", "summary": "Nợ 79 triệu, sát hạn mức 80 triệu.", "risk": "cao"}
+
+
+def ask(agent, text: str, thread: str | None = None) -> dict:
+    config = {"configurable": {"thread_id": thread}} if thread else None
+    return agent.invoke({"messages": [{"role": "user", "content": text}]}, config)
+
+
+# ---------------------------------------------------------------- Phần 2: output có schema
+def test_structured_output_is_a_tool_call_validated_by_pydantic():
+    model = ScriptedChatModel(steps=[call("search_customers", query="KH-0047"), call("CustomerBrief", **GOOD)])
+    result = brief(build_brief_agent(model, CustomerDB()), "Tóm tắt KH-0047")
+    assert isinstance(result, CustomerBrief) and result.risk == "cao"
+    assert model.bound_tools[0] == ["search_customers", "CustomerBrief"]  # schema thành một tool
+
+
+def test_invalid_output_is_sent_back_and_retried_unlike_agno():
+    bad = {**GOOD, "customer_id": "0047"}
+    model = ScriptedChatModel(steps=[call("CustomerBrief", **bad), call("CustomerBrief", **GOOD)])
+    result = brief(build_brief_agent(model, CustomerDB()), "Tóm tắt KH-0047")
+    assert result.customer_id == "KH-0047" and len(model.calls) == 2
+    error = next(m for m in model.calls[1] if isinstance(m, ToolMessage))
+    assert "Failed to parse structured output" in error.content  # model đọc lỗi validate rồi sửa
+
+
+def test_retry_can_be_turned_off():
+    model = ScriptedChatModel(steps=[call("CustomerBrief", **{**GOOD, "risk": "rất cao"})])
+    with pytest.raises(StructuredOutputValidationError):
+        brief(build_brief_agent(model, CustomerDB(), retry_on_error=False), "Tóm tắt KH-0047")
+
+
+# ---------------------------------------------------------------- Phần 4: state của session
+def test_state_is_updated_by_tool_and_read_by_prompt_across_runs():
+    model = ScriptedChatModel(steps=[call("record_revision", note="bản đầu"), say("Đã viết v1."), say("Đang ở v1.")])
+    agent = build_state_agent(model, InMemorySaver())
+    ask(agent, "Viết thư nhắc nợ KH-0047", thread="s1")
+    out = ask(agent, "Đang ở phiên bản nào?", thread="s1")
+    assert out["revision"] == 1 and out["notes"] == ["v1: bản đầu"]
+    prompts = [call_messages[0].content for call_messages in model.calls]  # system prompt của từng lượt gọi model
+    assert "v0" in prompts[0] and "v1" in prompts[1] and "v1" in prompts[2]  # đọc lại state trước MỖI lượt
+
+
+def test_runtime_parameter_is_hidden_from_the_model():
+    from harness.state import record_revision
+
+    assert list(record_revision.tool_call_schema.model_json_schema()["properties"]) == ["note"]
+
+
+# ---------------------------------------------------------------- Phần 8: guardrail, hook, model dự phòng
+def test_pre_hook_blocks_without_calling_the_model():
+    model = ScriptedChatModel(steps=[])
+    out = ask(build_guarded_agent(model, CustomerDB()), "chào bạn")
+    assert out["messages"][-1].content.startswith("Yêu cầu phải nêu mã khách hàng") and model.calls == []
+
+
+def test_pii_is_redacted_before_the_model_and_in_state():
+    model = ScriptedChatModel(steps=[say("Đã ghi nhận.")])
+    out = ask(build_guarded_agent(model, CustomerDB()), "KH-0012, gửi về lan@corp.vn")
+    assert model.calls[0][-1].content == "KH-0012, gửi về [REDACTED_EMAIL]"
+    assert "lan@corp.vn" not in out["messages"][0].content  # khác Agno: state cũng không giữ email
+
+
+def test_post_hook_replaces_the_bad_answer_unlike_agno():
+    model = ScriptedChatModel(steps=[say("Theo https://example.com, ngành tăng 32,5%.")])
+    out = ask(build_guarded_agent(model, CustomerDB()), "So sánh KH-0012 với ngành")
+    assert out["messages"][-1].content == BLOCKED_URL
+    assert not any("example.com" in m.content for m in out["messages"])  # Agno: content vẫn giữ câu vi phạm
+
+
+class DeadModel(ScriptedChatModel):
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        self.calls.append(list(messages))
+        raise ConnectionError("provider không phản hồi")
+
+
+def test_fallback_model_answers_when_primary_fails():
+    primary, backup = DeadModel(steps=[]), ScriptedChatModel(steps=[say("Trả lời từ model dự phòng.")])
+    out = ask(build_guarded_agent(primary, CustomerDB(), fallback=backup), "KH-0012 còn nợ bao nhiêu?")
+    assert out["messages"][-1].content == "Trả lời từ model dự phòng."
+    assert len(primary.calls) == 1 and len(backup.calls) == 1
+
+
+# ---------------------------------------------------------------- Phần 6: knowledge (RAG)
+def test_index_upserts_by_id_and_removes_deleted_documents():
+    store = InMemoryVectorStore(KeywordEmbeddings())
+    assert index(store, POLICIES) == {"upserted": 3, "removed": 0}
+    changed = {k: (v[0].replace("90%", "80%"), v[1]) for k, v in POLICIES.items() if k != "no-qua-han"}
+    assert index(store, changed) == {"upserted": 2, "removed": 1}
+    assert sorted(store.store) == ["no-90", "thu-nhac-no"] and "80%" in store.store["no-90"]["text"]
+
+
+def test_agent_searches_policies_with_a_metadata_filter():
+    store = InMemoryVectorStore(KeywordEmbeddings())
+    index(store, POLICIES)
+    model = ScriptedChatModel(steps=[call("search_policies", query="nợ vượt hạn mức tín dụng"), say("Tạm dừng giao.")])
+    out = ask(create_agent(model, tools=[make_policy_tool(store)]), "Nợ gần hạn mức thì làm gì?")
+    (found,) = [m.content for m in out["messages"] if isinstance(m, ToolMessage)]
+    assert found.startswith("[no-90]") and "[thu-nhac-no]" not in found  # style guide bị lọc ra
+
+
+# ---------------------------------------------------------------- Phần 9: MCP client
+def test_mcp_tools_come_from_the_server_and_errors_reach_the_model():
+    model = ScriptedChatModel(
+        steps=[call("find_customers", query="Hà Nội"), call("find_customers", query="zzz"), say("ok")]
+    )
+    out = asyncio.run(ask_with_mcp(model, "Khách ở Hà Nội?"))
+    assert model.bound_tools[0] == ["find_customers"]  # tên + schema lấy từ server
+    found, missing = [m for m in out["messages"] if isinstance(m, ToolMessage)]
+    assert "KH-0012" in str(found.content) and "KH-0047" in str(found.content)
+    assert missing.status == "error" and "Không thấy khách hàng khớp 'zzz'" in str(missing.content)
+
+
+def test_mcp_tools_need_async_invocation():
+    tools = asyncio.run(MultiServerMCPClient(SERVERS).get_tools())
+    model = ScriptedChatModel(steps=[call("find_customers", query="KH-0012"), say("ok")])
+    with pytest.raises(NotImplementedError, match="sync invocation"):
+        ask(create_agent(model, tools=tools), "KH-0012?")  # invoke đồng bộ
+
+
+# ---------------------------------------------------------------- Phần 10: team
+def test_coordinate_leader_delegates_then_synthesizes():
+    lead = ScriptedChatModel(
+        steps=[
+            call("ask_analyst", task="Công nợ và hạn mức của KH-0047?"),
+            call("ask_writer", task="Viết 2 câu nhắc nợ 79.000.000 đồng cho Hải Đăng"),
+            say("Đã có số liệu và thư nháp cho KH-0047."),
+        ]
+    )
+    members = {
+        "analyst": ScriptedChatModel(steps=[call("search_customers", query="KH-0047"), say("Nợ 79 triệu / 80 triệu.")]),
+        "writer": ScriptedChatModel(steps=[say("Kính gửi Hải Đăng, quý khách còn nợ 79.000.000 đồng.")]),
+    }
+    out = ask(build_team(lead, members.__getitem__, CustomerDB()), "Chuẩn bị nhắc nợ KH-0047")
+    assert member_answers(out) == [
+        ("ask_analyst", "Nợ 79 triệu / 80 triệu."),
+        ("ask_writer", "Kính gửi Hải Đăng, quý khách còn nợ 79.000.000 đồng."),
+    ]
+    assert out["messages"][-1].content == "Đã có số liệu và thư nháp cho KH-0047." and len(lead.calls) == 3
+    member_input = [m.content for m in members["writer"].calls[0] if m.type == "human"]
+    assert member_input == ["Viết 2 câu nhắc nợ 79.000.000 đồng cho Hải Đăng"]  # chỉ nhận task, như Agno
+
+
+def test_route_returns_the_member_answer_verbatim():
+    lead = ScriptedChatModel(steps=[call("ask_analyst", task="Hạn mức KH-0012?")])
+    members = {
+        "analyst": ScriptedChatModel(steps=[say("Hạn mức 300.000.000 đồng.")]),
+        "writer": ScriptedChatModel(steps=[]),
+    }
+    out = ask(build_team(lead, members.__getitem__, CustomerDB(), mode="route"), "Hạn mức của KH-0012?")
+    assert out["messages"][-1].content == "Hạn mức 300.000.000 đồng." and len(lead.calls) == 1
+
+
+# ---------------------------------------------------------------- Phần 7/13: nhiều tool client cùng lượt
+def test_two_client_tools_in_one_turn_resume_together():
+    both = AIMessage(
+        content="",
+        tool_calls=[
+            {"name": "excel_read_rows", "args": {"rows": [2]}, "id": "c1"},
+            {"name": "excel_set_values", "args": {"cells": {"E2": "Hoàn tất"}}, "id": "c2"},
+        ],
+    )
+    model = ScriptedChatModel(steps=[both, say("Đã đọc dòng 2 và ghi E2.")])
+    agent = create_agent(model, tools=CLIENT_TOOLS, checkpointer=InMemorySaver())
+    config = {"configurable": {"thread_id": "multi"}}
+    out = agent.invoke({"messages": [{"role": "user", "content": "Đọc dòng 2 rồi đánh dấu hoàn tất"}]}, config)
+    assert sorted(p["tool_call_id"] for p in pending(out)) == ["c1", "c2"]  # hai interrupt cùng lúc
+
+    half = resume_all(agent, out, {"c1": "Dòng 2: Công ty An Phát"}, thread="multi")
+    assert [p["tool_call_id"] for p in pending(half)] == ["c2"] and len(model.calls) == 1  # còn chờ c2
+
+    done = resume_all(agent, half, {"c2": "Đã ghi E2"}, thread="multi")
+    assert pending(done) == [] and done["messages"][-1].content == "Đã đọc dòng 2 và ghi E2."
+    results = {m.tool_call_id: m.content for m in done["messages"] if isinstance(m, ToolMessage)}
+    assert results == {"c1": "Dòng 2: Công ty An Phát", "c2": "Đã ghi E2"}
+```
+
+```python
+# file: tests/test_workflow.py
+"""Workflow thư nhắc nợ bằng StateGraph: cùng sáu tình huống với test workflow của Agno (Lab 01, Phần 11)."""
+
+from __future__ import annotations
+
+import sqlite3
+
+from harness.data import CustomerDB
+from harness.model import ScriptedChatModel, call
+from harness.run import pending
+from harness.workflow import MAX_DRAFTS, build_workflow, start
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.types import Command
+
+GOOD = {"subject": "Nhắc thanh toán công nợ", "body": "Kính gửi Hải Đăng, quý khách còn nợ 79.000.000 đồng."}
+NO_AMOUNT = {"subject": "Nhắc thanh toán công nợ", "body": "Kính gửi Hải Đăng, mong quý khách sớm thanh toán."}
+
+
+def letter(**fields) -> object:
+    return call("Letter", **fields)
+
+
+def flow(model, outbox, checkpointer=None):
+    return build_workflow(model, CustomerDB(), outbox, checkpointer or InMemorySaver())
+
+
+def approve(graph, thread: str, ok: bool = True) -> dict:
+    return graph.invoke(Command(resume={"approve": ok}), {"configurable": {"thread_id": thread}})
+
+
+def test_rewrites_with_feedback_then_waits_for_review():
+    model, outbox = ScriptedChatModel(steps=[letter(**NO_AMOUNT), letter(**GOOD)]), []
+    graph = flow(model, outbox)
+    out = start(graph, "w1", "KH-0047", "Viết thư nhắc nợ")
+    (review,) = pending(out)
+    assert review["type"] == "review" and review["letter"] == GOOD and outbox == []  # chưa duyệt thì chưa gửi
+    second_prompt = model.calls[1][-1].content
+    assert "Thư chưa nêu đúng số tiền nợ 79.000.000 đồng" in second_prompt  # lần 2 nhận nhận xét của cổng
+    assert review["escalation"].startswith("Báo trưởng phòng tín dụng")  # nợ 79/80 triệu > 90% hạn mức
+
+    final = approve(graph, "w1")
+    assert final["status"] == "sent" and final["revision"] == 1 and outbox[0]["subject"] == GOOD["subject"]
+
+
+def test_draft_with_invalid_schema_counts_as_a_failed_attempt():
+    model, outbox = ScriptedChatModel(steps=[letter(subject="x", body="ngắn"), letter(**GOOD)]), []
+    out = start(flow(model, outbox), "w7", "KH-0047", "Viết thư nhắc nợ")
+    assert pending(out)[0]["letter"] == GOOD and len(model.calls) == 2
+    assert "Thư không đúng schema Letter" in model.calls[1][-1].content
+
+
+def test_exhausted_drafts_stop_the_flow():
+    model, outbox = ScriptedChatModel(steps=[letter(**NO_AMOUNT)] * MAX_DRAFTS), []
+    out = start(flow(model, outbox), "w2", "KH-0047", "Viết thư nhắc nợ")
+    assert out["status"] == "failed" and pending(out) == [] and len(model.calls) == MAX_DRAFTS and outbox == []
+
+
+def test_numbers_only_route_skips_the_llm():
+    model, outbox = ScriptedChatModel(steps=[]), []
+    graph = flow(model, outbox)
+    out = start(graph, "w3", "KH-0012", "Chỉ số liệu thôi")
+    assert pending(out)[0]["letter"]["body"].endswith("120.000.000 đồng.") and model.calls == []
+    assert pending(out)[0]["escalation"] is None  # 120/300 triệu: không vượt 90% hạn mức
+    assert approve(graph, "w3")["status"] == "sent"
+
+
+def test_rejected_review_sends_nothing():
+    model, outbox = ScriptedChatModel(steps=[letter(**GOOD)]), []
+    graph = flow(model, outbox)
+    start(graph, "w4", "KH-0047", "Viết thư nhắc nợ")
+    final = approve(graph, "w4", ok=False)
+    assert final["status"] == "rejected" and outbox == [] and final.get("revision", 0) == 0
+
+
+def test_second_run_on_the_same_thread_builds_on_the_first():
+    model, outbox = ScriptedChatModel(steps=[letter(**GOOD), letter(**{**GOOD, "subject": "Nhắc nợ lần hai"})]), []
+    graph = flow(model, outbox)
+    start(graph, "w5", "KH-0047", "Viết thư nhắc nợ")
+    approve(graph, "w5")
+    start(graph, "w5", "KH-0047", "Viết lại, giọng cứng rắn hơn")
+    final = approve(graph, "w5")
+    assert final["revision"] == 2 and [m["revision"] for m in outbox] == [1, 2]
+    assert GOOD["subject"] in model.calls[1][-1].content  # lần 2 viết dựa trên thư đã gửi lần 1
+
+
+def test_resume_from_a_new_graph_instance(tmp_path):
+    db_file = tmp_path / "flow.db"
+    model, outbox = ScriptedChatModel(steps=[letter(**GOOD)]), []
+    first = flow(model, outbox, SqliteSaver(sqlite3.connect(db_file, check_same_thread=False)))
+    assert pending(start(first, "w6", "KH-0047", "Viết thư nhắc nợ"))  # dừng chờ duyệt, rồi "process" kết thúc
+
+    restarted = flow(
+        ScriptedChatModel(steps=[]), outbox, SqliteSaver(sqlite3.connect(db_file, check_same_thread=False))
+    )
+    final = approve(restarted, "w6")  # như continue_run(run_id=..., session_id=...) của Agno
+    assert final["status"] == "sent" and outbox[0]["customer_id"] == "KH-0047"
+```
+
+## 7. Giới hạn và việc tiếp theo
 
 - **Chưa chạy với model thật.** Mọi test dùng model kịch bản: chúng chứng minh harness đưa đúng thứ cho model và
   chặn đúng chỗ, **không** chứng minh model thật chọn tool đúng. Việc đó là của `eval_golden.py`.
-- **Bước tiếp theo: workflow agent** (ưu tiên hiện tại). Dựng một `StateGraph` với các bước cố định, mỗi bước là
-  code, một lượt gọi LLM, hoặc một harness từ lab này; đặt người duyệt ở bước rủi ro. Bắt đầu từ
-  [Lab 03 LangGraph](../self-practices/guide_03_langgraph.md).
+- **Workflow agent** (ưu tiên hiện tại): [mục 6.7](#67-workflow) đã có một `StateGraph` đầy đủ (song song, vòng sửa có
+  giới hạn, rẽ nhánh, người duyệt, lưu bền). Bước tiếp: đặt một harness của mục 4 vào một node (bước cần tự chọn
+  tool), theo [Lab 03 LangGraph](../self-practices/guide_03_langgraph.md).
 - **AG-UI để sau (chủ ý, chưa cần lúc này).** Khi làm: thay AgentOS cho CMB-10 phải viết một endpoint nhận `RunAgentInput`, gọi
   `ask`/`resume` như mục 4.8 và phát sự kiện AG-UI (`RUN_STARTED`, `TEXT_MESSAGE_*`, `TOOL_CALL_START/ARGS/END`,
   `RUN_FINISHED`) từ `agent.stream(...)`. Một interrupt `client_tool` ứng với `TOOL_CALL_*` không có kết quả, đúng như
@@ -1915,7 +2890,9 @@ def test_golden_eval_runner_scores_scripted_answers():
 - **Cảnh báo đã biết:** khi run dừng ở `interrupt()` với `context=AgentContext(...)`, pydantic in một
   `UserWarning` về serializer của trường `context`. Không ảnh hưởng kết quả (test vẫn xanh).
 - **Chưa làm:** chọn tool theo câu hỏi khi có nhiều tool (`LLMToolSelectorMiddleware`, `ProviderToolSearchMiddleware`
-  có sẵn), trace gửi Langfuse/OTel, prompt cache có đo.
+  có sẵn), trace gửi Langfuse/OTel, prompt cache có đo; phần AgentOS/A2A/MCP server/eval của Lab 01 (mục 6).
+- **Hai SDK MCP:** lab này dùng mcp 1.x (vì `langchain-mcp-adapters` 0.3.2 cần `mcp<2`), lab Agno dùng mcp 2.x. Khi
+  adapter hỗ trợ mcp 2.x, `mcp_customer_server.py` phải đổi `FastMCP` → `MCPServer` như Bước 0 của Lab 01.
 
 ## Nguồn
 

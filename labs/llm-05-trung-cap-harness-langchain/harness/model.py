@@ -42,6 +42,13 @@ def call(name: str, **args: Any) -> AIMessage:
     return AIMessage(content="", tool_calls=[{"name": name, "args": args, "id": f"call_{uuid.uuid4().hex[:12]}"}])
 
 
+def _tool_name(tool: Any) -> str:
+    """Tên tool dù là BaseTool, dict schema, hay class Pydantic (with_structured_output truyền class)."""
+    if isinstance(tool, dict):
+        return tool.get("name") or tool.get("function", {}).get("name", "?")
+    return getattr(tool, "name", None) or getattr(tool, "__name__", "?")
+
+
 class ScriptedChatModel(BaseChatModel):
     """Model giả: trả lần lượt `steps`, ghi lại input của từng lần gọi."""
 
@@ -54,7 +61,7 @@ class ScriptedChatModel(BaseChatModel):
         return "scripted"
 
     def bind_tools(self, tools: Any, **kwargs: Any) -> ScriptedChatModel:
-        self.bound_tools.append([getattr(t, "name", None) or t.get("name", "?") for t in tools])
+        self.bound_tools.append([_tool_name(t) for t in tools])
         return self
 
     def _generate(self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kwargs: Any):

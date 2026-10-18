@@ -231,12 +231,21 @@ class ToolPolicyMiddleware(AgentMiddleware):
 
 # ---------------------------------------------------------------- 6. Subagent
 def make_subagent_tool(
-    name: str, description: str, model: BaseChatModel, tools: Sequence[BaseTool], system_prompt: str
+    name: str,
+    description: str,
+    model: BaseChatModel,
+    tools: Sequence[BaseTool],
+    system_prompt: str,
+    *,
+    return_direct: bool = False,
 ) -> BaseTool:
-    """Một agent con chạy với ngữ cảnh riêng; agent chính chỉ nhận câu trả lời cuối (không nhận các bước giữa)."""
+    """Một agent con chạy với ngữ cảnh riêng; agent chính chỉ nhận câu trả lời cuối (không nhận các bước giữa).
+
+    `return_direct=True`: run của agent chính dừng ngay, trả nguyên văn câu của agent con (như Team mode="route").
+    """
     sub = create_agent(model, tools=list(tools), system_prompt=system_prompt, checkpointer=False, name=name)
 
-    @tool(name, description=description)
+    @tool(name, description=description, return_direct=return_direct)
     def run_subagent(task: str) -> str:
         out = sub.invoke({"messages": [HumanMessage(content=task)]})
         final = next((m for m in reversed(out["messages"]) if isinstance(m, AIMessage) and not m.tool_calls), None)

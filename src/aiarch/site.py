@@ -124,7 +124,14 @@ DOC_SECTIONS = [
                 "lab_llm05",
                 "Lab LLM-05 · harness bằng LangChain",
                 "labs/llm-05-trung-cap-harness-langchain/README.md",
-                "Code của tài liệu harness, 39 test với model kịch bản, demo 5 run, bộ đo vàng.",
+                "Code của tài liệu harness + phần còn lại của Lab 01 (workflow, MCP, team...), 72 test, bộ đo vàng.",
+                "Lab",
+            ),
+            (
+                "lab_agno",
+                "Lab LLM-05 · Agno + AgentOS từng phần",
+                "labs/llm-05-trung-cap-agno-agentos/README.md",
+                "Project tham chiếu của Lab 01: 16 module, model giả lập không cần API key, 117 test.",
                 "Lab",
             ),
             (
@@ -136,9 +143,9 @@ DOC_SECTIONS = [
             ),
             (
                 "self_lab01",
-                "Tự học · Lab 01 Agno",
+                "Tự học · Lab 01 Agno và AgentOS",
                 "docs/self-practices/guide_01_agno.md",
-                "Tự code Report Agent với Agno.",
+                "Baseline + 16 phần có code đầy đủ: agent, tool, memory, HITL, workflow, MCP, AG-UI, A2A, eval.",
                 "Tự học",
             ),
             (

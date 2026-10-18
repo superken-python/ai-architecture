@@ -32,6 +32,7 @@ cp templates/lab/README.md labs/ml-07-co-ban-bm25-vs-embedding/README.md
 
 | Lab | Kỹ năng · mức | Nội dung |
 |---|---|---|
-| [llm-05-trung-cap-harness-langchain](llm-05-trung-cap-harness-langchain/README.md) | LLM-05 · Trung cấp | Harness agent bằng LangChain tương đương Agno (lịch sử N run, memory theo user, tool client có tạm dừng, người duyệt, trần số bước) + các lớp cải tiến kiểu Claude Code; 39 test với model kịch bản |
+| [llm-05-trung-cap-harness-langchain](llm-05-trung-cap-harness-langchain/README.md) | LLM-05 · Trung cấp | Harness agent bằng LangChain tương đương Agno (lịch sử N run, memory theo user, tool client có tạm dừng, người duyệt, trần số bước) + các lớp cải tiến kiểu Claude Code + phần còn lại của Agno (output có schema, state, guardrail, RAG, MCP, team, workflow `StateGraph`); 72 test với model kịch bản |
+| [llm-05-trung-cap-agno-agentos](llm-05-trung-cap-agno-agentos/README.md) | LLM-05 · Trung cấp | Project tham chiếu của Lab 01 tự học: Agno 3.1.3 + AgentOS từng phần — agent, tool, structured output, streaming, session, memory, knowledge, HITL, guardrail, MCP client, team, workflow, AgentOS (REST, khoá, trace), AG-UI, A2A, MCP server, eval; 117 test với model giả lập |
 
 Các lab còn lại bổ sung theo thứ tự [lộ trình học](../docs/02-skill-map/04-lo-trinh-hoc.md).
