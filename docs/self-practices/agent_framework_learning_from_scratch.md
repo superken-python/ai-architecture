@@ -529,6 +529,8 @@ Chạy `uv run python mcp_client.py`. Client tự khởi động server subproce
 
 Nguồn API v1.x: [MCP Python SDK v1.x](https://github.com/modelcontextprotocol/python-sdk/blob/v1.x/README.md). SDK có nhiều dòng API; giữ constraint trong project khi học.
 
+> **Ghi chú cho Lab 01:** `agno[mcp]` của Agno 3.1.3 cần `mcp>=2.1`. Khi sang Lab 01, làm [Bước 0 — nâng MCP lên 2.x](guide_01_agno.md#32-bước-0--nâng-mcp-lên-2x): đổi `FastMCP` thành `MCPServer`, `isError` thành `is_error`, lỗi đã lường trước dùng `ToolError`.
+
 ## 8. RAG quy ước: exact trước, semantic sau
 
 Baseline `load_rules()` là **exact lookup**, chưa phải vector RAG. Đây là chủ ý: không để top-k bỏ sót KPI. Text style được đọc đầy đủ vì tài liệu nhỏ.

@@ -1,0 +1,16 @@
+# Lab 01 — Agno 3.1.3 + AgentOS. Đã kiểm chứng ngày 17/10/2026 với Python 3.12: 74 test qua (model giả lập).
+# Extra của agno: os = AgentOS (FastAPI, tracing), mcp = MCPTools + MCP server, agui/a2a = hai giao thức,
+# sqlite/lancedb = lưu trữ và vector DB, openai = model OpenAI và mọi endpoint tương thích (Ollama, vLLM, mock).
+agno[os,mcp,sqlite,lancedb,openai,agui,a2a]==3.1.3
+mcp==2.3.0  # agno[mcp] cần mcp>=2.1,<3 — Lab 00 dùng mcp 1.x, xem Bước 0 trong guide_01_agno.md
+fastmcp==4.1.0
+ag-ui-protocol==1.0.0
+a2a-sdk==0.3.26
+openai==3.33.0
+fastapi==0.143.3
+uvicorn==0.54.0
+lancedb==0.40.0
+openpyxl==3.1.5  # Lab 00: đọc/ghi Excel quy ước KPI
+python-dotenv==1.2.4
+httpx==0.28.1
+pytest==9.1.1

@@ -1,0 +1,14 @@
+# Ruff cho project tham chiếu Lab 01: kế thừa cấu hình của repo, khai báo module cục bộ của project thực hành.
+extend = "../../pyproject.toml"
+
+[lint.isort]
+# Module của project (Lab 00 + Lab 01) xếp thành nhóm riêng sau thư viện ngoài, đúng cách Lab 00 viết import.
+known-first-party = [
+    "agno_lab", "mock_llm", "service", "rules", "reporting", "mcp_client", "setup_assets",
+    "settings_paths", "servers", "sync_doc",
+]
+
+[lint.per-file-ignores]
+# Chép nguyên văn từ Lab 00 (docs/self-practices/agent_framework_learning_from_scratch.md): không sửa code người học.
+"rules.py" = ["B905"]
+"mcp_client.py" = ["SIM117"]
