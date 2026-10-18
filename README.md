@@ -29,7 +29,8 @@ make check      # lint + test + kiểm tra catalog
 Rồi đọc theo thứ tự: [setup](docs/00-setup/README.md) → [bản đồ bài toán](docs/01-problem-map/README.md) →
 [bản đồ kỹ năng](docs/02-skill-map/README.md) → [lộ trình học](docs/02-skill-map/04-lo-trinh-hoc.md).
 Hoặc mở **trang web lộ trình** (`https://superken-python.github.io/ai-architecture/` sau khi bật Pages; xem thử tại
-máy bằng `make site-serve`).
+máy bằng `make site-serve`): lộ trình, kỹ năng, nhóm bài toán và tài liệu nối với nhau — từ một bước hay một kỹ năng
+bấm **Học ngay** là mở bài học, lab ngay trên trang (Markdown hiển thị như GitHub: code, bảng, sơ đồ mermaid, công thức).
 
 ## Cấu trúc thư mục
 
@@ -40,6 +41,7 @@ ai-architecture/
 │   ├── skills.yaml             #   10 mảng, 65 kỹ năng
 │   ├── combinations.yaml       #   10 tổ hợp dự án nhiều nhóm
 │   ├── roadmap.yaml            #   lộ trình 4 giai đoạn, từng bước + mức mục tiêu
+│   ├── docs.yaml               #   tài liệu theo chủ đề + bài nào dạy bước/kỹ năng nào → liên kết chéo trên web
 │   └── agent_landscape.yaml    #   radar framework agent (+ .snapshot.json do `make landscape-refresh` kéo)
 ├── docs/
 │   ├── 00-setup/               # chuẩn bị môi trường (đọc đầu tiên)
@@ -50,7 +52,7 @@ ai-architecture/
 │   ├── 03-giai-doan-a-nen-tang/ # bài học Giai đoạn A (A1–A8), code trích nguyên văn từ projects/g1-churn-telco
 │   └── agent-radar/            # tài liệu sống: radar framework agent (Nhóm 7), bảng sinh từ catalog/agent_landscape.*
 ├── web/                        # trang web lộ trình (HTML/CSS/JS thuần) → GitHub Pages
-├── src/aiarch/                 # thư viện dùng chung (catalog: kiểm tra + sinh Markdown; site: sinh trang web)
+├── src/aiarch/                 # thư viện dùng chung (catalog: kiểm tra + sinh Markdown; site + docview: sinh trang web)
 ├── labs/                       # giai đoạn 3 — lab theo kỹ năng: labs/<id>-<mức>-<tên>/
 ├── projects/                   # giai đoạn 4 — dự án theo nhóm: projects/g<N>-<tên>/
 ├── templates/                  # mẫu: kỹ năng (YAML), lab, dự án

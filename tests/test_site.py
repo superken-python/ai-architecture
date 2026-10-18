@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import re
 
@@ -46,5 +47,69 @@ def test_docs_menu_links_existing_files():
     assert set(listed) == set(docs)
     for key, doc in docs.items():
         assert (c.REPO_ROOT / doc["path"]).is_file(), f"{key}: không có file {doc['path']}"
-        assert doc["url"] == f"https://github.com/owner/repo/blob/main/{doc['path']}"
+        assert doc["url"] == f"https://github.com/owner/repo/blob/main/{doc['path']}"  # nút "GitHub ↗" phụ
         assert doc["desc"], f"{key}: thiếu mô tả"
+
+
+def test_docs_catalog_is_valid():
+    assert c.validate_docs(c.load()) == []
+
+
+def test_every_stage_a_step_has_lesson_and_lab():
+    """Từ bước lộ trình bấm "Học ngay" phải mở được bài học và lab của đúng bước đó."""
+    cat = c.load()
+    learn = site.learning_links(cat)
+    docs = site.site_data(cat, "owner/repo")["meta"]["docs"]
+    stage_a = next(st for st in cat.roadmap["stages"] if st["id"] == "A")
+    for step in stage_a["steps"]:
+        kinds = {docs[k]["kind"] for k in learn["by_step"].get(step["id"], [])}
+        assert {"lesson", "lab"} <= kinds, f"bước {step['id']} thiếu bài học hoặc lab: {kinds}"
+    # kỹ năng của bước → bài học của bước, đúng mức mục tiêu
+    resources = {r["key"]: r for r in learn["by_skill"]["STAT-05"]}
+    assert resources["stage_a5"]["level"] == "intermediate" and resources["stage_a5"]["step"] == "A5"
+    assert "g1_churn" in learn["by_group"]["G1"]
+    assert "cmb10" in learn["by_combo"]["CMB-10"]
+
+
+def test_validate_docs_catches_bad_references(tmp_path):
+    cat = c.load()
+    bad = {
+        "sections": [
+            {
+                "id": "x",
+                "title": "X",
+                "desc": "X",
+                "docs": [
+                    {"key": "a", "title": "A", "path": "khong-co.md", "desc": "d", "step": "Z9", "skills": ["NOPE-01"]},
+                    {"key": "a", "title": "B", "path": "README.md", "desc": "d", "kind": "sach", "groups": ["G99"]},
+                ],
+            }
+        ]
+    }
+    errors = "\n".join(c.validate_docs(dataclasses.replace(cat, docs=bad)))
+    for expected in (
+        "trùng key a",
+        "không có file khong-co.md",
+        "bước không tồn tại 'Z9'",
+        "NOPE-01",
+        "kind 'sach'",
+        "G99",
+    ):
+        assert expected in errors
+
+
+def test_build_bundles_docs_for_in_site_viewer(tmp_path):
+    out = site.build(tmp_path / "_site", repo="owner/repo")
+    data = json.loads((out / "data" / "catalog.json").read_text(encoding="utf-8"))
+    pages = data["meta"]["pages"]
+    for doc in data["meta"]["docs"].values():
+        assert doc["path"] in pages, f"{doc['path']} không xem được trong trang"
+    for path in pages:
+        assert (out / "md" / f"{path}.html").is_file()
+    lesson = (out / "md" / "docs/03-giai-doan-a-nen-tang/a2-sql-pandas-thong-ke.md.html").read_text(encoding="utf-8")
+    assert '<pre class="mermaid">' in lesson and '<div class="highlight" data-lang="sql">' in lesson
+    assert 'href="#/ky-nang/DATA-01"' in lesson, "thẻ kỹ năng sinh tự động phải mở trang kỹ năng tương tác"
+    assert "github.com/owner/repo/blob/main/docs/03" not in lesson, "tài liệu trong repo không được dẫn ra GitHub"
+    assert (out / "md" / "docs/03-giai-doan-a-nen-tang/img/tornado.png").is_file()
+    assert (out / "assets" / "vendor" / "mermaid" / "mermaid.min.js").is_file()
+    assert (out / "assets" / "vendor" / "katex" / "katex.min.js").is_file()

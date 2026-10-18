@@ -1,0 +1,4 @@
+# Thư viện bên thứ ba (web/assets/vendor/): không tính vào thống kê ngôn ngữ; file đã thu nhỏ không hiện diff từng dòng.
+web/assets/vendor/** linguist-vendored
+web/assets/vendor/**/*.min.js -diff
+web/assets/vendor/**/*.min.css -diff

@@ -10,6 +10,55 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-18 · Trang web: liên kết học xuyên suốt + đọc tài liệu ngay trên trang (định dạng như GitHub)
+
+**Đã làm**
+
+- **Liên kết chéo** lộ trình ↔ kỹ năng ↔ nhóm bài toán ↔ tài liệu, tính từ `catalog/docs.yaml` (mới — thay danh sách
+  tài liệu viết cứng trong `site.py`; mỗi tài liệu khai báo `kind`, `step`, `skills`, `groups`, `combos`, `domains`,
+  `pages`; `make catalog` kiểm tra file và id):
+  - Bước lộ trình: thanh **Học ngay** (bài học + lab của bước) và nhãn "Có bài học + lab"; bước chưa có bài học gợi ý
+    tài liệu theo kỹ năng của bước (vd. B7 → radar agent, lab harness, tự học Agno...). Giai đoạn: hướng dẫn, dự án,
+    link setup.
+  - Kỹ năng: thẻ **Học kỹ năng này** (bài học/lab/tài liệu theo mức, bước, nút học ngay, dự án áp dụng, đọc thêm theo
+    mảng); dòng kỹ năng ở lộ trình nhóm và hướng chuyên sâu có nút **Học ngay** tới bài phù hợp mức.
+  - Nhóm: **Học và thực hành nhóm này** (giai đoạn dùng nhóm làm dự án, dự án, tài liệu, lab); tổ hợp: dự án.
+  - Tổng quan: thẻ **Tiếp tục học** — bước kế tiếp chưa xong + bài học, lab. Trang Tài liệu: thẻ có chip bước, kỹ năng,
+    nhóm, tổ hợp, mảng, trang. Mỗi trang có dòng "Đọc thêm" từ `pages`.
+- **Khung xem tài liệu toàn màn hình** (`#/doc/<đường dẫn>`), thay mọi link sang GitHub:
+  - `src/aiarch/docview.py` render lúc build bằng markdown-it-py + mdit-py-plugins (GFM: bảng, task list, alert, autolink,
+    footnote, `$…$`/`$$…$$`) + Pygments (bảng màu "prettylights" của GitHub); anchor tiêu đề theo đúng thuật toán của
+    GitHub; thẻ HTML nguy hiểm bị vô hiệu như GFM. Gom 123 file `.md` + 51 file code được nhắc tới (xem có số dòng,
+    `#L10-L20`) + ảnh, đi theo liên kết và cây thư mục; chỉ lấy file Git đang theo dõi.
+  - Viết lại liên kết: tài liệu/code trong repo → mở trong khung xem; thẻ kỹ năng/nhóm/lộ trình/tổ hợp/ma trận sinh tự
+    động → trang tương tác; ảnh → bản sao; permalink theo commit và file nhị phân → GitHub. Kiểm tra tự động: ~2.200
+    link tới tài liệu, ~1.700 link tới trang tương tác, 0 link hỏng.
+  - Trình duyệt: mermaid 11.17.2 và KaTeX 0.16.47 tự chứa trong `web/assets/vendor/` (ghim phiên bản, kiểm mã băm sha512,
+    `make site-vendor`), chỉ tải khi tài liệu cần; vẽ lại sơ đồ khi đổi sáng/tối; mục lục bám theo vị trí đọc; nút sao
+    chép code; đầu trang ghi bài thuộc bước/kỹ năng nào, học cùng lab nào; cuối trang đánh dấu kỹ năng đã đạt, bài
+    trước/tiếp, cùng thư mục; nút Đóng/Esc/Back quay về đúng trang và vị trí cuộn.
+- Kiểm thử: `tests/test_docview.py` (GFM, anchor GitHub, viết lại liên kết, mọi link của tài liệu thật, chỉ xuất file
+  được theo dõi), `tests/test_site.py` (docs.yaml, mọi bước giai đoạn A có bài học + lab); `tests/test_docs_links.py`
+  dùng chung thuật toán anchor. `make site-test` mở **mọi** tài liệu trên desktop + điện thoại (sơ đồ, công thức vẽ
+  được, không tràn ngang) và các luồng mở/đóng/Esc/chuyển tài liệu/sang trang kỹ năng.
+- Sửa sơ đồ sequence trong `projects/gpt-excel-agent-chatbot/docs/02-solution-approach.md`: dấu `;` trong lời nhắn là
+  ký tự xuống dòng của mermaid nên sơ đồ hỏng (cả trên GitHub).
+
+**Quyết định**
+
+- **Render lúc build bằng Python, không render trên trình duyệt**: kiểm thử được từng liên kết, cùng thuật toán anchor
+  với test tài liệu, trang nhẹ (chỉ tải đúng file cần đọc). Chỉ mermaid và KaTeX chạy trên trình duyệt (không có bản
+  Python tương đương).
+- **Tự chứa mermaid/KaTeX thay vì CDN** (~4 MB, `-diff` trong `.gitattributes`): sơ đồ và công thức luôn hiện, kiểm thử
+  không cần mạng.
+- Link tới tài liệu **sinh tự động** (thẻ kỹ năng, trang nhóm, lộ trình) mở **trang tương tác** tương ứng vì ở đó có
+  tiến độ và nút học ngay; các trang `.md` khác của thư mục `generated/` vẫn xem được trong khung xem.
+
+**Còn mở**
+
+- Bật GitHub Pages (CHECKLIST P0). Repo private + Pages công khai thì nội dung tài liệu cũng công khai.
+- Khi viết bài học giai đoạn B: khai báo trong `catalog/docs.yaml` với `step: B…` để các trang tự nối.
+
 ## 2026-10-18 · Giai đoạn A · Nền tảng: 8 bài học + 8 lab + real case churn xây từ đầu
 
 **Đã làm**

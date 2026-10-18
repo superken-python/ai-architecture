@@ -1,0 +1,331 @@
+# Tài liệu viết tay của repo — nguồn dữ liệu cho trang "Tài liệu" (#/tai-lieu) của web và cho các liên kết chéo.
+#
+# Trang web mở mọi tài liệu ngay trong trang (khung xem toàn màn hình, render giống GitHub), không chuyển sang GitHub.
+# Ngoài việc xếp tài liệu theo nhóm chủ đề, mỗi tài liệu khai báo nó DẠY hoặc LUYỆN gì. Từ đó trang web tự nối:
+#   bước lộ trình → bài học + lab của bước;   kỹ năng → bài học, lab, dự án, tài liệu để học nó;
+#   nhóm bài toán → dự án + tài liệu;   tổ hợp → dự án;   tài liệu → bước, kỹ năng, nhóm liên quan.
+#
+# Trường của một tài liệu:
+#   key, title, path (file .md trong repo), desc — bắt buộc; tag — nhãn ngắn hiện trên thẻ (tùy chọn).
+#   kind    : guide (hướng dẫn giai đoạn) | lesson (bài học) | lab | project (dự án) | report (báo cáo) | doc (mặc định).
+#   stage   : id giai đoạn trong roadmap.yaml mà tài liệu là hướng dẫn/dự án chung.
+#   step    : id bước trong roadmap.yaml mà tài liệu dạy/luyện — tự kế thừa kỹ năng + mức mục tiêu của bước.
+#   skills  : kỹ năng dạy/luyện thêm — id (chỉ liên quan, không nói mức) hoặc {id, level}.
+#   groups  : nhóm bài toán (G1…); combos: tổ hợp (CMB-…); domains: mảng kỹ năng (PY, EFF…).
+#   pages   : trang web nên gợi ý đọc tài liệu này — lo-trinh | nhom | ky-nang | ma-tran | to-hop | tien-do.
+#
+# Bộ kiểm tra (make catalog) bảo đảm: file tồn tại, key không trùng, mọi id tham chiếu đều có thật.
+
+version: 1
+
+sections:
+  - id: nen-tang
+    title: Nền tảng lộ trình
+    desc: Bài toán AI trong doanh nghiệp, kỹ năng cần có và cách học.
+    docs:
+      - key: setup
+        title: Setup môi trường
+        path: docs/00-setup/README.md
+        desc: Chuẩn bị máy và công cụ một lần trước khi học.
+        pages: [lo-trinh]
+      - key: problem_map
+        title: Bản đồ bài toán (giai đoạn 1)
+        path: docs/01-problem-map/README.md
+        desc: 8 nhóm bài toán AI trong doanh nghiệp, cách nhận diện.
+        pages: [nhom]
+      - key: skill_map
+        title: Bản đồ kỹ năng (giai đoạn 2)
+        path: docs/02-skill-map/README.md
+        desc: 65 kỹ năng theo mảng, mức cần cho từng nhóm bài toán.
+        pages: [ky-nang]
+      - key: architecture
+        title: Kiến trúc kỹ năng
+        path: docs/02-skill-map/01-kien-truc-ky-nang.md
+        desc: Tầng nền tảng, cầu nối, chuyên sâu và quan hệ tiên quyết.
+        pages: [ky-nang, ma-tran]
+      - key: combining
+        title: Kỹ năng kết hợp
+        path: docs/02-skill-map/02-ky-nang-ket-hop.md
+        desc: Tổ hợp kỹ năng cho bài toán thật nhiều nhóm.
+        pages: [to-hop]
+      - key: tokens
+        title: Tiết kiệm token, chính xác tuyệt đối
+        path: docs/02-skill-map/03-tiet-kiem-token-chinh-xac.md
+        desc: Giảm chi phí LLM mà không đánh đổi độ chính xác.
+        domains: [EFF]
+      - key: roadmap
+        title: Lộ trình học (Markdown)
+        path: docs/02-skill-map/04-lo-trinh-hoc.md
+        desc: Bốn giai đoạn, nguyên tắc xếp bước, vòng lặp học mỗi kỹ năng, cách theo dõi tiến độ.
+        pages: [lo-trinh, tien-do]
+
+  - id: giai-doan-a
+    title: Giai đoạn A · Nền tảng
+    desc: 8 bài lý thuyết + lab cùng xây một dự án churn từ dữ liệu thô tới API. Học theo thứ tự A1 → A8.
+    docs:
+      - key: stage_a
+        title: Tổng quan giai đoạn A
+        path: docs/03-giai-doan-a-nen-tang/README.md
+        desc: Real case nhà mạng Sóng Xanh, lộ trình 8 bài, cách học, bảng tự đánh giá.
+        tag: Bắt đầu ở đây
+        kind: guide
+        stage: A
+      - key: stage_a1
+        title: A1 · Python, Git và framing
+        path: docs/03-giai-doan-a-nen-tang/a1-python-git-framing.md
+        desc: Từ 'giảm churn' tới precision@500, giá trị kỳ vọng một cuộc gọi; dự án uv, config, Makefile.
+        kind: lesson
+        step: A1
+      - key: stage_a2
+        title: A2 · SQL, pandas và thống kê mô tả
+        path: docs/03-giai-doan-a-nen-tang/a2-sql-pandas-thong-ke.md
+        desc: DuckDB, ASOF JOIN, làm sạch có quy tắc, tiếng Việt NFC/NFD, phân phối lệch, 5 nhận xét.
+        kind: lesson
+        step: A2
+      - key: stage_a3
+        title: A3 · Baseline và bộ đánh giá cố định
+        path: docs/03-giai-doan-a-nen-tang/a3-baseline-bo-danh-gia.md
+        desc: Chia theo thời gian, đóng băng tập test bằng mã băm, precision@k, bootstrap theo khách.
+        kind: lesson
+        step: A3
+      - key: stage_a4
+        title: A4 · Dữ liệu đúng thời điểm và feature
+        path: docs/03-giai-doan-a-nen-tang/a4-feature-as-of-ro-ri.md
+        desc: Bảng học as-of bằng một câu SQL, bốn loại rò rỉ, test đúng thời điểm, pandera.
+        kind: lesson
+        step: A4
+      - key: stage_a5
+        title: A5 · LightGBM, mất cân bằng, ngưỡng theo chi phí
+        path: docs/03-giai-doan-a-nen-tang/a5-lightgbm-nguong-chi-phi.md
+        desc: Early stopping, class weight phá xác suất, hiệu chỉnh, giá trị kỳ vọng, đường lợi nhuận.
+        kind: lesson
+        step: A5
+      - key: stage_a6
+        title: A6 · Phân tích lỗi, SHAP và kiểm thử
+        path: docs/03-giai-doan-a-nen-tang/a6-phan-tich-loi-shap-test.md
+        desc: Đọc 100 ca sai, sửa bằng dữ liệu mới, 3 lý do tiếng Việt cho từng khách, test cả pipeline.
+        kind: lesson
+        step: A6
+      - key: stage_a7
+        title: A7 · API, Docker, MLflow và bảo mật
+        path: docs/03-giai-doan-a-nen-tang/a7-api-docker-mlflow-bao-mat.md
+        desc: FastAPI có khoá và version, container chỉ đọc, lịch sử thí nghiệm, rà secret và PII.
+        kind: lesson
+        step: A7
+      - key: stage_a8
+        title: A8 · Trình bày kết quả — mốc giai đoạn A
+        path: docs/03-giai-doan-a-nen-tang/a8-trinh-bay-ket-qua.md
+        desc: Báo cáo 1 trang, độ nhạy (tornado), demo 3 phút, CI và tái lập từ đầu.
+        kind: lesson
+        step: A8
+      - key: g1_churn
+        title: Dự án G1 · Churn nhà mạng Sóng Xanh
+        path: projects/g1-churn-telco/README.md
+        desc: "Code hoàn chỉnh của 8 bài: dữ liệu thô → bảng học → LightGBM → API Docker → báo cáo."
+        tag: Có code chạy được
+        kind: project
+        stage: A
+        groups: [G1]
+      - key: g1_report
+        title: Báo cáo 1 trang của dự án churn
+        path: projects/g1-churn-telco/reports/README.md
+        desc: "So với cách làm hiện tại: +103 người gọi trúng, +44,5 triệu đ/tháng, kèm KTC và độ nhạy."
+        tag: Kết quả
+        kind: report
+        step: A8
+        groups: [G1]
+
+  - id: lab
+    title: Lab theo kỹ năng
+    desc: Mỗi lab luyện một kỹ năng ở một mức trên dữ liệu nhỏ, làm tới đâu giải thích tới đó. Lab A1–A8 đi kèm từng bài của giai đoạn A.
+    docs:
+      - key: labs
+        title: Danh sách lab
+        path: labs/README.md
+        desc: Quy ước đặt tên, cách thêm lab, danh sách lab theo kỹ năng.
+      - key: lab_a1
+        title: Lab A1 · Quy bài toán churn ra tiền
+        path: labs/biz-01-co-ban-framing-churn/README.md
+        desc: Giá trị một khách, xác suất hoà vốn, precision@500 cần đạt — trước khi có model.
+        kind: lab
+        step: A1
+      - key: lab_a2
+        title: Lab A2 · Khám phá dữ liệu bằng DuckDB và pandas
+        path: labs/data-01-co-ban-kham-pha-du-lieu/README.md
+        desc: Lỗi dữ liệu thô, bảng khách-tháng, ASOF JOIN, 5 nhận xét có số liệu.
+        kind: lab
+        step: A2
+      - key: lab_a3
+        title: Lab A3 · Khoảng tin cậy bootstrap
+        path: labs/stat-02-co-ban-bootstrap/README.md
+        desc: Công thức nhanh vs bootstrap, theo khách vs theo dòng, chênh lệch cặp, lời nguyền người thắng.
+        kind: lab
+        step: A3
+      - key: lab_a4
+        title: Lab A4 · Feature as-of và bắt rò rỉ
+        path: labs/data-03-trung-cap-ro-ri-du-lieu/README.md
+        desc: Cố tình gây ba loại rò rỉ (AUC 0,73 → 0,97) rồi bắt bằng bốn cách; backtest cuốn chiếu.
+        kind: lab
+        step: A4
+      - key: lab_a5
+        title: Lab A5 · Ngưỡng theo chi phí
+        path: labs/stat-05-trung-cap-nguong-chi-phi/README.md
+        desc: LightGBM + early stopping, class weight phá xác suất, hiệu chỉnh, đường coverage–precision–lợi nhuận.
+        kind: lab
+        step: A5
+      - key: lab_a6
+        title: Lab A6 · Phân tích lỗi và SHAP
+        path: labs/biz-03-trung-cap-phan-tich-loi/README.md
+        desc: Đọc 100 ca bỏ sót, nhóm theo nguyên nhân, sửa nhóm lớn nhất bằng dữ liệu marketing.
+        kind: lab
+        step: A6
+      - key: lab_a7
+        title: Lab A7 · Gọi API và rà soát bảo mật
+        path: labs/ops-01-co-ban-dong-goi-api/README.md
+        desc: Gọi API chấm điểm (đúng, sai, độ trễ); rà secret, lịch sử Git và PII trước khi push.
+        kind: lab
+        step: A7
+      - key: lab_a8
+        title: Lab A8 · Độ nhạy và câu chuyện 3 phút
+        path: labs/biz-04-co-ban-trinh-bay/README.md
+        desc: Phân tích độ nhạy (tornado), điểm hoà vốn của chương trình, khung demo 3 phút.
+        kind: lab
+        step: A8
+
+  - id: agent
+    title: AI Agent (Nhóm 7)
+    desc: "Chọn framework, hiểu harness bên trong, rồi tự code. Thứ tự gợi ý: radar → cơ chế → harness → tự học."
+    docs:
+      - key: agent_landscape
+        title: Radar framework agent
+        path: docs/agent-radar/README.md
+        desc: Kết luận chọn framework, tiêu chí, xu hướng 2026, kiến trúc tham chiếu.
+        tag: Tài liệu sống
+        groups: [G7]
+        skills: [LLM-05]
+      - key: agent_table
+        title: Bảng so sánh framework
+        path: docs/agent-radar/generated/bang-so-sanh.md
+        desc: 19 framework × 8 tiêu chí, số liệu registry cập nhật hằng tháng.
+        tag: Tự sinh
+        groups: [G7]
+      - key: agent_mechanics
+        title: Cơ chế agent của 4 framework
+        path: docs/agent-radar/01-co-che-agent.md
+        desc: Vòng lặp tool, điểm can thiệp, tạm dừng/chạy tiếp, nhiều agent, bộ nhớ.
+        groups: [G7]
+        skills: [{id: LLM-05, level: intermediate}]
+      - key: agent_harness
+        title: "Harness: Agno → LangChain → Claude Code"
+        path: docs/agent-radar/02-harness-agno-sang-langchain.md
+        desc: Một run của Agno chạy ra sao (đã đo), dựng lại bằng LangChain có code đầy đủ, cải tiến harness.
+        tag: Có code chạy được
+        groups: [G7]
+        skills: [{id: LLM-05, level: intermediate}]
+      - key: lab_llm05
+        title: Lab LLM-05 · harness bằng LangChain
+        path: labs/llm-05-trung-cap-harness-langchain/README.md
+        desc: Code của tài liệu harness + phần còn lại của Lab 01 (workflow, MCP, team...), 72 test, bộ đo vàng.
+        tag: Lab
+        kind: lab
+        groups: [G7]
+        skills: [{id: LLM-05, level: intermediate}]
+      - key: lab_agno
+        title: Lab LLM-05 · Agno + AgentOS từng phần
+        path: labs/llm-05-trung-cap-agno-agentos/README.md
+        desc: "Project tham chiếu của Lab 01: 16 module, model giả lập không cần API key, 117 test."
+        tag: Lab
+        kind: lab
+        groups: [G7]
+        skills: [{id: LLM-05, level: intermediate}]
+      - key: self_lab00
+        title: Tự học · Lab 00 nền tảng Report Agent
+        path: docs/self-practices/agent_framework_learning_from_scratch.md
+        desc: Dữ liệu, service, hợp đồng báo cáo, MCP — chung cho ba bài framework.
+        tag: Tự học
+        kind: lab
+        groups: [G7]
+        skills: [LLM-05]
+      - key: self_lab01
+        title: Tự học · Lab 01 Agno và AgentOS
+        path: docs/self-practices/guide_01_agno.md
+        desc: "Baseline + 16 phần có code đầy đủ: agent, tool, memory, HITL, workflow, MCP, AG-UI, A2A, eval."
+        tag: Tự học
+        kind: lab
+        groups: [G7]
+        skills: [{id: LLM-05, level: intermediate}]
+      - key: self_lab02
+        title: Tự học · Lab 02 Pydantic AI + Temporal
+        path: docs/self-practices/guide_02_pydantic_ai_temporal.md
+        desc: Pydantic AI chạy độc lập, rồi chạy bền với Temporal.
+        tag: Tự học
+        kind: lab
+        groups: [G7]
+        skills: [LLM-05]
+      - key: self_lab03
+        title: Tự học · Lab 03 LangGraph
+        path: docs/self-practices/guide_03_langgraph.md
+        desc: "Workflow agent: đồ thị trạng thái, checkpoint, người duyệt."
+        tag: Tự học
+        kind: lab
+        groups: [G7]
+        skills: [LLM-05]
+
+  - id: du-an
+    title: Dự án
+    desc: Áp dụng kỹ năng vào bài toán thật theo nhóm và tổ hợp — đi trọn ĐÚNG → NHANH → CHÍNH XÁC → THUYẾT PHỤC.
+    docs:
+      - key: projects
+        title: Danh sách dự án
+        path: projects/README.md
+        desc: Dự án luyện tập theo nhóm bài toán và tổ hợp, quy tắc và cấu trúc một dự án.
+        pages: [nhom]
+      - key: cmb10
+        title: CMB-10 · Excel Agent Add-in
+        path: projects/cmb-10-excel-agent-addin/README.md
+        desc: Trợ lý AI trong Excel nối với agent của hệ thống (Agno + AG-UI + Office.js).
+        tag: Có POC
+        kind: project
+        combos: [CMB-10]
+      - key: cmb09
+        title: CMB-09 · Data Agent OS
+        path: projects/cmb-09-data-agent-os/README.md
+        desc: Data agent nhiều domain pack trên AgentOS, dữ liệu qua MCP — thiết kế POC.
+        tag: Thiết kế
+        kind: project
+        combos: [CMB-09]
+      - key: voice_translate
+        title: Dịch hội thoại trực tiếp Nhật ⇄ Anh ⇄ Việt
+        path: projects/realtime-voice-translate/README.md
+        desc: Web điện thoại, model chạy tại chỗ trên GPU 8 GB — kế hoạch triển khai.
+        tag: Kế hoạch
+        kind: project
+        groups: [G6]
+      - key: gpt_excel
+        title: GPT Excel Agent Chatbot
+        path: projects/gpt-excel-agent-chatbot/README.md
+        desc: Chatbot trong Excel nối agent nội bộ, tìm theo cột và thêm bản ghi — nghiên cứu khả thi.
+        tag: Nghiên cứu
+        kind: project
+        groups: [G7]
+      - key: gemini_excel
+        title: Gemini Excel AI Agent
+        path: projects/gemini-excel-ai-agent/README.md
+        desc: Plugin chatbot nhúng Excel thao tác bảng tính hai chiều — khả thi và kiến trúc.
+        tag: Nghiên cứu
+        kind: project
+        combos: [CMB-10]
+        groups: [G7]
+
+  - id: theo-doi
+    title: Theo dõi công việc
+    desc: Việc sắp làm và việc đã làm của repo.
+    docs:
+      - key: checklist
+        title: Checklist việc sắp làm
+        path: CHECKLIST.md
+        desc: Việc theo giai đoạn và mức ưu tiên.
+      - key: history
+        title: Lịch sử công việc
+        path: HISTORY.md
+        desc: Đã làm gì, quyết định gì, mới nhất ở trên.

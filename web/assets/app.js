@@ -12,7 +12,7 @@
   const SYM = { core: "●", needed: "◐", minor: "○" };
   const PROGRESS_KEY = "aiarch-progress-v1";
   const UI_KEY = "aiarch-ui-v1";
-  let SK, GR, DOM, CMB, ORDER, STAGES, ALL_STEPS;
+  let SK, GR, DOM, CMB, ORDER, STAGES, ALL_STEPS, STEP, PATH_KEY;
 
   function index() {
     SK = Object.fromEntries(D.skills.map((s) => [s.id, s]));
@@ -22,6 +22,8 @@
     ORDER = Object.fromEntries(D.skills.map((s) => [s.id, s.order]));
     STAGES = D.roadmap.stages || [];
     ALL_STEPS = STAGES.flatMap((st) => (st.steps || []).map((step) => ({ ...step, stage: st.id })));
+    STEP = Object.fromEntries(ALL_STEPS.map((step) => [step.id, step]));
+    PATH_KEY = Object.fromEntries(Object.entries(D.meta.docs).map(([key, d]) => [d.path, key]));
   }
 
   // ───────────────────────── lưu trữ (an toàn khi bị chặn) ─────────────────────────
@@ -105,10 +107,59 @@
     return `<button type="button" class="toggle" data-action="lvl" data-id="${esc(id)}" data-level="${level}" aria-pressed="${on}"><span class="box" aria-hidden="true"></span>${esc(text)}</button>`;
   }
   const chev = `<svg class="chev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-  const docLink = (key) => {
-    const d = D.meta.docs[key];
-    return d ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a>` : "";
-  };
+
+  // ───────────────────────── liên kết học: tài liệu ↔ bước ↔ kỹ năng ↔ nhóm (từ catalog/docs.yaml) ─────────────────────────
+  const KIND = { guide: "Hướng dẫn", lesson: "Bài học", lab: "Lab", project: "Dự án", report: "Báo cáo", doc: "Tài liệu" };
+  const KIND_ORDER = { lesson: 0, lab: 1, guide: 2, project: 3, report: 4, doc: 5 };
+  const ICON_BOOK = `<svg class="ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"/></svg>`;
+  const encPath = (p) => String(p).split("/").map(encodeURIComponent).join("/");
+  const docHref = (path, anchor) => `#/doc/${encPath(path)}${anchor ? `#${encodeURIComponent(anchor)}` : ""}`;
+  const docOf = (key) => D.meta.docs[key];
+  const kindOf = (key) => (docOf(key) || {}).kind || "doc";
+  const byKind = (a, b) => (KIND_ORDER[kindOf(a)] ?? 9) - (KIND_ORDER[kindOf(b)] ?? 9);
+  const uniq = (xs) => [...new Set(xs)];
+  // Tài liệu gắn với một bước/giai đoạn/nhóm/tổ hợp/mảng/trang — danh sách khóa trong docs.yaml.
+  const docsBy = (map, id) => ((D.learn[`by_${map}`] || {})[id] || []).filter((k) => docOf(k));
+  function docLink(key, label) {
+    const d = docOf(key);
+    return d ? `<a href="${esc(docHref(d.path))}">${esc(label || d.title)}</a>` : "";
+  }
+  function resLink(key) {
+    const d = docOf(key);
+    if (!d) return "";
+    return `<a class="res res-${esc(d.kind)}" href="${esc(docHref(d.path))}" title="${esc(d.desc)}"><span class="res-kind">${esc(KIND[d.kind] || KIND.doc)}</span><span class="res-title">${esc(d.title)}</span></a>`;
+  }
+  // Nơi học một kỹ năng: {key, level, step} — bài học/lab của bước chứa kỹ năng + tài liệu khai báo kỹ năng.
+  function skillResources(id) {
+    const seen = new Set();
+    return ((D.learn.by_skill || {})[id] || []).filter((r) => docOf(r.key) && !seen.has(r.key) && seen.add(r.key));
+  }
+  // Tài liệu tốt nhất để học kỹ năng ở một mức: đúng mức trước, rồi bài học trước lab trước tài liệu.
+  function bestResource(id, level) {
+    const want = RANK[level] || 1;
+    const score = (r) => (r.level ? Math.abs(RANK[r.level] - want) : 4) * 10 + (KIND_ORDER[kindOf(r.key)] ?? 9);
+    return skillResources(id).sort((a, b) => score(a) - score(b))[0] || null;
+  }
+  function learnMini(id, level) {
+    const r = bestResource(id, level);
+    if (!r) return "";
+    const d = docOf(r.key);
+    return `<a class="learn-mini" href="${esc(docHref(d.path))}" title="${esc(`${KIND[d.kind]}: ${d.title}`)}">${ICON_BOOK}Học ngay${r.step ? ` · ${esc(r.step)}` : ""}</a>`;
+  }
+  const docsForSkills = (ids) => uniq(ids.flatMap((id) => skillResources(id).map((r) => r.key))).sort(byKind);
+  function stageChip(id) {
+    const st = STAGES.find((x) => x.id === id);
+    return st ? `<a class="chip" href="#/lo-trinh/${esc(id)}"><span class="mono">${esc(id)}</span>${esc(st.name)}</a>` : "";
+  }
+  const PAGE_NAMES = { "lo-trinh": "Lộ trình", nhom: "Nhóm bài toán", "ky-nang": "Kỹ năng", "ma-tran": "Ma trận", "to-hop": "Tổ hợp", "tien-do": "Tiến độ" };
+  function stepChip(id) {
+    const step = STEP[id];
+    return step ? `<a class="chip" href="#/lo-trinh/${esc(id)}"><span class="mono">${esc(id)}</span>${esc(step.title)}</a>` : "";
+  }
+  function readMore(page) {
+    const keys = docsBy("page", page);
+    return keys.length ? `<div class="read-more"><span>Đọc thêm:</span>${keys.map((k) => docLink(k)).join("")}</div>` : "";
+  }
 
   // ───────────────────────── tính toán tiến độ ─────────────────────────
   const stepDone = (step) => step.skills.every(met);
@@ -175,7 +226,7 @@
     return `<div class="skill-row ${done ? "done" : ""}">
       <div class="sr-title"><a href="#/ky-nang/${esc(s.id)}"><span class="mono">${esc(s.id)}</span> ${esc(s.name)}</a> ${lvBadge(item.level)} ${tag}
         ${now && !done ? `<span class="small muted">đang ở ${esc(D.levels[LV[now - 1]])}</span>` : ""}</div>
-      <div class="sr-actions">${toggle(s.id, item.level, done ? "Đã đạt" : "Đánh dấu đạt")}</div>
+      <div class="sr-actions">${opts.noLearn ? "" : learnMini(s.id, item.level)}${toggle(s.id, item.level, done ? "Đã đạt" : "Đánh dấu đạt")}</div>
       <div class="sr-desc">${md(s.levels[item.level])}${extra}</div>
     </div>`;
   }
@@ -200,6 +251,17 @@
         ${meter(ss.done, ss.total, `${ss.done}/${ss.total} bước`)}
       </a>`;
     }).join("");
+    const next = ALL_STEPS.find((step) => !stepDone(step)) || ALL_STEPS[0];
+    const nextDocs = next ? docsBy("step", next.id).sort(byKind) : [];
+    const continueCard = next
+      ? `<div class="card continue-card" style="${stageColor(next.stage)}">
+        <div class="spread"><span class="stage-id"><span class="stage-dot" style="background:var(--stage-color)"></span>Tiếp tục học · Bước ${esc(next.id)}${next.week ? ` · tuần ${esc(next.week)}` : ""}</span>
+          ${meter(next.skills.filter(met).length, next.skills.length, `${next.skills.filter(met).length}/${next.skills.length} kỹ năng`)}</div>
+        <h3>${esc(next.title)}</h3>
+        <p class="small muted">${md(next.do)}</p>
+        <div class="row">${nextDocs.map(resLink).join("")}<a class="btn btn-sm" href="#/lo-trinh/${esc(next.id)}">Xem bước trong lộ trình →</a></div>
+      </div>`
+      : "";
     return {
       title: "Tổng quan",
       html: `
@@ -212,6 +274,7 @@
           <a class="btn" href="#/nhom">Nhận diện bài toán trong 30 giây</a>
         </div>
       </section>
+      ${continueCard}
       <div class="tiles">
         <div class="tile"><div class="tile-value">${D.groups.length}</div><div class="tile-label">nhóm bài toán</div></div>
         <div class="tile"><div class="tile-value">${D.skills.length}</div><div class="tile-label">kỹ năng · ${D.domains.length} mảng</div></div>
@@ -286,24 +349,38 @@
     }).join("");
 
     const ss = stageStats(st);
+    const stageGuides = docsBy("stage", st.id).filter((k) => kindOf(k) === "guide");
+    const stageProjects = docsBy("stage", st.id).filter((k) => kindOf(k) === "project");
     const stepsHtml = steps
       .map((step) => {
         const open = ui.open.has(step.id);
         const done = step.skills.filter(met).length;
         const finished = done === step.skills.length;
         const week = step.week ? `Tuần ${esc(step.week)}` : "Linh hoạt";
+        const stepDocs = docsBy("step", step.id).sort(byKind);
+        const hasLesson = stepDocs.some((k) => kindOf(k) === "lesson");
+        let learnBar;
+        if (stepDocs.length) {
+          learnBar = `<div class="learn-bar"><span class="learn-label">${ICON_BOOK}Học ngay</span>${stepDocs.map(resLink).join("")}</div>`;
+        } else {
+          const rel = docsForSkills(step.skills.map((it) => it.id)).slice(0, 6);
+          learnBar = `<div class="learn-bar is-empty"><span class="learn-label">Chưa có bài học riêng</span>${
+            rel.length ? `<span class="small muted">Tài liệu liên quan:</span>${rel.map(resLink).join("")}` : `<span class="small muted">Học theo mô tả từng kỹ năng bên dưới.</span>`
+          }</div>`;
+        }
         return `<li id="step-${esc(step.id)}">
           <span class="step-marker ${finished ? "done" : ""}" aria-hidden="true">${finished ? "✓" : esc(step.id)}</span>
           <div class="card step-card">
             <button type="button" class="step-head" data-action="step" data-id="${esc(step.id)}" aria-expanded="${open}" aria-controls="body-${esc(step.id)}">
-              <span><span class="week">${esc(step.id)} · ${week}</span><h3>${esc(step.title)}</h3></span>
+              <span><span class="week">${esc(step.id)} · ${week}${hasLesson ? ` <span class="badge badge-lesson">${ICON_BOOK}Có bài học + lab</span>` : ""}</span><h3>${esc(step.title)}</h3></span>
               <span class="row" style="flex-wrap:nowrap">${meter(done, step.skills.length, `${done}/${step.skills.length} kỹ năng`)}${chev}</span>
             </button>
             ${
               open
                 ? `<div class="step-body" id="body-${esc(step.id)}">
+              ${learnBar}
               <dl class="kv"><dt>Việc cần làm</dt><dd>${md(step.do)}</dd><dt>Sản phẩm nộp</dt><dd>${md(step.deliverable)}</dd></dl>
-              <div class="skill-rows">${step.skills.map((it) => skillRow(it)).join("")}</div>
+              <div class="skill-rows">${step.skills.map((it) => skillRow(it, { noLearn: stepDocs.length > 0 })).join("")}</div>
             </div>`
                 : ""
             }
@@ -350,6 +427,7 @@
         <h1>Lộ trình theo bước</h1>
         <p>Mỗi bước có việc cần làm, sản phẩm phải nộp và kỹ năng cần đạt kèm <strong>mức mục tiêu</strong>. Kỹ năng tiên quyết luôn nằm ở bước trước.
         Đánh dấu khi bạn tự làm được trên dữ liệu thật và giải thích được cho người ngoài ngành.</p>
+        ${readMore("lo-trinh")}
       </div>
       <div class="stage-tabs" role="tablist" aria-label="Giai đoạn">${tabs}</div>
 
@@ -359,8 +437,10 @@
             <h2 style="margin-top:0">Giai đoạn ${esc(st.id)} · ${esc(st.name)} <span class="muted small nowrap">${esc(st.period)}</span></h2>
             <p>${md(st.goal)}</p>
             ${st.note ? `<p class="small muted">${md(st.note)}</p>` : ""}
-            <dl class="kv"><dt>Cài đặt</dt><dd><code>${esc(st.setup)}</code></dd><dt>Đọc</dt><dd>${esc(st.book)}</dd>
-            ${st.project ? `<dt>Dự án</dt><dd>${groupLink(st.project)}</dd>` : ""}</dl>
+            <dl class="kv"><dt>Cài đặt</dt><dd><code>${esc(st.setup)}</code> <span class="small">${docLink("setup", "hướng dẫn setup")}</span></dd>
+            ${stageGuides.length ? `<dt>Hướng dẫn</dt><dd class="row">${stageGuides.map(resLink).join("")}</dd>` : ""}
+            <dt>Đọc</dt><dd>${esc(st.book)}</dd>
+            ${st.project ? `<dt>Dự án</dt><dd class="row">${groupLink(st.project)}${stageProjects.map(resLink).join("")}</dd>` : ""}</dl>
           </div>
           <div>
             <div class="milestone"><strong>Mốc cuối giai đoạn</strong>${md(st.milestone)}</div>
@@ -434,7 +514,7 @@
       html: `
       <div class="page-head"><h1>${D.skills.length} kỹ năng</h1>
         <p>Mỗi kỹ năng có 3 mức Cơ bản → Trung cấp → Nâng cao. Dải số 1–8 ở cuối thẻ cho biết mức cần ở từng nhóm bài toán
-        (ô đậm = Cốt lõi, ô nhạt = Cần).</p></div>
+        (ô đậm = Cốt lõi, ô nhạt = Cần).</p>${readMore("ky-nang")}</div>
       <div class="filters">
         <input class="search" type="search" placeholder="Tìm theo tên, mã, công cụ… (gõ không dấu cũng được)" value="${esc(ui.q)}" data-filter="q" aria-label="Tìm kỹ năng">
         <select data-filter="domain" aria-label="Mảng">${opt("", "Mọi mảng", ui.domain)}${D.domains.map((d) => opt(d.code, `${d.code} · ${d.name}`, ui.domain)).join("")}</select>
@@ -468,6 +548,7 @@
       </div>`;
     }).join("");
     const combos = D.combinations.filter((c) => c.skills.includes(id) || (c.glue || []).includes(id));
+    const learnCard = skillLearnCard(s, now);
     const places = (s.placements || [])
       .map((p) => {
         // where: id bước ("A3"), "<giai đoạn>:<hướng>" ("C:risk"), "T:<nhóm>" hoặc "ongoing"
@@ -496,6 +577,8 @@
           <span class="badge">đòn bẩy ${s.leverage}</span>
         </div>
       </div>
+
+      ${learnCard}
 
       <h2>Từ cơ bản đến nâng cao</h2>
       <div class="ladder">${ladder}</div>
@@ -531,6 +614,30 @@
     };
   }
 
+  // Thẻ "Học kỹ năng này": bài học/lab/tài liệu theo mức, nút học ngay cho mức kế tiếp, dự án áp dụng.
+  function skillLearnCard(s, now) {
+    const res = skillResources(s.id).sort((a, b) => (RANK[a.level] || 9) - (RANK[b.level] || 9) || byKind(a.key, b.key));
+    const own = new Set(res.map((r) => r.key));
+    const stagesOf = uniq((s.placements || []).map((p) => (STEP[p.where] || {}).stage).filter(Boolean));
+    const projects = uniq(stagesOf.flatMap((st) => docsBy("stage", st))).filter((k) => kindOf(k) === "project" && !own.has(k));
+    const extra = docsBy("domain", s.domain).filter((k) => !own.has(k));
+    const target = LV[Math.min(now, 2)];
+    const best = bestResource(s.id, target);
+    const steps = (s.placements || []).filter((p) => STEP[p.where]).map((p) => stepChip(p.where));
+    const list = res.length
+      ? `<ul class="res-list">${res
+          .map((r) => `<li>${resLink(r.key)}<span class="res-meta">${r.level ? lvBadge(r.level) : `<span class="small muted">liên quan</span>`}${r.step ? `<a class="small" href="#/lo-trinh/${esc(r.step)}">bước ${esc(r.step)}</a>` : ""}</span></li>`)
+          .join("")}</ul>`
+      : `<p class="muted small">Chưa có bài học riêng cho kỹ năng này — học theo mô tả 3 mức bên dưới ở bước: <span class="row" style="display:inline-flex">${steps.join("") || "—"}</span></p>`;
+    return `<div class="card learn-card" id="hoc">
+      <div class="spread"><h3 style="margin:0">${ICON_BOOK} Học kỹ năng này</h3>
+        ${best ? `<a class="btn btn-primary btn-sm" href="${esc(docHref(docOf(best.key).path))}">${ICON_BOOK}Học ngay: ${esc(docOf(best.key).title)}</a>` : ""}</div>
+      ${list}
+      ${projects.length ? `<div class="res-row"><span class="small muted">Áp dụng trong dự án</span>${projects.map(resLink).join("")}</div>` : ""}
+      ${extra.length ? `<div class="res-row"><span class="small muted">Đọc thêm</span>${extra.map(resLink).join("")}</div>` : ""}
+    </div>`;
+  }
+
   // ───────────────────────── trang: nhóm bài toán ─────────────────────────
   function quizHtml() {
     const qs = D.identify.questions || [];
@@ -563,7 +670,9 @@
             <span class="group-num">Nhóm ${esc(groupNo(g.id))} · Khối ${esc(b)} ${esc(name)}</span>
             <h3 style="margin:0">${esc(g.name)}</h3>
             <p class="q">“${esc(g.question)}”</p>
-            <div class="row" style="margin-top:auto"><span class="small muted">Mức của bạn:</span>${lvBadge(lvl)}</div>
+            <div class="row" style="margin-top:auto"><span class="small muted">Mức của bạn:</span>${lvBadge(lvl)}${
+              groupDocs(g.id).projects.length ? `<span class="badge badge-lesson">${ICON_BOOK}Có dự án</span>` : ""
+            }</div>
           </a>`;
           })
           .join("");
@@ -573,13 +682,41 @@
       title: "Nhóm bài toán",
       html: `
       <div class="page-head"><h1>8 nhóm bài toán AI trong doanh nghiệp</h1>
-        <p>Phân loại theo <strong>đầu ra mà nghiệp vụ cần</strong>. Mỗi nhóm có lộ trình riêng từ mức Cơ bản đến Nâng cao, tính từ các kỹ năng Cốt lõi và Cần của nhóm.</p></div>
+        <p>Phân loại theo <strong>đầu ra mà nghiệp vụ cần</strong>. Mỗi nhóm có lộ trình riêng từ mức Cơ bản đến Nâng cao, tính từ các kỹ năng Cốt lõi và Cần của nhóm.</p>${readMore("nhom")}</div>
       <div class="card" id="quiz">
         <h3>Nhận diện bài toán trong 30 giây</h3>
         <div id="quiz-box">${quizHtml()}</div>
       </div>
       <div class="grid grid-3" style="margin-top:24px">${blocks}</div>`,
     };
+  }
+
+  // Dự án và tài liệu của một nhóm: khai báo trực tiếp (groups) hoặc qua tổ hợp có nhóm (combos).
+  function groupDocs(gid) {
+    const combos = D.combinations.filter((c) => c.groups.includes(gid)).map((c) => c.id);
+    const keys = uniq([...docsBy("group", gid), ...combos.flatMap((cid) => docsBy("combo", cid))]);
+    return {
+      projects: keys.filter((k) => ["project", "report"].includes(kindOf(k))),
+      docs: keys.filter((k) => !["project", "report"].includes(kindOf(k))).sort(byKind),
+    };
+  }
+  function groupLearnCard(g) {
+    const { projects, docs } = groupDocs(g.id);
+    const stages = STAGES.filter((st) => st.project === g.id);
+    const stageLine = stages
+      .map((st) => {
+        const guide = docsBy("stage", st.id).filter((k) => kindOf(k) === "guide");
+        return `<p style="margin:0">Giai đoạn <a href="#/lo-trinh/${esc(st.id)}">${esc(st.id)} · ${esc(st.name)}</a> học trọn bằng dự án của nhóm này.</p>${
+          guide.length ? `<div class="res-row">${guide.map(resLink).join("")}</div>` : ""
+        }`;
+      })
+      .join("");
+    return `<div class="card learn-card" id="hoc">
+      <h3 style="margin:0">${ICON_BOOK} Học và thực hành nhóm này</h3>
+      ${stageLine}
+      ${projects.length ? `<div class="res-row"><span class="small muted">Dự án</span>${projects.map(resLink).join("")}</div>` : `<p class="small muted" style="margin:0">Dự án luyện tập dự kiến: ${md(g.practice_project)}</p>`}
+      ${docs.length ? `<div class="res-row"><span class="small muted">Tài liệu và lab</span>${docs.map(resLink).join("")}</div>` : ""}
+    </div>`;
   }
 
   function pageGroup(gid) {
@@ -632,6 +769,7 @@
         <p class="small">Ví dụ: ${esc(g.examples.join(", "))}.</p>
       </div>
       <div class="flow">${flow}</div>
+      ${groupLearnCard(g)}
 
       <div class="grid grid-2" style="margin-top:20px">
         <div class="card"><h3>Mức năng lực của nhóm</h3>
@@ -714,7 +852,7 @@
       title: "Ma trận",
       html: `
       <div class="page-head"><h1>Ma trận kỹ năng × nhóm bài toán</h1>
-        <p>Kỹ năng nào cần cho nhóm nào, ở mức nào. Tầng được tính tự động từ mức sử dụng.</p></div>
+        <p>Kỹ năng nào cần cho nhóm nào, ở mức nào. Tầng được tính tự động từ mức sử dụng.</p>${readMore("ma-tran")}</div>
       <div class="legend"><span>● Cốt lõi</span><span>◐ Cần</span><span>○ Ít</span><span>ô trống = không liên quan</span></div>
       <div class="row" style="margin-bottom:12px">${domainChips}</div>
       <div class="table-wrap" style="max-height:70vh"><table class="matrix"><thead>${head}</thead><tbody>${body}</tbody></table></div>
@@ -745,6 +883,7 @@
             <dt>Kỹ năng</dt><dd class="row">${ids.map((id) => skillLink(id) + (glue.has(id) ? `<span class="badge" title="Kỹ năng keo ở điểm nối">🔗 keo</span>` : "")).join("")}</dd>
             <dt>Bẫy khi ghép</dt><dd><ul class="list-dots">${c.pitfalls.map((p) => `<li>${md(p)}</li>`).join("")}</ul></dd>
             <dt>Metric end-to-end</dt><dd>${md(c.end_to_end_metric)}</dd>
+            ${docsBy("combo", c.id).length ? `<dt>Dự án</dt><dd class="row">${docsBy("combo", c.id).map(resLink).join("")}</dd>` : ""}
           </dl>
         </article>`;
       })
@@ -755,7 +894,7 @@
       html: `
       <div class="page-head"><h1>Tổ hợp — dự án ghép nhiều nhóm</h1>
         <p>Dự án thật hiếm khi thuộc một nhóm. Mỗi tổ hợp nêu luồng giữa các nhóm, kỹ năng cần, kỹ năng <strong>keo</strong> ở điểm nối,
-        bẫy khi ghép và metric đo từ đầu đến cuối. Nguyên tắc ghép: ${docLink("combining")}.</p></div>
+        bẫy khi ghép và metric đo từ đầu đến cuối.</p>${readMore("to-hop")}</div>
       ${cards}`,
     };
   }
@@ -782,7 +921,7 @@
       title: "Tiến độ",
       html: `
       <div class="page-head"><h1>Tiến độ của bạn</h1>
-        <p>Tiến độ lưu trong trình duyệt này. Dùng <strong>Xuất file</strong> để sao lưu, chuyển máy hoặc gửi cho người hướng dẫn.</p></div>
+        <p>Tiến độ lưu trong trình duyệt này. Dùng <strong>Xuất file</strong> để sao lưu, chuyển máy hoặc gửi cho người hướng dẫn.</p>${readMore("tien-do")}</div>
       <div class="tiles" style="margin-top:0">
         <div class="tile"><div class="tile-value">${pct(o.got, o.total)}%</div><div class="tile-label">${o.got}/${o.total} mức kỹ năng</div></div>
         <div class="tile"><div class="tile-value">${learned}</div><div class="tile-label">kỹ năng đã bắt đầu</div></div>
@@ -805,12 +944,23 @@
 
   // ───────────────────────── trang: tài liệu ─────────────────────────
   function docCard(key) {
-    const d = D.meta.docs[key];
-    return `<a class="card doc-card" href="${esc(d.url)}" target="_blank" rel="noopener">
-      <div class="spread"><h3>${esc(d.title)}</h3>${d.tag ? `<span class="badge">${esc(d.tag)}</span>` : ""}</div>
+    const d = docOf(key);
+    const rel = (D.learn.docs || {})[key] || { skills: [], groups: [], combos: [], domains: [], pages: [] };
+    const chips = [];
+    if (rel.step) chips.push(stepChip(rel.step));
+    else if (rel.stage) chips.push(`<a class="chip" href="#/lo-trinh/${esc(rel.stage)}">Giai đoạn ${esc(rel.stage)}</a>`);
+    const skills = rel.skills.slice(0, 4).map((x) => `<a class="chip chip-sm ${rank(x.id) ? "done" : ""}" href="#/ky-nang/${esc(x.id)}" title="${esc(SK[x.id].name)}"><span class="mono">${esc(x.id)}</span></a>`);
+    if (rel.skills.length > 4) skills.push(`<span class="small muted">+${rel.skills.length - 4}</span>`);
+    chips.push(...skills, ...rel.groups.map(groupLink), ...rel.combos.map((cid) => `<a class="chip" href="#/to-hop/${esc(cid)}"><span class="mono">${esc(cid)}</span></a>`));
+    chips.push(...(rel.domains || []).map((code) => `<a class="chip" href="#/ky-nang" data-domain="${esc(code)}"><span class="mono">${esc(code)}</span>${esc(DOM[code].name)}</a>`));
+    chips.push(...(rel.pages || []).map((pg) => `<a class="chip" href="#/${esc(pg)}">→ ${esc(PAGE_NAMES[pg] || pg)}</a>`));
+    return `<article class="card doc-card doc-${esc(d.kind)}">
+      <div class="spread"><span class="res-kind">${esc(KIND[d.kind] || KIND.doc)}</span>${d.tag ? `<span class="badge">${esc(d.tag)}</span>` : ""}</div>
+      <h3><a class="stretched" href="${esc(docHref(d.path))}">${esc(d.title)}</a></h3>
       <p>${esc(d.desc)}</p>
+      ${chips.length ? `<div class="row doc-rel">${chips.join("")}</div>` : ""}
       <span class="mono doc-path">${esc(d.path)}</span>
-    </a>`;
+    </article>`;
   }
 
   function pageDocs(param) {
@@ -831,7 +981,8 @@
       title: "Tài liệu",
       focus: param && sections.some((sec) => sec.id === param) ? `docs-${param}` : null,
       html: `<div class="page-head"><h1>Tài liệu</h1>
-          <p>Tài liệu viết tay của repo, chia theo chủ đề. Mỗi thẻ mở bản Markdown trên GitHub.</p>
+          <p>Tài liệu viết tay của repo, chia theo chủ đề. Bấm một thẻ để đọc ngay trên trang (định dạng như GitHub: bảng,
+          code tô màu, sơ đồ mermaid, công thức); thẻ nhỏ bên dưới dẫn tới bước, kỹ năng, nhóm liên quan.</p>
           <div class="row">${jump}</div></div>
         ${body}`,
     };
@@ -839,6 +990,406 @@
 
   function pageNotFound() {
     return { title: "Không tìm thấy", html: `<div class="page-head"><h1>Không tìm thấy trang</h1><p><a href="#/">Về trang tổng quan</a></p></div>` };
+  }
+
+  // ───────────────────────── trình xem tài liệu (#/doc/<đường dẫn trong repo>) ─────────────────────────
+  // Nội dung đã render lúc build (src/aiarch/docview.py) thành md/<đường dẫn>.html; ở đây chỉ tải, gắn vào khung xem,
+  // vẽ sơ đồ mermaid + công thức KaTeX (thư viện trong assets/vendor, chỉ tải khi tài liệu cần), thêm mục lục và nút
+  // sao chép code. Đóng khung xem = quay lại đúng trang và vị trí cuộn trước đó.
+  const $ = (id) => document.getElementById(id);
+  const viewer = { open: false, path: null, ready: false, depth: 0, token: 0, lastFocus: null, cache: new Map() };
+  let lastDepth = null; // mục lịch sử vừa đi qua: 0 = trang thường, n ≥ 1 = tài liệu thứ n liên tiếp, null = mở thẳng vào tài liệu
+  const ICON_COPY = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>`;
+  const ICON_CHECK = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>`;
+  const dirOf = (path) => path.split("/").slice(0, -1).join("/");
+  const baseName = (path) => path.split("/").pop();
+
+  function splitDocParam(param) {
+    const s = param || "";
+    const i = s.indexOf("#");
+    return i < 0 ? { path: s, anchor: "" } : { path: s.slice(0, i), anchor: s.slice(i + 1) };
+  }
+  function loadFragment(path) {
+    if (!viewer.cache.has(path)) {
+      const job = fetch(`md/${encPath(path)}.html`).then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.text();
+      });
+      job.catch(() => viewer.cache.delete(path));
+      viewer.cache.set(path, job);
+    }
+    return viewer.cache.get(path);
+  }
+  const loading = new Map();
+  function loadScript(src) {
+    if (!loading.has(src)) {
+      loading.set(
+        src,
+        new Promise((resolve, reject) => {
+          const el = document.createElement("script");
+          el.src = src;
+          el.async = true;
+          el.onload = resolve;
+          el.onerror = () => {
+            loading.delete(src);
+            el.remove();
+            reject(new Error(`không tải được ${src}`));
+          };
+          document.head.appendChild(el);
+        })
+      );
+    }
+    return loading.get(src);
+  }
+  function loadStyle(href) {
+    if (document.querySelector(`link[data-vendor="${href}"]`)) return;
+    const el = document.createElement("link");
+    el.rel = "stylesheet";
+    el.href = href;
+    el.setAttribute("data-vendor", href);
+    document.head.appendChild(el);
+  }
+
+  // Ghi độ sâu vào history.state để nút Đóng lùi đúng số bước về trang trước khi mở tài liệu.
+  function trackDocDepth() {
+    let st = null;
+    try {
+      st = history.state;
+    } catch (e) {
+      /* bỏ qua */
+    }
+    let depth = st && typeof st === "object" && "docDepth" in st ? st.docDepth : undefined;
+    if (depth === undefined) {
+      depth = lastDepth == null ? null : lastDepth + 1;
+      try {
+        history.replaceState(Object.assign({}, st, { docDepth: depth }), "");
+      } catch (e) {
+        /* bỏ qua */
+      }
+    }
+    lastDepth = depth;
+    viewer.depth = depth;
+  }
+
+  function showViewer() {
+    if (viewer.open) return;
+    viewer.open = true;
+    viewer.lastFocus = document.activeElement;
+    $("viewer").hidden = false;
+    document.documentElement.classList.add("viewer-open");
+    document.querySelectorAll(".site-header, #app, .site-footer").forEach((el) => (el.inert = true));
+    hideTip();
+    $("viewer").querySelector(".viewer-close").focus({ preventScroll: true });
+  }
+  function hideViewer() {
+    if (!viewer.open) return;
+    viewer.open = false;
+    viewer.token += 1;
+    $("viewer").hidden = true;
+    $("viewer").classList.remove("toc-open");
+    document.documentElement.classList.remove("viewer-open");
+    document.querySelectorAll(".site-header, #app, .site-footer").forEach((el) => (el.inert = false));
+    if (viewer.lastFocus && document.contains(viewer.lastFocus)) viewer.lastFocus.focus({ preventScroll: true });
+  }
+  function closeDoc() {
+    if (viewer.depth > 0) history.go(-viewer.depth);
+    else location.replace(pageKey || "#/tai-lieu");
+  }
+
+  function crumbs(path) {
+    const parts = path.split("/");
+    const out = [D.meta.pages["README.md"] && path !== "README.md" ? `<a href="${esc(docHref("README.md"))}">${esc(D.meta.repo.split("/").pop())}</a>` : `<span>${esc(D.meta.repo.split("/").pop())}</span>`];
+    let acc = "";
+    parts.forEach((part, i) => {
+      acc = acc ? `${acc}/${part}` : part;
+      const readme = `${acc}/README.md`;
+      if (i < parts.length - 1 && D.meta.pages[readme] && readme !== path) out.push(`<a href="${esc(docHref(readme))}">${esc(part)}</a>`);
+      else out.push(`<span>${esc(part)}</span>`);
+    });
+    return out.join(`<span class="sep">/</span>`);
+  }
+
+  // Tài liệu README gần nhất chứa file này — "thuộc dự án / lab nào" cho file code và tài liệu con.
+  function parentDoc(path) {
+    let dir = dirOf(path);
+    while (dir) {
+      const readme = `${dir}/README.md`;
+      if (readme !== path && PATH_KEY[readme]) return PATH_KEY[readme];
+      dir = dirOf(dir);
+    }
+    return null;
+  }
+
+  function skillChip(id, level) {
+    const s = SK[id];
+    return `<a class="chip ${rank(id) && (!level || met({ id, level })) ? "done" : ""}" href="#/ky-nang/${esc(id)}" title="${esc(s.summary)}"><span class="mono">${esc(id)}</span>${esc(s.name)}${
+      level ? `<span class="chip-lv">${esc(D.levels[level])}</span>` : ""
+    }</a>`;
+  }
+
+  // Dải "đang đọc gì, thuộc đâu" phía trên tài liệu: loại, nhóm tài liệu, bước, kỹ năng, học cùng, nhóm bài toán.
+  function docContext(path) {
+    const key = PATH_KEY[path];
+    if (!key) {
+      const parent = parentDoc(path);
+      return parent ? `<div class="ctx-card"><div class="ctx-row"><span class="ctx-label">Thuộc</span><div class="row">${resLink(parent)}</div></div></div>` : "";
+    }
+    const d = docOf(key);
+    const rel = D.learn.docs[key] || { skills: [], groups: [], combos: [] };
+    const sec = D.meta.doc_sections.find((x) => x.id === d.section);
+    const rows = [];
+    if (rel.step) rows.push(["Bước", stepChip(rel.step)]);
+    else if (rel.stage) rows.push(["Giai đoạn", stageChip(rel.stage)]);
+    if (rel.skills.length) rows.push(["Kỹ năng", rel.skills.map((x) => skillChip(x.id, x.level)).join("")]);
+    const mates = rel.step ? docsBy("step", rel.step).filter((k) => k !== key).sort(byKind) : [];
+    if (mates.length) rows.push(["Học cùng", mates.map(resLink).join("")]);
+    if (rel.groups.length) rows.push(["Nhóm", rel.groups.map(groupLink).join("")]);
+    if (rel.combos.length) rows.push(["Tổ hợp", rel.combos.map((cid) => `<a class="chip" href="#/to-hop/${esc(cid)}"><span class="mono">${esc(cid)}</span>${esc(CMB[cid].name)}</a>`).join("")]);
+    const head = `<span class="res-kind">${esc(KIND[d.kind] || KIND.doc)}</span>${sec ? `<a href="#/tai-lieu/${esc(sec.id)}">${esc(sec.title)}</a>` : ""}`;
+    if (!rows.length) return `<div class="ctx-card"><div class="ctx-head">${head}</div></div>`;
+    // Điện thoại: thu gọn để nội dung tài liệu hiện ngay; bấm để xem bước, kỹ năng, tài liệu học cùng.
+    const wide = window.matchMedia ? window.matchMedia("(min-width: 720px)").matches : true;
+    return `<details class="ctx-card"${wide ? " open" : ""}>
+      <summary class="ctx-head">${head}<span class="ctx-more small muted">${esc(rows.map(([label]) => label).join(" · "))}</span></summary>
+      ${rows.map(([label, html]) => `<div class="ctx-row"><span class="ctx-label">${esc(label)}</span><div class="row">${html}</div></div>`).join("")}
+    </details>`;
+  }
+
+  // Các trang cùng thư mục (như cây file của GitHub) + README của thư mục con.
+  function folderPages(path) {
+    const dir = dirOf(path);
+    const inDir = (p) => dirOf(p) === dir;
+    const sub = (p) => baseName(p) === "README.md" && dirOf(dirOf(p)) === dir && dirOf(p) !== dir;
+    const all = Object.keys(D.meta.pages).filter((p) => inDir(p) || sub(p));
+    const rankOf = (p) => (baseName(p) === "README.md" && inDir(p) ? 0 : sub(p) ? 1 : D.meta.pages[p].k === "md" ? 2 : 3);
+    return all.sort((a, b) => rankOf(a) - rankOf(b) || a.localeCompare(b));
+  }
+
+  // Phần cuối tài liệu: đánh dấu kỹ năng đã đạt, bài trước / bài tiếp, cùng thư mục.
+  function docAfter(path) {
+    const key = PATH_KEY[path];
+    let out = "";
+    if (key) {
+      const rel = D.learn.docs[key] || { skills: [] };
+      const leveled = rel.skills.filter((x) => x.level);
+      if (leveled.length) {
+        out += `<section class="after-card"><h3>Học xong? Đánh dấu kỹ năng đã đạt</h3><div class="skill-rows">${leveled
+          .map((x) => {
+            const done = met(x);
+            return `<div class="skill-row ${done ? "done" : ""}"><div class="sr-title"><a href="#/ky-nang/${esc(x.id)}"><span class="mono">${esc(x.id)}</span> ${esc(SK[x.id].name)}</a> ${lvBadge(x.level)}</div>
+              <div class="sr-actions">${toggle(x.id, x.level, done ? "Đã đạt" : "Đánh dấu đạt")}</div>
+              <div class="sr-desc">${md(SK[x.id].levels[x.level])}</div></div>`;
+          })
+          .join("")}</div></section>`;
+      }
+      const sec = D.meta.doc_sections.find((x) => x.items.includes(key));
+      if (sec) {
+        const i = sec.items.indexOf(key);
+        const [prev, next] = [sec.items[i - 1], sec.items[i + 1]];
+        const cell = (k, dir) =>
+          k ? `<a class="pager-${dir}" href="${esc(docHref(docOf(k).path))}"><span class="small muted">${dir === "prev" ? "← Trước" : "Tiếp theo →"}</span><span>${esc(docOf(k).title)}</span></a>` : "<span></span>";
+        if (prev || next) out += `<nav class="doc-pager" aria-label="Tài liệu trước và sau">${cell(prev, "prev")}${cell(next, "next")}</nav>`;
+      }
+    }
+    const pages = folderPages(path);
+    if (pages.length > 1) {
+      const dir = dirOf(path);
+      out += `<details class="after-card folder"><summary>Cùng thư mục <span class="mono">${esc(dir || D.meta.repo.split("/").pop())}/</span> · ${pages.length} file</summary><ul class="clean">${pages
+        .map((p) => {
+          const name = dirOf(p) === dir ? baseName(p) : `${baseName(dirOf(p))}/`;
+          const icon = dirOf(p) === dir ? (D.meta.pages[p].k === "md" ? "📄" : "🧾") : "📁";
+          return `<li${p === path ? ' aria-current="page"' : ""}><a href="${esc(docHref(p))}"><span aria-hidden="true">${icon}</span><span class="mono">${esc(name)}</span><span class="muted small">${esc(D.meta.pages[p].t)}</span></a></li>`;
+        })
+        .join("")}</ul></details>`;
+    }
+    return out;
+  }
+  function refreshViewerPanels() {
+    if (!viewer.open || !viewer.ready) return;
+    $("viewer-context").innerHTML = docContext(viewer.path);
+    $("viewer-after").innerHTML = docAfter(viewer.path);
+  }
+
+  function buildToc(path) {
+    const heads = [...$("viewer-body").querySelectorAll("h1[id], h2[id], h3[id]")];
+    const items = heads.filter((h, i) => !(i === 0 && h.tagName === "H1"));
+    const v = $("viewer");
+    v.classList.toggle("has-toc", items.length >= 3);
+    $("viewer-toc").innerHTML =
+      items.length >= 3
+        ? `<div class="toc-title">Mục lục</div><ul class="clean">${items
+            .map((h) => `<li class="toc-${h.tagName.toLowerCase()}"><a href="${esc(docHref(path, h.id.slice(3)))}">${esc(h.textContent.trim())}</a></li>`)
+            .join("")}</ul>`
+        : "";
+    viewer.heads = items;
+  }
+  // Đánh dấu mục đang đọc trong mục lục.
+  function spyToc() {
+    if (!viewer.open || !viewer.heads || !viewer.heads.length) return;
+    const top = $("viewer-scroll").getBoundingClientRect().top + 80;
+    let current = null;
+    for (const h of viewer.heads) {
+      if (h.getBoundingClientRect().top <= top) current = h;
+      else break;
+    }
+    $("viewer-toc").querySelectorAll("a").forEach((a, i) => {
+      if (viewer.heads[i] === current) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+  }
+
+  function goAnchor(anchor) {
+    const scroller = $("viewer-scroll");
+    const body = $("viewer-body");
+    body.querySelectorAll(".cl.hl").forEach((el) => el.classList.remove("hl"));
+    if (!anchor) {
+      scroller.scrollTop = 0;
+      return;
+    }
+    let el = null;
+    const line = anchor.match(/^L(\d+)(?:-L?(\d+))?$/);
+    if (line) {
+      const [a, b] = [Number(line[1]), Number(line[2] || line[1])];
+      for (let i = a; i <= b; i++) {
+        const ln = $(`md-L${i}`);
+        if (ln) ln.classList.add("hl");
+      }
+      el = $(`md-L${a}`);
+    }
+    if (!el) el = $(`md-${anchor}`);
+    if (!el) {
+      // liên kết cũ viết anchor hơi khác (gạch dưới, hoa/thường): so khớp lỏng
+      const loose = (x) => x.toLowerCase().replace(/[_\s]/g, "");
+      el = [...body.querySelectorAll("[id^='md-']")].find((x) => loose(x.id.slice(3)) === loose(anchor)) || null;
+    }
+    if (el) el.scrollIntoView({ block: "start" });
+    else scroller.scrollTop = 0;
+  }
+
+  async function renderMermaid(root, token) {
+    const blocks = [...root.querySelectorAll("pre.mermaid, .mermaid-diagram")];
+    if (!blocks.length) return;
+    try {
+      await loadScript("assets/vendor/mermaid/mermaid.min.js");
+    } catch (e) {
+      blocks.forEach((b) => b.classList.add("mermaid-failed"));
+      return;
+    }
+    if (token !== viewer.token) return;
+    const mm = window.mermaid;
+    mm.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      suppressErrorRendering: true,
+      theme: currentTheme() === "dark" ? "dark" : "default",
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
+    });
+    for (const el of blocks) {
+      if (token !== viewer.token) return;
+      const src = el.getAttribute("data-src") || el.textContent;
+      try {
+        viewer.mermaidSeq = (viewer.mermaidSeq || 0) + 1;
+        const { svg } = await mm.render(`mmd-${viewer.mermaidSeq}`, src);
+        if (token !== viewer.token) return;
+        const box = document.createElement("div");
+        box.className = "mermaid-diagram";
+        box.setAttribute("data-src", src);
+        box.innerHTML = svg;
+        el.replaceWith(box);
+      } catch (err) {
+        const pre = document.createElement("pre");
+        pre.className = "mermaid mermaid-failed";
+        pre.setAttribute("data-src", src);
+        pre.title = `Sơ đồ lỗi cú pháp: ${(err && err.message) || err}`;
+        pre.textContent = src;
+        el.replaceWith(pre);
+      }
+    }
+  }
+  async function renderMath(root, token) {
+    const nodes = [...root.querySelectorAll(".math:not([data-done])")];
+    if (!nodes.length) return;
+    try {
+      loadStyle("assets/vendor/katex/katex.min.css");
+      await loadScript("assets/vendor/katex/katex.min.js");
+    } catch (e) {
+      return;
+    }
+    if (token !== viewer.token) return;
+    nodes.forEach((el) => {
+      try {
+        window.katex.render(el.textContent, el, { displayMode: el.classList.contains("math-display"), throwOnError: false });
+        el.setAttribute("data-done", "1");
+      } catch (e) {
+        /* để nguyên mã TeX */
+      }
+    });
+  }
+  function enhanceDoc(root, token) {
+    root.querySelectorAll("div.highlight").forEach((block) => {
+      if (!block.querySelector(".copy-btn"))
+        block.insertAdjacentHTML("beforeend", `<button type="button" class="copy-btn" data-action="copy-code" aria-label="Sao chép code" title="Sao chép">${ICON_COPY}</button>`);
+    });
+    return Promise.all([renderMermaid(root, token), renderMath(root, token)]);
+  }
+
+  async function openDoc(param) {
+    const { path, anchor } = splitDocParam(param);
+    showViewer();
+    if (viewer.path === path && viewer.ready) {
+      goAnchor(anchor);
+      return;
+    }
+    const token = ++viewer.token;
+    const meta = D.meta.pages[path];
+    const title = meta ? meta.t : baseName(path) || "Tài liệu";
+    viewer.path = path;
+    viewer.ready = false;
+    viewer.heads = [];
+    document.title = `${title} · Lộ trình kỹ năng AI`;
+    $("viewer-title").textContent = title;
+    $("viewer-crumbs").innerHTML = crumbs(path);
+    $("viewer-github").href = `${D.meta.repo_url}/blob/main/${encPath(path)}`;
+    $("viewer-context").innerHTML = "";
+    $("viewer-after").innerHTML = "";
+    $("viewer-toc").innerHTML = "";
+    $("viewer").classList.remove("has-toc", "toc-open");
+    $("viewer").querySelector(".viewer-toc-btn").setAttribute("aria-expanded", "false");
+    const body = $("viewer-body");
+    body.className = "markdown-body";
+    body.removeAttribute("data-ready");
+    $("viewer-scroll").scrollTop = 0;
+    const gh = `<a href="${esc(`${D.meta.repo_url}/blob/main/${encPath(path)}`)}" target="_blank" rel="noopener">mở trên GitHub ↗</a>`;
+    if (!meta) {
+      body.innerHTML = `<p class="viewer-note">Trang web không có bản xem của <code>${esc(path)}</code> — ${gh}.</p>`;
+      return;
+    }
+    body.innerHTML = `<p class="viewer-note">Đang tải…</p>`;
+    let html;
+    try {
+      html = await loadFragment(path);
+    } catch (err) {
+      if (token === viewer.token)
+        body.innerHTML = `<p class="viewer-note">Không tải được tài liệu (${esc(err.message)}). Nếu bạn mở thẳng file
+          <code>index.html</code>, hãy chạy <code>make site-serve</code> rồi mở http://localhost:8000 — hoặc ${gh}.</p>`;
+      return;
+    }
+    if (token !== viewer.token) return;
+    body.innerHTML = html;
+    body.classList.toggle("is-code", meta.k === "code");
+    viewer.ready = true;
+    $("viewer-context").innerHTML = docContext(path);
+    $("viewer-after").innerHTML = docAfter(path);
+    buildToc(path);
+    goAnchor(anchor);
+    const scroller = $("viewer-scroll");
+    const before = scroller.scrollTop;
+    await enhanceDoc(body, token);
+    // sơ đồ vẽ xong làm tài liệu dài ra: nhảy lại anchor nếu người đọc chưa tự cuộn
+    if (token !== viewer.token) return;
+    if (anchor && Math.abs(scroller.scrollTop - before) < 4) goAnchor(anchor);
+    spyToc();
+    body.setAttribute("data-ready", "1"); // đã vẽ xong sơ đồ, công thức (kiểm thử chờ dấu này)
   }
 
   // ───────────────────────── điều hướng ─────────────────────────
@@ -851,22 +1402,33 @@
     "to-hop": pageCombos,
     "tai-lieu": pageDocs,
     "tien-do": pageProgress,
+    doc: pageDocs, // #/doc/... mở khung xem; trang Tài liệu nằm bên dưới
   };
   const app = () => document.getElementById("app");
 
-  function parseHash() {
-    const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
+  function parseHash(hash = location.hash) {
+    let h = hash.replace(/^#\/?/, "");
+    try {
+      h = decodeURIComponent(h);
+    } catch (e) {
+      /* hash lỗi mã hoá: dùng nguyên văn */
+    }
     const [path, ...rest] = h.split("/");
     return { path: path || "", param: rest.join("/") || null };
   }
 
+  let pageKey = null; // hash của trang đang vẽ trong #app — nằm dưới khung xem tài liệu khi khung đang mở
+  let pageTitle = "";
   function render(keepScroll) {
-    const { path, param } = parseHash();
+    const key = parseHash().path === "doc" ? pageKey || "#/tai-lieu" : location.hash || "#/";
+    const { path, param } = parseHash(key);
     const fn = ROUTES[path] || pageNotFound;
     const y = window.scrollY;
     const page = fn(param);
+    pageKey = key;
     app().innerHTML = page.html;
-    document.title = `${page.title} · Lộ trình kỹ năng AI`;
+    pageTitle = `${page.title} · Lộ trình kỹ năng AI`;
+    if (!viewer.open) document.title = pageTitle;
     document.querySelectorAll("[data-nav]").forEach((a) => {
       if (a.getAttribute("data-nav") === path) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
@@ -881,6 +1443,24 @@
     if (keepScroll) window.scrollTo(0, y);
     else if (page.focus && document.getElementById(page.focus)) document.getElementById(page.focus).scrollIntoView({ block: "start" });
     else window.scrollTo(0, 0);
+  }
+
+  function route() {
+    const r = parseHash();
+    if (r.path === "doc") {
+      if (pageKey === null) render(false); // mở thẳng link tài liệu: dựng trang Tài liệu bên dưới
+      trackDocDepth();
+      openDoc(r.param);
+      return;
+    }
+    lastDepth = 0;
+    const wasOpen = viewer.open;
+    hideViewer();
+    if (wasOpen && (location.hash || "#/") === pageKey) {
+      document.title = pageTitle; // chỉ đóng khung xem: giữ nguyên trang và vị trí cuộn
+      return;
+    }
+    render(false);
   }
 
   // ───────────────────────── tương tác ─────────────────────────
@@ -936,12 +1516,19 @@
   }
 
   function onClick(e) {
+    if (e.target.closest && e.target.closest("#viewer-toc a")) $("viewer").classList.remove("toc-open");
     const el = e.target.closest("[data-action]");
     if (!el) {
       const trackLink = e.target.closest("[data-track]");
       if (trackLink) {
         ui.track = trackLink.getAttribute("data-track");
         saveUI();
+      }
+      const domainLink = e.target.closest("[data-domain]");
+      if (domainLink) {
+        ui.domain = domainLink.getAttribute("data-domain");
+        ui.q = "";
+        if (parseHash().path === "ky-nang" && !parseHash().param) render(true); // đang ở trang Kỹ năng: hash không đổi
       }
       return;
     }
@@ -951,7 +1538,30 @@
       case "lvl":
         toggleLevel(id, el.getAttribute("data-level"));
         render(true);
+        refreshViewerPanels();
         break;
+      case "doc-close":
+        closeDoc();
+        break;
+      case "doc-toc": {
+        const v = $("viewer");
+        v.style.setProperty("--bar-h", `${v.querySelector(".viewer-bar").offsetHeight}px`); // thanh trên cao hơn khi xuống dòng
+        el.setAttribute("aria-expanded", String(v.classList.toggle("toc-open")));
+        break;
+      }
+      case "copy-code": {
+        const pre = el.parentElement.querySelector("pre");
+        const done = () => {
+          el.innerHTML = ICON_CHECK;
+          el.classList.add("copied");
+          setTimeout(() => {
+            el.innerHTML = ICON_COPY;
+            el.classList.remove("copied");
+          }, 1600);
+        };
+        if (navigator.clipboard && pre) navigator.clipboard.writeText(pre.innerText).then(done, () => toast("Không sao chép được — hãy bôi đen để chép"));
+        break;
+      }
       case "step":
         if (ui.open.has(id)) ui.open.delete(id);
         else ui.open.add(id);
@@ -1001,6 +1611,7 @@
         } catch (err) {
           /* bỏ qua */
         }
+        if (viewer.open && viewer.ready) renderMermaid($("viewer-body"), viewer.token); // vẽ lại sơ đồ theo màu mới
         break;
       }
       case "export":
@@ -1081,8 +1692,22 @@
     document.addEventListener("focusin", onFocus);
     document.addEventListener("focusout", hideTip);
     window.addEventListener("scroll", hideTip, { passive: true });
-    window.addEventListener("hashchange", () => render(false));
-    render(false);
+    window.addEventListener("hashchange", route);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && viewer.open && !e.defaultPrevented) {
+        e.preventDefault();
+        closeDoc();
+      }
+    });
+    let spy = 0;
+    $("viewer-scroll").addEventListener(
+      "scroll",
+      () => {
+        if (!spy) spy = requestAnimationFrame(() => ((spy = 0), spyToc()));
+      },
+      { passive: true }
+    );
+    route();
   }
 
   boot().catch((err) => {

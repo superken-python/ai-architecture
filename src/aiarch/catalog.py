@@ -49,6 +49,7 @@ class Catalog:
     combinations: list[dict[str, Any]]
     roadmap: dict[str, Any] = field(default_factory=dict)
     identify: dict[str, Any] = field(default_factory=dict)
+    docs: dict[str, Any] = field(default_factory=dict)
 
     @property
     def group_ids(self) -> list[str]:
@@ -76,6 +77,7 @@ def load(root: Path = REPO_ROOT) -> Catalog:
     skills = read("skills.yaml")
     combos = read("combinations.yaml")
     roadmap = read("roadmap.yaml") if (root / "catalog" / "roadmap.yaml").exists() else {}
+    docs = read("docs.yaml") if (root / "catalog" / "docs.yaml").exists() else {}
     return Catalog(
         blocks=problems["blocks"],
         families=problems["families"],
@@ -85,6 +87,7 @@ def load(root: Path = REPO_ROOT) -> Catalog:
         combinations=combos["combinations"],
         roadmap=roadmap,
         identify=problems.get("identify", {}),
+        docs=docs,
     )
 
 
@@ -292,6 +295,8 @@ def validate(cat: Catalog) -> list[str]:
         errors.append(f"identify: fallback không tồn tại '{cat.identify.get('fallback')}'")
     if cat.roadmap:
         errors += validate_roadmap(cat)
+    if cat.docs:
+        errors += validate_docs(cat, REPO_ROOT)
     return errors
 
 
@@ -408,6 +413,78 @@ def validate_roadmap(cat: Catalog) -> list[str]:
         missing = [sid for sid, places in roadmap_placements(cat).items() if not places]
         if missing:
             errors.append(f"Lộ trình chưa phủ các kỹ năng: {', '.join(missing)}")
+    return errors
+
+
+DOC_KINDS = ("guide", "lesson", "lab", "project", "report", "doc")
+DOC_PAGES = ("lo-trinh", "nhom", "ky-nang", "ma-tran", "to-hop", "tien-do")
+DOC_KEYS = (
+    {"key", "title", "path", "desc"},
+    {"tag", "kind", "stage", "step", "skills", "groups", "combos", "domains", "pages"},
+)
+
+
+def doc_items(cat: Catalog) -> list[dict[str, Any]]:
+    """Mọi tài liệu trong docs.yaml theo thứ tự hiển thị, kèm id nhóm chủ đề (`section`)."""
+    return [{**d, "section": sec["id"]} for sec in cat.docs.get("sections", []) for d in sec.get("docs", [])]
+
+
+def doc_skills(doc: dict[str, Any], cat: Catalog) -> list[dict[str, Any]]:
+    """Kỹ năng một tài liệu dạy/luyện: của bước (`step`) + `skills` khai báo thêm. level None = chỉ liên quan."""
+    result: dict[str, str | None] = {}
+    steps = {st["id"]: st for stage in cat.roadmap.get("stages", []) for st in stage.get("steps", [])}
+    for item in steps.get(doc.get("step"), {}).get("skills", []):
+        result[item["id"]] = item["level"]
+    for item in doc.get("skills", []):
+        sid, level = (item, None) if isinstance(item, str) else (item.get("id"), item.get("level"))
+        if level or sid not in result:
+            result[sid] = level
+    return [{"id": sid, "level": level} for sid, level in result.items()]
+
+
+def validate_docs(cat: Catalog, root: Path = REPO_ROOT) -> list[str]:
+    """docs.yaml: đúng cấu trúc, file có thật, key không trùng, mọi id tham chiếu tồn tại."""
+    errors: list[str] = []
+    stages = {st["id"] for st in cat.roadmap.get("stages", [])}
+    steps = {step["id"] for st in cat.roadmap.get("stages", []) for step in st.get("steps", [])}
+    known = {
+        "groups": set(cat.group_ids),
+        "combos": {c["id"] for c in cat.combinations},
+        "domains": {d["code"] for d in cat.domains},
+        "pages": set(DOC_PAGES),
+    }
+    skill_ids = {s["id"] for s in cat.skills}
+    sections = cat.docs.get("sections", [])
+    for dup in sorted(_duplicates([sec.get("id") for sec in sections])):
+        errors.append(f"Tài liệu: trùng id nhóm {dup}")
+    items = doc_items(cat)
+    for dup in sorted(_duplicates([d.get("key") for d in items])):
+        errors.append(f"Tài liệu: trùng key {dup}")
+    for d in items:
+        where = f"Tài liệu {d.get('key', '<thiếu key>')}"
+        required, optional = DOC_KEYS
+        errors += [f"{where}: thiếu trường '{k}'" for k in sorted(required - d.keys())]
+        extra = sorted(str(k) for k in d.keys() - required - optional - {"section"})
+        if extra:
+            errors.append(f"{where}: trường lạ {extra}")
+        if "path" in d and not (root / d["path"]).is_file():
+            errors.append(f"{where}: không có file {d['path']}")
+        if d.get("kind", "doc") not in DOC_KINDS:
+            errors.append(f"{where}: kind '{d['kind']}' không hợp lệ (chọn: {', '.join(DOC_KINDS)})")
+        if "stage" in d and d["stage"] not in stages:
+            errors.append(f"{where}: giai đoạn không tồn tại '{d['stage']}'")
+        if "step" in d and d["step"] not in steps:
+            errors.append(f"{where}: bước không tồn tại '{d['step']}'")
+        for item in d.get("skills", []):
+            sid, level = (item, None) if isinstance(item, str) else (item.get("id"), item.get("level"))
+            if sid not in skill_ids:
+                errors.append(f"{where}: kỹ năng không tồn tại '{sid}'")
+            if level is not None and level not in LEVEL_RANK:
+                errors.append(f"{where}: {sid} có level không hợp lệ '{level}'")
+        for field_name, valid in known.items():
+            for value in d.get(field_name, []):
+                if value not in valid:
+                    errors.append(f"{where}: {field_name} có giá trị không tồn tại '{value}'")
     return errors
 
 

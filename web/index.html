@@ -55,6 +55,37 @@
 
   <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
+  <!-- Trình xem tài liệu toàn màn hình: #/doc/<đường dẫn trong repo>. Nội dung render sẵn lúc build (md/*.html). -->
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden>
+    <div class="viewer-bar">
+      <button type="button" class="viewer-close" data-action="doc-close" title="Đóng (Esc)">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" fill="currentColor"/></svg>
+        <span>Đóng</span>
+      </button>
+      <div class="viewer-heading">
+        <nav class="viewer-crumbs" id="viewer-crumbs" aria-label="Đường dẫn tài liệu"></nav>
+        <h2 class="viewer-title" id="viewer-title"></h2>
+      </div>
+      <div class="viewer-tools">
+        <button type="button" class="btn btn-sm btn-ghost viewer-toc-btn" data-action="doc-toc" aria-expanded="false" aria-controls="viewer-side">Mục lục</button>
+        <a class="btn btn-sm" id="viewer-github" href="#" target="_blank" rel="noopener" title="Mở file này trên GitHub">GitHub ↗</a>
+        <button type="button" class="theme-toggle" data-action="theme" aria-label="Đổi giao diện sáng/tối" title="Đổi giao diện sáng/tối">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="viewer-scroll" id="viewer-scroll">
+      <div class="viewer-layout">
+        <aside class="viewer-side" id="viewer-side"><nav class="viewer-toc" id="viewer-toc" aria-label="Mục lục"></nav></aside>
+        <div class="viewer-main">
+          <div class="viewer-context" id="viewer-context"></div>
+          <article class="markdown-body" id="viewer-body"></article>
+          <div class="viewer-after" id="viewer-after"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!--CATALOG_DATA-->
   <script src="assets/app.js"></script>
 </body>

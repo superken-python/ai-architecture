@@ -31,6 +31,10 @@ Mã trong ngoặc (`ML-07`, `G6`, `CMB-08`) tham chiếu [danh mục kỹ năng]
 - [ ] **P1** Review nội dung lộ trình theo bước (`catalog/roadmap.yaml`): việc cần làm, sản phẩm nộp, mức mục tiêu của
       từng tuần; nội dung giai đoạn D (đề xuất mới) và 5 hướng chuyên sâu.
 - [ ] **P2** Gắn tên miền riêng hoặc thêm trang vào menu nội bộ của công ty (nếu cần).
+- [x] **P1** Trang web: liên kết xuyên suốt lộ trình ↔ kỹ năng ↔ nhóm ↔ tài liệu, đọc tài liệu ngay trên trang (định
+      dạng như GitHub) → `catalog/docs.yaml` + `src/aiarch/docview.py`.
+- [ ] **P1** Mỗi khi thêm bài học/lab/dự án mới: khai báo trong `catalog/docs.yaml` (`step` hoặc `skills`, `groups`)
+      để bước, kỹ năng, nhóm trên web tự có nút "Học ngay".
 
 ## Giai đoạn 3 · Thư viện dùng chung `src/aiarch/` (làm song song với lab)
 

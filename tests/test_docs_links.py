@@ -7,23 +7,16 @@ from urllib.parse import unquote
 
 import pytest
 
+from aiarch.docview import markdown_anchors
+
 ROOT = Path(__file__).resolve().parents[1]
 SKIP_DIRS = {".venv", ".git", "templates", "node_modules"}
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)\)")
-HEADING = re.compile(r"^#{1,6}\s+(.*?)\s*#*\s*$")
-EXPLICIT_ANCHOR = re.compile(r'<a\s+(?:id|name)="([^"]+)"')
 FENCE = re.compile(r"^\s*(```|~~~)")
 
 
 def markdown_files() -> list[Path]:
     return sorted(p for p in ROOT.rglob("*.md") if not SKIP_DIRS & set(p.relative_to(ROOT).parts))
-
-
-def github_slug(heading: str) -> str:
-    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", heading)  # bỏ cú pháp link, giữ chữ
-    text = re.sub(r"[`*_]", "", text).strip().lower()
-    text = re.sub(r"[^\w\- ]", "", text)
-    return text.replace(" ", "-")
 
 
 def strip_code(text: str) -> list[str]:
@@ -39,17 +32,8 @@ def strip_code(text: str) -> list[str]:
 
 @cache
 def anchors(path: Path) -> set[str]:
-    found: set[str] = set()
-    counts: dict[str, int] = {}
-    for line in strip_code(path.read_text(encoding="utf-8")):
-        found.update(EXPLICIT_ANCHOR.findall(line))
-        m = HEADING.match(line)
-        if m:
-            slug = github_slug(m.group(1))
-            n = counts.get(slug, 0)
-            found.add(slug if n == 0 else f"{slug}-{n}")
-            counts[slug] = n + 1
-    return found
+    # Cùng thuật toán với GitHub và khung xem tài liệu của trang web (aiarch.docview).
+    return markdown_anchors(path.read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("md", markdown_files(), ids=lambda p: str(p.relative_to(ROOT)))

@@ -5,7 +5,7 @@ UV ?= uv
 GROUPS := core tabular timeseries anomaly recsys vision llm agent optimization mlops
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-all $(addprefix setup-,$(GROUPS)) doctor catalog catalog-check landscape landscape-refresh site site-serve site-test lint format test check clean
+.PHONY: help setup setup-all $(addprefix setup-,$(GROUPS)) doctor catalog catalog-check landscape landscape-refresh site site-serve site-test site-vendor lint format test check clean
 
 help: ## Hiện danh sách lệnh
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -47,6 +47,9 @@ site-serve: ## Sinh trang web rồi mở http://localhost:8000
 
 site-test: ## Kiểm thử trang web bằng Chromium thật (Playwright)
 	$(UV) run --with playwright python scripts/smoke_site.py
+
+site-vendor: ## Tải lại mermaid + KaTeX (ghim phiên bản, kiểm mã băm) vào web/assets/vendor/
+	$(UV) run python scripts/vendor_web.py
 
 lint: ## Kiểm tra code style
 	$(UV) run ruff check .

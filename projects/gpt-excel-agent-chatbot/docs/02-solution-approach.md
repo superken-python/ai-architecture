@@ -67,7 +67,7 @@ sequenceDiagram
     A-->>P: Đề xuất thêm dòng có cấu trúc
     P-->>U: Preview dòng, nguồn và bảng đích
     U->>P: Áp dụng
-    P->>E: Kiểm tra lại target, schema, khóa; ghi
+    P->>E: Kiểm tra lại target, schema, khóa rồi ghi
     E-->>P: Kết quả đọc lại hoặc lỗi / chưa rõ
     P->>A: Kết quả thực thi
     A-->>P: Trả lời dựa trên kết quả thực thi
