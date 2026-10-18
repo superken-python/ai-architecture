@@ -4,6 +4,7 @@ Lộ trình 6 tháng của giai đoạn 1 (nền tảng → GenAI → chuyên s�
 cộng thêm giai đoạn D để đi tới mức **Nâng cao** (production).
 
 - **Chi tiết từng bước** (việc cần làm, sản phẩm phải nộp, kỹ năng và mức mục tiêu): [generated/lo-trinh.md](generated/lo-trinh.md)
+- **Bài học chi tiết Giai đoạn A** (8 bài lý thuyết + lab, cùng xây một dự án churn từ dữ liệu thô tới API): [docs/03-giai-doan-a-nen-tang/](../03-giai-doan-a-nen-tang/README.md)
 - **Bản web có tự đánh dấu tiến độ**: trang GitHub Pages của repo (`https://superken-python.github.io/ai-architecture/`
   sau khi bật Pages — xem [web/README.md](../../web/README.md)).
 - **Nguồn dữ liệu**: [catalog/roadmap.yaml](../../catalog/roadmap.yaml). Sửa lộ trình ở đó rồi `make catalog`.

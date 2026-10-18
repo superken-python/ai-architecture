@@ -48,11 +48,11 @@ Kỹ năng dùng chung → code dùng chung. Làm trước các lab cần đến
 
 Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 
-- [ ] **P1** Tuần 1–2: `py-02` cấu trúc dự án & uv · `data-01` SQL as-of với DuckDB · `stat-01` vì sao accuracy đánh lừa
-- [ ] **P1** Tuần 3: `ml-01` baseline + bộ đánh giá cố định · `stat-02` khoảng tin cậy cho metric
-- [ ] **P1** Tuần 4: `data-03` phát hiện leakage (cố tình tạo leakage rồi bắt nó)
-- [ ] **P1** Tuần 5–6: `ml-02` LightGBM · `stat-05` chọn ngưỡng theo chi phí & đường coverage–accuracy · `ml-04` SHAP
-- [ ] **P1** Tuần 7: `ops-01` FastAPI + Docker cho model
+- [x] **P1** Giai đoạn A (tuần 1–8): 8 lab `biz-01`, `data-01`, `stat-02`, `data-03`, `stat-05`, `biz-03`, `ops-01`,
+      `biz-04` + 8 bài học [docs/03-giai-doan-a-nen-tang/](docs/03-giai-doan-a-nen-tang/README.md) trên real case churn
+- [ ] **P1** Chủ dự án học thử Giai đoạn A theo bài A1 → A8 (xây lại từ đầu trong repo riêng) và gửi feedback: bài
+      nào thiếu giải thích, bước nào kẹt, bài tập nào quá dễ/khó
+- [ ] **P2** Giai đoạn A: bản notebook (`.ipynb`) cho lab A2, A6 nếu người học thích Jupyter hơn script `# %%`
 - [ ] **P2** Tuần 9–10: `llm-02` structured output + validate · `eff-01` đo token & chi phí trên tiếng Việt
 - [ ] **P2** Tuần 11: `ml-07` BM25 vs embedding vs hybrid trên văn bản tiếng Việt
 - [ ] **P2** Tuần 13–14: `llm-04` golden set + LLM-as-judge · `eff-02` prompt caching · `eff-07` lớp kiểm chứng
@@ -78,7 +78,10 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
       solution approach, khả thi và nguồn Microsoft; chỉ Markdown, chưa code.
 - [ ] **P1** Trước khi triển khai Excel chatbot: chốt Excel build/tenant, workbook/schema và API/auth của agent;
       xem [kế hoạch POC đề xuất](projects/gpt-excel-agent-chatbot/docs/03-danh-gia-kha-thi.md).
-- [ ] **P1** `projects/g1-churn-telco/` — mốc cuối tháng 2: top 500 khách + lý do SHAP, chạy qua API.
+- [x] **P1** `projects/g1-churn-telco/` — mốc Giai đoạn A: top 500 khách + lý do SHAP, chạy qua API Docker, bộ đánh giá
+      đóng băng, báo cáo 1 trang (real case của 8 bài học).
+- [ ] **P2** `projects/g1-churn-telco/` — làm lại trên dữ liệu thật của công ty (nếu được phép, đã ẩn danh): thay
+      `simulate.py` + `clean.py`, giữ nguyên bảng học, bộ đánh giá, harness, API.
 - [ ] **P2** `projects/g6-rag-handbook/` — mốc cuối tháng 4: RAG tiếng Việt + golden set ~100 câu + bảng
       chất lượng–chi phí–độ trễ.
 - [ ] **P2** `projects/cmb-08-ticket-cascade/` — chứng minh tiết kiệm token mà độ chính xác không giảm.

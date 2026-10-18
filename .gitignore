@@ -25,6 +25,7 @@ data/*
 !data/.gitkeep
 mlruns/
 outputs/
+labs/*/out/
 *.parquet
 *.csv.gz
 *.onnx

@@ -1,0 +1,49 @@
+[project]
+name = "churn-telco"
+version = "0.1.0"
+description = "Real case Giai đoạn A: dự đoán khách rời mạng trong 30 ngày tới cho nhà mạng Sóng Xanh (dữ liệu mô phỏng)"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+# Phụ thuộc lõi = đủ để dựng dữ liệu, train và PHỤC VỤ model (image Docker chỉ cài nhóm này).
+dependencies = [
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "pyarrow>=17",
+  "duckdb>=1.1",
+  "scikit-learn>=1.5",
+  "lightgbm>=4.5",
+  "pandera>=0.24",
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+]
+
+[dependency-groups]
+# Phân tích và theo dõi thực nghiệm: dùng khi học/làm, KHÔNG cần trong container phục vụ.
+research = ["shap>=0.46", "matplotlib>=3.9", "mlflow>=3.0"]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.16,<0.17"]  # ruff cùng phiên bản với repo gốc
+
+[tool.uv]
+default-groups = ["research", "dev"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/churn_telco"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+  # starlette mới khuyên đổi httpx → httpx2 cho TestClient; chưa ảnh hưởng hành vi
+  "ignore:Using `httpx` with `starlette.testclient`:UserWarning",
+]

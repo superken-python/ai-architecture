@@ -10,6 +10,7 @@ Bản đồ học và làm AI trong doanh nghiệp: từ **các bài toán thị
 | [00 · Setup](docs/00-setup/README.md) | Chuẩn bị môi trường: công cụ, Python/uv, API key, GPU, dữ liệu | ✅ |
 | [01 · Bản đồ bài toán](docs/01-problem-map/README.md) | 8 nhóm bài toán AI doanh nghiệp, 4 khối, cách nhận diện, lộ trình 6 tháng | ✅ |
 | [02 · Bản đồ kỹ năng](docs/02-skill-map/README.md) | 65 kỹ năng × 10 mảng × 3 mức; dùng chung / riêng / kết hợp; tiết kiệm token & độ chính xác | ✅ |
+| [Giai đoạn A · Nền tảng](docs/03-giai-doan-a-nen-tang/README.md) | 8 bài lý thuyết + lab chi tiết (tuần 1–8), cùng xây một real case từ đầu: dự đoán khách rời mạng từ 8 bảng vận hành tới API Docker và báo cáo 1 trang | ✅ |
 | [Radar agent · Nhóm 7](docs/agent-radar/README.md) | Chọn framework/công cụ cho agent: 19 framework + 18 công cụ hỗ trợ, vòng Adopt/Trial/Assess/Hold, số liệu registry cập nhật tự động hằng tháng | 🔄 |
 | [Trang web lộ trình](web/README.md) | Lộ trình 4 giai đoạn từng bước, cơ bản → nâng cao, tự đánh dấu tiến độ — GitHub Pages | ✅ |
 | [03 · Labs](labs/README.md) | Bài lab ngắn cho từng kỹ năng, theo thứ tự lộ trình | ⏳ |
@@ -46,6 +47,7 @@ ai-architecture/
 │   ├── 02-skill-map/           # giai đoạn 2 — bản đồ kỹ năng
 │   │   ├── 0x-*.md             #   tài liệu viết tay: kiến trúc, kết hợp, token, lộ trình
 │   │   └── generated/          #   SINH TỰ ĐỘNG từ catalog/: ma trận, thẻ kỹ năng, lộ trình theo nhóm
+│   ├── 03-giai-doan-a-nen-tang/ # bài học Giai đoạn A (A1–A8), code trích nguyên văn từ projects/g1-churn-telco
 │   └── agent-radar/            # tài liệu sống: radar framework agent (Nhóm 7), bảng sinh từ catalog/agent_landscape.*
 ├── web/                        # trang web lộ trình (HTML/CSS/JS thuần) → GitHub Pages
 ├── src/aiarch/                 # thư viện dùng chung (catalog: kiểm tra + sinh Markdown; site: sinh trang web)

@@ -1,0 +1,12 @@
+{
+  "rule": "t > 2025-09-01 (3 tháng cuối có nhãn)",
+  "snapshots": [
+    "2025-10-01",
+    "2025-11-01",
+    "2025-12-01"
+  ],
+  "rows": 60912,
+  "customers": 21246,
+  "positives": 1386,
+  "sha256": "5e768609de8badd13cffc938b3eb12cb0eda2adcb9b9f898b74b39af17b4f85f"
+}

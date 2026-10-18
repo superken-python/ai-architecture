@@ -1,0 +1,5 @@
+# Sinh ra khi chạy — KHÔNG commit (dữ liệu khách, dù mô phỏng, model và lịch sử thí nghiệm ở ngoài Git)
+data/
+models/
+mlruns/
+.env

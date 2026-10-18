@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Danh sách gọi giữ chân</title>
+<style>
+  body { font: 15px system-ui, sans-serif; margin: 24px; max-width: 1100px }
+  table { border-collapse: collapse; width: 100% }
+  td, th { border-bottom: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: top }
+  small { color: #666 }
+</style></head>
+<body><h1>Danh sách gọi giữ chân khách hàng</h1>
+<p><small id="ver"></small></p>
+<form id="f"><input id="key" type="password" placeholder="X-API-Key" required> <button>Xem 50 khách đầu</button></form>
+<p id="msg"></p><table id="tbl"></table>
+<script>
+fetch('/version').then(r => r.json()).then(v => {
+  document.getElementById('ver').textContent = `Model ${v.name} · phiên bản ${v.version} · train ${v.trained_at}`;
+});
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.getElementById('f').onsubmit = async (e) => {
+  e.preventDefault();
+  const r = await fetch('/top?k=50', {headers: {'X-API-Key': document.getElementById('key').value}});
+  const msg = document.getElementById('msg'), tbl = document.getElementById('tbl');
+  if (!r.ok) { msg.textContent = (await r.json()).detail; tbl.innerHTML = ''; return; }
+  const data = await r.json();
+  msg.textContent = `${data.file} — xếp theo giá trị kỳ vọng của cuộc gọi`;
+  const reasons = x => [1, 2, 3].filter(i => x['reason_' + i])
+    .map(i => `${esc(x['reason_' + i])}<br><small>→ ${esc(x['action_' + i])}</small>`).join('<br>');
+  tbl.innerHTML = '<tr><th>#</th><th>Khách</th><th>Xác suất</th><th>EV (đ)</th><th>Lý do → việc nên làm</th></tr>' +
+    data.rows.map(x => `<tr><td>${x.rank}</td>
+      <td>${esc(x.customer_id)}<br><small>${esc(x.province)} · ${esc(x.plan_code)}</small></td>
+      <td>${(100 * x.p).toFixed(0)}%</td><td>${Math.round(x.ev).toLocaleString('vi-VN')}</td>
+      <td>${reasons(x)}</td></tr>`).join('');
+};
+</script></body></html>

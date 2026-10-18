@@ -10,6 +10,55 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-18 · Giai đoạn A · Nền tảng: 8 bài học + 8 lab + real case churn xây từ đầu
+
+**Đã làm**
+
+- `docs/03-giai-doan-a-nen-tang/`: trang tổng quan + 8 bài A1–A8 theo lộ trình tuần 1–8. Mỗi bài có lý thuyết vừa đủ
+  (ví dụ tính tay có đáp số), lab làm tới đâu giải thích tới đó, output chạy thật, kiểm tra kết quả theo "Đạt khi" của
+  thẻ kỹ năng, lỗi thường gặp, bài tập. Ảnh kết quả trong `img/`.
+- `projects/g1-churn-telco/` — real case **nhà mạng Sóng Xanh** (dữ liệu mô phỏng, cố định theo seed): 8 bảng vận
+  hành có lỗi thật (trùng dòng, tỉnh 43 cách viết, NFD, ticket vào hệ thống trễ, trạng thái CRM tại ngày export) →
+  làm sạch bỏ PII → bảng học as-of bằng một câu SQL DuckDB (359.908 dòng) + pandera → chia theo thời gian, bộ đánh giá
+  đóng băng bằng mã băm (`eval/manifest.json`) → baseline + LightGBM, bootstrap theo khách → hiệu chỉnh, giá trị kỳ vọng,
+  danh sách gọi theo năng lực → phân tích lỗi, feature marketing (v2) → 3 lý do SHAP tiếng Việt → API FastAPI (khoá,
+  `/health`, `/version`, demo) + Docker (user thường, chỉ đọc) + MLflow → báo cáo 1 trang (`reports/README.md`).
+  `make all` tái lập toàn bộ trong ~1 phút 20 giây.
+- Kết quả trên 3 tháng đóng băng: LightGBM hơn logistic +0,032 precision@500 (KTC +0,017…+0,043); so với danh sách
+  CSKH hiện tại: 140 thay vì 37 người gọi trúng/tháng, +44,5 triệu đ/tháng (KTC 39,0…49,6).
+- 8 lab trong `labs/` (biz-01, data-01, stat-02, data-03, stat-05, biz-03, ops-01, biz-04), chạy bằng môi trường của
+  dự án. 157 test của dự án: pipeline trên nhà mạng 3.000 khách, test đúng thời điểm (và test chứng minh nó bắt được
+  lỗi lọc theo `created_at`), API, các lệnh `make` đầu–cuối, mọi lab (kể cả gọi API qua uvicorn thật), và đồng bộ
+  bài học–code (`scripts/sync_doc.py`: khối code trích cả file hoặc từng hàm; test đòi mọi phần của mọi module có
+  mặt trong bài).
+- CI thêm job `churn-telco`: lint, test, rồi `make data features eval` dựng lại dữ liệu đầy đủ và kiểm tra khớp
+  manifest đóng băng. Trang web thêm nhóm "Giai đoạn A · Nền tảng"; cập nhật `labs/README.md`, `projects/README.md`,
+  README gốc, lộ trình.
+
+**Quyết định**
+
+- **Dữ liệu mô phỏng thay cho bộ Telco công khai**: bộ công khai là một bảng phẳng không có thời gian, không học được
+  as-of và rò rỉ dữ liệu. Bộ Telco giữ lại làm bài tập chuyển giao (A2). Cơ chế churn chỉ mở ra ở A6 để đối chiếu với
+  điều model học được.
+- **Bài A3 dùng `features.py` như hộp đen** (A4 mới mổ xẻ): đánh giá cần bảng học nhưng lộ trình đặt baseline trước
+  feature; giữ đúng thứ tự lộ trình, nói rõ trong bài.
+- **Kết quả không như dự đoán thì ghi đúng như đo được**: chia ngẫu nhiên không lạc quan hơn chia theo thời gian trên
+  dữ liệu này (lab A4 chuyển sang backtest cuốn chiếu); hiệu chỉnh Platt không cải thiện ECE của LightGBM trên tập
+  đóng băng (A5 nói rõ, giữ Platt cho đồng bộ, bài tập chọn bằng valid); feature marketing tăng AUC và độ hiệu chỉnh
+  ở HCM/BD nhưng precision@500 gần như không đổi (A6 rút ra kết luận nghiệp vụ: ưu đãi theo vùng).
+- **Không pickle**: model lưu `model.txt` (LightGBM) + `bundle.json`; SHAP dùng `pred_contrib` của LightGBM (khớp thư
+  viện shap tới 1e-8) nên image Docker không cần shap/mlflow (nhóm phụ thuộc `research`).
+- **Bảng học giống từng bit giữa các lần dựng** (làm tròn `avg` trong SQL, `ORDER BY` cho khối marketing) để mã băm
+  "phiên bản dữ liệu" ổn định cho MLflow và CI.
+- Dockerfile cài `libgomp1` bằng apt và uv bằng pip (chạy được mọi nơi có PyPI); đã build và chạy thử container
+  (healthy, uid 10001, hệ thống file chỉ đọc). Proxy của môi trường làm việc chặn kho apt Debian nên lần thử dùng một
+  bản Dockerfile riêng cho sandbox, không đưa vào repo.
+
+**Còn mở** (đã chuyển sang CHECKLIST)
+
+- Chủ dự án học thử A1 → A8 và gửi feedback; bản notebook cho lab A2, A6 nếu cần; làm lại dự án trên dữ liệu thật đã
+  ẩn danh (nếu được phép).
+
 ## 2026-10-18 · Lab 01 Agno chi tiết: 16 phần + project tham chiếu; bổ sung Agno → LangChain
 
 **Đã làm**

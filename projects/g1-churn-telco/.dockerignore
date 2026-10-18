@@ -1,0 +1,12 @@
+# Chỉ gửi vào Docker build những gì image cần: code + lockfile. Không dữ liệu, không model, không secret.
+.venv/
+data/
+models/
+mlruns/
+reports/
+eval/
+tests/
+.env
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/

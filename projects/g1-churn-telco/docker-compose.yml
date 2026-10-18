@@ -1,0 +1,19 @@
+# A7 · `docker compose up --build -d` → API tại http://127.0.0.1:8000 (tài liệu tương tác: /docs, trang demo: /)
+# Cần trước: `make train-v2 score` (model trong models/, danh sách gọi trong data/outputs/) và file .env có CHURN_API_KEY.
+services:
+  api:
+    build: .
+    image: churn-telco-api:0.1.0
+    ports:
+      - "127.0.0.1:8000:8000" # chỉ mở trên máy mình; mở ra mạng thì đặt sau reverse proxy có HTTPS
+    env_file: .env # CHURN_API_KEY — secret nằm ngoài image và ngoài Git
+    environment:
+      CHURN_MODEL_DIR: /app/models/lgbm-v2
+      CHURN_OUTPUTS: /app/outputs
+    volumes:
+      - ./models:/app/models:ro # chỉ đọc: container không sửa được model
+      - ./data/outputs:/app/outputs:ro
+    read_only: true # hệ thống file của container chỉ đọc
+    tmpfs:
+      - /tmp
+    restart: unless-stopped

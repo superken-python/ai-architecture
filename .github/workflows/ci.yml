@@ -35,6 +35,37 @@ jobs:
       - name: Script kiểm tra môi trường chạy được
         run: uv run python scripts/check_env.py
 
+  churn-telco:
+    # Dự án G1 · Churn (real case Giai đoạn A): lint, test (pipeline trên dữ liệu nhỏ, mọi lab, đồng bộ bài học với
+    # code), rồi dựng lại dữ liệu đầy đủ từ đầu và kiểm tra bộ đánh giá đóng băng khớp manifest đã commit.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/g1-churn-telco
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài uv
+        run: pip install uv
+
+      - name: Cài môi trường đúng theo uv.lock
+        run: uv sync --locked
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Test
+        run: uv run pytest
+
+      - name: Tái lập từ đầu — dữ liệu, bảng học và bộ đánh giá đóng băng phải khớp manifest
+        run: make data features eval
+
   site:
     runs-on: ubuntu-latest
     steps:

@@ -8,7 +8,7 @@ thể có một dự án tích hợp. Dự án đi trọn quy trình ĐÚNG → 
 
 | Thư mục | Nhóm / tổ hợp | Dự án | Dữ liệu |
 |---|---|---|---|
-| `g1-churn-telco/` | 1 · Bảng | Top 500 khách churn kèm lý do SHAP | Telco Customer Churn |
+| [`g1-churn-telco/`](g1-churn-telco/README.md) | 1 · Bảng | Top 500 khách churn kèm lý do SHAP — **real case của [Giai đoạn A](../docs/03-giai-doan-a-nen-tang/README.md), hoàn thành**: 8 bảng vận hành → bảng học as-of → LightGBM → API Docker → báo cáo 1 trang; +103 người gọi trúng/tháng so với cách làm hiện tại | Mô phỏng nhà mạng (cố định theo seed); bài tập chuyển giao trên Telco Customer Churn |
 | `g2-forecast-m5/` | 2 · Thời gian | LightGBM toàn cục vs seasonal naive, backtest cuốn chiếu | M5 (Walmart) |
 | `g3-fraud-creditcard/` | 3 · Bất thường | Ngưỡng theo số cảnh báo xử lý được mỗi ngày | Credit Card Fraud Detection |
 | `g4-recsys-movielens/` | 4 · Gợi ý | ALS vs phổ biến theo Recall@10, NDCG@10 | MovieLens |
