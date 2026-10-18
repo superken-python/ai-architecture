@@ -1517,6 +1517,13 @@
 
   function onClick(e) {
     if (e.target.closest && e.target.closest("#viewer-toc a")) $("viewer").classList.remove("toc-open");
+    // Bấm lại đúng mục đang mở (hash không đổi nên không có hashchange): vẫn cuộn tới mục đó.
+    const same = e.target.closest && e.target.closest('#viewer a[href^="#/doc/"]');
+    if (same && same.getAttribute("href") === location.hash) {
+      e.preventDefault();
+      goAnchor(splitDocParam(parseHash().param).anchor);
+      return;
+    }
     const el = e.target.closest("[data-action]");
     if (!el) {
       const trackLink = e.target.closest("[data-track]");
