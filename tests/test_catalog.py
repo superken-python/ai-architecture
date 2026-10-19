@@ -68,6 +68,20 @@ def test_detects_duplicate_id_and_bad_relevance(cat):
     assert any("mức không hợp lệ" in e for e in errors)
 
 
+def test_every_group_describes_its_practice_project(cat):
+    """Dự án luyện tập phải nói rõ làm gì, đạt được gì, dùng dữ liệu nào — có mục chi tiết trong tài liệu dữ liệu."""
+    doc = (c.REPO_ROOT / c.PRACTICE_DOC).read_text(encoding="utf-8")
+    for g in cat.groups:
+        assert all(g[key].strip() for key in c.PRACTICE_FIELDS), g["id"]
+        assert f'<a id="{g["id"].lower()}"></a>' in doc, f"{c.PRACTICE_DOC} thiếu mục cho {g['id']}"
+    groups = copy.deepcopy(cat.groups)
+    del groups[0]["practice_target"]
+    groups[1]["practice_data"] = " "
+    errors = c.validate(dataclasses.replace(cat, groups=groups))
+    assert any("G1: thiếu practice_target" in e for e in errors)
+    assert any("G2: thiếu practice_data" in e for e in errors)
+
+
 def test_detects_coverage_gap(cat):
     # Hạ mọi kỹ năng OPT xuống "needed" cho G8 → ô Cốt lõi OPT của G8 không còn được phủ.
     skills = copy.deepcopy(cat.skills)

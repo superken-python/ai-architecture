@@ -21,7 +21,9 @@
 - **Metric chính:** WAPE, MASE; pinball loss cho dự báo quantile.
 - **Công cụ:** statsforecast, mlforecast, Darts, LightGBM
 - **Bẫy thường gặp:** Xáo trộn dữ liệu khi chia train/test; bỏ qua Tết và khuyến mãi; chỉ đưa ra một con số khi quyết định cần khoảng dự báo.
-- **Dự án luyện tập:** Dự báo doanh số cửa hàng × mặt hàng trên bộ M5 (Walmart), so LightGBM với seasonal naive bằng backtest cuốn chiếu.
+- **Dự án luyện tập:** Dự báo số lượng bán từng ngày trong 28 ngày tới cho mỗi mặt hàng ở mỗi cửa hàng của một chuỗi siêu thị, để đặt hàng không thiếu không thừa; so với cách lấy lại số bán tuần trước.
+- **Mục tiêu đạt được:** Sai số (WAPE) thấp hơn ít nhất 10% so với seasonal naive, giữ được qua ít nhất 3 lần backtest; chỉ ra mặt hàng và thời điểm dự báo kém.
+- **Dữ liệu:** M5 – Walmart: số bán từng ngày của 3.049 mặt hàng ở 10 cửa hàng trong hơn 5 năm, kèm lịch lễ và giá bán. Lĩnh vực bán lẻ. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g2)
 
 ## Kỹ năng cần cho nhóm này
 

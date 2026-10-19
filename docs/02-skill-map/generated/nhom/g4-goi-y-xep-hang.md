@@ -21,7 +21,9 @@
 - **Metric chính:** Recall@K, NDCG, MAP (offline); CTR, tỷ lệ chuyển đổi, doanh thu mỗi phiên (online).
 - **Công cụ:** implicit (ALS), LightFM, LightGBM (LambdaRank), Faiss
 - **Bẫy thường gặp:** Offline tốt nhưng online không tăng; vòng lặp chỉ gợi ý thứ đã phổ biến; quên người dùng và sản phẩm mới.
-- **Dự án luyện tập:** Gợi ý phim trên MovieLens, so baseline phổ biến với ALS theo Recall@10 và NDCG@10.
+- **Dự án luyện tập:** Gợi ý 10 phim riêng cho từng người dùng từ lịch sử chấm điểm của mọi người (lọc cộng tác ALS), so với gợi ý 10 phim phổ biến nhất cho tất cả.
+- **Mục tiêu đạt được:** Recall@10 và NDCG@10 cao hơn baseline phổ biến có ý nghĩa thống kê, đo trên các lượt chấm điểm gần nhất; có cách gợi ý cho người dùng mới.
+- **Dữ liệu:** MovieLens latest-small: 100.836 lượt chấm điểm của 610 người dùng cho 9.742 phim. Lĩnh vực giải trí. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g4)
 
 ## Kỹ năng cần cho nhóm này
 

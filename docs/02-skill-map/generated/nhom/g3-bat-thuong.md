@@ -21,7 +21,9 @@
 - **Metric chính:** precision@k, recall, PR-AUC, tỷ lệ cảnh báo giả.
 - **Công cụ:** scikit-learn, PyOD, NetworkX, Kafka (luồng real-time)
 - **Bẫy thường gặp:** Quá nhiều cảnh báo giả khiến đội vận hành bỏ qua cảnh báo; dùng accuracy khi bất thường chiếm dưới 1% dữ liệu.
-- **Dự án luyện tập:** Phát hiện gian lận trên bộ Credit Card Fraud Detection, chọn ngưỡng theo số cảnh báo xử lý được mỗi ngày.
+- **Dự án luyện tập:** Chấm điểm rủi ro từng giao dịch thẻ và chọn ngưỡng cảnh báo vừa sức đội điều tra (ví dụ 500 cảnh báo mỗi ngày), để chặn được nhiều tiền gian lận nhất.
+- **Mục tiêu đạt được:** Với cùng số cảnh báo mỗi ngày, bắt được nhiều gian lận hơn rõ rệt luật đơn giản; báo cáo số tiền chặn được so với chi phí kiểm tra.
+- **Dữ liệu:** Credit Card Fraud Detection: 284.807 giao dịch thẻ trong 2 ngày ở châu Âu, chỉ 492 gian lận (0,17%). Lĩnh vực ngân hàng. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g3)
 
 ## Kỹ năng cần cho nhóm này
 

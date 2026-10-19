@@ -21,7 +21,9 @@
 - **Metric chính:** Chi phí hoặc lợi nhuận so với cách làm hiện tại; mức tăng (uplift) có ý nghĩa thống kê; mức vi phạm ràng buộc.
 - **Công cụ:** OR-Tools, PuLP, Pyomo, DoWhy, EconML, CausalML
 - **Bẫy thường gặp:** Nhầm tương quan với nhân quả; tối ưu trên dự báo một điểm mà bỏ qua bất định; dừng A/B test sớm khi thấy kết quả đẹp.
-- **Dự án luyện tập:** Tối ưu tuyến giao hàng cho 1 kho và 20 điểm giao bằng OR-Tools, so tổng quãng đường với tuyến hiện tại.
+- **Dự án luyện tập:** Xếp tuyến giao hàng cho 1 kho và 20 điểm bằng OR-Tools (đúng tải trọng xe, khung giờ khách); và đo tác động thật của email khuyến mãi để chọn khách nên gửi.
+- **Mục tiêu đạt được:** Tổng quãng đường ngắn hơn ít nhất 15% so với tuyến hiện tại, 100% đúng ràng buộc; chọn nhóm khách để gửi mà lợi nhuận cao hơn gửi cho tất cả.
+- **Dữ liệu:** Toạ độ giao hàng tự sinh (logistics) + Hillstrom: 64.000 khách được chia ngẫu nhiên nhận hoặc không nhận email khuyến mãi (marketing). [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g8)
 - **Nguyên tắc:** Dự đoán chưa tạo ra tiền, quyết định mới tạo ra tiền — nhóm này là cầu nối từ model đến lợi nhuận.
 
 ## Kỹ năng cần cho nhóm này

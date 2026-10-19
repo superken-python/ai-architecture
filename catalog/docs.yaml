@@ -28,6 +28,12 @@ sections:
         path: docs/00-setup/README.md
         desc: Chuẩn bị máy và công cụ một lần trước khi học.
         pages: [lo-trinh]
+      - key: practice_data
+        title: Dữ liệu luyện tập — 8 dự án, 8 bộ dữ liệu
+        path: docs/00-setup/05-du-lieu-luyen-tap.md
+        desc: "Mỗi nhóm bài toán: câu chuyện doanh nghiệp, dự án làm gì, mục tiêu đo được, bộ dữ liệu (lĩnh vực, bên trong có gì, dùng để làm gì) và cách tải."
+        tag: Đọc trước mỗi dự án
+        pages: [nhom]
       - key: problem_map
         title: Bản đồ bài toán (giai đoạn 1)
         path: docs/01-problem-map/README.md

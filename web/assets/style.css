@@ -514,6 +514,10 @@ td.c, th.c { text-align: center; }
 .res-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .res-meta { display: inline-flex; align-items: center; gap: 10px; }
 .res-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.practice { padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); display: flex; flex-direction: column; gap: 8px; }
+.practice-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.practice-what { margin: 0; font-weight: 600; }
+.practice .kv dd { color: var(--text-2); }
 .read-more { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 0.9rem; margin-top: 4px; }
 .read-more > span { color: var(--text-3); }
 .continue-card { margin-top: 20px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }

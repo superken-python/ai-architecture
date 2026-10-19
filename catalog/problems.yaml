@@ -60,7 +60,9 @@ groups:
     metrics: AUC, F1, precision@k (phân loại); MAE, RMSE (hồi quy).
     tools: [pandas, scikit-learn, LightGBM, XGBoost, CatBoost, SHAP]
     pitfalls: Dùng thông tin "tương lai" làm feature (leakage); chia ngẫu nhiên khi dữ liệu có yếu tố thời gian; tối ưu accuracy trên dữ liệu lệch.
-    practice_project: Dự đoán churn trên bộ Telco Customer Churn, xuất danh sách top 500 khách cho CSKH kèm lý do từ SHAP.
+    practice_project: "Danh sách 500 khách nên gọi giữ chân mỗi tháng cho CSKH một nhà mạng, mỗi khách kèm 3 lý do dễ hiểu và việc nên làm; phục vụ qua API trong Docker. Đã làm xong — real case của giai đoạn A."
+    practice_target: "Gọi trúng nhiều người sắp rời hơn rõ rệt danh sách hiện tại (dự án mẫu: 140 thay vì 37 người mỗi tháng) và quy ra lợi nhuận tăng thêm (dự án mẫu: +44,5 triệu đ/tháng), có khoảng tin cậy."
+    practice_data: "Nhà mạng Sóng Xanh — mô phỏng 20.000 khách, 8 bảng vận hành có thời gian và lỗi như thật; luyện thêm trên Telco Customer Churn (IBM, 7.043 khách). Lĩnh vực viễn thông."
     skill_areas: {DATA: core, STAT: core, ML: core, DL: minor, LLM: minor, OPT: minor, OPS: needed, BIZ: core}
 
   - id: G2
@@ -82,7 +84,9 @@ groups:
     metrics: WAPE, MASE; pinball loss cho dự báo quantile.
     tools: [statsforecast, mlforecast, Darts, LightGBM]
     pitfalls: Xáo trộn dữ liệu khi chia train/test; bỏ qua Tết và khuyến mãi; chỉ đưa ra một con số khi quyết định cần khoảng dự báo.
-    practice_project: Dự báo doanh số cửa hàng × mặt hàng trên bộ M5 (Walmart), so LightGBM với seasonal naive bằng backtest cuốn chiếu.
+    practice_project: "Dự báo số lượng bán từng ngày trong 28 ngày tới cho mỗi mặt hàng ở mỗi cửa hàng của một chuỗi siêu thị, để đặt hàng không thiếu không thừa; so với cách lấy lại số bán tuần trước."
+    practice_target: "Sai số (WAPE) thấp hơn ít nhất 10% so với seasonal naive, giữ được qua ít nhất 3 lần backtest; chỉ ra mặt hàng và thời điểm dự báo kém."
+    practice_data: "M5 – Walmart: số bán từng ngày của 3.049 mặt hàng ở 10 cửa hàng trong hơn 5 năm, kèm lịch lễ và giá bán. Lĩnh vực bán lẻ."
     skill_areas: {DATA: core, STAT: core, ML: core, DL: needed, LLM: minor, OPT: needed, OPS: needed, BIZ: core}
 
   - id: G3
@@ -104,7 +108,9 @@ groups:
     metrics: precision@k, recall, PR-AUC, tỷ lệ cảnh báo giả.
     tools: [scikit-learn, PyOD, NetworkX, "Kafka (luồng real-time)"]
     pitfalls: Quá nhiều cảnh báo giả khiến đội vận hành bỏ qua cảnh báo; dùng accuracy khi bất thường chiếm dưới 1% dữ liệu.
-    practice_project: Phát hiện gian lận trên bộ Credit Card Fraud Detection, chọn ngưỡng theo số cảnh báo xử lý được mỗi ngày.
+    practice_project: "Chấm điểm rủi ro từng giao dịch thẻ và chọn ngưỡng cảnh báo vừa sức đội điều tra (ví dụ 500 cảnh báo mỗi ngày), để chặn được nhiều tiền gian lận nhất."
+    practice_target: "Với cùng số cảnh báo mỗi ngày, bắt được nhiều gian lận hơn rõ rệt luật đơn giản; báo cáo số tiền chặn được so với chi phí kiểm tra."
+    practice_data: "Credit Card Fraud Detection: 284.807 giao dịch thẻ trong 2 ngày ở châu Âu, chỉ 492 gian lận (0,17%). Lĩnh vực ngân hàng."
     skill_areas: {DATA: core, STAT: core, ML: core, DL: needed, LLM: minor, OPT: minor, OPS: core, BIZ: core}
 
   - id: G4
@@ -126,7 +132,9 @@ groups:
     metrics: Recall@K, NDCG, MAP (offline); CTR, tỷ lệ chuyển đổi, doanh thu mỗi phiên (online).
     tools: ["implicit (ALS)", LightFM, "LightGBM (LambdaRank)", Faiss]
     pitfalls: Offline tốt nhưng online không tăng; vòng lặp chỉ gợi ý thứ đã phổ biến; quên người dùng và sản phẩm mới.
-    practice_project: Gợi ý phim trên MovieLens, so baseline phổ biến với ALS theo Recall@10 và NDCG@10.
+    practice_project: "Gợi ý 10 phim riêng cho từng người dùng từ lịch sử chấm điểm của mọi người (lọc cộng tác ALS), so với gợi ý 10 phim phổ biến nhất cho tất cả."
+    practice_target: "Recall@10 và NDCG@10 cao hơn baseline phổ biến có ý nghĩa thống kê, đo trên các lượt chấm điểm gần nhất; có cách gợi ý cho người dùng mới."
+    practice_data: "MovieLens latest-small: 100.836 lượt chấm điểm của 610 người dùng cho 9.742 phim. Lĩnh vực giải trí."
     skill_areas: {DATA: core, STAT: needed, ML: core, DL: needed, LLM: minor, OPT: minor, OPS: core, BIZ: needed}
 
   - id: G5
@@ -148,7 +156,9 @@ groups:
     metrics: mAP, IoU; độ chính xác theo từng trường; tỷ lệ hồ sơ xử lý tự động hoàn toàn.
     tools: [PyTorch, Ultralytics YOLO, OpenCV, PaddleOCR, VietOCR, Label Studio, ONNX Runtime]
     pitfalls: Dữ liệu huấn luyện quá "sạch" so với ảnh chụp thực tế; chỉ đo độ chính xác chung thay vì theo từng trường.
-    practice_project: Trích xuất ngày, tổng tiền, mã số thuế từ ảnh hóa đơn; so sánh OCR + luật với VLM về độ chính xác và chi phí.
+    practice_project: "Tự động lấy ngày, tổng tiền, mã số thuế từ ảnh hoá đơn cho phòng kế toán; so cách OCR + luật với model đọc ảnh (VLM) về độ chính xác và chi phí; hoá đơn không chắc chắn chuyển người kiểm tra."
+    practice_target: "Mỗi trường đúng ít nhất 95% trên phần hệ thống tự xử lý, phần còn lại chuyển người; bộ đánh giá ít nhất 100 hoá đơn có đáp án."
+    practice_data: "Hoá đơn tự chụp (50–100 tấm, đã che thông tin cá nhân) + MC-OCR 2021: 2.436 ảnh hoá đơn bán lẻ tiếng Việt. Lĩnh vực kế toán."
     skill_areas: {DATA: minor, STAT: minor, ML: minor, DL: core, LLM: needed, OPT: minor, OPS: core, BIZ: needed}
 
   - id: G6
@@ -170,7 +180,9 @@ groups:
     metrics: Retrieval recall@k, faithfulness, độ đúng câu trả lời; chi phí và độ trễ mỗi câu hỏi.
     tools: [LLM API, Hugging Face Transformers, Qdrant hoặc pgvector, BM25, vLLM, Langfuse]
     pitfalls: Không có bộ đánh giá nên chỉ "cảm thấy tốt"; parse PDF và bảng kém làm hỏng cả hệ; lộ tài liệu cho người không có quyền.
-    practice_project: Trợ lý hỏi đáp trên sổ tay nhân viên hoặc quy chế công khai, kèm golden set khoảng 100 câu hỏi có đáp án chuẩn.
+    practice_project: "Trợ lý hỏi đáp trên quy định (Bộ luật Lao động hoặc quy chế công khai của một tổ chức): tìm đúng đoạn rồi mới trả lời bằng tiếng Việt, luôn trích điều luật làm căn cứ, không bịa."
+    practice_target: "Golden set khoảng 100 câu: điều luật đúng nằm trong 5 đoạn lấy ra ở ít nhất 90% câu, trả lời đúng ít nhất 85%, 100% có trích dẫn; biết chi phí mỗi câu."
+    practice_data: "Bộ luật Lao động 2019: 17 chương, 220 điều về hợp đồng, tiền lương, thời giờ làm việc, nghỉ phép. Lĩnh vực pháp luật, nhân sự."
     skill_areas: {DATA: needed, STAT: needed, ML: minor, DL: needed, LLM: core, OPT: minor, OPS: core, BIZ: needed}
 
   - id: G7
@@ -192,7 +204,9 @@ groups:
     metrics: Tỷ lệ hoàn thành nhiệm vụ; chi phí và số bước mỗi nhiệm vụ; tỷ lệ cần người can thiệp; số lỗi nghiêm trọng.
     tools: [LangGraph, agent SDK của các hãng, MCP, Langfuse]
     pitfalls: Dùng agent tự chủ cho việc mà workflow cố định làm tốt hơn; cấp quyền quá rộng; không ghi log được agent đã làm gì.
-    practice_project: Agent đọc email yêu cầu báo giá, tra bảng giá, soạn báo giá và chờ người duyệt trước khi gửi.
+    practice_project: "Agent đọc email hỏi giá, nhận ra mặt hàng và số lượng, tra bảng giá, soạn báo giá rồi dừng chờ người duyệt trước khi gửi."
+    practice_target: "Đúng mặt hàng và số lượng ở ít nhất 90% email, 100% giá lấy từ bảng giá, không báo giá nào gửi khi chưa duyệt, mọi bước có nhật ký."
+    practice_data: "Tự tạo: 30–50 email hỏi giá tiếng Việt nhiều tình huống + bảng giá CSV + đáp án cho từng email. Lĩnh vực bán hàng B2B."
     principle: Dùng workflow đơn giản nhất chạy được; chỉ dùng agent tự chủ khi bài toán thật sự cần.
     skill_areas: {DATA: needed, STAT: minor, ML: minor, DL: minor, LLM: core, OPT: minor, OPS: core, BIZ: core}
 
@@ -215,6 +229,8 @@ groups:
     metrics: Chi phí hoặc lợi nhuận so với cách làm hiện tại; mức tăng (uplift) có ý nghĩa thống kê; mức vi phạm ràng buộc.
     tools: [OR-Tools, PuLP, Pyomo, DoWhy, EconML, CausalML]
     pitfalls: Nhầm tương quan với nhân quả; tối ưu trên dự báo một điểm mà bỏ qua bất định; dừng A/B test sớm khi thấy kết quả đẹp.
-    practice_project: Tối ưu tuyến giao hàng cho 1 kho và 20 điểm giao bằng OR-Tools, so tổng quãng đường với tuyến hiện tại.
+    practice_project: "Xếp tuyến giao hàng cho 1 kho và 20 điểm bằng OR-Tools (đúng tải trọng xe, khung giờ khách); và đo tác động thật của email khuyến mãi để chọn khách nên gửi."
+    practice_target: "Tổng quãng đường ngắn hơn ít nhất 15% so với tuyến hiện tại, 100% đúng ràng buộc; chọn nhóm khách để gửi mà lợi nhuận cao hơn gửi cho tất cả."
+    practice_data: "Toạ độ giao hàng tự sinh (logistics) + Hillstrom: 64.000 khách được chia ngẫu nhiên nhận hoặc không nhận email khuyến mãi (marketing)."
     principle: Dự đoán chưa tạo ra tiền, quyết định mới tạo ra tiền — nhóm này là cầu nối từ model đến lợi nhuận.
     skill_areas: {DATA: needed, STAT: core, ML: needed, DL: minor, LLM: minor, OPT: core, OPS: needed, BIZ: core}

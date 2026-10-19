@@ -21,7 +21,9 @@
 - **Metric chính:** mAP, IoU; độ chính xác theo từng trường; tỷ lệ hồ sơ xử lý tự động hoàn toàn.
 - **Công cụ:** PyTorch, Ultralytics YOLO, OpenCV, PaddleOCR, VietOCR, Label Studio, ONNX Runtime
 - **Bẫy thường gặp:** Dữ liệu huấn luyện quá "sạch" so với ảnh chụp thực tế; chỉ đo độ chính xác chung thay vì theo từng trường.
-- **Dự án luyện tập:** Trích xuất ngày, tổng tiền, mã số thuế từ ảnh hóa đơn; so sánh OCR + luật với VLM về độ chính xác và chi phí.
+- **Dự án luyện tập:** Tự động lấy ngày, tổng tiền, mã số thuế từ ảnh hoá đơn cho phòng kế toán; so cách OCR + luật với model đọc ảnh (VLM) về độ chính xác và chi phí; hoá đơn không chắc chắn chuyển người kiểm tra.
+- **Mục tiêu đạt được:** Mỗi trường đúng ít nhất 95% trên phần hệ thống tự xử lý, phần còn lại chuyển người; bộ đánh giá ít nhất 100 hoá đơn có đáp án.
+- **Dữ liệu:** Hoá đơn tự chụp (50–100 tấm, đã che thông tin cá nhân) + MC-OCR 2021: 2.436 ảnh hoá đơn bán lẻ tiếng Việt. Lĩnh vực kế toán. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g5)
 
 ## Kỹ năng cần cho nhóm này
 

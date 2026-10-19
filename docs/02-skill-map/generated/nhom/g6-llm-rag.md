@@ -21,7 +21,9 @@
 - **Metric chính:** Retrieval recall@k, faithfulness, độ đúng câu trả lời; chi phí và độ trễ mỗi câu hỏi.
 - **Công cụ:** LLM API, Hugging Face Transformers, Qdrant hoặc pgvector, BM25, vLLM, Langfuse
 - **Bẫy thường gặp:** Không có bộ đánh giá nên chỉ "cảm thấy tốt"; parse PDF và bảng kém làm hỏng cả hệ; lộ tài liệu cho người không có quyền.
-- **Dự án luyện tập:** Trợ lý hỏi đáp trên sổ tay nhân viên hoặc quy chế công khai, kèm golden set khoảng 100 câu hỏi có đáp án chuẩn.
+- **Dự án luyện tập:** Trợ lý hỏi đáp trên quy định (Bộ luật Lao động hoặc quy chế công khai của một tổ chức): tìm đúng đoạn rồi mới trả lời bằng tiếng Việt, luôn trích điều luật làm căn cứ, không bịa.
+- **Mục tiêu đạt được:** Golden set khoảng 100 câu: điều luật đúng nằm trong 5 đoạn lấy ra ở ít nhất 90% câu, trả lời đúng ít nhất 85%, 100% có trích dẫn; biết chi phí mỗi câu.
+- **Dữ liệu:** Bộ luật Lao động 2019: 17 chương, 220 điều về hợp đồng, tiền lương, thời giờ làm việc, nghỉ phép. Lĩnh vực pháp luật, nhân sự. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g6)
 
 ## Kỹ năng cần cho nhóm này
 

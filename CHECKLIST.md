@@ -23,6 +23,9 @@ Mã trong ngoặc (`ML-07`, `G6`, `CMB-08`) tham chiếu [danh mục kỹ năng]
 - [ ] **P0** Bật bảo vệ nhánh `main` trên GitHub: bắt buộc qua PR, CI phải xanh.
 - [ ] **P1** Thử setup trên Windows (WSL2) và macOS theo `docs/00-setup/`, sửa các bước sai.
 - [ ] **P1** Thử tải dữ liệu Kaggle và MovieLens theo `05-du-lieu-luyen-tap.md`.
+- [x] **P1** Mô tả rõ dự án luyện tập của 8 nhóm (làm gì, mục tiêu đạt được) và từng bộ dữ liệu (lĩnh vực, có gì, dùng để
+      làm gì) → `docs/00-setup/05-du-lieu-luyen-tap.md`, `catalog/problems.yaml`, `projects/README.md`.
+- [ ] **P1** Review các ngưỡng mục tiêu đề xuất của 7 dự án chưa làm (G2–G8) trước khi bắt đầu từng dự án.
 - [ ] **P1** Thêm mẫu issue GitHub: "Lab mới", "Dự án mới", "Tự đánh giá tuần", "Đề xuất sửa catalog".
 - [ ] **P2** Tạo GitHub Project (bảng Kanban) liên kết với checklist này.
 - [x] **P2** Xuất bản đồ kỹ năng thành trang HTML để chia sẻ cho người không dùng GitHub → trang web lộ trình (`web/`).

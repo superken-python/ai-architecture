@@ -36,6 +36,9 @@ TIERS = {
     "supporting": ("Bổ trợ", "Chỉ ở mức Ít — nâng hiệu quả làm việc, không chặn nhóm nào."),
 }
 SKILL_FIELDS = ("id", "name", "domain", "summary", "levels", "used_by", "prereqs", "tools", "done_when")
+# Dự án luyện tập của mỗi nhóm: làm gì, đạt được gì (đo được), dùng dữ liệu nào — chi tiết ở PRACTICE_DOC.
+PRACTICE_FIELDS = ("practice_project", "practice_target", "practice_data")
+PRACTICE_DOC = "docs/00-setup/05-du-lieu-luyen-tap.md"
 HEADER = "<!-- FILE SINH TỰ ĐỘNG từ catalog/*.yaml bằng `make catalog`. KHÔNG sửa tay — sửa YAML rồi sinh lại. -->\n\n"
 
 
@@ -227,6 +230,9 @@ def validate(cat: Catalog) -> list[str]:
     for g in cat.groups:
         if g.get("block") not in cat.blocks:
             errors.append(f"{g['id']}: khối '{g.get('block')}' không tồn tại")
+        for key in PRACTICE_FIELDS:
+            if not str(g.get(key) or "").strip():
+                errors.append(f"{g['id']}: thiếu {key} — dự án luyện tập cần mô tả, mục tiêu đạt được và dữ liệu")
         for code, rel in g.get("skill_areas", {}).items():
             if code not in domain_codes:
                 errors.append(f"{g['id']}: skill_areas dùng mảng không tồn tại '{code}'")
@@ -819,6 +825,9 @@ class Renderer:
             f"- **Công cụ:** {', '.join(g['tools'])}",
             f"- **Bẫy thường gặp:** {g['pitfalls']}",
             f"- **Dự án luyện tập:** {g['practice_project']}",
+            f"- **Mục tiêu đạt được:** {g['practice_target']}",
+            f"- **Dữ liệu:** {g['practice_data']} [Mô tả chi tiết dự án và dữ liệu]"
+            f"(../../../00-setup/{Path(PRACTICE_DOC).name}#{gid.lower()})",
         ]
         if g.get("principle"):
             lines.append(f"- **Nguyên tắc:** {g['principle']}")

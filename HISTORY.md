@@ -10,6 +10,28 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-19 · Dự án luyện tập và dữ liệu: mô tả, mục tiêu, bộ dữ liệu cho người mới
+
+**Đã làm**
+
+- Viết lại `docs/00-setup/05-du-lieu-luyen-tap.md` cho người chưa rành AI: bảng đọc nhanh 8 dự án (doanh nghiệp hỏi gì →
+  dự án → dữ liệu và lĩnh vực → đích đến), vài khái niệm cần biết, rồi mỗi nhóm một mục (anchor `#g1`…`#g8`) gồm câu
+  chuyện doanh nghiệp, dự án làm gì, **mục tiêu đạt được** đo bằng con số, và **dữ liệu**: lĩnh vực, bên trong có gì (số
+  dòng, cột, khoảng thời gian), dùng để làm gì, vì sao chọn, hạn chế, giấy phép, cách tải. Số liệu các bộ dữ liệu đã đối
+  chiếu nguồn: Telco 7.043 khách (26,5% rời mạng), M5 3.049 mặt hàng × 10 cửa hàng × 1.941 ngày, Credit Card Fraud
+  284.807 giao dịch / 492 gian lận, MovieLens latest-small 100.836 lượt chấm điểm, MC-OCR 2.436 hoá đơn, SROIE ~1.000
+  hoá đơn, Bộ luật Lao động 2019 17 chương 220 điều, Hillstrom 64.000 khách.
+- `catalog/problems.yaml`: mỗi nhóm có `practice_project` viết lại bằng lời thường + `practice_target` (mục tiêu đạt
+  được) + `practice_data` (dữ liệu, lĩnh vực); `make catalog` báo lỗi nếu thiếu. Trang nhóm sinh tự động và trang nhóm
+  trên web hiện đủ ba ý kèm link tới mục chi tiết của nhóm trong tài liệu dữ liệu luyện tập.
+- `projects/README.md`: bảng dự án luyện tập có cột "Dự án làm gì", "Mục tiêu đạt được", "Dữ liệu · lĩnh vực" (G1 ghi
+  kết quả đã đạt); bảng riêng cho dự án tổ hợp và dự án khác. Tài liệu dữ liệu luyện tập có thẻ trong trang Tài liệu.
+
+**Quyết định**
+
+- Mục tiêu viết thành ngưỡng đo được (ví dụ "sai số thấp hơn ít nhất 10% so với seasonal naive", "đúng ≥ 95% trên phần
+  tự xử lý") để người học biết khi nào là xong; con số cụ thể là đề xuất, chỉnh khi bắt đầu từng dự án.
+
 ## 2026-10-18 · Trang web: liên kết học xuyên suốt + đọc tài liệu ngay trên trang (định dạng như GitHub)
 
 **Đã làm**

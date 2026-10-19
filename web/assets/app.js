@@ -711,10 +711,20 @@
         }`;
       })
       .join("");
+    // Dự án luyện tập của nhóm: làm gì, đạt được gì, dữ liệu nào — chi tiết ở tài liệu "Dữ liệu luyện tập" (mục gN).
+    const guideDoc = docOf("practice_data");
+    const practice = `<div class="practice">
+        <div class="practice-head"><span class="res-kind">Dự án luyện tập</span>${
+          guideDoc ? `<a class="small" href="${esc(docHref(guideDoc.path, g.id.toLowerCase()))}">Mô tả chi tiết dự án và dữ liệu →</a>` : ""
+        }</div>
+        <p class="practice-what">${md(g.practice_project)}</p>
+        <dl class="kv"><dt>Mục tiêu</dt><dd>${md(g.practice_target)}</dd><dt>Dữ liệu</dt><dd>${md(g.practice_data)}</dd></dl>
+      </div>`;
     return `<div class="card learn-card" id="hoc">
       <h3 style="margin:0">${ICON_BOOK} Học và thực hành nhóm này</h3>
+      ${practice}
       ${stageLine}
-      ${projects.length ? `<div class="res-row"><span class="small muted">Dự án</span>${projects.map(resLink).join("")}</div>` : `<p class="small muted" style="margin:0">Dự án luyện tập dự kiến: ${md(g.practice_project)}</p>`}
+      ${projects.length ? `<div class="res-row"><span class="small muted">Dự án trong repo</span>${projects.map(resLink).join("")}</div>` : ""}
       ${docs.length ? `<div class="res-row"><span class="small muted">Tài liệu và lab</span>${docs.map(resLink).join("")}</div>` : ""}
     </div>`;
   }
@@ -778,7 +788,6 @@
           <dt>Metric</dt><dd>${md(g.metrics)}</dd>
           <dt>Công cụ</dt><dd>${esc(g.tools.join(", "))}</dd>
           <dt>Bẫy</dt><dd>${md(g.pitfalls)}</dd>
-          <dt>Dự án</dt><dd>${md(g.practice_project)}</dd>
           ${g.principle ? `<dt>Nguyên tắc</dt><dd>${md(g.principle)}</dd>` : ""}
         </dl></div>
       </div>

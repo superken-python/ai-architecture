@@ -35,7 +35,7 @@ ví dụ `make setup` = `uv sync --inexact` rồi `uv run pre-commit install`.
 | 2 | [Môi trường Python](02-moi-truong-python.md) | uv, nhóm phụ thuộc theo nhóm bài toán, notebook | Ngay từ đầu |
 | 3 | [API key và bí mật](03-api-key-va-bi-mat.md) | `.env`, giới hạn chi tiêu, quy tắc dữ liệu công ty | Trước khi học LLM (Nhóm 5–7) |
 | 4 | [GPU và tài nguyên tính toán](04-gpu-va-tinh-toan.md) | GPU máy nhà, Colab, Kaggle, Apple Silicon | Trước Nhóm 5 và deep learning |
-| 5 | [Dữ liệu luyện tập](05-du-lieu-luyen-tap.md) | Bộ dữ liệu cho 8 dự án luyện tập và cách tải | Trước mỗi dự án |
+| 5 | [Dữ liệu luyện tập](05-du-lieu-luyen-tap.md) | 8 dự án luyện tập: làm gì, mục tiêu đạt được, bộ dữ liệu nào (lĩnh vực, bên trong có gì, dùng để làm gì) và cách tải | Trước mỗi dự án |
 | 6 | [Xử lý sự cố](06-xu-ly-su-co.md) | Lỗi thường gặp: Windows, tiếng Việt, CUDA, proxy | Khi gặp lỗi |
 
 ## Danh sách kiểm tra "đã setup xong"

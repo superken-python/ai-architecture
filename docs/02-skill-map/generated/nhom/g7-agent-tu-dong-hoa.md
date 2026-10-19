@@ -21,7 +21,9 @@
 - **Metric chính:** Tỷ lệ hoàn thành nhiệm vụ; chi phí và số bước mỗi nhiệm vụ; tỷ lệ cần người can thiệp; số lỗi nghiêm trọng.
 - **Công cụ:** LangGraph, agent SDK của các hãng, MCP, Langfuse
 - **Bẫy thường gặp:** Dùng agent tự chủ cho việc mà workflow cố định làm tốt hơn; cấp quyền quá rộng; không ghi log được agent đã làm gì.
-- **Dự án luyện tập:** Agent đọc email yêu cầu báo giá, tra bảng giá, soạn báo giá và chờ người duyệt trước khi gửi.
+- **Dự án luyện tập:** Agent đọc email hỏi giá, nhận ra mặt hàng và số lượng, tra bảng giá, soạn báo giá rồi dừng chờ người duyệt trước khi gửi.
+- **Mục tiêu đạt được:** Đúng mặt hàng và số lượng ở ít nhất 90% email, 100% giá lấy từ bảng giá, không báo giá nào gửi khi chưa duyệt, mọi bước có nhật ký.
+- **Dữ liệu:** Tự tạo: 30–50 email hỏi giá tiếng Việt nhiều tình huống + bảng giá CSV + đáp án cho từng email. Lĩnh vực bán hàng B2B. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g7)
 - **Nguyên tắc:** Dùng workflow đơn giản nhất chạy được; chỉ dùng agent tự chủ khi bài toán thật sự cần.
 
 ## Kỹ năng cần cho nhóm này

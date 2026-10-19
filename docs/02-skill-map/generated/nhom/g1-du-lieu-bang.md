@@ -21,7 +21,9 @@
 - **Metric chính:** AUC, F1, precision@k (phân loại); MAE, RMSE (hồi quy).
 - **Công cụ:** pandas, scikit-learn, LightGBM, XGBoost, CatBoost, SHAP
 - **Bẫy thường gặp:** Dùng thông tin "tương lai" làm feature (leakage); chia ngẫu nhiên khi dữ liệu có yếu tố thời gian; tối ưu accuracy trên dữ liệu lệch.
-- **Dự án luyện tập:** Dự đoán churn trên bộ Telco Customer Churn, xuất danh sách top 500 khách cho CSKH kèm lý do từ SHAP.
+- **Dự án luyện tập:** Danh sách 500 khách nên gọi giữ chân mỗi tháng cho CSKH một nhà mạng, mỗi khách kèm 3 lý do dễ hiểu và việc nên làm; phục vụ qua API trong Docker. Đã làm xong — real case của giai đoạn A.
+- **Mục tiêu đạt được:** Gọi trúng nhiều người sắp rời hơn rõ rệt danh sách hiện tại (dự án mẫu: 140 thay vì 37 người mỗi tháng) và quy ra lợi nhuận tăng thêm (dự án mẫu: +44,5 triệu đ/tháng), có khoảng tin cậy.
+- **Dữ liệu:** Nhà mạng Sóng Xanh — mô phỏng 20.000 khách, 8 bảng vận hành có thời gian và lỗi như thật; luyện thêm trên Telco Customer Churn (IBM, 7.043 khách). Lĩnh vực viễn thông. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g1)
 
 ## Kỹ năng cần cho nhóm này
 
