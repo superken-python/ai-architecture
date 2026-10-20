@@ -176,7 +176,7 @@ Dự án thật hiếm khi thuộc một nhóm. Mỗi tổ hợp dưới đây n
 
 | Kỹ năng | Tầng | Vai trò |
 |---|---|---|
-| [DL-06](mang/dl.md#dl-06) Xử lý giọng nói (ASR) | Chuyên biệt |  |
+| [DL-06](mang/dl.md#dl-06) Xử lý giọng nói (ASR) | Dùng chung trong họ |  |
 | [LLM-01](mang/llm.md#llm-01) Gọi LLM API và prompt engineering | Dùng chung trong họ |  |
 | [LLM-02](mang/llm.md#llm-02) Structured output và kiểm chứng đầu ra | Dùng chung trong họ | 🔗 keo ở điểm nối |
 | [EFF-04](mang/eff.md#eff-04) Định tuyến và cascade — đúng việc, đúng công cụ | Dùng chung trong họ | 🔗 keo ở điểm nối |

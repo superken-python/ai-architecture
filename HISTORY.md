@@ -10,6 +10,52 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-20 · Nhóm 9 · Tạo nội dung đa phương tiện + video dạy chữ cái tiếng Việt dựng bằng code
+
+**Đã làm**
+
+- **Nhóm mới G9 · Tạo nội dung đa phương tiện**, khối mới **E · Sáng tạo**, họ GenAI
+  (`catalog/problems.yaml`). Có đủ trường như các nhóm khác: ví dụ, luồng giá trị, 3 mức năng lực, metric, công cụ, bẫy,
+  dự án luyện tập, ma trận 8 mảng. Câu nhận diện G9 đứng đầu cây 30 giây. Có video mẫu (`demo`) hiện trên trang nhóm.
+- **Hai kỹ năng mới:** PY-05 *Xử lý và dựng media bằng code* và DL-07 *Sinh giọng nói, hình ảnh và video*, cùng
+  `used_by` G9 cho 31 kỹ năng có sẵn (13 kỹ năng nền tảng chung vẫn là nền tảng). Hướng chuyên sâu mới "Nội dung đa
+  phương tiện" ở giai đoạn C; thanh ngang chữ T có G9. Catalog: 9 nhóm, 67 kỹ năng; tài liệu sinh lại; số liệu viết
+  tay (README, bản đồ bài toán, bản đồ kỹ năng, lộ trình, trang web) cập nhật.
+- **Dự án [`projects/g9-video-chu-cai/`](projects/g9-video-chu-cai/README.md)** — video 2:00 dạy 29 chữ cái trên nền
+  nhạc, nhân vật Sách Vui (ảnh người dùng gửi) xuyên suốt, dựng **hoàn toàn bằng code**. Một file kịch bản YAML →
+  dòng thời gian 132 nhịp/phút → giọng Piper vi_VN chạy offline → nhạc tổng hợp bằng numpy (tự hạ khi có lời) →
+  khung hình Pillow → ffmpeg (MP4 1280×720, ~10 MB, kèm ảnh bìa, chương và phụ đề WebVTT). Máy nghe lại lời đọc bằng
+  ASR (sherpa-onnx zipformer-vi) → `reports/kiem-tra-giong.md`. 21 test chạy offline; CI có job riêng.
+- **Trang web:** khung xem tài liệu phát được video/âm thanh/phụ đề trong Markdown (`<video src poster>`, `<track>`);
+  trang Nhóm 9 có trình phát video mẫu, 31 nút nhảy tới từng chương (tô chương đang phát) và liên kết hướng dẫn. Số
+  nhóm trên trang lấy từ dữ liệu, không ghi cứng 8.
+- **Hướng dẫn** [tự làm video bằng Claude Code](projects/g9-video-chu-cai/docs/huong-dan-claude-code.md): nhân vật,
+  kịch bản, khung hình, nhạc, giọng đọc đo bằng ASR, dựng, danh sách duyệt, cách B, lỗi thường gặp, prompt mẫu.
+- Sửa lỗi có sẵn trên `main`: `projects/cmb-10-excel-agent-addin/QUICKSTART.md` có liên kết trỏ ra ngoài repo (làm đỏ
+  `test_docs_links`, `test_docview`) và một khối code chưa qua `ruff format`.
+
+**Quyết định**
+
+- Gọi là **G9 · Tạo nội dung đa phương tiện**, không gọi là "nhóm mix". "Ghép nhiều nhóm" trong repo đã có tên *tổ
+  hợp* (CMB-…). Phần lõi (sinh giọng/hình/video, dựng media) là kỹ năng chưa nhóm nào có. Đầu ra là *nội dung mới*
+  nên cần khối mới E. Khác ca chatbot Excel (vẫn là G7 vì đầu ra là thao tác).
+- **Cách A (code) cho phần dạy chữ:** chữ trên hình do code vẽ nên luôn đúng dấu; một ảnh nhân vật dùng suốt video
+  nên không lệch nét. Công cụ tạo video (cách B) chỉ đáng dùng cho cảnh không có chữ.
+- **Chọn câu đọc bằng phép đo, không nghe cảm tính** (mình không nghe được âm thanh): từ đứng riêng "Bờ, con bò!"
+  máy nghe đúng 8/29 từ ví dụ → câu đầy đủ "Đây là chữ …, như trong …" 18/29 → chọn lại từ ví dụ 24/29 → tắt ngẫu
+  nhiên của giọng (`noise_scale = 0`, dựng lại ra y hệt) 28/29 → thêm "nhé"/lặp âm cho 4 câu sai dấu thanh: âm đọc
+  28/29. Cả khi có nhạc: 28/29. Lời to hơn nhạc 14 dB lúc đang đọc.
+- Tài nguyên tải lúc chạy, ghim phiên bản + mã băm (font Baloo 2, giọng, ASR; emoji ghim theo commit), không commit
+  vào repo. Commit video đã dựng (`media/`) để GitHub Pages phát được.
+- `sherpa-onnx-core` khai báo thẳng: uv.lock không tự ghi phụ thuộc này của `sherpa-onnx` 1.13 (thiếu thì lỗi
+  `libonnxruntime.so`).
+
+**Còn mở** (chuyển sang CHECKLIST)
+
+- Thu âm câu chữ P — giọng Piper vais1000 không đọc được âm "pờ".
+- Giáo viên nghe duyệt cả video trước khi dùng với bé.
+- Bài tiếp theo cho lớp 3 (vần, từ chỉ sự vật…) cần thẻ nhiều chữ; thử cách B cho cảnh mở đầu/kết.
+
 ## 2026-10-20 · Lab 01: tạo project từ thư mục trống với `.venv`, PyCharm, khối lệnh dán được vào zsh
 
 **Đã làm**

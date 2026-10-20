@@ -2,7 +2,7 @@
 
 # DL · Deep learning
 
-PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, giọng nói.
+PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, giọng nói, mô hình sinh (giọng, ảnh, video).
 
 | Kỹ năng | Tầng | Tóm tắt |
 |---|---|---|
@@ -11,7 +11,8 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 | [DL-03](#dl-03) Embedding và học biểu diễn | Cầu nối liên họ | Biểu diễn văn bản, ảnh, người dùng, sản phẩm thành vector để so sánh và tìm kiếm. |
 | [DL-04](#dl-04) Thị giác máy tính (detection, segmentation, OCR) | Chuyên biệt | Nhận diện vật thể, vùng lỗi và chữ trong ảnh chụp thực tế. |
 | [DL-05](#dl-05) Document AI và mô hình thị giác–ngôn ngữ (VLM) | Dùng chung trong họ | Trích xuất dữ liệu có cấu trúc từ hóa đơn, hợp đồng, giấy tờ nhiều mẫu. |
-| [DL-06](#dl-06) Xử lý giọng nói (ASR) | Chuyên biệt | Chuyển ghi âm tổng đài tiếng Việt thành văn bản để phân tích. |
+| [DL-06](#dl-06) Xử lý giọng nói (ASR) | Dùng chung trong họ | Chuyển ghi âm tổng đài tiếng Việt thành văn bản để phân tích. |
+| [DL-07](#dl-07) Sinh giọng nói, hình ảnh và video | Chuyên biệt | Tạo giọng đọc tiếng Việt, ảnh và video bằng mô hình sinh (TTS, diffusion, image-to-video) — chọn và kiểm tra bằng phép đo, không nghe nhìn cảm tính. |
 
 <a id="dl-01"></a>
 
@@ -41,7 +42,7 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 > Tận dụng mô hình có sẵn để đạt chất lượng cao với ít dữ liệu.
 
 **Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 3  
-**Dùng cho:** ● Cốt lõi: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý
+**Dùng cho:** ● Cốt lõi: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -126,8 +127,8 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 
 > Chuyển ghi âm tổng đài tiếng Việt thành văn bản để phân tích.
 
-**Tầng:** Chuyên biệt · **Điểm đòn bẩy:** 1  
-**Dùng cho:** ◐ Cần: Nhóm 6 LLM/RAG
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 2  
+**Dùng cho:** ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -141,3 +142,25 @@ PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, gi�
 - **Đạt khi:** Đo được WER trên ghi âm thật của công ty và biết nhóm lỗi lớn nhất (tên riêng, số, giọng vùng miền).
 - **Token & độ chính xác:** VAD cắt khoảng lặng trước khi ASR giảm thời lượng xử lý; transcript ngắn gọn giảm token cho bước tóm tắt.
 - **Trong lộ trình:** Hướng LLM ứng dụng & Agent (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
+
+<a id="dl-07"></a>
+
+### DL-07 · Sinh giọng nói, hình ảnh và video
+
+> Tạo giọng đọc tiếng Việt, ảnh và video bằng mô hình sinh (TTS, diffusion, image-to-video) — chọn và kiểm tra bằng phép đo, không nghe nhìn cảm tính.
+
+**Tầng:** Chuyên biệt · **Điểm đòn bẩy:** 2  
+**Dùng cho:** ● Cốt lõi: Nhóm 9 Nội dung · ○ Ít: Nhóm 6 LLM/RAG
+
+| Mức | Làm được |
+|---|---|
+| Cơ bản | Gọi TTS tiếng Việt (Piper offline, FPT.AI, Google, Azure) và mô hình sinh ảnh/video qua API; viết prompt mô tả nhân vật, bối cảnh; dùng ASR nghe lại để đo lời đọc. |
+| Trung cấp | Chọn giọng, mô hình và cách viết câu bằng bộ đánh giá cố định (ASR + người nghe, ≥ 30 câu); tắt ngẫu nhiên để dựng lại y hệt; giữ nhân vật nhất quán bằng ảnh tham chiếu; thay câu sai bằng thu âm thật. |
+| Nâng cao | Fine-tune giọng hoặc LoRA nhân vật, tự host mô hình sinh trên GPU, kiểm duyệt nội dung và bản quyền dữ liệu huấn luyện, cân chất lượng–chi phí–thời gian theo từng phút nội dung. |
+
+- **Tiên quyết:** [LLM-01](../mang/llm.md#llm-01) Gọi LLM API và prompt engineering, [PY-04](../mang/py.md#py-04) Gọi API và I/O đồng thời bền vững
+- **Mở khóa:** —
+- **Công cụ:** Piper, sherpa-onnx, FPT.AI / Google / Azure TTS, ElevenLabs, Kling / Veo / Sora, Stable Diffusion
+- **Đạt khi:** Có bảng đo ít nhất 30 câu đọc (ASR nghe lại + một người nghe), biết câu nào sai và vì sao, đã sửa bằng đổi câu, đổi giọng hoặc thu âm.
+- **Token & độ chính xác:** Nhớ kết quả sinh theo nội dung (câu không đổi thì không đọc lại); thử trên đoạn ngắn rồi mới sinh cả video.
+- **Trong lộ trình:** Hướng Nội dung đa phương tiện (Trung cấp) · Thanh ngang chữ T · Nhóm 9 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

@@ -19,8 +19,8 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 
 > Chốt quyết định nào thay đổi, KPI nào, loại sai nào đắt hơn — trước khi viết code.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 13  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 15  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ● Cốt lõi: Nhóm 9 Nội dung · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG
 
 | Mức | Làm được |
 |---|---|
@@ -41,8 +41,8 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 
 > Có baseline trong 1–2 ngày cùng một bộ đánh giá cố định từ dữ liệu thật.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 16  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 18  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ● Cốt lõi: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -62,8 +62,8 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 
 > Đọc ca sai, nhóm theo nguyên nhân, sửa nhóm lớn nhất — cách tăng chính xác hiệu quả nhất.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 16  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 18  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ● Cốt lõi: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -84,8 +84,8 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 
 > So với baseline, quy ra tiền hoặc giờ công, demo chạy được, nói rõ giới hạn.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 8  
-**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 9  
+**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -105,8 +105,8 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 
 > Hiểu quy trình, thuật ngữ, ràng buộc của ngành để model phục vụ đúng người dùng.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 13  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 15  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ● Cốt lõi: Nhóm 9 Nội dung · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG
 
 | Mức | Làm được |
 |---|---|
@@ -127,7 +127,7 @@ Framing, baseline & bộ đánh giá, phân tích lỗi, trình bày — quy tr�
 > Cập nhật kỹ thuật mới một cách có phê phán, gắn với bài toán đang làm.
 
 **Tầng:** Bổ trợ · **Điểm đòn bẩy:** 0  
-**Dùng cho:** ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 7 Agent · ○ Ít: Nhóm 8 Tối ưu
+**Dùng cho:** ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 7 Agent · ○ Ít: Nhóm 8 Tối ưu · ○ Ít: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|

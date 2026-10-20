@@ -267,7 +267,7 @@
       html: `
       <section class="hero">
         <h1>Lộ trình kỹ năng lập trình AI cho doanh nghiệp</h1>
-        <p class="lead">Từ 8 nhóm bài toán AI mà doanh nghiệp cần đến ${D.skills.length} kỹ năng cụ thể — đi từng bước từ
+        <p class="lead">Từ ${D.groups.length} nhóm bài toán AI mà doanh nghiệp cần đến ${D.skills.length} kỹ năng cụ thể — đi từng bước từ
         <strong>cơ bản</strong> đến <strong>nâng cao</strong>, biết kỹ năng nào dùng chung, kỹ năng nào riêng, và cách tiết kiệm token mà vẫn chính xác.</p>
         <div class="row">
           <a class="btn btn-primary" href="#/lo-trinh">Bắt đầu lộ trình</a>
@@ -293,7 +293,7 @@
       <div class="grid grid-2" style="margin-top:36px">
         <div class="card">
           <h3>Học gì trước? Kỹ năng đòn bẩy cao nhất</h3>
-          <p class="small muted">Điểm = Σ (Cốt lõi 2, Cần 1) trên 8 nhóm — học một lần, dùng nhiều nơi.</p>
+          <p class="small muted">Điểm = Σ (Cốt lõi 2, Cần 1) trên ${D.groups.length} nhóm — học một lần, dùng nhiều nơi.</p>
           <ul class="clean lev-list">${top
             .map(
               (s, i) =>
@@ -405,7 +405,7 @@
             ? `<div class="card">
           <div class="spread"><h3 style="margin:0">${esc(sel.name)}</h3>${meter(sel.skills.filter(met).length, sel.skills.length)}</div>
           <dl class="kv"><dt>Nhóm</dt><dd class="row">${sel.groups.map(groupLink).join("")}</dd>
-          <dt>Tổ hợp tiêu biểu</dt><dd class="row">${sel.combos.map((c) => `<a class="chip" href="#/to-hop/${esc(c)}"><span class="mono">${esc(c)}</span>${esc(CMB[c].name)}</a>`).join("")}</dd></dl>
+          ${(sel.combos || []).length ? `<dt>Tổ hợp tiêu biểu</dt><dd class="row">${sel.combos.map((c) => `<a class="chip" href="#/to-hop/${esc(c)}"><span class="mono">${esc(c)}</span>${esc(CMB[c].name)}</a>`).join("")}</dd>` : ""}</dl>
           <div class="skill-rows">${[...sel.skills].sort((a, b) => byOrder(a.id, b.id)).map((it) => skillRow(it)).join("")}</div>
         </div>`
             : `<p class="muted">Chọn một hướng để xem kỹ năng và mức mục tiêu.</p>`
@@ -457,7 +457,7 @@
 
       <div class="section-title"><h2>Xuyên suốt mọi giai đoạn</h2></div>
       <div class="card">
-        <h3>Thanh ngang chữ T — dựng baseline cho cả 8 nhóm</h3>
+        <h3>Thanh ngang chữ T — dựng baseline cho cả ${D.groups.length} nhóm</h3>
         <p class="small muted">Ngoài kỹ năng nền tảng, mỗi nhóm cần thêm các kỹ năng sau ở mức Cơ bản.</p>
         <div class="table-wrap"><table><thead><tr><th>Nhóm</th><th>Kỹ năng</th><th>Gợi ý baseline</th></tr></thead><tbody>${tbar}</tbody></table></div>
         <h3 style="margin-top:20px">Thói quen</h3>
@@ -496,7 +496,7 @@
       <h3>${esc(s.name)}</h3>
       <p>${esc(s.summary)}</p>
       <div class="row"><span class="badge badge-tier">${esc(D.tiers[s.tier].name)}</span><span class="badge">đòn bẩy ${s.leverage}</span></div>
-      <div class="use-strip" aria-label="Mức cần ở 8 nhóm">${strip}</div>
+      <div class="use-strip" aria-label="Mức cần ở ${D.groups.length} nhóm">${strip}</div>
     </a>`;
   }
   function renderSkillResults() {
@@ -681,7 +681,7 @@
     return {
       title: "Nhóm bài toán",
       html: `
-      <div class="page-head"><h1>8 nhóm bài toán AI trong doanh nghiệp</h1>
+      <div class="page-head"><h1>${D.groups.length} nhóm bài toán AI trong doanh nghiệp</h1>
         <p>Phân loại theo <strong>đầu ra mà nghiệp vụ cần</strong>. Mỗi nhóm có lộ trình riêng từ mức Cơ bản đến Nâng cao, tính từ các kỹ năng Cốt lõi và Cần của nhóm.</p>${readMore("nhom")}</div>
       <div class="card" id="quiz">
         <h3>Nhận diện bài toán trong 30 giây</h3>
@@ -700,6 +700,45 @@
       docs: keys.filter((k) => !["project", "report"].includes(kindOf(k))).sort(byKind),
     };
   }
+  // Video mẫu của nhóm (catalog: groups[].demo): trình phát + nút nhảy tới từng chương + tài liệu đi kèm.
+  function fmtTime(t) {
+    const s = Math.floor(t);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }
+  function demoCard(gid) {
+    const d = (D.demos || {})[gid];
+    if (!d) return "";
+    const chapters = (d.chapters || [])
+      .map(
+        (c, i) =>
+          `<button type="button" class="chip demo-chapter" data-action="demo-seek" data-t="${c.t}" data-i="${i}" aria-pressed="false" title="${esc(fmtTime(c.t))}">${esc(c.title)}</button>`
+      )
+      .join("");
+    const track = d.subtitles ? `<track kind="subtitles" src="${esc(d.subtitles)}" srclang="vi" label="Tiếng Việt">` : "";
+    const docs = (d.docs || []).map(resLink).join("");
+    return `<div class="card demo-card" id="video-mau">
+      <div class="spread"><h3 style="margin:0">Video mẫu · ${esc(d.title)}</h3><a class="small" href="${esc(d.video)}" target="_blank" rel="noopener">Mở file MP4 ↗</a></div>
+      <video class="demo-video" controls preload="metadata" playsinline${d.poster ? ` poster="${esc(d.poster)}"` : ""} src="${esc(d.video)}">${track}</video>
+      ${chapters ? `<div class="small muted">Bấm để nhảy tới đoạn cần xem:</div><div class="demo-chapters">${chapters}</div>` : ""}
+      ${docs ? `<div class="res-row"><span class="small muted">Tự làm và kiểm tra</span>${docs}</div>` : ""}
+    </div>`;
+  }
+  // Tô chương đang phát (timeupdate không nổi bọt nên bắt ở pha capture).
+  document.addEventListener(
+    "timeupdate",
+    (e) => {
+      const v = e.target;
+      if (!v.classList || !v.classList.contains("demo-video")) return;
+      const chips = [...document.querySelectorAll(".demo-chapter")];
+      let cur = -1;
+      chips.forEach((b, i) => {
+        if (v.currentTime + 0.05 >= Number(b.getAttribute("data-t"))) cur = i;
+      });
+      chips.forEach((b, i) => b.setAttribute("aria-pressed", String(i === cur)));
+    },
+    true
+  );
+
   function groupLearnCard(g) {
     const { projects, docs } = groupDocs(g.id);
     const stages = STAGES.filter((st) => st.project === g.id);
@@ -778,6 +817,7 @@
         <p style="font-size:1.1rem">“${esc(g.question)}”</p>
         <p class="small">Ví dụ: ${esc(g.examples.join(", "))}.</p>
       </div>
+      ${demoCard(gid)}
       <div class="flow">${flow}</div>
       ${groupLearnCard(g)}
 
@@ -1613,6 +1653,15 @@
         else if (ui.quiz.i + 1 >= qs.length) ui.quiz.result = D.identify.fallback;
         else ui.quiz.i += 1;
         document.getElementById("quiz-box").innerHTML = quizHtml();
+        break;
+      }
+      case "demo-seek": {
+        const video = document.querySelector(".demo-video");
+        if (video) {
+          video.currentTime = Number(el.getAttribute("data-t")) || 0;
+          const played = video.play();
+          if (played && played.catch) played.catch(() => {}); // trình duyệt chặn tự phát: người xem bấm Play
+        }
         break;
       }
       case "quiz-reset":

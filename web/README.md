@@ -11,11 +11,11 @@ Markdown của repo **đọc ngay trên trang** (khung xem toàn màn hình, đ�
 | Trang | Nội dung |
 |---|---|
 | Tổng quan | Thẻ **Tiếp tục học** (bước kế tiếp + bài học, lab của bước), số liệu chính, 4 giai đoạn, 2 họ bài toán, kỹ năng đòn bẩy |
-| Lộ trình | 4 giai đoạn (A Nền tảng → B GenAI → C Chuyên sâu → D Nâng cao/production); mỗi bước có **Học ngay** (bài học + lab của bước, hoặc tài liệu liên quan), việc cần làm, sản phẩm nộp, kỹ năng + mức mục tiêu; 5 hướng chuyên sâu; thanh ngang chữ T |
-| Nhóm bài toán | Quiz nhận diện bài toán trong 30 giây; trang từng nhóm có **Học và thực hành** (dự án, tài liệu, giai đoạn dùng nhóm làm dự án) và lộ trình 3 chặng Cơ bản → Trung cấp → Nâng cao, mỗi kỹ năng có nút học ngay |
+| Lộ trình | 4 giai đoạn (A Nền tảng → B GenAI → C Chuyên sâu → D Nâng cao/production); mỗi bước có **Học ngay** (bài học + lab của bước, hoặc tài liệu liên quan), việc cần làm, sản phẩm nộp, kỹ năng + mức mục tiêu; 6 hướng chuyên sâu; thanh ngang chữ T |
+| Nhóm bài toán | Quiz nhận diện bài toán trong 30 giây; nhóm có `demo` trong catalog hiện **video mẫu** (Nhóm 9: trình phát + nút nhảy tới từng chữ cái); trang từng nhóm có **Học và thực hành** (dự án, tài liệu, giai đoạn dùng nhóm làm dự án) và lộ trình 3 chặng Cơ bản → Trung cấp → Nâng cao, mỗi kỹ năng có nút học ngay |
 | Kỹ năng | Tìm kiếm (gõ không dấu được), lọc theo mảng/tầng/nhóm; trang từng kỹ năng có **Học kỹ năng này** (bài học, lab, tài liệu theo mức; dự án áp dụng), thang 3 mức, tiên quyết, mở khóa, vị trí trong lộ trình |
 | Tài liệu | Mọi tài liệu viết tay theo chủ đề; mỗi thẻ mở khung xem và dẫn tới bước, kỹ năng, nhóm liên quan |
-| Khung xem tài liệu (`#/doc/<đường dẫn>`) | Markdown render như GitHub: bảng, task list, alert, code tô màu + nút sao chép, sơ đồ mermaid, công thức, ảnh, anchor tiêu đề; file code có số dòng (`#L10-L20`); mục lục, đầu trang ghi bài thuộc bước/kỹ năng nào và học cùng lab nào, cuối trang đánh dấu kỹ năng đã đạt + bài trước/tiếp + cùng thư mục. Link tới thẻ kỹ năng/nhóm/lộ trình sinh tự động mở trang tương tác; link permalink theo commit vẫn mở GitHub |
+| Khung xem tài liệu (`#/doc/<đường dẫn>`) | Markdown render như GitHub: bảng, task list, alert, code tô màu + nút sao chép, sơ đồ mermaid, công thức, ảnh, video/âm thanh/phụ đề (`<video>`, `<track>`), anchor tiêu đề; file code có số dòng (`#L10-L20`); mục lục, đầu trang ghi bài thuộc bước/kỹ năng nào và học cùng lab nào, cuối trang đánh dấu kỹ năng đã đạt + bài trước/tiếp + cùng thư mục. Link tới thẻ kỹ năng/nhóm/lộ trình sinh tự động mở trang tương tác; link permalink theo commit vẫn mở GitHub |
 | Ma trận | Kỹ năng × nhóm; bản đồ nhiệt mức chia sẻ kỹ năng giữa các nhóm |
 | Tổ hợp | Dự án ghép nhiều nhóm, kỹ năng keo, bẫy khi ghép |
 | Tiến độ | Đánh dấu mức đã đạt; tổng hợp theo giai đoạn, mảng, nhóm; xuất/nhập file JSON |

@@ -167,9 +167,16 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+class QuietServer(http.server.ThreadingHTTPServer):
+    def handle_error(self, request: object, client_address: object) -> None:
+        # Trình duyệt bỏ dở tải video khi chuyển trang → client đóng kết nối giữa chừng; không phải lỗi của trang.
+        if not isinstance(sys.exc_info()[1], ConnectionError):
+            super().handle_error(request, client_address)
+
+
 def serve(directory: Path) -> tuple[http.server.ThreadingHTTPServer, str]:
     handler = functools.partial(QuietHandler, directory=str(directory))
-    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    httpd = QuietServer(("127.0.0.1", 0), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd, f"http://127.0.0.1:{httpd.server_address[1]}"
 
@@ -182,7 +189,8 @@ def main() -> int:
     problems: list[str] = []
     with tempfile.TemporaryDirectory() as tmp:
         out = site.build(Path(tmp) / "_site")
-        manifest = json.loads((out / "data" / "catalog.json").read_text(encoding="utf-8"))["meta"]["pages"]
+        data = json.loads((out / "data" / "catalog.json").read_text(encoding="utf-8"))
+        manifest, demos = data["meta"]["pages"], data.get("demos", {})
         httpd, base = serve(out)
         if args.shots:
             args.shots.mkdir(parents=True, exist_ok=True)
@@ -229,6 +237,20 @@ def main() -> int:
                 fallback = c.load().identify["fallback"]
                 if f"Nhóm {fallback[1:]}" not in page.inner_text("#quiz-box"):
                     problems.append(f"[{name}] quiz không ra nhóm mặc định {fallback}")
+
+                # Video mẫu của nhóm: trình phát, đủ nút chương, file video phục vụ được qua HTTP
+                for gid, demo in demos.items():
+                    page.goto(f"{base}/#/nhom/{gid}")
+                    page.wait_for_selector(".demo-video", timeout=5000)
+                    chips = page.locator(".demo-chapter")
+                    want = len(demo["chapters"])
+                    if chips.count() != want:
+                        problems.append(f"[{name}] #/nhom/{gid}: {chips.count()} nút chương, cần {want}")
+                    status = page.evaluate("async (u) => (await fetch(u, {method: 'HEAD'})).status", demo["video"])
+                    if status != 200:
+                        problems.append(f"[{name}] #/nhom/{gid}: video {demo['video']} trả về {status}")
+                    if chips.count() > 1:
+                        chips.nth(1).click()  # nhảy tới chương 2 (Chromium của Playwright không giải mã H.264)
 
                 # Bộ lọc kỹ năng: tìm không dấu
                 page.goto(f"{base}/#/ky-nang")

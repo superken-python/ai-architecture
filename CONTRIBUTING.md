@@ -4,7 +4,7 @@
 
 - **Ngôn ngữ:** nội dung tiếng Việt có dấu; **tên file/thư mục** dùng chữ thường không dấu, nối bằng `-`
   (ví dụ `03-tiet-kiem-token-chinh-xac.md`) để tránh lỗi đường dẫn trên mọi hệ điều hành.
-- **Mã kỹ năng** (`PY-01`, `LLM-03`...), **mã nhóm** (`G1`–`G8`) và **mã tổ hợp** (`CMB-01`...) là định danh ổn
+- **Mã kỹ năng** (`PY-01`, `LLM-03`...), **mã nhóm** (`G1`–`G9`) và **mã tổ hợp** (`CMB-01`...) là định danh ổn
   định — không đổi, không tái sử dụng sau khi đã công bố; tài liệu, lab và dự án đều tham chiếu theo mã.
 - **Một nguồn dữ liệu duy nhất:** mọi thông tin về nhóm/kỹ năng/tổ hợp nằm trong `catalog/*.yaml`. Không sửa tay
   các file trong `docs/02-skill-map/generated/` — chúng được sinh lại và CI sẽ báo lỗi nếu lệch.

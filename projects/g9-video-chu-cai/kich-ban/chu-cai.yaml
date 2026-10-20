@@ -1,0 +1,71 @@
+# Kịch bản video "Bảng chữ cái tiếng Việt cùng Sách Vui" — nguồn duy nhất của video.
+# Sửa file này rồi chạy `make video` để dựng lại. Chữ trên hình lấy nguyên văn từ đây nên luôn đúng chính tả.
+#
+# Mỗi chữ cái:
+#   letter  chữ in hoa (chữ thường tự suy ra)
+#   sound   cách đọc âm khi dạy bé (bờ, cờ, ca, quy, i dài...)
+#   phrase  cụm từ ví dụ hiện trên hình và được đọc lên
+#   word    từ trong phrase chứa chữ cái; chữ cái được tô màu trong từ này
+#   emoji   hình minh họa (Noto Emoji), hoặc
+#   image   đường dẫn ảnh riêng (PNG nền trong), tính từ thư mục chứa file này
+#   say     (tùy chọn) câu cho giọng đọc, thay cho mẫu voice.line — dùng khi giọng đọc sai một từ
+#
+# Từ ví dụ được chọn bằng phép đo: giọng đọc tạo câu, mô hình nhận dạng giọng nói nghe lại, giữ từ được nghe đúng
+# (xem reports/kiem-tra-giong.md). Muốn thay một câu bằng giọng thật: thu âm rồi đặt file vào giong-thu-am/<id>.wav.
+
+title: Bảng chữ cái tiếng Việt
+
+character:
+  name: Sách Vui
+  image: ../assets/nhan-vat/sach-vui.png
+  # Vùng tròn chứa nhân vật trong ảnh gốc (tâm x, tâm y, bán kính — đơn vị pixel của ảnh gốc).
+  crop: {cx: 256, cy: 142, r: 125}
+
+music:
+  bpm: 132          # 132 nhịp/phút: mỗi chữ cái 2 ô nhịp ≈ 3,6 giây, cả video đúng 2 phút
+  intro_bars: 4
+  letter_bars: 2
+  outro_bars: 4
+
+voice:
+  engine: piper     # piper (giọng Piper vi_VN chạy offline) | silent (không lời, để xem thử nhanh)
+  speed: 0.8        # < 1 là đọc chậm hơn bình thường, hợp với bé
+  line: "Đây là chữ {sound}, như trong {phrase}."
+  recordings: ../giong-thu-am   # file <id>.wav ở đây thay cho giọng máy của câu tương ứng
+
+intro: Xin chào các bạn nhỏ! Mình là Sách Vui. Hôm nay, cùng mình học hai mươi chín chữ cái tiếng Việt nhé!
+outro: Giỏi quá! Các bạn đã học xong hai mươi chín chữ cái rồi. Hẹn gặp lại nhé!
+
+# Câu có `say` riêng: theo bảng kiểm tra, mẫu chung làm giọng đọc sai dấu thanh của âm (á → "a rát", ca → "cà",
+# quy → "quỵ", ê → "ệ"); thêm "nhé" hoặc lặp âm thì máy nghe lại đúng. P: giọng này không đọc được âm "pờ" — cần
+# thu âm thật (giong-thu-am/chu-20.wav).
+letters:
+  - {letter: A, sound: a, phrase: cái áo, word: áo, emoji: "👕"}
+  - {letter: Ă, sound: á, phrase: khăn quàng, word: khăn, emoji: "🧣", say: "Đây là chữ á nhé, như trong khăn quàng."}
+  - {letter: Â, sound: ớ, phrase: con gấu, word: gấu, emoji: "🐻"}
+  - {letter: B, sound: bờ, phrase: con bò, word: bò, emoji: "🐄"}
+  - {letter: C, sound: cờ, phrase: con cá, word: cá, emoji: "🐟"}
+  - {letter: D, sound: dờ, phrase: dưa hấu, word: dưa, emoji: "🍉"}
+  - {letter: Đ, sound: đờ, phrase: đồng hồ, word: đồng, emoji: "⏰"}
+  - {letter: E, sound: e, phrase: em bé, word: em, emoji: "👶"}
+  - {letter: Ê, sound: ê, phrase: cái lều, word: lều, emoji: "⛺", say: "Đây là chữ ê, ê, như trong cái lều."}
+  - {letter: G, sound: gờ, phrase: con gà, word: gà, emoji: "🐔"}
+  - {letter: H, sound: hờ, phrase: bông hoa, word: hoa, emoji: "🌸"}
+  - {letter: I, sound: i, phrase: bút chì, word: chì, emoji: "✏"}
+  - {letter: K, sound: ca, phrase: cái kéo, word: kéo, emoji: "✂", say: "Đây là chữ ca nhé, như trong cái kéo."}
+  - {letter: L, sound: lờ, phrase: chiếc lá, word: lá, emoji: "🍃"}
+  - {letter: M, sound: mờ, phrase: con mèo, word: mèo, emoji: "🐱"}
+  - {letter: N, sound: nờ, phrase: cây nấm, word: nấm, emoji: "🍄"}
+  - {letter: O, sound: o, phrase: con chó, word: chó, emoji: "🐶"}
+  - {letter: Ô, sound: ô, phrase: ô tô, word: ô, emoji: "🚗"}
+  - {letter: Ơ, sound: ơ, phrase: quả ớt, word: ớt, emoji: "🌶"}
+  - {letter: P, sound: pờ, phrase: cục pin, word: pin, emoji: "🔋"}
+  - {letter: Q, sound: quy, phrase: quả chuối, word: quả, emoji: "🍌", say: "Đây là chữ quy nhé, như trong quả chuối."}
+  - {letter: R, sound: rờ, phrase: con rùa, word: rùa, emoji: "🐢"}
+  - {letter: S, sound: sờ, phrase: ngôi sao, word: sao, emoji: "⭐"}
+  - {letter: T, sound: tờ, phrase: quả táo, word: táo, emoji: "🍎"}
+  - {letter: U, sound: u, phrase: củ cà rốt, word: củ, emoji: "🥕"}
+  - {letter: Ư, sound: ư, phrase: sư tử, word: sư, emoji: "🦁"}
+  - {letter: V, sound: vờ, phrase: cái váy, word: váy, emoji: "👗"}
+  - {letter: X, sound: xờ, phrase: quả xoài, word: xoài, emoji: "🥭"}
+  - {letter: Y, sound: i dài, phrase: yêu thương, word: yêu, emoji: "❤"}

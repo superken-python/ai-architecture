@@ -374,7 +374,7 @@ a.skill-card:hover { text-decoration: none; border-color: var(--border-strong); 
 .skill-card .sc-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .skill-card h3 { margin: 0; font-size: 1rem; }
 .skill-card p { margin: 0; font-size: 0.9rem; color: var(--text-2); }
-.use-strip { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; margin-top: auto; }
+.use-strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; margin-top: auto; }
 .use-strip span { font-size: 0.7rem; text-align: center; color: var(--text-3); border-radius: 4px; padding: 2px 0; background: var(--surface-2); }
 .use-strip span.core { background: var(--accent); color: var(--on-accent); font-weight: 700; }
 .use-strip span.needed { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
@@ -404,6 +404,10 @@ a.skill-card:hover { text-decoration: none; border-color: var(--border-strong); 
 .group-card { display: flex; flex-direction: column; gap: 8px; color: var(--text); }
 a.group-card:hover { text-decoration: none; border-color: var(--border-strong); }
 .group-card .q { color: var(--text-2); font-size: 0.92rem; margin: 0; }
+.demo-card { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.demo-video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); background: #000; }
+.demo-chapters { display: flex; flex-wrap: wrap; gap: 6px; max-height: 172px; overflow-y: auto; }
+.demo-chapters .chip { font-size: 0.82rem; }
 
 /* ───────── trang tài liệu ───────── */
 .doc-section + .doc-section { margin-top: 8px; }
@@ -682,6 +686,7 @@ summary.ctx-head::after { content: "▾"; margin-left: auto; color: var(--md-mut
 .markdown-body table td > :last-child { margin-bottom: 0; }
 .markdown-body table tr { background-color: var(--md-canvas); border-top: 1px solid var(--md-border-muted); }
 .markdown-body table tr:nth-child(2n) { background-color: var(--md-canvas-subtle); }
+.markdown-body video { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 0 16px; border-radius: 6px; background: #000; }
 .markdown-body table img { background-color: transparent; }
 .markdown-body code, .markdown-body tt {
   padding: 0.2em 0.4em; margin: 0; font-family: var(--md-mono); font-size: 85%; white-space: break-spaces;

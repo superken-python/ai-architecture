@@ -9,7 +9,8 @@ Trang web mở tài liệu trong một khung toàn màn hình (`#/doc/<đường
    footnote, công thức `$…$`/`$$…$$`; Pygments tô màu code theo bảng màu của GitHub. Khối ```` ```mermaid ```` và
    công thức được trình duyệt vẽ bằng mermaid và KaTeX trong `web/assets/vendor/`.
 3. **Viết lại liên kết.** File trong repo → mở trong khung xem; thẻ kỹ năng/nhóm/lộ trình sinh tự động →
-   trang tương tác tương ứng (`#/ky-nang/ML-02`...); ảnh → bản sao trong `_site/md/`; file còn lại → GitHub.
+   trang tương tác tương ứng (`#/ky-nang/ML-02`...); ảnh, video, âm thanh, phụ đề → bản sao trong `_site/md/` (thẻ
+   `<video src poster>`, `<source>`, `<track>` phát được ngay trong trang); file còn lại → GitHub.
    Mọi `id` được thêm tiền tố `md-` (như `user-content-` của GitHub) để không đụng id của trang web.
 """
 
@@ -43,6 +44,8 @@ GENERATED = "docs/02-skill-map/generated/"
 OUT_DIR = "md"  # tài liệu đã render nằm ở _site/md/<đường dẫn>.html, ảnh ở _site/md/<đường dẫn>
 MAX_CODE_BYTES = 200_000  # file code lớn hơn (lockfile, dữ liệu) mở trên GitHub
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".avif"}
+MEDIA_EXT = {".mp4", ".webm", ".mp3", ".ogg", ".wav", ".vtt"}  # video, âm thanh, phụ đề WebVTT
+ASSET_EXT = IMAGE_EXT | MEDIA_EXT  # chép nguyên file vào _site/md/ để trang phát/hiện trực tiếp
 CODE_EXT = {
     ".py", ".pyi", ".toml", ".yaml", ".yml", ".json", ".jsonl", ".cfg", ".ini", ".txt", ".sh", ".bash", ".ps1",
     ".html", ".css", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".sql", ".csv", ".xml", ".env", ".example",
@@ -61,7 +64,7 @@ SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 UNSAFE_URL = re.compile(r"^\s*(?:javascript|vbscript|data):", re.IGNORECASE)
 TAG = re.compile(r"<([a-zA-Z][a-zA-Z0-9-]*)(\s[^<>]*?)?(/?)>")
 ATTR = re.compile(r"""\s+([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?""")
-HTML_URL = re.compile(r"""\b(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')""", re.IGNORECASE)
+HTML_URL = re.compile(r"""\b(?:href|src|poster)\s*=\s*(?:"([^"]*)"|'([^']*)')""", re.IGNORECASE)
 FORMATTER = HtmlFormatter(nowrap=True)
 
 # Icon Octicons (MIT) GitHub dùng cho anchor tiêu đề và 5 loại alert.
@@ -298,7 +301,7 @@ class DocBundle:
                 queue.append(target[0])
             elif kind == "readme":
                 queue.append(self.readme(target[0]))
-            elif kind == "image":
+            elif kind == "asset":
                 self.assets.add(target[0])
             elif kind == "code" and not is_src and target[0] not in self.pages:
                 self.pages[target[0]] = Page(target[0], "code")
@@ -326,7 +329,7 @@ class DocBundle:
                 found.append((str(tok.attrGet("src") or ""), True))
             elif tok.type in ("html_block", "html_inline"):
                 for m in HTML_URL.finditer(tok.content):
-                    is_src = m.group(0).lower().lstrip().startswith("src")
+                    is_src = not m.group(0).lower().lstrip().startswith("href")
                     found.append((html.unescape(m.group(1) if m.group(1) is not None else m.group(2)), is_src))
             stack.extend(tok.children or [])
         return found
@@ -363,8 +366,8 @@ class DocBundle:
         if path in self.files:
             if path.endswith(".md"):
                 return "md"
-            if posixpath.splitext(path)[1].lower() in IMAGE_EXT:
-                return "image"
+            if posixpath.splitext(path)[1].lower() in ASSET_EXT:
+                return "asset"
             if is_code_file(path) and (self.root / path).stat().st_size <= MAX_CODE_BYTES:
                 return "code"
             return "file"
@@ -413,7 +416,7 @@ class DocBundle:
             path, kind = self.readme(path), "md"
         if path in self.pages:
             return doc_href(path, anchor), False
-        if kind == "image":
+        if kind == "asset":
             return asset_url(path), True
         view = "tree" if kind == "dir" else "blob"
         return f"https://github.com/{self.repo}/{view}/main/{quote(path)}" + (
@@ -469,7 +472,7 @@ class DocBundle:
                     continue
                 if key == "href" and name.lower() == "a":
                     item[1], external = self.link(src, value)
-                elif key == "src":
+                elif key in ("src", "poster"):
                     target = self.target(src, value)
                     if target and target[0] in self.assets:
                         item[1] = asset_url(target[0])

@@ -85,6 +85,19 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
 
 ## Giai đoạn 4 · Dự án luyện tập
 
+- [x] **G9** Thêm Nhóm 9 · Tạo nội dung đa phương tiện (khối E · Sáng tạo, kỹ năng PY-05, DL-07, hướng chuyên sâu
+      "Nội dung đa phương tiện") và [video dạy chữ cái](projects/g9-video-chu-cai/README.md) dựng bằng code (cách A),
+      có video trên trang Nhóm 9 và [hướng dẫn tự làm bằng Claude Code](projects/g9-video-chu-cai/docs/huong-dan-claude-code.md).
+- [ ] **P0** `projects/g9-video-chu-cai/` — thu âm câu chữ P (`giong-thu-am/chu-20.wav`): giọng Piper vais1000 không đọc
+      được âm "pờ" (máy nghe thành "thờ"). Rồi `make video && make qa`.
+- [ ] **P0** `projects/g9-video-chu-cai/` — giáo viên xem và nghe duyệt cả video theo
+      [danh sách kiểm tra](projects/g9-video-chu-cai/docs/huong-dan-claude-code.md#7--người-duyệt-kiểm-tra-trước-khi-dùng-với-bé)
+      (cách đọc âm, dấu thanh, hình hợp lứa tuổi) trước khi dùng với bé.
+- [ ] **P1** `projects/g9-video-chu-cai/` — chủ dự án chọn bài tiếp theo cho lớp 3 (vd. vần, từ chỉ sự vật – hoạt động –
+      đặc điểm); mở rộng kịch bản cho thẻ nhiều chữ (vần "ang", "anh") thay vì một chữ cái.
+- [ ] **P2** `projects/g9-video-chu-cai/` — thử cách B cho cảnh mở đầu/kết (công cụ tạo video có ảnh tham chiếu nhân
+      vật), giữ phần dạy chữ bằng code; so chi phí và độ nhất quán nhân vật.
+
 - [x] **G7 + G6** Nghiên cứu [GPT Excel Agent Chatbot](projects/gpt-excel-agent-chatbot/README.md): mô tả bài toán,
       solution approach, khả thi và nguồn Microsoft; chỉ Markdown, chưa code.
 - [ ] **P1** Trước khi triển khai Excel chatbot: chốt Excel build/tenant, workbook/schema và API/auth của agent;

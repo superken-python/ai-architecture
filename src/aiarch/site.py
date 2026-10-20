@@ -18,6 +18,7 @@ import functools
 import http.server
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -62,7 +63,55 @@ def learning_links(cat: c.Catalog) -> dict[str, Any]:
     return {"docs": docs, **{f"by_{k}": v for k, v in by.items()}}
 
 
-def site_data(cat: c.Catalog, repo: str, pages: dict[str, Any] | None = None) -> dict[str, Any]:
+VTT_TIME = re.compile(r"((?:\d+:)?\d\d:\d\d\.\d+)\s*-->\s*((?:\d+:)?\d\d:\d\d\.\d+)")
+
+
+def vtt_seconds(stamp: str) -> float:
+    total = 0.0
+    for part in stamp.split(":"):
+        total = total * 60 + float(part)
+    return total
+
+
+def parse_vtt(text: str) -> list[dict[str, Any]]:
+    """Các cue của một file WebVTT: [{"t": giây bắt đầu, "end": giây kết thúc, "title": nội dung}]."""
+    cues = []
+    for block in re.split(r"\n\s*\n", text.replace("\r\n", "\n")):
+        lines = [line.strip() for line in block.strip().split("\n") if line.strip()]
+        for i, line in enumerate(lines):
+            m = VTT_TIME.search(line)
+            if m:
+                title = " ".join(lines[i + 1 :])
+                cues.append({"t": vtt_seconds(m.group(1)), "end": vtt_seconds(m.group(2)), "title": title})
+                break
+    return cues
+
+
+def demo_paths(group: dict[str, Any]) -> list[str]:
+    demo = group.get("demo") or {}
+    return [demo[k] for k in c.DEMO_FILES if demo.get(k)]
+
+
+def demos(cat: c.Catalog, root: Path = c.REPO_ROOT) -> dict[str, Any]:
+    """Video mẫu của từng nhóm cho trang web: đường dẫn bản sao trong _site/md/ + danh sách chương để nhảy tới."""
+    out: dict[str, Any] = {}
+    for g in cat.groups:
+        demo = g.get("demo")
+        if not demo:
+            continue
+        item: dict[str, Any] = {"title": demo["title"], "docs": demo.get("docs", [])}
+        for key in ("video", "poster", "subtitles"):
+            if demo.get(key):
+                item[key] = docview.asset_url(demo[key])
+        chapters = demo.get("chapters")  # file chương → danh sách nút bấm, không cần tải lúc xem
+        item["chapters"] = parse_vtt((root / chapters).read_text(encoding="utf-8")) if chapters else []
+        out[g["id"]] = item
+    return out
+
+
+def site_data(
+    cat: c.Catalog, repo: str, pages: dict[str, Any] | None = None, root: Path = c.REPO_ROOT
+) -> dict[str, Any]:
     """Toàn bộ dữ liệu trang web cần — đã tính sẵn tầng, đòn bẩy, thứ tự học, vị trí trong lộ trình, liên kết chéo."""
     order = c.topo_order(cat)
     depth = c.depths(cat)
@@ -122,6 +171,7 @@ def site_data(cat: c.Catalog, repo: str, pages: dict[str, Any] | None = None) ->
         "combinations": cat.combinations,
         "roadmap": cat.roadmap,
         "sharing": {a: {b: len(strong[a] & strong[b]) for b in cat.group_ids} for a in cat.group_ids},
+        "demos": demos(cat, root),
     }
 
 
@@ -132,7 +182,9 @@ def build(out: Path, repo: str = DEFAULT_REPO, root: Path = c.REPO_ROOT) -> Path
         raise SystemExit("Catalog có lỗi — chạy `make catalog` để xem chi tiết:\n  " + "\n  ".join(errors))
 
     bundle = docview.build_bundle(cat, repo, root)
-    data = site_data(cat, repo, bundle.manifest())
+    # Video mẫu của nhóm được chép như ảnh của tài liệu (chỉ file Git đang theo dõi).
+    bundle.assets.update(p for g in cat.groups for p in demo_paths(g) if p in bundle.files)
+    data = site_data(cat, repo, bundle.manifest(), root)
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     # Không để chuỗi "</" kết thúc thẻ <script> sớm.
     inline = payload.replace("</", "<\\/")

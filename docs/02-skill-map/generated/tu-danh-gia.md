@@ -22,6 +22,10 @@ Sao chép file này sang ghi chú cá nhân (hoặc một issue GitHub) rồi đ
   - [ ] Cơ bản
   - [ ] Trung cấp
   - [ ] Nâng cao
+- [PY-05](mang/py.md#py-05) Xử lý và dựng media bằng code
+  - [ ] Cơ bản
+  - [ ] Trung cấp
+  - [ ] Nâng cao
 
 ## DATA · SQL & dữ liệu
 
@@ -139,6 +143,10 @@ Sao chép file này sang ghi chú cá nhân (hoặc một issue GitHub) rồi đ
   - [ ] Trung cấp
   - [ ] Nâng cao
 - [DL-06](mang/dl.md#dl-06) Xử lý giọng nói (ASR)
+  - [ ] Cơ bản
+  - [ ] Trung cấp
+  - [ ] Nâng cao
+- [DL-07](mang/dl.md#dl-07) Sinh giọng nói, hình ảnh và video
   - [ ] Cơ bản
   - [ ] Trung cấp
   - [ ] Nâng cao

@@ -29,7 +29,7 @@ sections:
         desc: Chuẩn bị máy và công cụ một lần trước khi học.
         pages: [lo-trinh]
       - key: practice_data
-        title: Dữ liệu luyện tập — 8 dự án, 8 bộ dữ liệu
+        title: Dữ liệu luyện tập — 9 dự án, 9 bộ dữ liệu
         path: docs/00-setup/05-du-lieu-luyen-tap.md
         desc: "Mỗi nhóm bài toán: câu chuyện doanh nghiệp, dự án làm gì, mục tiêu đo được, bộ dữ liệu (lĩnh vực, bên trong có gì, dùng để làm gì) và cách tải."
         tag: Đọc trước mỗi dự án
@@ -37,12 +37,12 @@ sections:
       - key: problem_map
         title: Bản đồ bài toán (giai đoạn 1)
         path: docs/01-problem-map/README.md
-        desc: 8 nhóm bài toán AI trong doanh nghiệp, cách nhận diện.
+        desc: 9 nhóm bài toán AI trong doanh nghiệp (5 khối), cách nhận diện.
         pages: [nhom]
       - key: skill_map
         title: Bản đồ kỹ năng (giai đoạn 2)
         path: docs/02-skill-map/README.md
-        desc: 65 kỹ năng theo mảng, mức cần cho từng nhóm bài toán.
+        desc: 67 kỹ năng theo mảng, mức cần cho từng nhóm bài toán.
         pages: [ky-nang]
       - key: architecture
         title: Kiến trúc kỹ năng
@@ -322,6 +322,30 @@ sections:
         kind: project
         combos: [CMB-10]
         groups: [G7]
+      - key: g9_video
+        title: Dự án G9 · Video dạy chữ cái cùng Sách Vui
+        path: projects/g9-video-chu-cai/README.md
+        desc: "Video 2 phút dạy 29 chữ cái trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code; xem video ngay trên trang."
+        tag: Có video
+        kind: project
+        groups: [G9]
+        skills: [{id: PY-05, level: intermediate}, {id: DL-07, level: intermediate}, DL-06, OPS-03]
+      - key: g9_guide
+        title: Làm video hoạt hình dạy học bằng Claude Code
+        path: projects/g9-video-chu-cai/docs/huong-dan-claude-code.md
+        desc: "Từng bước nhân vật → kịch bản → khung hình → nhạc → giọng đọc (đo bằng máy nghe lại) → dựng → duyệt, kèm prompt mẫu."
+        tag: Hướng dẫn từng bước
+        kind: guide
+        groups: [G9]
+        skills: [{id: PY-05, level: intermediate}, {id: DL-07, level: intermediate}]
+      - key: g9_qa
+        title: Kiểm tra lời đọc của video chữ cái
+        path: projects/g9-video-chu-cai/reports/kiem-tra-giong.md
+        desc: "Máy nhận dạng giọng nói nghe lại 31 câu, giọng riêng và khi có nhạc: 28/29 câu chữ cái đúng, câu chữ P cần thu âm."
+        tag: Kết quả
+        kind: report
+        groups: [G9]
+        skills: [DL-06, {id: DL-07, level: intermediate}]
 
   - id: theo-doi
     title: Theo dõi công việc

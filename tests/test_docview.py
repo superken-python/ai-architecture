@@ -115,6 +115,32 @@ def test_rewrites_links_into_the_site(mini):
     assert 'id="md-L1"' in code and 'id="md-L2"' in code and "2 dòng" in code
 
 
+def test_video_poster_and_subtitles_play_inside_the_site(tmp_path):
+    """Video trong README (thẻ <video>, <track>, ảnh bìa) và link tới file MP4 đều trỏ vào bản sao trong _site/md/."""
+    files = {
+        "projects/p/README.md": (
+            '# Dự án\n\n<video src="media/v.mp4" poster="media/p.jpg" controls>\n'
+            '  <track kind="subtitles" src="media/s.vtt" srclang="vi">\n</video>\n\n[Tải MP4](media/v.mp4)\n'
+        ),
+        "projects/p/media/v.mp4": "",
+        "projects/p/media/p.jpg": "",
+        "projects/p/media/s.vtt": "WEBVTT\n",
+    }
+    for path, text in files.items():
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_text(text, encoding="utf-8")
+    bundle = v.DocBundle(c.load(), "owner/repo", root=tmp_path, files=set(files))
+    bundle.roots = lambda: ["projects/p/README.md"]
+    bundle.collect().render()
+    assert bundle.assets == {"projects/p/media/v.mp4", "projects/p/media/p.jpg", "projects/p/media/s.vtt"}
+    out = bundle.pages["projects/p/README.md"].html
+    assert 'src="md/projects/p/media/v.mp4"' in out and 'poster="md/projects/p/media/p.jpg"' in out
+    assert 'src="md/projects/p/media/s.vtt"' in out
+    assert 'href="md/projects/p/media/v.mp4" target="_blank"' in out
+    bundle.write(tmp_path / "_site")
+    assert (tmp_path / "_site/md/projects/p/media/v.mp4").exists()
+
+
 def test_every_link_in_the_real_docs_resolves():
     """Mọi liên kết trong mọi tài liệu đã render: tới tài liệu có trong trang (anchor có thật), trang tương tác,
     ảnh đã chép, hoặc liên kết ngoài. Không còn file nào của repo bị dẫn ra GitHub nếu xem được trong trang."""
@@ -123,7 +149,8 @@ def test_every_link_in_the_real_docs_resolves():
     route = re.compile(r"#/(ky-nang/[A-Z]+-\d\d|nhom/G\d|lo-trinh(/[A-D])?|to-hop(/CMB-\d\d)?|ma-tran)$")
     broken = []
     for path, page in bundle.pages.items():
-        for url in (html.unescape(u) for u in re.findall(r'<(?:a|img)\b[^>]*?\s(?:href|src)="([^"]*)"', page.html)):
+        tags = r'<(?:a|img|video|source|track)\b[^>]*?\s(?:href|src|poster)="([^"]*)"'
+        for url in (html.unescape(u) for u in re.findall(tags, page.html)):
             if url.startswith("#/doc/"):
                 target, _, anchor = (unquote(x) for x in url[6:].partition("#"))
                 if target not in bundle.pages or (anchor and anchor not in ids[target] and not anchor.startswith("L")):

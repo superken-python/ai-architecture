@@ -279,6 +279,14 @@ stages:
           - {id: DL-01, level: basic}
           - {id: DL-02, level: basic}
           - {id: DL-06, level: basic}
+      - id: media
+        name: Nội dung đa phương tiện
+        groups: [G9, G6]
+        skills:
+          - {id: PY-05, level: intermediate}
+          - {id: DL-07, level: intermediate}
+          - {id: LLM-04, level: intermediate}
+          - {id: OPS-03, level: basic}
 
   - id: D
     name: Nâng cao · Production
@@ -346,6 +354,7 @@ t_bar:
   - {group: G6, skills: [LLM-01, LLM-02, LLM-03], note: "Prompt + structured output + RAG tối giản"}
   - {group: G7, skills: [LLM-05], note: "Workflow cố định + người duyệt"}
   - {group: G8, skills: [OPT-01, STAT-03], note: "LP với OR-Tools, A/B test đúng cách"}
+  - {group: G9, skills: [PY-05, DL-07], note: "Dựng video bằng code từ ảnh có sẵn + giọng TTS + phụ đề, máy nghe lại lời đọc"}
 
 # Thói quen xuyên suốt mọi giai đoạn.
 ongoing:

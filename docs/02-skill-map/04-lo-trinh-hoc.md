@@ -15,12 +15,12 @@ cộng thêm giai đoạn D để đi tới mức **Nâng cao** (production).
 |---|---|---|---|
 | A · Nền tảng | Tháng 1–2 (tuần 1–8) | Python, SQL, thống kê, baseline + bộ đánh giá, LightGBM, đóng gói | Dự án Nhóm 1 (churn) chạy qua API |
 | B · GenAI | Tháng 3–4 (tuần 9–16) | LLM, structured output, truy xuất, RAG, eval, tiết kiệm token | RAG tiếng Việt có bộ đánh giá và bảng chất lượng–chi phí |
-| C · Chuyên sâu | Tháng 5–6 (tuần 17–24) | Một trong 5 hướng chuyên sâu + MLOps | Dự án chuyên sâu cho công ty |
+| C · Chuyên sâu | Tháng 5–6 (tuần 17–24) | Một trong 6 hướng chuyên sâu + MLOps | Dự án chuyên sâu cho công ty |
 | D · Nâng cao · Production | Tháng 7 trở đi | Vận hành, giám sát, chi phí ở quy mô, bảo mật, phương pháp cho team | Hệ chạy thật có SLO và báo cáo chi phí |
 
 ## Nguyên tắc
 
-1. **Chữ T:** thanh ngang = đạt **Cơ bản** cho các kỹ năng nền tảng và đủ để dựng baseline ở cả 8 nhóm; thân dọc =
+1. **Chữ T:** thanh ngang = đạt **Cơ bản** cho các kỹ năng nền tảng và đủ để dựng baseline ở cả 9 nhóm; thân dọc =
    **Trung cấp → Nâng cao** ở 1–2 nhóm sát nhu cầu công ty.
 2. **Đòn bẩy trước:** học kỹ năng dùng được cho nhiều nhóm nhất trước ([bảng đòn bẩy](generated/thu-tu-hoc.md)).
 3. **Học qua dự án:** mỗi kỹ năng được luyện trong một lab nhỏ rồi áp dụng ngay vào dự án luyện tập của nhóm.

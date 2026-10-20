@@ -31,52 +31,52 @@
 
 | Kỹ năng | Tầng | Dùng chung với nhóm |
 |---|---|---|
-| [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [PY-02](../mang/py.md#py-02) Git, môi trường và cấu trúc dự án | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
+| [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [PY-02](../mang/py.md#py-02) Git, môi trường và cấu trúc dự án | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
 | [DATA-01](../mang/data.md#data-01) SQL phân tích | Cầu nối liên họ | 2, 3, 4, 6, 7, 8 |
 | [DATA-02](../mang/data.md#data-02) Xử lý dữ liệu bảng | Dùng chung trong họ | 2, 3, 4, 8 |
 | [DATA-03](../mang/data.md#data-03) Đúng thời điểm và chống rò rỉ dữ liệu | Dùng chung trong họ | 2, 3, 4, 8 |
 | [DATA-04](../mang/data.md#data-04) Feature engineering cho bảng và chuỗi thời gian | Dùng chung trong họ | 2, 3, 4, 8 |
-| [STAT-01](../mang/stat.md#stat-01) Xác suất và thống kê mô tả | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [STAT-02](../mang/stat.md#stat-02) Đo lường bất định của kết quả đánh giá | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
+| [STAT-01](../mang/stat.md#stat-01) Xác suất và thống kê mô tả | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [STAT-02](../mang/stat.md#stat-02) Đo lường bất định của kết quả đánh giá | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
 | [STAT-05](../mang/stat.md#stat-05) Calibration, ngưỡng theo chi phí và dự đoán có chọn lọc | Cầu nối liên họ | 3, 5, 6, 7, 8 |
 | [ML-01](../mang/ml.md#ml-01) Quy trình học có giám sát chuẩn | Cầu nối liên họ | 2, 3, 4, 6, 8 |
 | [ML-02](../mang/ml.md#ml-02) Gradient boosting | Dùng chung trong họ | 2, 3, 4, 8 |
 | [ML-03](../mang/ml.md#ml-03) Dữ liệu mất cân bằng và sự kiện hiếm | Cầu nối liên họ | 3, 5 |
 | [ML-04](../mang/ml.md#ml-04) Giải thích mô hình | Cầu nối liên họ | 3, 5, 8 |
-| [BIZ-01](../mang/biz.md#biz-01) Framing bài toán và quy đổi giá trị (ĐÚNG) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [BIZ-02](../mang/biz.md#biz-02) Baseline nhanh và bộ đánh giá cố định (NHANH) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [BIZ-03](../mang/biz.md#biz-03) Phân tích lỗi và cải tiến lấy dữ liệu làm trung tâm (CHÍNH XÁC) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [BIZ-05](../mang/biz.md#biz-05) Kiến thức miền nghiệp vụ | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
+| [BIZ-01](../mang/biz.md#biz-01) Framing bài toán và quy đổi giá trị (ĐÚNG) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [BIZ-02](../mang/biz.md#biz-02) Baseline nhanh và bộ đánh giá cố định (NHANH) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [BIZ-03](../mang/biz.md#biz-03) Phân tích lỗi và cải tiến lấy dữ liệu làm trung tâm (CHÍNH XÁC) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [BIZ-05](../mang/biz.md#biz-05) Kiến thức miền nghiệp vụ | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
 
 ### ◐ Cần (9)
 
 | Kỹ năng | Tầng | Dùng chung với nhóm |
 |---|---|---|
-| [PY-03](../mang/py.md#py-03) Kiểm thử và chất lượng code | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [DATA-05](../mang/data.md#data-05) Kiểm định chất lượng dữ liệu và nhãn | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
+| [PY-03](../mang/py.md#py-03) Kiểm thử và chất lượng code | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [DATA-05](../mang/data.md#data-05) Kiểm định chất lượng dữ liệu và nhãn | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
 | [STAT-03](../mang/stat.md#stat-03) Thiết kế thí nghiệm và A/B test | Cầu nối liên họ | 4, 6, 8 |
-| [OPS-01](../mang/ops.md#ops-01) Đóng gói và phục vụ model | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [OPS-02](../mang/ops.md#ops-02) Theo dõi thực nghiệm và tái lập | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
-| [OPS-03](../mang/ops.md#ops-03) Pipeline và điều phối tác vụ | Cầu nối liên họ | 2, 3, 4, 6 |
+| [OPS-01](../mang/ops.md#ops-01) Đóng gói và phục vụ model | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [OPS-02](../mang/ops.md#ops-02) Theo dõi thực nghiệm và tái lập | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
+| [OPS-03](../mang/ops.md#ops-03) Pipeline và điều phối tác vụ | Cầu nối liên họ | 2, 3, 4, 6, 9 |
 | [OPS-04](../mang/ops.md#ops-04) Giám sát model và drift | Cầu nối liên họ | 2, 3, 4, 5, 6, 8 |
-| [OPS-08](../mang/ops.md#ops-08) Bảo mật dữ liệu và tuân thủ | Cầu nối liên họ | 3, 5, 6, 7 |
-| [BIZ-04](../mang/biz.md#biz-04) Trình bày, demo và thuyết phục (THUYẾT PHỤC) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8 |
+| [OPS-08](../mang/ops.md#ops-08) Bảo mật dữ liệu và tuân thủ | Cầu nối liên họ | 3, 5, 6, 7, 9 |
+| [BIZ-04](../mang/biz.md#biz-04) Trình bày, demo và thuyết phục (THUYẾT PHỤC) | Nền tảng chung | 2, 3, 4, 5, 6, 7, 8, 9 |
 
 ### ○ Ít (11)
 
 | Kỹ năng | Tầng | Dùng chung với nhóm |
 |---|---|---|
-| [PY-04](../mang/py.md#py-04) Gọi API và I/O đồng thời bền vững | Cầu nối liên họ | 3, 5, 6, 7 |
+| [PY-04](../mang/py.md#py-04) Gọi API và I/O đồng thời bền vững | Cầu nối liên họ | 3, 5, 6, 7, 9 |
 | [STAT-04](../mang/stat.md#stat-04) Dự báo xác suất và định lượng bất định | Dùng chung trong họ | 2, 8 |
 | [STAT-06](../mang/stat.md#stat-06) Suy luận nhân quả và uplift | Dùng chung trong họ | 4, 8 |
 | [ML-05](../mang/ml.md#ml-05) Học không giám sát và phát hiện bất thường | Dùng chung trong họ | 3, 4 |
 | [DL-01](../mang/dl.md#dl-01) PyTorch nền tảng | Cầu nối liên họ | 2, 3, 4, 5, 6 |
-| [LLM-01](../mang/llm.md#llm-01) Gọi LLM API và prompt engineering | Dùng chung trong họ | 5, 6, 7 |
+| [LLM-01](../mang/llm.md#llm-01) Gọi LLM API và prompt engineering | Dùng chung trong họ | 5, 6, 7, 9 |
 | [BIZ-06](../mang/biz.md#biz-06) Đọc và tái hiện paper | Bổ trợ | — |
 | [EFF-04](../mang/eff.md#eff-04) Định tuyến và cascade — đúng việc, đúng công cụ | Dùng chung trong họ | 5, 6, 7 |
 | [EFF-06](../mang/eff.md#eff-06) Xử lý theo lô và bất đồng bộ | Dùng chung trong họ | 5, 6 |
-| [EFF-07](../mang/eff.md#eff-07) Kiểm chứng xác định và "không lỗi im lặng" | Dùng chung trong họ | 5, 6, 7 |
+| [EFF-07](../mang/eff.md#eff-07) Kiểm chứng xác định và "không lỗi im lặng" | Dùng chung trong họ | 5, 6, 7, 9 |
 | [EFF-08](../mang/eff.md#eff-08) Tiết kiệm token khi dùng AI hỗ trợ lập trình | Bổ trợ | — |
 
 ## Lộ trình học cho nhóm này

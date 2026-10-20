@@ -66,6 +66,36 @@ jobs:
       - name: Tái lập từ đầu — dữ liệu, bảng học và bộ đánh giá đóng băng phải khớp manifest
         run: make data features eval
 
+  video-chu-cai:
+    # Dự án G9 · Video dạy chữ cái: lint + test chạy offline (giọng `silent`, font dự phòng); có ffmpeg để thử dựng
+    # một đoạn MP4 thật. Không tải model giọng/ASR trong CI — video đã dựng nằm trong media/.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/g9-video-chu-cai
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài uv và ffmpeg
+        run: |
+          pip install uv
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Cài môi trường đúng theo uv.lock
+        run: uv sync --locked
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Test
+        run: uv run pytest
+
   site:
     runs-on: ubuntu-latest
     steps:

@@ -21,8 +21,8 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 
 > Viết prompt rõ ràng, có cấu trúc, quản lý như code.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 5  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 8 Tối ưu
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 7  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 9 Nội dung · ◐ Cần: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 8 Tối ưu
 
 | Mức | Làm được |
 |---|---|
@@ -31,7 +31,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 | Nâng cao | Tối ưu prompt có hệ thống trên golden set, prompt cho tiếng Việt và đa ngôn ngữ, review/A-B/rollback prompt như code. |
 
 - **Tiên quyết:** [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI
-- **Mở khóa:** [LLM-02](../mang/llm.md#llm-02), [LLM-06](../mang/llm.md#llm-06), [OPS-06](../mang/ops.md#ops-06), [EFF-01](../mang/eff.md#eff-01)
+- **Mở khóa:** [DL-07](../mang/dl.md#dl-07), [LLM-02](../mang/llm.md#llm-02), [LLM-06](../mang/llm.md#llm-06), [OPS-06](../mang/ops.md#ops-06), [EFF-01](../mang/eff.md#eff-01)
 - **Công cụ:** LLM API (Anthropic, OpenAI, Gemini…), Jinja2
 - **Đạt khi:** Mọi prompt nằm trong repo, có version, có golden set đi kèm và lịch sử thay đổi có số liệu.
 - **Trong lộ trình:** Bước B1 · Gọi LLM, structured output và gọi API bền vững (Cơ bản) · Thanh ngang chữ T · Nhóm 6 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
@@ -42,8 +42,8 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 
 > Ép LLM trả về dữ liệu có cấu trúc hợp lệ, kiểm tra được bằng code.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 6  
-**Dùng cho:** ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 7  
+**Dùng cho:** ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -86,8 +86,8 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 
 > Đo chất lượng hệ LLM bằng số liệu thay vì cảm giác, trước và sau mọi thay đổi.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 5  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 6  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -100,7 +100,7 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 - **Công cụ:** pytest, Langfuse, promptfoo, Inspect
 - **Đạt khi:** Một lệnh `make eval` in ra chất lượng + chi phí + độ trễ, so với baseline, kèm khoảng tin cậy.
 - **Token & độ chính xác:** Không có eval thì không thể tối ưu token an toàn — mọi cắt giảm phải qua cổng eval.
-- **Trong lộ trình:** Bước B2 · Đo chi phí, tracing và golden set đầu tiên (Cơ bản) · Bước B5 · Đánh giá nghiêm túc và lớp kiểm chứng (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
+- **Trong lộ trình:** Bước B2 · Đo chi phí, tracing và golden set đầu tiên (Cơ bản) · Bước B5 · Đánh giá nghiêm túc và lớp kiểm chứng (Trung cấp) · Hướng Nội dung đa phương tiện (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="llm-05"></a>
 
@@ -108,8 +108,8 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 
 > Để LLM gọi công cụ, chạy chuỗi bước có trạng thái, có người duyệt ở bước rủi ro.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 3  
-**Dùng cho:** ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 6 LLM/RAG
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 4  
+**Dùng cho:** ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -130,8 +130,8 @@ Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-
 
 > Chặn rò rỉ dữ liệu, prompt injection và hành động vượt quyền.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 5  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 6  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|

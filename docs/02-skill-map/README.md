@@ -19,16 +19,16 @@ Tra cứu: [thẻ kỹ năng theo mảng và lộ trình theo nhóm](generated/R
 
 ## Kết luận chính
 
-**1. Học kỹ năng, không học "bài toán" — 89% kỹ năng dùng cho từ 2 nhóm trở lên.**
-Danh mục (phiên bản hiện tại) có 65 kỹ năng: 13 *nền tảng chung* (cả 8 nhóm), 14 *cầu nối liên họ*, 31 *dùng chung trong họ*,
-chỉ 5 *chuyên biệt* (đồ thị, hệ gợi ý, thị giác máy tính, giọng nói, định tuyến/lập lịch) và 2 *bổ trợ*.
+**1. Học kỹ năng, không học "bài toán" — 88% kỹ năng dùng cho từ 2 nhóm trở lên.**
+Danh mục (phiên bản hiện tại) có 67 kỹ năng: 13 *nền tảng chung* (cả 9 nhóm), 14 *cầu nối liên họ*, 32 *dùng chung trong họ*,
+chỉ 6 *chuyên biệt* (đồ thị, hệ gợi ý, thị giác máy tính, định tuyến/lập lịch, dựng media bằng code, mô hình sinh) và 2 *bổ trợ*.
 Tầng được **tính tự động** từ mức sử dụng, không gán tay.
 
-**2. Tám nhóm tách thành hai "họ".** Đếm số kỹ năng Cốt lõi/Cần chung giữa từng cặp nhóm
+**2. Chín nhóm tách thành hai "họ".** Đếm số kỹ năng Cốt lõi/Cần chung giữa từng cặp nhóm
 ([ma trận chia sẻ](generated/ma-tran-ky-nang.md#chia-se)) cho thấy hai cụm rõ rệt:
 
 - *Họ dữ liệu có cấu trúc & quyết định* — Nhóm 1, 2, 3, 4, 8.
-- *Họ dữ liệu phi cấu trúc & GenAI* — Nhóm 5, 6, 7.
+- *Họ dữ liệu phi cấu trúc & GenAI* — Nhóm 5, 6, 7, 9 (Nhóm 9 · Tạo nội dung bổ sung 2026-10-20).
 - Ngoài 13 kỹ năng nền tảng chung, hai nhóm **cùng họ** chia sẻ thêm trung bình 10–20 kỹ năng; hai nhóm
   **khác họ** chỉ chia sẻ thêm khoảng 5. Muốn chuyển họ, đi qua **14 kỹ năng cầu nối** như ML-07 (truy xuất
   & xếp hạng), STAT-05 (calibration & dự đoán có chọn lọc), DL-03 (embedding), OPS-04 (giám sát).
@@ -60,8 +60,8 @@ Mọi bảng trong `generated/` được sinh từ ba file YAML — **nguồn d�
 
 ```
 catalog/
-├── problems.yaml       # 8 nhóm bài toán, 2 họ, ma trận giai đoạn 1
-├── skills.yaml         # 10 mảng, 65 kỹ năng (mức, nhóm dùng, tiên quyết, công cụ, tiêu chí đạt)
+├── problems.yaml       # 9 nhóm bài toán, 2 họ, ma trận giai đoạn 1
+├── skills.yaml         # 10 mảng, 67 kỹ năng (mức, nhóm dùng, tiên quyết, công cụ, tiêu chí đạt)
 ├── combinations.yaml   # 10 tổ hợp dự án ghép nhiều nhóm
 └── roadmap.yaml        # lộ trình 4 giai đoạn: từng bước, sản phẩm nộp, kỹ năng + mức mục tiêu
 ```

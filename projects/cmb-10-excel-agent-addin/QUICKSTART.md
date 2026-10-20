@@ -56,7 +56,7 @@ Tool server: `list_datasets`, `search_data`, `export_excel` (`src/excel_agent/ag
 | Cần | Kiểm tra |
 |---|---|
 | `uv`, Docker/Colima (cho DAO), Node 22 qua nvm (cho `npx office-addin-dev-certs`) | `uv --version`, `docker ps`, `node -v` |
-| DAO đã cấu hình (`python/.env`, `python/.env.gateway`) theo [QUICKSTART của DAO](../../../../vizion-smart-retail-data-insight/QUICKSTART.md) | `make ps` trong `vizion-smart-retail-data-insight/python` |
+| DAO đã cấu hình (`python/.env`, `python/.env.gateway`) theo QUICKSTART của DAO (`vizion-smart-retail-data-insight/QUICKSTART.md`, repo riêng) | `make ps` trong `vizion-smart-retail-data-insight/python` |
 | Key model cho cmb-10 (`OPENAI_API_KEY`) — không có thì chạy offline | |
 | Giá trị `OS_SECURITY_KEY` của DAO (nếu DAO bật) — **hỏi người quản lý**, không mở `python/.env` của DAO để chép | |
 
@@ -164,11 +164,20 @@ async def run_ask_data_agent(deps: AgentDeps, question: str, table: int = 0) -> 
         return _json({"type": "report", "summary": report["summary"], "kpis": report["kpis"]})
     t = tables[min(table, len(tables) - 1)]
     records = [dict(zip(t["columns"], row, strict=False)) for row in t["rows"]]
-    return _json({
-        "type": "search_results", "dataset": resp["dataset"], "query": question, "column": None,
-        "total": len(records), "shown": len(records), "columns": t["columns"], "records": records,
-        "summary": report["summary"], "report_id": resp["report_id"],
-    })
+    return _json(
+        {
+            "type": "search_results",
+            "dataset": resp["dataset"],
+            "query": question,
+            "column": None,
+            "total": len(records),
+            "shown": len(records),
+            "columns": t["columns"],
+            "records": records,
+            "summary": report["summary"],
+            "report_id": resp["report_id"],
+        }
+    )
 ```
 
 `AgentDeps` thêm trường `data_agent`, tạo một lần trong `main.create_app`.
@@ -240,5 +249,5 @@ Câu mẫu trong task pane (sheet trống hoặc có dòng tiêu đề):
 | Góc phải hiện *Offline* | `.env` của cmb-10 chưa có `OPENAI_API_KEY` hoặc `AGENT_MODE=offline` |
 
 Tài liệu chi tiết: [README](README.md) · [06 · POC hướng dẫn](docs/06-poc-huong-dan-su-dung.md) ·
-[addin/README](addin/README.md) · DAO: [QUICKSTART](../../../../vizion-smart-retail-data-insight/QUICKSTART.md),
-[chat-ui/README (API AgentOS)](../../../../vizion-smart-retail-data-insight/chat-ui/README.md).
+[addin/README](addin/README.md) · DAO (repo riêng `vizion-smart-retail-data-insight`): `QUICKSTART.md`,
+`chat-ui/README.md` (API AgentOS).

@@ -19,8 +19,8 @@
 
 > Đọc dữ liệu và metric đúng, hiểu vì sao tỷ lệ nền quyết định ý nghĩa của mọi con số.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 12  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 13  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -40,8 +40,8 @@
 
 > Biết khi nào chênh lệch giữa hai model/prompt là thật, khi nào chỉ là nhiễu.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 13  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 7 Agent
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 14  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -63,7 +63,7 @@
 > Đo tác động thật của model/tính năng lên KPI kinh doanh.
 
 **Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 6  
-**Dùng cho:** ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 7 Agent
+**Dùng cho:** ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 7 Agent · ○ Ít: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|

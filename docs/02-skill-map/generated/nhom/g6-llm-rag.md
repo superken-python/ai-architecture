@@ -31,36 +31,36 @@
 
 | Kỹ năng | Tầng | Dùng chung với nhóm |
 |---|---|---|
-| [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [PY-02](../mang/py.md#py-02) Git, môi trường và cấu trúc dự án | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [PY-03](../mang/py.md#py-03) Kiểm thử và chất lượng code | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [PY-04](../mang/py.md#py-04) Gọi API và I/O đồng thời bền vững | Cầu nối liên họ | 3, 5, 7 |
-| [STAT-02](../mang/stat.md#stat-02) Đo lường bất định của kết quả đánh giá | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
+| [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [PY-02](../mang/py.md#py-02) Git, môi trường và cấu trúc dự án | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [PY-03](../mang/py.md#py-03) Kiểm thử và chất lượng code | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [PY-04](../mang/py.md#py-04) Gọi API và I/O đồng thời bền vững | Cầu nối liên họ | 3, 5, 7, 9 |
+| [STAT-02](../mang/stat.md#stat-02) Đo lường bất định của kết quả đánh giá | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
 | [ML-07](../mang/ml.md#ml-07) Truy xuất và xếp hạng hai tầng (retrieve → rerank) | Cầu nối liên họ | 4, 5, 7 |
-| [LLM-01](../mang/llm.md#llm-01) Gọi LLM API và prompt engineering | Dùng chung trong họ | 5, 7 |
-| [LLM-02](../mang/llm.md#llm-02) Structured output và kiểm chứng đầu ra | Dùng chung trong họ | 5, 7 |
+| [LLM-01](../mang/llm.md#llm-01) Gọi LLM API và prompt engineering | Dùng chung trong họ | 5, 7, 9 |
+| [LLM-02](../mang/llm.md#llm-02) Structured output và kiểm chứng đầu ra | Dùng chung trong họ | 5, 7, 9 |
 | [LLM-03](../mang/llm.md#llm-03) RAG — trả lời dựa trên tài liệu | Dùng chung trong họ | 7 |
-| [LLM-04](../mang/llm.md#llm-04) Đánh giá hệ LLM (evals) | Dùng chung trong họ | 5, 7 |
-| [LLM-06](../mang/llm.md#llm-06) An toàn và bảo mật hệ LLM | Dùng chung trong họ | 5, 7 |
-| [OPS-01](../mang/ops.md#ops-01) Đóng gói và phục vụ model | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [OPS-06](../mang/ops.md#ops-06) LLMOps — tracing, chi phí, độ trễ | Dùng chung trong họ | 5, 7 |
-| [BIZ-02](../mang/biz.md#biz-02) Baseline nhanh và bộ đánh giá cố định (NHANH) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [BIZ-03](../mang/biz.md#biz-03) Phân tích lỗi và cải tiến lấy dữ liệu làm trung tâm (CHÍNH XÁC) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [EFF-01](../mang/eff.md#eff-01) Đo token và chi phí trên mỗi tác vụ | Dùng chung trong họ | 5, 7 |
+| [LLM-04](../mang/llm.md#llm-04) Đánh giá hệ LLM (evals) | Dùng chung trong họ | 5, 7, 9 |
+| [LLM-06](../mang/llm.md#llm-06) An toàn và bảo mật hệ LLM | Dùng chung trong họ | 5, 7, 9 |
+| [OPS-01](../mang/ops.md#ops-01) Đóng gói và phục vụ model | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [OPS-06](../mang/ops.md#ops-06) LLMOps — tracing, chi phí, độ trễ | Dùng chung trong họ | 5, 7, 9 |
+| [BIZ-02](../mang/biz.md#biz-02) Baseline nhanh và bộ đánh giá cố định (NHANH) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [BIZ-03](../mang/biz.md#biz-03) Phân tích lỗi và cải tiến lấy dữ liệu làm trung tâm (CHÍNH XÁC) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [EFF-01](../mang/eff.md#eff-01) Đo token và chi phí trên mỗi tác vụ | Dùng chung trong họ | 5, 7, 9 |
 | [EFF-02](../mang/eff.md#eff-02) Prompt caching và tái sử dụng kết quả | Dùng chung trong họ | 5, 7 |
 | [EFF-03](../mang/eff.md#eff-03) Tinh gọn ngữ cảnh đầu vào | Dùng chung trong họ | 5, 7 |
 | [EFF-04](../mang/eff.md#eff-04) Định tuyến và cascade — đúng việc, đúng công cụ | Dùng chung trong họ | 5, 7 |
 | [EFF-05](../mang/eff.md#eff-05) Kiểm soát đầu ra và mức suy luận | Dùng chung trong họ | 5, 7 |
-| [EFF-07](../mang/eff.md#eff-07) Kiểm chứng xác định và "không lỗi im lặng" | Dùng chung trong họ | 5, 7 |
+| [EFF-07](../mang/eff.md#eff-07) Kiểm chứng xác định và "không lỗi im lặng" | Dùng chung trong họ | 5, 7, 9 |
 
 ### ◐ Cần (24)
 
 | Kỹ năng | Tầng | Dùng chung với nhóm |
 |---|---|---|
 | [DATA-01](../mang/data.md#data-01) SQL phân tích | Cầu nối liên họ | 1, 2, 3, 4, 7, 8 |
-| [DATA-05](../mang/data.md#data-05) Kiểm định chất lượng dữ liệu và nhãn | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [DATA-06](../mang/data.md#data-06) Văn bản tiếng Việt và dữ liệu phi cấu trúc | Dùng chung trong họ | 5 |
-| [STAT-01](../mang/stat.md#stat-01) Xác suất và thống kê mô tả | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
+| [DATA-05](../mang/data.md#data-05) Kiểm định chất lượng dữ liệu và nhãn | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [DATA-06](../mang/data.md#data-06) Văn bản tiếng Việt và dữ liệu phi cấu trúc | Dùng chung trong họ | 5, 9 |
+| [STAT-01](../mang/stat.md#stat-01) Xác suất và thống kê mô tả | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
 | [STAT-03](../mang/stat.md#stat-03) Thiết kế thí nghiệm và A/B test | Cầu nối liên họ | 1, 4, 8 |
 | [STAT-05](../mang/stat.md#stat-05) Calibration, ngưỡng theo chi phí và dự đoán có chọn lọc | Cầu nối liên họ | 1, 3, 5, 7, 8 |
 | [ML-01](../mang/ml.md#ml-01) Quy trình học có giám sát chuẩn | Cầu nối liên họ | 1, 2, 3, 4, 8 |
@@ -68,26 +68,27 @@
 | [DL-02](../mang/dl.md#dl-02) Transfer learning và fine-tune mô hình pretrained | Dùng chung trong họ | 5 |
 | [DL-03](../mang/dl.md#dl-03) Embedding và học biểu diễn | Cầu nối liên họ | 3, 4, 5 |
 | [DL-05](../mang/dl.md#dl-05) Document AI và mô hình thị giác–ngôn ngữ (VLM) | Dùng chung trong họ | 5, 7 |
-| [DL-06](../mang/dl.md#dl-06) Xử lý giọng nói (ASR) | Chuyên biệt | — |
-| [LLM-05](../mang/llm.md#llm-05) Tool calling và điều phối workflow/agent | Dùng chung trong họ | 7 |
+| [DL-06](../mang/dl.md#dl-06) Xử lý giọng nói (ASR) | Dùng chung trong họ | 9 |
+| [LLM-05](../mang/llm.md#llm-05) Tool calling và điều phối workflow/agent | Dùng chung trong họ | 7, 9 |
 | [LLM-07](../mang/llm.md#llm-07) Fine-tune, distill và tự host LLM | Dùng chung trong họ | 5 |
 | [LLM-08](../mang/llm.md#llm-08) Text-to-SQL và hỏi đáp số liệu | Dùng chung trong họ | 7 |
-| [OPS-02](../mang/ops.md#ops-02) Theo dõi thực nghiệm và tái lập | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [OPS-03](../mang/ops.md#ops-03) Pipeline và điều phối tác vụ | Cầu nối liên họ | 1, 2, 3, 4 |
+| [OPS-02](../mang/ops.md#ops-02) Theo dõi thực nghiệm và tái lập | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [OPS-03](../mang/ops.md#ops-03) Pipeline và điều phối tác vụ | Cầu nối liên họ | 1, 2, 3, 4, 9 |
 | [OPS-04](../mang/ops.md#ops-04) Giám sát model và drift | Cầu nối liên họ | 1, 2, 3, 4, 5, 8 |
 | [OPS-05](../mang/ops.md#ops-05) Tối ưu suy luận và serving model | Cầu nối liên họ | 3, 4, 5 |
-| [OPS-08](../mang/ops.md#ops-08) Bảo mật dữ liệu và tuân thủ | Cầu nối liên họ | 1, 3, 5, 7 |
-| [BIZ-01](../mang/biz.md#biz-01) Framing bài toán và quy đổi giá trị (ĐÚNG) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [BIZ-04](../mang/biz.md#biz-04) Trình bày, demo và thuyết phục (THUYẾT PHỤC) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
-| [BIZ-05](../mang/biz.md#biz-05) Kiến thức miền nghiệp vụ | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8 |
+| [OPS-08](../mang/ops.md#ops-08) Bảo mật dữ liệu và tuân thủ | Cầu nối liên họ | 1, 3, 5, 7, 9 |
+| [BIZ-01](../mang/biz.md#biz-01) Framing bài toán và quy đổi giá trị (ĐÚNG) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [BIZ-04](../mang/biz.md#biz-04) Trình bày, demo và thuyết phục (THUYẾT PHỤC) | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
+| [BIZ-05](../mang/biz.md#biz-05) Kiến thức miền nghiệp vụ | Nền tảng chung | 1, 2, 3, 4, 5, 7, 8, 9 |
 | [EFF-06](../mang/eff.md#eff-06) Xử lý theo lô và bất đồng bộ | Dùng chung trong họ | 5 |
 
-### ○ Ít (4)
+### ○ Ít (5)
 
 | Kỹ năng | Tầng | Dùng chung với nhóm |
 |---|---|---|
 | [DATA-02](../mang/data.md#data-02) Xử lý dữ liệu bảng | Dùng chung trong họ | 1, 2, 3, 4, 8 |
 | [ML-04](../mang/ml.md#ml-04) Giải thích mô hình | Cầu nối liên họ | 1, 3, 5, 8 |
+| [DL-07](../mang/dl.md#dl-07) Sinh giọng nói, hình ảnh và video | Chuyên biệt | 9 |
 | [BIZ-06](../mang/biz.md#biz-06) Đọc và tái hiện paper | Bổ trợ | — |
 | [EFF-08](../mang/eff.md#eff-08) Tiết kiệm token khi dùng AI hỗ trợ lập trình | Bổ trợ | — |
 

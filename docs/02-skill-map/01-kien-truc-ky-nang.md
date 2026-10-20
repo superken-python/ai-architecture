@@ -39,7 +39,7 @@ Từ đó **tầng được tính tự động** (không gán tay, nên không t
 
 ```mermaid
 flowchart BT
-    F["<b>Nền tảng chung</b><br/>Cốt lõi/Cần ở cả 8 nhóm"]
+    F["<b>Nền tảng chung</b><br/>Cốt lõi/Cần ở mọi nhóm"]
     B["<b>Cầu nối liên họ</b><br/>Cốt lõi/Cần ở cả hai họ"]
     H1["<b>Dùng chung trong họ</b><br/>họ có cấu trúc & quyết định"]
     H2["<b>Dùng chung trong họ</b><br/>họ phi cấu trúc & GenAI"]
@@ -51,8 +51,8 @@ Số lượng mới nhất của từng tầng: [generated/README.md](generated/
 
 | Tầng | Quy tắc | Ý nghĩa khi học |
 |---|---|---|
-| Nền tảng chung | Cốt lõi/Cần ở **cả 8** nhóm | Học đầu tiên; dùng mọi nơi |
-| Cầu nối liên họ | Cốt lõi/Cần ở **cả hai họ**, chưa đủ 8 nhóm | Chìa khóa chuyển giữa ML cổ điển và GenAI |
+| Nền tảng chung | Cốt lõi/Cần ở **mọi** nhóm (hiện là 9) | Học đầu tiên; dùng mọi nơi |
+| Cầu nối liên họ | Cốt lõi/Cần ở **cả hai họ**, chưa đủ mọi nhóm | Chìa khóa chuyển giữa ML cổ điển và GenAI |
 | Dùng chung trong họ | Cốt lõi/Cần ở ≥ 2 nhóm **cùng một họ** | Học khi vào họ đó; dùng lại trong cả họ |
 | Chuyên biệt | Cốt lõi/Cần ở **đúng 1** nhóm | Học khi đi sâu nhóm đó (chân chữ T) |
 | Bổ trợ | Chỉ ở mức Ít | Tăng năng suất (đọc paper, dùng AI hỗ trợ lập trình) |
@@ -98,7 +98,7 @@ Ví dụ: [ML-07 · Truy xuất và xếp hạng hai tầng](generated/mang/ml.m
 | Mục | Nội dung |
 |---|---|
 | Tóm tắt | Kỹ năng giải quyết vấn đề gì (một câu) |
-| Tầng · điểm đòn bẩy | Tầng (tính tự động) và điểm đòn bẩy = Σ(Cốt lõi = 2, Cần = 1) trên 8 nhóm |
+| Tầng · điểm đòn bẩy | Tầng (tính tự động) và điểm đòn bẩy = Σ(Cốt lõi = 2, Cần = 1) trên mọi nhóm |
 | Dùng cho | Mức cần thiết theo từng nhóm |
 | Cơ bản / Trung cấp / Nâng cao | Việc **làm được** ở từng mức — viết bằng động từ, kiểm chứng được |
 | Tiên quyết · Mở khóa | Kỹ năng cần học trước / kỹ năng được mở ra sau |

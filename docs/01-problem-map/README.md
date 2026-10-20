@@ -5,7 +5,7 @@ Dữ liệu có cấu trúc của từng nhóm (ví dụ, luồng giá trị, m�
 ma trận kỹ năng) nằm trong [catalog/problems.yaml](../../catalog/problems.yaml) và được hiển thị chi tiết ở
 các trang nhóm trong [bản đồ kỹ năng](../02-skill-map/generated/README.md).
 
-## 8 nhóm bài toán, 4 khối
+## 9 nhóm bài toán, 5 khối
 
 Phân loại theo **đầu ra mà nghiệp vụ cần**, không theo loại dữ liệu hay thuật toán.
 
@@ -19,29 +19,41 @@ Phân loại theo **đầu ra mà nghiệp vụ cần**, không theo loại dữ
 | B · Hiểu | 6 · Ngôn ngữ, LLM và RAG | Văn bản này nói gì? Trả lời dựa trên tài liệu nội bộ. | [Nhóm 6](../02-skill-map/generated/nhom/g6-llm-rag.md) |
 | C · Hành động | 7 · AI Agent và tự động hóa quy trình | Làm giúp tôi cả chuỗi việc này. | [Nhóm 7](../02-skill-map/generated/nhom/g7-agent-tu-dong-hoa.md) |
 | D · Quyết định | 8 · Tối ưu hóa và suy luận nhân quả | Nên làm gì là tốt nhất? | [Nhóm 8](../02-skill-map/generated/nhom/g8-toi-uu-nhan-qua.md) |
+| E · Sáng tạo | 9 · Tạo nội dung đa phương tiện | Làm giúp tôi video, hình ảnh hay giọng đọc này. | [Nhóm 9](../02-skill-map/generated/nhom/g9-tao-noi-dung.md) |
+
+> [!NOTE]
+> **Nhóm 9 bổ sung ngày 2026-10-20**, không có trong tài liệu gốc v1. Đầu ra là **nội dung mới** (video, hình, giọng
+> đọc), không phải dự đoán, hiểu, hành động hay quyết định, nên cần khối mới *E · Sáng tạo*. Không đặt tên "nhóm mix"
+> vì hai lẽ. Thứ nhất, trong repo "ghép nhiều nhóm" đã có tên là **tổ hợp** (CMB-01…). Thứ hai, lõi của bài toán (sinh
+> giọng, hình, video và dựng media bằng code) là kỹ năng mới, không có trong 8 nhóm cũ: hai kỹ năng
+> [DL-07](../02-skill-map/generated/mang/dl.md#dl-07) và [PY-05](../02-skill-map/generated/mang/py.md#py-05). Dự án mẫu:
+> [video dạy chữ cái](../../projects/g9-video-chu-cai/README.md).
 
 ## Nhận diện bài toán trong 30 giây
 
-Đi từ trên xuống, dừng ở câu trả lời "Có" đầu tiên. Thứ tự đi từ bài toán rộng (hành động, quyết định) đến
-hẹp (dự đoán), vì bài toán rộng thường chứa bài toán hẹp bên trong.
+Đi từ trên xuống, dừng ở câu trả lời "Có" đầu tiên. Thứ tự đi từ bài toán rộng (tạo nội dung, hành động, quyết định)
+đến hẹp (dự đoán), vì bài toán rộng thường chứa bài toán hẹp bên trong. Câu về tạo nội dung đứng trước câu về chuỗi thao
+tác vì dây chuyền làm video cũng là một chuỗi thao tác.
 
 ```mermaid
 flowchart TD
     S([Doanh nghiệp cần đầu ra gì?]) --> Q1
-    Q1{"Q1 · Cần thực hiện một chuỗi thao tác<br/>trên nhiều hệ thống?"} -- Có --> N7[Nhóm 7 · AI Agent & tự động hóa]
+    Q1{"Q1 · Sản phẩm cần giao là nội dung mới để xem/nghe —<br/>video, hình ảnh, giọng đọc, nhạc?"} -- Có --> N9[Nhóm 9 · Tạo nội dung đa phương tiện]
     Q1 -- Không --> Q2
-    Q2{"Q2 · Cần chọn phương án tốt nhất dưới ràng buộc,<br/>hoặc đo tác động thật của một hành động?"} -- Có --> N8[Nhóm 8 · Tối ưu & nhân quả]
+    Q2{"Q2 · Cần thực hiện một chuỗi thao tác<br/>trên nhiều hệ thống?"} -- Có --> N7[Nhóm 7 · AI Agent & tự động hóa]
     Q2 -- Không --> Q3
-    Q3{"Q3 · Cần xếp hạng/gợi ý<br/>mục phù hợp cho từng người?"} -- Có --> N4[Nhóm 4 · Gợi ý & xếp hạng]
+    Q3{"Q3 · Cần chọn phương án tốt nhất dưới ràng buộc,<br/>hoặc đo tác động thật của một hành động?"} -- Có --> N8[Nhóm 8 · Tối ưu & nhân quả]
     Q3 -- Không --> Q4
-    Q4{"Q4 · Đầu vào chính là ảnh,<br/>video hoặc tài liệu scan?"} -- Có --> N5[Nhóm 5 · Thị giác máy tính & Document AI]
+    Q4{"Q4 · Cần xếp hạng/gợi ý<br/>mục phù hợp cho từng người?"} -- Có --> N4[Nhóm 4 · Gợi ý & xếp hạng]
     Q4 -- Không --> Q5
-    Q5{"Q5 · Đầu vào là văn bản, giọng nói,<br/>hoặc cần hỏi đáp trên tài liệu?"} -- Có --> N6[Nhóm 6 · Ngôn ngữ, LLM & RAG]
+    Q5{"Q5 · Đầu vào chính là ảnh,<br/>video hoặc tài liệu scan?"} -- Có --> N5[Nhóm 5 · Thị giác máy tính & Document AI]
     Q5 -- Không --> Q6
-    Q6{"Q6 · Cần dự báo một giá trị<br/>trong tương lai theo thời gian?"} -- Có --> N2[Nhóm 2 · Chuỗi thời gian]
+    Q6{"Q6 · Đầu vào là văn bản, giọng nói,<br/>hoặc cần hỏi đáp trên tài liệu?"} -- Có --> N6[Nhóm 6 · Ngôn ngữ, LLM & RAG]
     Q6 -- Không --> Q7
-    Q7{"Q7 · Cần tìm điểm bất thường<br/>khi gần như không có nhãn?"} -- Có --> N3[Nhóm 3 · Phát hiện bất thường]
-    Q7 -- Không --> N1[Nhóm 1 · Dự đoán trên dữ liệu bảng]
+    Q7{"Q7 · Cần dự báo một giá trị<br/>trong tương lai theo thời gian?"} -- Có --> N2[Nhóm 2 · Chuỗi thời gian]
+    Q7 -- Không --> Q8
+    Q8{"Q8 · Cần tìm điểm bất thường<br/>khi gần như không có nhãn?"} -- Có --> N3[Nhóm 3 · Phát hiện bất thường]
+    Q8 -- Không --> N1[Nhóm 1 · Dự đoán trên dữ liệu bảng]
 ```
 
 > Dự án thực tế thường ghép nhiều nhóm. Ví dụ: xử lý hồ sơ vay = Nhóm 5 (đọc giấy tờ) + Nhóm 1 (chấm điểm
@@ -58,6 +70,14 @@ quy trình**, với **G6** hỗ trợ hiểu yêu cầu: chat trong Excel → tr
 Excel không tự làm bài toán thuộc G1; G1 chỉ tham gia khi có mục tiêu dự đoán/chấm điểm. Dự án hiện chỉ nghiên cứu
 khả thi và solution approach, chưa triển khai.
 
+## Use case bổ sung · Video dạy chữ cái tiếng Việt (Nhóm 9)
+
+[Video dạy chữ cái cùng Sách Vui](../../projects/g9-video-chu-cai/README.md) thuộc **G9 · Tạo nội dung đa phương
+tiện**: video 2 phút dạy 29 chữ cái trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code (kịch bản YAML →
+giọng đọc → nhạc → hình → ffmpeg) và cho máy nghe lại lời đọc bằng ASR. Tách bài toán con: viết kịch bản là G6, dây chuyền
+dựng là kỹ năng pipeline (OPS-03), còn phần lõi — sinh giọng đọc và dựng media — là G9. Có [hướng dẫn tự làm bằng Claude
+Code](../../projects/g9-video-chu-cai/docs/huong-dan-claude-code.md).
+
 ## Ma trận kỹ năng theo nhóm (giai đoạn 1)
 
 Mức cần thiết của 8 mảng kỹ năng để làm tốt từng nhóm ở mức trung cấp trở lên (đánh giá định tính).
@@ -73,9 +93,10 @@ Mức cần thiết của 8 mảng kỹ năng để làm tốt từng nhóm ở 
 | 6 · LLM/RAG | ◐ | ◐ | ○ | ◐ | ● | ○ | ● | ◐ |
 | 7 · Agent | ◐ | ○ | ○ | ○ | ● | ○ | ● | ● |
 | 8 · Tối ưu | ◐ | ● | ◐ | ○ | ○ | ● | ◐ | ● |
+| 9 · Nội dung | ○ | ◐ | ○ | ● | ● | ○ | ● | ● |
 
 **Điều rút ra:** cột *Triển khai & MLOps* và *Hiểu nghiệp vụ* không có ô "Ít" ở nhóm nào — hai kỹ năng xương
-sống. Giai đoạn 2 chi tiết hóa ma trận này thành 65 kỹ năng cụ thể và **kiểm tra tự động** rằng mọi ô Cốt lõi
+sống. Giai đoạn 2 chi tiết hóa ma trận này thành 67 kỹ năng cụ thể và **kiểm tra tự động** rằng mọi ô Cốt lõi
 ở trên đều được phủ (xem [đối chiếu](../02-skill-map/generated/ma-tran-ky-nang.md#doi-chieu-giai-doan-1)).
 
 ## Ba mức kỹ năng
@@ -103,6 +124,6 @@ Bốn bước này trở thành bốn kỹ năng nền tảng BIZ-01 → BIZ-04 
 | Tháng 1–2 · Nền tảng | Python, SQL, thống kê, Git; một dự án dữ liệu bảng đóng gói thành API (FastAPI + Docker). Sách: *Hands-On Machine Learning* (Géron) | Cuối tháng 2: dự án bảng chạy qua API |
 | Tháng 3–4 · GenAI | LLM API, structured output; hệ RAG tiếng Việt có bộ đánh giá và tracing. Sách: *AI Engineering* (Chip Huyen) | Cuối tháng 4: RAG tiếng Việt có bộ đánh giá |
 | Tháng 5–6 · Chuyên sâu | 1–2 nhóm sát nhu cầu công ty; MLOps (MLflow, drift, chi phí, độ trễ). Sách: *Designing Machine Learning Systems* (Chip Huyen) | Cuối tháng 6: dự án chuyên sâu cho công ty |
-| Xuyên suốt | Mô hình chữ T: nhận diện và dựng baseline cho cả 8 nhóm, thật sâu ở 1–2 nhóm; mỗi tuần một paper | — |
+| Xuyên suốt | Mô hình chữ T: nhận diện và dựng baseline cho cả 9 nhóm, thật sâu ở 1–2 nhóm; mỗi tuần một paper | — |
 
 Giai đoạn 2 ánh xạ lộ trình này xuống từng kỹ năng: [04-lo-trinh-hoc.md](../02-skill-map/04-lo-trinh-hoc.md).

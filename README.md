@@ -8,13 +8,13 @@ Bản đồ học và làm AI trong doanh nghiệp: từ **các bài toán thị
 | Giai đoạn | Nội dung | Trạng thái |
 |---|---|---|
 | [00 · Setup](docs/00-setup/README.md) | Chuẩn bị môi trường: công cụ, Python/uv, API key, GPU, dữ liệu | ✅ |
-| [01 · Bản đồ bài toán](docs/01-problem-map/README.md) | 8 nhóm bài toán AI doanh nghiệp, 4 khối, cách nhận diện, lộ trình 6 tháng | ✅ |
-| [02 · Bản đồ kỹ năng](docs/02-skill-map/README.md) | 65 kỹ năng × 10 mảng × 3 mức; dùng chung / riêng / kết hợp; tiết kiệm token & độ chính xác | ✅ |
+| [01 · Bản đồ bài toán](docs/01-problem-map/README.md) | 9 nhóm bài toán AI doanh nghiệp, 5 khối, cách nhận diện, lộ trình 6 tháng | ✅ |
+| [02 · Bản đồ kỹ năng](docs/02-skill-map/README.md) | 67 kỹ năng × 10 mảng × 3 mức; dùng chung / riêng / kết hợp; tiết kiệm token & độ chính xác | ✅ |
 | [Giai đoạn A · Nền tảng](docs/03-giai-doan-a-nen-tang/README.md) | 8 bài lý thuyết + lab chi tiết (tuần 1–8), cùng xây một real case từ đầu: dự đoán khách rời mạng từ 8 bảng vận hành tới API Docker và báo cáo 1 trang | ✅ |
 | [Radar agent · Nhóm 7](docs/agent-radar/README.md) | Chọn framework/công cụ cho agent: 19 framework + 18 công cụ hỗ trợ, vòng Adopt/Trial/Assess/Hold, số liệu registry cập nhật tự động hằng tháng | 🔄 |
 | [Trang web lộ trình](web/README.md) | Lộ trình 4 giai đoạn từng bước, cơ bản → nâng cao, tự đánh dấu tiến độ — GitHub Pages | ✅ |
 | [03 · Labs](labs/README.md) | Bài lab ngắn cho từng kỹ năng, theo thứ tự lộ trình | ⏳ |
-| [04 · Dự án](projects/README.md) | Dự án luyện tập cho 8 nhóm và các tổ hợp | ⏳ |
+| [04 · Dự án](projects/README.md) | Dự án luyện tập cho 9 nhóm và các tổ hợp; mới: [video dạy chữ cái](projects/g9-video-chu-cai/README.md) (Nhóm 9) | ⏳ |
 | 05 · Production | Mẫu triển khai, giám sát, vận hành chi phí cho dự án thật | 🔜 |
 
 ## Bắt đầu
@@ -37,8 +37,8 @@ bấm **Học ngay** là mở bài học, lab ngay trên trang (Markdown hiển 
 ```
 ai-architecture/
 ├── catalog/                    # NGUỒN DỮ LIỆU DUY NHẤT (YAML) cho bài toán, kỹ năng, tổ hợp
-│   ├── problems.yaml           #   8 nhóm, 2 họ, ma trận giai đoạn 1
-│   ├── skills.yaml             #   10 mảng, 65 kỹ năng
+│   ├── problems.yaml           #   9 nhóm, 2 họ, ma trận giai đoạn 1
+│   ├── skills.yaml             #   10 mảng, 67 kỹ năng
 │   ├── combinations.yaml       #   10 tổ hợp dự án nhiều nhóm
 │   ├── roadmap.yaml            #   lộ trình 4 giai đoạn, từng bước + mức mục tiêu
 │   ├── docs.yaml               #   tài liệu theo chủ đề + bài nào dạy bước/kỹ năng nào → liên kết chéo trên web

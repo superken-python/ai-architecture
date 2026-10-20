@@ -16,7 +16,7 @@
 #   efficiency_note (tùy chọn): kỹ năng này giúp tiết kiệm token/chi phí hoặc giữ độ chính xác ra sao.
 #
 # Tầng (tier) KHÔNG khai báo tay mà được tính từ used_by:
-#   Nền tảng chung = core/needed ở cả 8 nhóm; Dùng chung = core/needed ở 2–7 nhóm;
+#   Nền tảng chung = core/needed ở mọi nhóm; Dùng chung = core/needed ở ≥ 2 nhóm (chưa đủ mọi nhóm);
 #   Chuyên biệt = core/needed ở đúng 1 nhóm; Bổ trợ = chỉ ở mức minor.
 
 version: 1
@@ -24,7 +24,7 @@ version: 1
 domains:
   - code: PY
     name: Lập trình nền tảng
-    description: Python, Git, môi trường, kiểm thử, gọi API bền vững — nền móng cho mọi nhóm.
+    description: Python, Git, môi trường, kiểm thử, gọi API bền vững, dựng media bằng code — nền móng cho mọi nhóm.
   - code: DATA
     name: SQL & dữ liệu
     description: Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng thời điểm, không rò rỉ.
@@ -36,7 +36,7 @@ domains:
     description: Học có giám sát, boosting, bất thường, chuỗi thời gian, truy xuất & xếp hạng.
   - code: DL
     name: Deep learning
-    description: PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, giọng nói.
+    description: PyTorch, transfer learning, embedding, thị giác máy tính, Document AI, giọng nói, mô hình sinh (giọng, ảnh, video).
   - code: LLM
     name: LLM, RAG & Agent
     description: Gọi LLM, structured output, RAG, đánh giá, tool calling, bảo mật, fine-tune.
@@ -63,7 +63,7 @@ skills:
       basic: Cú pháp, cấu trúc dữ liệu, hàm, module; đọc/ghi CSV, JSON, Parquet; xử lý ngoại lệ; type hints cho hàm.
       intermediate: dataclass/pydantic cho dữ liệu có cấu trúc, generator cho dữ liệu lớn, logging, cấu hình qua file/biến môi trường, CLI (typer/argparse).
       advanced: Profiling (cProfile, py-spy), vector hóa thay vòng lặp, đa tiến trình, viết thư viện nội bộ có tài liệu và phiên bản.
-    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core, G9: core}
     prereqs: []
     tools: [Python 3.12, VS Code, JupyterLab, pydantic, typer]
     done_when: Viết được một module xử lý dữ liệu có type hints, logging, CLI và người khác chạy được chỉ bằng README.
@@ -76,7 +76,7 @@ skills:
       basic: commit/branch/merge, .gitignore (không commit dữ liệu và secret), uv + pyproject.toml, cấu trúc src/ tests/ notebooks/.
       intermediate: Pull request và code review, lockfile để tái lập môi trường, pre-commit, Makefile; chuyển code từ notebook sang module.
       advanced: Monorepo nhiều dự án, versioning dữ liệu/model (DVC hoặc Git LFS), semantic versioning, CI chạy lint/test/eval.
-    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core, G9: core}
     prereqs: [PY-01]
     tools: [Git, GitHub, uv, pre-commit, make, DVC]
     done_when: Clone repo sạch trên máy khác, chạy một lệnh setup là có môi trường giống hệt, mọi thay đổi đi qua PR.
@@ -89,7 +89,7 @@ skills:
       basic: pytest cho hàm thuần, ruff để lint/format, assert về shape và kiểu dữ liệu.
       intermediate: Test pipeline dữ liệu bằng fixture nhỏ, kiểm tra schema (pandera), test thuộc tính (hypothesis), type check, chạy test trong CI.
       advanced: Eval-as-test — chạy golden set trong CI và chặn merge khi metric giảm quá ngưỡng; test hệ không tất định bằng ngưỡng thống kê thay vì so khớp chuỗi.
-    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: core, G7: core, G8: needed}
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: core, G7: core, G8: needed, G9: needed}
     prereqs: [PY-01]
     tools: [pytest, ruff, mypy hoặc pyright, hypothesis, pandera]
     done_when: Mọi PR có test tự động; một thay đổi làm giảm chất lượng model/prompt bị CI phát hiện trước khi merge.
@@ -103,11 +103,25 @@ skills:
       basic: httpx/requests, timeout, xử lý mã lỗi HTTP, đọc tài liệu API, không hard-code khóa bí mật.
       intermediate: asyncio + semaphore giới hạn đồng thời, retry exponential backoff + jitter cho lỗi 429/5xx, rate limit, idempotency key.
       advanced: Hàng đợi tác vụ (queue/worker), circuit breaker, streaming (SSE), xử lý hàng trăm nghìn request có checkpoint/resume.
-    used_by: {G1: minor, G2: minor, G3: needed, G4: minor, G5: needed, G6: core, G7: core, G8: minor}
+    used_by: {G1: minor, G2: minor, G3: needed, G4: minor, G5: needed, G6: core, G7: core, G8: minor, G9: needed}
     prereqs: [PY-01]
     tools: [httpx, asyncio, tenacity]
     done_when: Xử lý 10.000 tài liệu qua API có giới hạn tốc độ; chạy lại sau sự cố không gọi trùng, không mất bản ghi.
     efficiency_note: Retry có kiểm soát + idempotency tránh trả tiền hai lần cho cùng một request.
+
+  - id: PY-05
+    name: Xử lý và dựng media bằng code
+    domain: PY
+    summary: Biến kịch bản thành ảnh, âm thanh và video bằng code — chữ, nhịp, bố cục luôn đúng vì do code đặt.
+    levels:
+      basic: Đọc/ghi và biến đổi ảnh (Pillow), âm thanh (numpy, WAV); ghép ảnh + âm thanh + phụ đề thành MP4 bằng một lệnh ffmpeg.
+      intermediate: Dựng cả video theo dòng thời gian từ kịch bản (YAML) — hoạt ảnh theo nhịp nhạc, phụ đề sáng dần theo lời, trộn giọng với nhạc có ducking; dựng lại bằng một lệnh, có test cho từng khối.
+      advanced: Mẫu video dùng lại cho nhiều bài (Remotion, MoviePy), dựng song song, tự kiểm tra khung hình (chữ, bố cục, tương phản), tối ưu dung lượng và thời gian dựng.
+    used_by: {G5: minor, G9: core}
+    prereqs: [PY-01]
+    tools: [Pillow, numpy, ffmpeg, MoviePy, Remotion]
+    done_when: Một lệnh dựng lại được video 2 phút từ kịch bản; sửa một chữ trong kịch bản thì video mới hiện đúng chữ đó.
+    efficiency_note: Xem vài khung hình PNG thay vì dựng cả video sau mỗi lần sửa; nhớ kết quả giọng đọc và tài nguyên tải về.
 
   # ───────────────────────── DATA · SQL & dữ liệu ─────────────────────────
   - id: DATA-01
@@ -170,7 +184,7 @@ skills:
       basic: Kiểm tra schema, giá trị thiếu, trùng, khoảng giá trị; profile dữ liệu trước khi train.
       intermediate: Validation tự động trong pipeline (pandera/Great Expectations), kiểm tra chất lượng nhãn (độ đồng thuận người gán, nhãn mâu thuẫn).
       advanced: Data contract giữa các team, cảnh báo khi nguồn đổi định dạng, tìm và sửa nhãn sai có hệ thống (cleanlab).
-    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed}
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed, G9: needed}
     prereqs: [DATA-02]
     tools: [pandera, Great Expectations, cleanlab]
     done_when: Pipeline tự dừng và báo lỗi rõ ràng khi dữ liệu đầu vào sai schema hoặc lệch phân phối mạnh.
@@ -183,7 +197,7 @@ skills:
       basic: Chuẩn hóa Unicode NFC (dấu dựng sẵn vs dấu tổ hợp), làm sạch HTML/khoảng trắng, regex cho số điện thoại, CCCD, mã số thuế, số tiền.
       intermediate: Tách từ tiếng Việt (underthesea, pyvi) cho BM25, xử lý văn bản không dấu/viết tắt, chuẩn hóa số và ngày kiểu Việt Nam (1.000.000,50 vs 1,000,000.50).
       advanced: Pipeline làm sạch quy mô lớn, khử trùng lặp gần đúng (MinHash), ẩn danh hóa PII trước khi gửi ra API bên ngoài.
-    used_by: {G5: needed, G6: needed, G7: minor}
+    used_by: {G5: needed, G6: needed, G7: minor, G9: needed}
     prereqs: [PY-01]
     tools: [unicodedata, underthesea, pyvi, regex, datasketch]
     done_when: Cùng một câu gõ bằng hai bộ gõ khác nhau cho ra cùng kết quả tìm kiếm; PII được che trước khi rời hệ thống.
@@ -211,7 +225,7 @@ skills:
       basic: Phân phối, trung bình/trung vị/phân vị, phương sai, tương quan, tỷ lệ nền (base rate); đọc histogram/boxplot.
       intermediate: Định lý giới hạn trung tâm, luật Bayes (vì sao 99% accuracy vô dụng khi gian lận chỉ 0,1%), sai lệch chọn mẫu.
       advanced: Mô hình Bayes/phân cấp, dữ liệu bị kiểm duyệt (survival cho churn), phân tích công suất thống kê.
-    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: needed, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: needed, G8: core, G9: needed}
     prereqs: []
     tools: [numpy, scipy, statsmodels, matplotlib]
     done_when: Giải thích được cho người ngoài ngành vì sao một model "99% chính xác" có thể không có giá trị.
@@ -224,7 +238,7 @@ skills:
       basic: Khoảng tin cậy cho tỷ lệ — golden set 100 câu đạt 90% thì khoảng tin cậy 95% xấp xỉ ±6 điểm phần trăm; không kết luận từ chênh lệch nhỏ hơn sai số.
       intermediate: Bootstrap cho mọi metric (F1, NDCG, WAPE), so sánh cặp hai hệ trên cùng tập (paired bootstrap, McNemar), ước lượng cỡ golden set cần thiết.
       advanced: Kiểm soát nhiều phép so sánh khi thử nhiều prompt/model (tránh overfit tập đánh giá), tách dev/test cho eval, lấy mẫu phân tầng để người kiểm tra.
-    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: core, G7: needed, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: core, G7: needed, G8: core, G9: needed}
     prereqs: [STAT-01]
     tools: [scipy.stats, numpy, statsmodels]
     done_when: Mọi bảng so sánh model/prompt đều kèm khoảng tin cậy, và quyết định chọn được giải thích bằng nó.
@@ -238,7 +252,7 @@ skills:
       basic: Giả thuyết, nhóm đối chứng, ngẫu nhiên hóa, p-value và ý nghĩa thực tế, tính cỡ mẫu trước khi chạy.
       intermediate: Lỗi "nhìn trộm" và dừng sớm, metric bảo vệ (guardrail), đơn vị ngẫu nhiên hóa (người dùng vs phiên), CUPED giảm phương sai.
       advanced: Thử nghiệm tuần tự (sequential), switchback cho hệ có hiệu ứng mạng, interleaving cho xếp hạng.
-    used_by: {G1: needed, G2: minor, G3: minor, G4: core, G6: needed, G7: minor, G8: core}
+    used_by: {G1: needed, G2: minor, G3: minor, G4: core, G6: needed, G7: minor, G8: core, G9: minor}
     prereqs: [STAT-02]
     tools: [statsmodels, scipy, GrowthBook]
     done_when: Thiết kế được một A/B test có cỡ mẫu, thời gian chạy và tiêu chí dừng chốt trước khi bắt đầu.
@@ -412,7 +426,7 @@ skills:
       basic: Hugging Face pipeline; fine-tune ResNet/ViT phân loại ảnh; fine-tune PhoBERT phân loại văn bản tiếng Việt.
       intermediate: PEFT/LoRA, augmentation, chiến lược đóng băng tầng, đánh giá theo từng lớp.
       advanced: Tiếp tục pretrain trên dữ liệu miền (domain-adaptive), distillation sang model nhỏ, đa nhiệm.
-    used_by: {G3: minor, G4: minor, G5: core, G6: needed}
+    used_by: {G3: minor, G4: minor, G5: core, G6: needed, G9: minor}
     prereqs: [DL-01]
     tools: [Hugging Face Transformers, PEFT, timm]
     done_when: Model fine-tune nhỏ đạt chất lượng gần LLM lớn trên một tác vụ phân loại hẹp, với chi phí suy luận thấp hơn nhiều.
@@ -466,11 +480,25 @@ skills:
       basic: Whisper/PhoWhisper chuyển giọng nói thành văn bản; đo WER/CER.
       intermediate: Tách người nói (diarization), VAD cắt khoảng lặng, xử lý giọng vùng miền và thuật ngữ riêng.
       advanced: Streaming ASR độ trễ thấp, fine-tune trên ghi âm tổng đài, kết hợp tóm tắt và trích ý định.
-    used_by: {G6: needed}
+    used_by: {G6: needed, G9: needed}
     prereqs: [DL-02]
     tools: [Whisper, faster-whisper, PhoWhisper, pyannote]
     done_when: Đo được WER trên ghi âm thật của công ty và biết nhóm lỗi lớn nhất (tên riêng, số, giọng vùng miền).
     efficiency_note: VAD cắt khoảng lặng trước khi ASR giảm thời lượng xử lý; transcript ngắn gọn giảm token cho bước tóm tắt.
+
+  - id: DL-07
+    name: Sinh giọng nói, hình ảnh và video
+    domain: DL
+    summary: Tạo giọng đọc tiếng Việt, ảnh và video bằng mô hình sinh (TTS, diffusion, image-to-video) — chọn và kiểm tra bằng phép đo, không nghe nhìn cảm tính.
+    levels:
+      basic: Gọi TTS tiếng Việt (Piper offline, FPT.AI, Google, Azure) và mô hình sinh ảnh/video qua API; viết prompt mô tả nhân vật, bối cảnh; dùng ASR nghe lại để đo lời đọc.
+      intermediate: Chọn giọng, mô hình và cách viết câu bằng bộ đánh giá cố định (ASR + người nghe, ≥ 30 câu); tắt ngẫu nhiên để dựng lại y hệt; giữ nhân vật nhất quán bằng ảnh tham chiếu; thay câu sai bằng thu âm thật.
+      advanced: Fine-tune giọng hoặc LoRA nhân vật, tự host mô hình sinh trên GPU, kiểm duyệt nội dung và bản quyền dữ liệu huấn luyện, cân chất lượng–chi phí–thời gian theo từng phút nội dung.
+    used_by: {G6: minor, G9: core}
+    prereqs: [LLM-01, PY-04]
+    tools: [Piper, sherpa-onnx, "FPT.AI / Google / Azure TTS", ElevenLabs, "Kling / Veo / Sora", Stable Diffusion]
+    done_when: Có bảng đo ít nhất 30 câu đọc (ASR nghe lại + một người nghe), biết câu nào sai và vì sao, đã sửa bằng đổi câu, đổi giọng hoặc thu âm.
+    efficiency_note: Nhớ kết quả sinh theo nội dung (câu không đổi thì không đọc lại); thử trên đoạn ngắn rồi mới sinh cả video.
 
   # ───────────────────────── LLM · LLM, RAG & Agent ─────────────────────────
   - id: LLM-01
@@ -481,7 +509,7 @@ skills:
       basic: Cấu trúc messages/system prompt, ví dụ mẫu (few-shot), chỉ dẫn rõ có tiêu chí, max_tokens; prompt lưu trong file có version.
       intermediate: Tách tác vụ thành chuỗi bước (prompt chaining), ngữ cảnh có cấu trúc (thẻ XML/markdown), cho phép trả lời "không biết", chọn model theo độ khó.
       advanced: Tối ưu prompt có hệ thống trên golden set, prompt cho tiếng Việt và đa ngôn ngữ, review/A-B/rollback prompt như code.
-    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: needed, G6: core, G7: core, G8: minor}
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: needed, G6: core, G7: core, G8: minor, G9: core}
     prereqs: [PY-01]
     tools: ["LLM API (Anthropic, OpenAI, Gemini…)", Jinja2]
     done_when: Mọi prompt nằm trong repo, có version, có golden set đi kèm và lịch sử thay đổi có số liệu.
@@ -494,7 +522,7 @@ skills:
       basic: Yêu cầu JSON theo schema, validate bằng pydantic, dùng enum cho nhãn thay vì văn bản tự do.
       intermediate: Structured outputs/strict tool schema của nhà cung cấp, retry kèm thông báo lỗi validation, kiểm tra ràng buộc nghiệp vụ giữa các trường.
       advanced: Constrained decoding cho model tự host, thiết kế schema tối giản, theo dõi tỷ lệ output hợp lệ và tỷ lệ retry như metric production.
-    used_by: {G5: core, G6: core, G7: core}
+    used_by: {G5: core, G6: core, G7: core, G9: needed}
     prereqs: [LLM-01]
     tools: [pydantic, JSON Schema, instructor, outlines]
     done_when: 100% output đi vào hệ thống phía sau đều qua validate; ca không hợp lệ được retry hoặc chuyển người, không bao giờ lọt.
@@ -522,7 +550,7 @@ skills:
       basic: Golden set từ dữ liệu thật (≥100 mẫu có đáp án), chấm tự động bằng so khớp chính xác/so khớp từng trường, đọc thủ công các ca sai.
       intermediate: LLM-as-judge với rubric rõ, đo độ đồng thuận judge–người, bộ hồi quy chạy mỗi khi đổi prompt/model, báo cáo chi phí và độ trễ cùng chất lượng.
       advanced: Đánh giá trajectory của agent, dữ liệu kiểm thử đối kháng (prompt injection), đánh giá online từ phản hồi người dùng.
-    used_by: {G5: needed, G6: core, G7: core}
+    used_by: {G5: needed, G6: core, G7: core, G9: needed}
     prereqs: [LLM-02, STAT-02, BIZ-02]
     tools: [pytest, Langfuse, promptfoo, Inspect]
     done_when: Một lệnh `make eval` in ra chất lượng + chi phí + độ trễ, so với baseline, kèm khoảng tin cậy.
@@ -536,7 +564,7 @@ skills:
       basic: Định nghĩa tool bằng JSON schema, vòng lặp gọi tool, workflow cố định (chuỗi bước LLM xen code), người duyệt ở bước rủi ro.
       intermediate: Các mẫu workflow (chaining, routing, song song, orchestrator–workers, evaluator–optimizer), quản lý state (LangGraph hoặc agent SDK), MCP, xử lý lỗi/timeout của tool, tracing.
       advanced: Agent tự chủ có ngân sách bước/token, quản lý ngữ cảnh dài (nén, bộ nhớ ngoài), multi-agent, computer-use; thiết kế bộ tool "ít mà đủ".
-    used_by: {G6: needed, G7: core}
+    used_by: {G6: needed, G7: core, G9: needed}
     prereqs: [LLM-02, PY-04]
     tools: [LangGraph, agent SDK của các hãng, MCP, Langfuse]
     done_when: Agent báo giá chạy end-to-end, mọi hành động có log, bước gửi email luôn chờ người duyệt.
@@ -550,7 +578,7 @@ skills:
       basic: Không đưa secret vào prompt, che PII trước khi gửi API bên ngoài, giới hạn phạm vi trả lời.
       intermediate: Phòng prompt injection (tách dữ liệu và chỉ dẫn, không tin nội dung tài liệu/email), guardrails đầu vào/đầu ra, phân quyền tài liệu trong RAG, audit log.
       advanced: Quyền tối thiểu cho agent, sandbox cho tool nguy hiểm, red-teaming định kỳ, đáp ứng yêu cầu bảo vệ dữ liệu cá nhân.
-    used_by: {G5: needed, G6: core, G7: core}
+    used_by: {G5: needed, G6: core, G7: core, G9: needed}
     prereqs: [LLM-01, OPS-08]
     tools: [Presidio, guardrails, sandbox container]
     done_when: Bộ test prompt injection nằm trong eval; agent không thể thực hiện hành động ngoài danh sách cho phép.
@@ -645,7 +673,7 @@ skills:
       basic: FastAPI + pydantic, Dockerfile, job chấm điểm batch hằng ngày ra bảng/CSV.
       intermediate: Tách cấu hình/secret, health check, version model trong API, xử lý lỗi/timeout, test tải cơ bản.
       advanced: Autoscaling, canary/blue-green, shadow mode, SLA độ trễ.
-    used_by: {G1: needed, G2: needed, G3: core, G4: core, G5: core, G6: core, G7: core, G8: needed}
+    used_by: {G1: needed, G2: needed, G3: core, G4: core, G5: core, G6: core, G7: core, G8: needed, G9: needed}
     prereqs: [PY-02]
     tools: [FastAPI, Docker, uvicorn]
     done_when: "`docker compose up` là có API chấm điểm chạy được, có health check và version model."
@@ -658,7 +686,7 @@ skills:
       basic: Ghi tham số, phiên bản dữ liệu, metric mỗi lần chạy (MLflow); cố định seed.
       intermediate: Model registry, versioning dữ liệu và prompt, so sánh run, báo cáo tự động.
       advanced: Huấn luyện lại tự động có cổng kiểm định (chỉ deploy khi tốt hơn champion), lineage dữ liệu–model.
-    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed}
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed, G9: needed}
     prereqs: [PY-02, ML-01]
     tools: [MLflow, DVC, Weights & Biases]
     done_when: Tái tạo lại đúng metric của một thí nghiệm cũ từ registry trong vòng 10 phút.
@@ -671,7 +699,7 @@ skills:
       basic: Script chạy theo lịch (cron), idempotent, log rõ ràng.
       intermediate: Prefect/Airflow/Dagster, phụ thuộc giữa tác vụ, retry, backfill.
       advanced: Feature pipeline dùng chung cho train và serve, nền tảng dữ liệu/ML cho nhiều team.
-    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G6: needed, G8: minor}
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G6: needed, G8: minor, G9: core}
     prereqs: [PY-02]
     tools: [Prefect, Airflow, Dagster]
     done_when: Pipeline chạy lại cho một ngày bất kỳ trong quá khứ mà không tạo dữ liệu trùng.
@@ -710,7 +738,7 @@ skills:
       basic: Log mỗi lời gọi (version prompt, model, token vào/ra, chi phí, độ trễ).
       intermediate: Tracing nhiều bước (Langfuse/OpenTelemetry), dashboard chi phí theo tính năng/người dùng, cảnh báo vượt ngân sách, lấy mẫu trace để đánh giá.
       advanced: Đổi model/nhà cung cấp không downtime, fallback khi lỗi, phân bổ chi phí theo đơn vị nghiệp vụ, SLO cho chất lượng.
-    used_by: {G5: needed, G6: core, G7: core}
+    used_by: {G5: needed, G6: core, G7: core, G9: needed}
     prereqs: [OPS-01, LLM-01]
     tools: [Langfuse, OpenTelemetry, LiteLLM]
     done_when: Trả lời được "tháng này tính năng X tốn bao nhiêu, mỗi tác vụ hoàn thành tốn bao nhiêu" trong 1 phút.
@@ -737,7 +765,7 @@ skills:
       basic: Quản lý secret (.env, vault), không commit dữ liệu thật, nhận diện dữ liệu cá nhân (PII), ẩn danh hóa khi phân tích.
       intermediate: Phân quyền theo vai trò, audit log, mã hóa khi lưu/truyền, chính sách lưu giữ, đánh giá rủi ro khi gửi dữ liệu ra API bên ngoài.
       advanced: Đáp ứng quy định bảo vệ dữ liệu cá nhân của Việt Nam (làm việc cùng pháp chế), triển khai on-premise/VPC cho dữ liệu nhạy cảm, đánh giá tác động xử lý dữ liệu.
-    used_by: {G1: needed, G2: minor, G3: needed, G4: minor, G5: needed, G6: needed, G7: core, G8: minor}
+    used_by: {G1: needed, G2: minor, G3: needed, G4: minor, G5: needed, G6: needed, G7: core, G8: minor, G9: needed}
     prereqs: [PY-02]
     tools: [python-dotenv, HashiCorp Vault, Presidio]
     done_when: Không có secret/dữ liệu thật trong lịch sử Git; có danh sách dữ liệu nào được phép gửi ra ngoài.
@@ -751,7 +779,7 @@ skills:
       basic: Viết 1 trang — quyết định thay đổi, KPI, chi phí từng loại sai, cách làm hiện tại; xếp bài toán vào đúng nhóm (cây quyết định 30 giây).
       intermediate: Tách dự án thành bài toán con (hồ sơ vay = Nhóm 5 + 1 + 7), quy metric kỹ thuật ra tiền/giờ công, nhận ra khi nào chỉ cần luật if-else.
       advanced: Business case và ROI, thiết kế quy trình người–máy (ai duyệt gì), tiêu chí dừng dự án.
-    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: core, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: core, G8: core, G9: core}
     prereqs: []
     tools: [Mẫu 1 trang framing (templates/project)]
     done_when: Mục tiêu mơ hồ ("giảm churn") được viết lại thành bài toán đo được ("precision@500 mỗi tuần cho CSKH").
@@ -765,7 +793,7 @@ skills:
       basic: Baseline bằng luật, LightGBM mặc định hoặc LLM API + prompt; tách tập đánh giá cố định từ dữ liệu thật trước khi thử bất cứ gì.
       intermediate: Harness đánh giá một lệnh (`make eval`) in metric + chi phí + độ trễ; bảng so sánh mọi thí nghiệm với baseline.
       advanced: Đánh giá nhiều tầng (offline → shadow → A/B), quản lý tập đánh giá để không bị "học thuộc", eval chạy trong CI.
-    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core, G9: core}
     prereqs: [BIZ-01]
     tools: [pytest, MLflow, Langfuse]
     done_when: Ngày thứ 2 của dự án đã có con số baseline và một lệnh tái tạo nó.
@@ -778,7 +806,7 @@ skills:
       basic: Đọc 50–100 ca sai, gán nhãn nguyên nhân, đếm theo nhóm.
       intermediate: Sửa nhóm lỗi lớn nhất trước (dữ liệu/feature/prompt/luật hậu kiểm) rồi đo lại; phân tích theo phân khúc (slice).
       advanced: Vòng lặp lỗi → nhãn mới → huấn luyện lại liên tục; taxonomy lỗi dùng chung cho cả team.
-    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: core, G5: core, G6: core, G7: core, G8: core, G9: core}
     prereqs: [BIZ-02]
     tools: [Notebook, bảng tính, Label Studio, Langfuse]
     done_when: Mỗi vòng cải tiến có bảng "nhóm lỗi – số ca – đã sửa – metric trước/sau".
@@ -792,7 +820,7 @@ skills:
       basic: Bảng so sánh với baseline; nói rõ giới hạn và rủi ro.
       intermediate: Demo chạy được (Streamlit/Gradio), quy ra tiền/giờ công, biểu đồ đúng và dễ đọc.
       advanced: Design doc, trình bày cho lãnh đạo và pháp chế, kế hoạch triển khai theo giai đoạn có tiêu chí go/no-go.
-    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed}
+    used_by: {G1: needed, G2: needed, G3: needed, G4: needed, G5: needed, G6: needed, G7: needed, G8: needed, G9: needed}
     prereqs: [BIZ-02]
     tools: [Streamlit, Gradio, matplotlib, slide]
     done_when: Người ngoài ngành hiểu được kết quả và quyết định có triển khai hay không sau 10 phút trình bày.
@@ -805,7 +833,7 @@ skills:
       basic: Vẽ được sơ đồ quy trình đang làm, biết thuật ngữ và người dùng cuối.
       intermediate: Hiểu ràng buộc pháp lý/vận hành (tín dụng cần lý do từ chối; tồn kho có lead time; tổng đài có SLA).
       advanced: Đề xuất thay đổi quy trình nhờ AI thay vì chỉ tự động hóa quy trình cũ.
-    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: core, G8: core}
+    used_by: {G1: core, G2: core, G3: core, G4: needed, G5: needed, G6: needed, G7: core, G8: core, G9: core}
     prereqs: []
     tools: [Phỏng vấn người dùng, sơ đồ BPMN]
     done_when: Người làm nghiệp vụ xác nhận sơ đồ quy trình và danh sách loại sai của bạn là đúng.
@@ -818,7 +846,7 @@ skills:
       basic: Đọc abstract, hình, bảng kết quả; tìm code đi kèm.
       intermediate: Tái hiện kết quả chính trên dữ liệu công khai, so với baseline của mình.
       advanced: Đánh giá benchmark có giống dữ liệu công ty không; chuyển ý tưởng vào bài toán thật.
-    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: minor, G6: minor, G7: minor, G8: minor}
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: minor, G6: minor, G7: minor, G8: minor, G9: minor}
     prereqs: []
     tools: [arXiv, Papers with Code, Hugging Face]
     done_when: Mỗi tuần một paper gắn với bài toán đang làm, có ghi chú và (khi được) kết quả tái hiện.
@@ -832,7 +860,7 @@ skills:
       basic: Đếm token bằng tokenizer/endpoint đếm token của đúng nhà cung cấp (mỗi hãng một tokenizer; tiếng Việt thường tốn nhiều token hơn tiếng Anh — đo, đừng đoán); đọc trường usage trong response.
       intermediate: Chi phí trên mỗi TÁC VỤ HOÀN THÀNH (không phải mỗi request) — tách input thường / input cache / output / retry; bảng chi phí–chất lượng cho từng cấu hình.
       advanced: Dự báo chi phí theo lưu lượng, ngân sách và cảnh báo theo tính năng, chọn điểm Pareto chất lượng–chi phí–độ trễ.
-    used_by: {G5: needed, G6: core, G7: core}
+    used_by: {G5: needed, G6: core, G7: core, G9: needed}
     prereqs: [LLM-01]
     tools: [usage trong response API, endpoint đếm token của nhà cung cấp, Langfuse]
     done_when: Có bảng baseline "chất lượng / chi phí mỗi tác vụ / độ trễ" trước khi áp dụng bất kỳ tối ưu nào.
@@ -900,7 +928,7 @@ skills:
       basic: Gom việc không cần realtime (gán nhãn, tóm tắt hàng loạt, chạy eval) để chạy theo lô.
       intermediate: Batch API của nhà cung cấp (nhiều hãng giảm khoảng 50%, có hãng cộng dồn với giảm giá cache), khử trùng lặp trước khi gửi, checkpoint/resume.
       advanced: Lập lịch xử lý lớn, kết hợp batch + cache cho pipeline hàng triệu tài liệu.
-    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: needed, G6: needed, G7: minor}
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: needed, G6: needed, G7: minor, G9: minor}
     prereqs: [EFF-01, PY-04]
     tools: [Batch API của nhà cung cấp]
     done_when: Toàn bộ eval và tác vụ offline chạy qua batch; kết quả được ghép lại theo custom_id, không theo thứ tự.
@@ -914,7 +942,7 @@ skills:
       basic: Kiểm tra định dạng (regex, độ dài, checksum), ràng buộc nghiệp vụ (tổng tiền = Σ dòng + thuế; ngày hợp lệ), đối chiếu danh mục chuẩn (mã hàng, khách hàng).
       intermediate: Đối chiếu chéo nhiều nguồn (OCR vs VLM, hai lần chạy), để LLM gọi tool tính toán/SQL thay vì tự tính, bắt buộc trích dẫn và kiểm tra trích dẫn có thật trong tài liệu.
       advanced: Thiết kế lớp kiểm chứng cho mọi đầu ra tự động; đo precision trên phần tự động đạt mục tiêu (ví dụ 99,5%) và chuyển phần còn lại cho người; giám sát liên tục tỷ lệ lỗi lọt.
-    used_by: {G1: minor, G5: core, G6: core, G7: core}
+    used_by: {G1: minor, G5: core, G6: core, G7: core, G9: needed}
     prereqs: [LLM-02, STAT-05]
     tools: [pydantic validators, sqlglot, regex, rapidfuzz]
     done_when: Không có đầu ra nào được ghi vào hệ thống nghiệp vụ mà chưa qua kiểm chứng; tỷ lệ lỗi lọt được đo bằng kiểm tra mẫu định kỳ.
@@ -928,7 +956,7 @@ skills:
       basic: Mô tả việc cụ thể, chỉ rõ file/hàm liên quan thay vì "đọc cả repo"; yêu cầu kế hoạch ngắn trước khi sửa lớn.
       intermediate: File hướng dẫn dự án (CLAUDE.md/AGENTS.md) ngắn, cập nhật; phiên mới cho việc mới; dùng test làm tiêu chí xác nhận.
       advanced: Chia nhỏ việc lớn, giao tìm kiếm rộng cho tác vụ phụ, tự động hóa lint/test/eval để trợ lý tự sửa lỗi mà không phải dán log.
-    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: minor, G6: minor, G7: minor, G8: minor}
+    used_by: {G1: minor, G2: minor, G3: minor, G4: minor, G5: minor, G6: minor, G7: minor, G8: minor, G9: minor}
     prereqs: [PY-02]
     tools: [Claude Code, Cursor, GitHub Copilot, Makefile, pytest]
     done_when: Phần lớn thay đổi do trợ lý AI tạo ra qua được test/lint ngay lần đầu.

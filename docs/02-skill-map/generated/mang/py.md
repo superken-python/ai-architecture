@@ -2,7 +2,7 @@
 
 # PY · Lập trình nền tảng
 
-Python, Git, môi trường, kiểm thử, gọi API bền vững — nền móng cho mọi nhóm.
+Python, Git, môi trường, kiểm thử, gọi API bền vững, dựng media bằng code — nền móng cho mọi nhóm.
 
 | Kỹ năng | Tầng | Tóm tắt |
 |---|---|---|
@@ -10,6 +10,7 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 | [PY-02](#py-02) Git, môi trường và cấu trúc dự án | Nền tảng chung | Quản lý mã nguồn, môi trường tái lập được và cấu trúc dự án dễ mở rộng. |
 | [PY-03](#py-03) Kiểm thử và chất lượng code | Nền tảng chung | Bảo đảm code và pipeline dữ liệu chạy đúng, kể cả với hệ có thành phần ngẫu nhiên như LLM. |
 | [PY-04](#py-04) Gọi API và I/O đồng thời bền vững | Cầu nối liên họ | Gọi API (LLM, OCR, nội bộ) với số lượng lớn mà không mất dữ liệu, không vượt hạn mức. |
+| [PY-05](#py-05) Xử lý và dựng media bằng code | Chuyên biệt | Biến kịch bản thành ảnh, âm thanh và video bằng code — chữ, nhịp, bố cục luôn đúng vì do code đặt. |
 
 <a id="py-01"></a>
 
@@ -17,8 +18,8 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 
 > Viết code Python rõ ràng, có kiểu, tái sử dụng được cho xử lý dữ liệu và gọi model.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 16  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 18  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ● Cốt lõi: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -27,7 +28,7 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 | Nâng cao | Profiling (cProfile, py-spy), vector hóa thay vòng lặp, đa tiến trình, viết thư viện nội bộ có tài liệu và phiên bản. |
 
 - **Tiên quyết:** —
-- **Mở khóa:** [PY-02](../mang/py.md#py-02), [PY-03](../mang/py.md#py-03), [PY-04](../mang/py.md#py-04), [DATA-02](../mang/data.md#data-02), [DATA-06](../mang/data.md#data-06), [DL-01](../mang/dl.md#dl-01), [DL-03](../mang/dl.md#dl-03), [LLM-01](../mang/llm.md#llm-01), [OPT-01](../mang/opt.md#opt-01)
+- **Mở khóa:** [PY-02](../mang/py.md#py-02), [PY-03](../mang/py.md#py-03), [PY-04](../mang/py.md#py-04), [PY-05](../mang/py.md#py-05), [DATA-02](../mang/data.md#data-02), [DATA-06](../mang/data.md#data-06), [DL-01](../mang/dl.md#dl-01), [DL-03](../mang/dl.md#dl-03), [LLM-01](../mang/llm.md#llm-01), [OPT-01](../mang/opt.md#opt-01)
 - **Công cụ:** Python 3.12, VS Code, JupyterLab, pydantic, typer
 - **Đạt khi:** Viết được một module xử lý dữ liệu có type hints, logging, CLI và người khác chạy được chỉ bằng README.
 - **Trong lộ trình:** Bước A1 · Python, Git và framing bài toán (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)
@@ -38,8 +39,8 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 
 > Quản lý mã nguồn, môi trường tái lập được và cấu trúc dự án dễ mở rộng.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 16  
-**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 18  
+**Dùng cho:** ● Cốt lõi: Nhóm 1 Bảng · ● Cốt lõi: Nhóm 2 Thời gian · ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ● Cốt lõi: Nhóm 8 Tối ưu · ● Cốt lõi: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -59,8 +60,8 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 
 > Bảo đảm code và pipeline dữ liệu chạy đúng, kể cả với hệ có thành phần ngẫu nhiên như LLM.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 10  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 11  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -81,8 +82,8 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 
 > Gọi API (LLM, OCR, nội bộ) với số lượng lớn mà không mất dữ liệu, không vượt hạn mức.
 
-**Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 6  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 8 Tối ưu
+**Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 7  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 9 Nội dung · ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 8 Tối ưu
 
 | Mức | Làm được |
 |---|---|
@@ -91,8 +92,30 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững — nền món
 | Nâng cao | Hàng đợi tác vụ (queue/worker), circuit breaker, streaming (SSE), xử lý hàng trăm nghìn request có checkpoint/resume. |
 
 - **Tiên quyết:** [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI
-- **Mở khóa:** [LLM-05](../mang/llm.md#llm-05), [EFF-06](../mang/eff.md#eff-06)
+- **Mở khóa:** [DL-07](../mang/dl.md#dl-07), [LLM-05](../mang/llm.md#llm-05), [EFF-06](../mang/eff.md#eff-06)
 - **Công cụ:** httpx, asyncio, tenacity
 - **Đạt khi:** Xử lý 10.000 tài liệu qua API có giới hạn tốc độ; chạy lại sau sự cố không gọi trùng, không mất bản ghi.
 - **Token & độ chính xác:** Retry có kiểm soát + idempotency tránh trả tiền hai lần cho cùng một request.
 - **Trong lộ trình:** Bước B1 · Gọi LLM, structured output và gọi API bền vững (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
+
+<a id="py-05"></a>
+
+### PY-05 · Xử lý và dựng media bằng code
+
+> Biến kịch bản thành ảnh, âm thanh và video bằng code — chữ, nhịp, bố cục luôn đúng vì do code đặt.
+
+**Tầng:** Chuyên biệt · **Điểm đòn bẩy:** 2  
+**Dùng cho:** ● Cốt lõi: Nhóm 9 Nội dung · ○ Ít: Nhóm 5 Ảnh/TL
+
+| Mức | Làm được |
+|---|---|
+| Cơ bản | Đọc/ghi và biến đổi ảnh (Pillow), âm thanh (numpy, WAV); ghép ảnh + âm thanh + phụ đề thành MP4 bằng một lệnh ffmpeg. |
+| Trung cấp | Dựng cả video theo dòng thời gian từ kịch bản (YAML) — hoạt ảnh theo nhịp nhạc, phụ đề sáng dần theo lời, trộn giọng với nhạc có ducking; dựng lại bằng một lệnh, có test cho từng khối. |
+| Nâng cao | Mẫu video dùng lại cho nhiều bài (Remotion, MoviePy), dựng song song, tự kiểm tra khung hình (chữ, bố cục, tương phản), tối ưu dung lượng và thời gian dựng. |
+
+- **Tiên quyết:** [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI
+- **Mở khóa:** —
+- **Công cụ:** Pillow, numpy, ffmpeg, MoviePy, Remotion
+- **Đạt khi:** Một lệnh dựng lại được video 2 phút từ kịch bản; sửa một chữ trong kịch bản thì video mới hiện đúng chữ đó.
+- **Token & độ chính xác:** Xem vài khung hình PNG thay vì dựng cả video sau mỗi lần sửa; nhớ kết quả giọng đọc và tài nguyên tải về.
+- **Trong lộ trình:** Hướng Nội dung đa phương tiện (Trung cấp) · Thanh ngang chữ T · Nhóm 9 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

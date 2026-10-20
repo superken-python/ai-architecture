@@ -104,8 +104,8 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 
 > Phát hiện dữ liệu hỏng, nhãn sai trước khi chúng làm hỏng model.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 8  
-**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 9  
+**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -125,8 +125,8 @@ Truy vấn, xử lý, kiểm định dữ liệu và làm đặc trưng; đúng 
 
 > Chuẩn hóa và làm sạch văn bản tiếng Việt để tìm kiếm, phân loại, đếm token chính xác.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 2  
-**Dùng cho:** ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 7 Agent
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 3  
+**Dùng cho:** ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 9 Nội dung · ○ Ít: Nhóm 7 Agent
 
 | Mức | Làm được |
 |---|---|

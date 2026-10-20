@@ -21,8 +21,8 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 
 > Biết chính xác mỗi tác vụ hoàn thành tốn bao nhiêu token, tiền và thời gian.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 5  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 6  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -130,7 +130,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 > Việc không cần trả lời ngay thì chạy theo lô với giá rẻ hơn.
 
 **Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 2  
-**Dùng cho:** ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 7 Agent
+**Dùng cho:** ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 7 Agent · ○ Ít: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -151,8 +151,8 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 
 > Độ chính xác do hệ thống bảo đảm — mọi đầu ra tự động đều qua lớp kiểm chứng bằng code.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 6  
-**Dùng cho:** ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ○ Ít: Nhóm 1 Bảng
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 7  
+**Dùng cho:** ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 9 Nội dung · ○ Ít: Nhóm 1 Bảng
 
 | Mức | Làm được |
 |---|---|
@@ -174,7 +174,7 @@ Giảm token/chi phí mà không đánh đổi độ chính xác — đo, cache,
 > Dùng trợ lý lập trình AI hiệu quả — ít token, ít vòng lặp sửa, kết quả kiểm chứng được.
 
 **Tầng:** Bổ trợ · **Điểm đòn bẩy:** 0  
-**Dùng cho:** ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 7 Agent · ○ Ít: Nhóm 8 Tối ưu
+**Dùng cho:** ○ Ít: Nhóm 1 Bảng · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 3 Bất thường · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 5 Ảnh/TL · ○ Ít: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 7 Agent · ○ Ít: Nhóm 8 Tối ưu · ○ Ít: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|

@@ -21,8 +21,8 @@
 
 > Đưa model/hệ LLM thành dịch vụ hoặc job chạy ổn định.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 13  
-**Dùng cho:** ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 14  
+**Dùng cho:** ● Cốt lõi: Nhóm 3 Bất thường · ● Cốt lõi: Nhóm 4 Gợi ý · ● Cốt lõi: Nhóm 5 Ảnh/TL · ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -42,8 +42,8 @@
 
 > Biết chính xác model/prompt nào, dữ liệu nào cho ra kết quả nào.
 
-**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 8  
-**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 8 Tối ưu
+**Tầng:** Nền tảng chung · **Điểm đòn bẩy:** 9  
+**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 7 Agent · ◐ Cần: Nhóm 8 Tối ưu · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -63,8 +63,8 @@
 
 > Chạy chuỗi xử lý dữ liệu/huấn luyện/chấm điểm theo lịch, an toàn khi chạy lại.
 
-**Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 5  
-**Dùng cho:** ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 8 Tối ưu
+**Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 7  
+**Dùng cho:** ● Cốt lõi: Nhóm 9 Nội dung · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 2 Thời gian · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 4 Gợi ý · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 8 Tối ưu
 
 | Mức | Làm được |
 |---|---|
@@ -76,7 +76,7 @@
 - **Mở khóa:** —
 - **Công cụ:** Prefect, Airflow, Dagster
 - **Đạt khi:** Pipeline chạy lại cho một ngày bất kỳ trong quá khứ mà không tạo dữ liệu trùng.
-- **Trong lộ trình:** Bước C3 · MLOps cho dự án chuyên sâu (Cơ bản) · Bước D2 · Giám sát và vòng đời model (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
+- **Trong lộ trình:** Bước C3 · MLOps cho dự án chuyên sâu (Cơ bản) · Hướng Nội dung đa phương tiện (Cơ bản) · Bước D2 · Giám sát và vòng đời model (Trung cấp) — xem [lộ trình theo bước](../lo-trinh.md)
 
 <a id="ops-04"></a>
 
@@ -126,8 +126,8 @@
 
 > Nhìn thấy mọi lời gọi LLM: tốn bao nhiêu, chậm ở đâu, sai ở đâu.
 
-**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 5  
-**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL
+**Tầng:** Dùng chung trong họ · **Điểm đòn bẩy:** 6  
+**Dùng cho:** ● Cốt lõi: Nhóm 6 LLM/RAG · ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 9 Nội dung
 
 | Mức | Làm được |
 |---|---|
@@ -169,8 +169,8 @@
 
 > Xử lý dữ liệu khách hàng đúng quy định, không rò rỉ.
 
-**Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 6  
-**Dùng cho:** ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 8 Tối ưu
+**Tầng:** Cầu nối liên họ · **Điểm đòn bẩy:** 7  
+**Dùng cho:** ● Cốt lõi: Nhóm 7 Agent · ◐ Cần: Nhóm 1 Bảng · ◐ Cần: Nhóm 3 Bất thường · ◐ Cần: Nhóm 5 Ảnh/TL · ◐ Cần: Nhóm 6 LLM/RAG · ◐ Cần: Nhóm 9 Nội dung · ○ Ít: Nhóm 2 Thời gian · ○ Ít: Nhóm 4 Gợi ý · ○ Ít: Nhóm 8 Tối ưu
 
 | Mức | Làm được |
 |---|---|

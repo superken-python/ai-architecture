@@ -26,10 +26,10 @@ WEIGHT = {"core": 2, "needed": 1, "minor": 0}
 LEVELS = {"basic": "Cơ bản", "intermediate": "Trung cấp", "advanced": "Nâng cao"}
 LEVEL_RANK = {"basic": 1, "intermediate": 2, "advanced": 3}
 TIERS = {
-    "foundation": ("Nền tảng chung", "Cốt lõi/Cần ở cả 8 nhóm — học một lần, dùng mọi nơi."),
+    "foundation": ("Nền tảng chung", "Cốt lõi/Cần ở mọi nhóm — học một lần, dùng mọi nơi."),
     "bridge": (
         "Cầu nối liên họ",
-        "Cốt lõi/Cần ở cả hai họ bài toán nhưng chưa đủ 8 nhóm — giúp chuyển qua lại giữa ML cổ điển và GenAI.",
+        "Cốt lõi/Cần ở cả hai họ bài toán nhưng chưa đủ mọi nhóm — giúp chuyển qua lại giữa ML cổ điển và GenAI.",
     ),
     "family": ("Dùng chung trong họ", "Cốt lõi/Cần ở ≥ 2 nhóm của cùng một họ."),
     "specific": ("Chuyên biệt", "Cốt lõi/Cần ở đúng 1 nhóm — học khi đi sâu nhóm đó."),
@@ -303,6 +303,34 @@ def validate(cat: Catalog) -> list[str]:
         errors += validate_roadmap(cat)
     if cat.docs:
         errors += validate_docs(cat, REPO_ROOT)
+    errors += validate_demos(cat, REPO_ROOT)
+    return errors
+
+
+DEMO_KEYS = ({"title", "video"}, {"poster", "subtitles", "chapters", "docs"})
+DEMO_FILES = ("video", "poster", "subtitles", "chapters")
+
+
+def validate_demos(cat: Catalog, root: Path = REPO_ROOT) -> list[str]:
+    """Video mẫu của nhóm (`demo`, tùy chọn): đủ trường, file có thật, tài liệu đi kèm có trong docs.yaml."""
+    errors: list[str] = []
+    doc_keys = {d["key"] for d in doc_items(cat)}
+    for g in cat.groups:
+        demo = g.get("demo")
+        if demo is None:
+            continue
+        where = f"{g['id']}.demo"
+        required, optional = DEMO_KEYS
+        errors += [f"{where}: thiếu trường '{k}'" for k in sorted(required - demo.keys())]
+        extra = sorted(str(k) for k in demo.keys() - required - optional)
+        if extra:
+            errors.append(f"{where}: trường lạ {extra}")
+        for key in DEMO_FILES:
+            if key in demo and not (root / demo[key]).is_file():
+                errors.append(f"{where}: không có file {demo[key]}")
+        for key in demo.get("docs", []):
+            if key not in doc_keys:
+                errors.append(f"{where}: tài liệu '{key}' không có trong docs.yaml")
     return errors
 
 
@@ -697,7 +725,7 @@ class Renderer:
             "",
             "## Kỹ năng đòn bẩy cao nhất",
             "",
-            "Điểm đòn bẩy = Σ (Cốt lõi = 2, Cần = 1) trên 8 nhóm. "
+            f"Điểm đòn bẩy = Σ (Cốt lõi = 2, Cần = 1) trên {len(self.cat.groups)} nhóm. "
             "Học trước các kỹ năng điểm cao: một lần học, dùng cho nhiều bài toán nhất.",
             "",
             "| # | Kỹ năng | Tầng | Điểm | Cốt lõi ở | Cần ở |",
@@ -928,11 +956,13 @@ class Renderer:
                 ]
                 for tr in st["tracks"]:
                     gl = ", ".join(f"[{g[1:]} · {groups[g]['short']}]({group_file(groups[g])})" for g in tr["groups"])
-                    cl = ", ".join(f"[{c}](to-hop-ky-nang.md#{anchor(c)}) {combos[c]['name']}" for c in tr["combos"])
-                    lines.append(f"| **{tr['name']}** | {gl} | {self.skill_items(tr['skills'])} | {cl} |")
+                    cl = ", ".join(
+                        f"[{c}](to-hop-ky-nang.md#{anchor(c)}) {combos[c]['name']}" for c in tr.get("combos", [])
+                    )
+                    lines.append(f"| **{tr['name']}** | {gl} | {self.skill_items(tr['skills'])} | {cl or '—'} |")
             lines.append("")
         lines += [
-            "## Thanh ngang chữ T — baseline cho cả 8 nhóm",
+            f"## Thanh ngang chữ T — baseline cho cả {len(self.cat.groups)} nhóm",
             "",
             "Ngoài kỹ năng nền tảng, mỗi nhóm cần thêm các kỹ năng sau ở mức **Cơ bản** để dựng được baseline.",
             "",

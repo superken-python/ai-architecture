@@ -14,6 +14,7 @@ blocks:
   B: Hiểu
   C: Hành động
   D: Quyết định
+  E: Sáng tạo  # bổ sung 2026-10-20 (không có trong tài liệu gốc): đầu ra là nội dung mới — video, hình, giọng đọc
 
 # Họ bài toán (giai đoạn 2): gom nhóm theo mức chia sẻ kỹ năng thực tế
 # (xem "Mức chia sẻ kỹ năng giữa các nhóm" trong ma trận sinh tự động).
@@ -25,11 +26,13 @@ families:
     groups: [G1, G2, G3, G4, G8]
   - id: genai
     name: Họ dữ liệu phi cấu trúc & GenAI
-    groups: [G5, G6, G7]
+    groups: [G5, G6, G7, G9]
 
 # Nhận diện bài toán trong 30 giây (mục 1.2): đi từ trên xuống, dừng ở câu trả lời "Có" đầu tiên.
+# Câu G9 đứng đầu: dây chuyền làm video cũng là "chuỗi thao tác", nên phải tách ra trước câu G7.
 identify:
   questions:
+    - {q: "Sản phẩm cần giao là nội dung mới để xem hoặc nghe — video, hình ảnh, giọng đọc, nhạc?", group: G9}
     - {q: "Cần thực hiện một chuỗi thao tác trên nhiều hệ thống (đọc, tra cứu, cập nhật, gửi)?", group: G7}
     - {q: "Cần chọn phương án tốt nhất dưới ràng buộc, hoặc đo tác động thật của một hành động?", group: G8}
     - {q: "Cần xếp hạng hoặc gợi ý mục phù hợp cho từng người?", group: G4}
@@ -234,3 +237,38 @@ groups:
     practice_data: "Toạ độ giao hàng tự sinh (logistics) + Hillstrom: 64.000 khách được chia ngẫu nhiên nhận hoặc không nhận email khuyến mãi (marketing)."
     principle: Dự đoán chưa tạo ra tiền, quyết định mới tạo ra tiền — nhóm này là cầu nối từ model đến lợi nhuận.
     skill_areas: {DATA: needed, STAT: core, ML: needed, DL: minor, LLM: minor, OPT: core, OPS: needed, BIZ: core}
+
+  # Bổ sung 2026-10-20 (không có trong tài liệu gốc v1): bài toán TẠO nội dung. Khác G7 (đầu ra là hành động) và
+  # G5/G6 (đầu ra là hiểu biết về nội dung có sẵn). Dự án mẫu: projects/g9-video-chu-cai.
+  - id: G9
+    slug: g9-tao-noi-dung
+    name: Tạo nội dung đa phương tiện
+    short: Nội dung
+    block: E
+    question: Làm giúp tôi video, hình ảnh hay giọng đọc này.
+    examples: [video bài giảng và e-learning, video giới thiệu sản phẩm, giọng đọc và lồng tiếng tự động, ảnh minh họa và nhân vật thương hiệu]
+    flow:
+      input: Kịch bản hoặc bài học, nhân vật và nhận diện thương hiệu, dữ liệu sản phẩm
+      technique: LLM viết kịch bản; TTS; mô hình sinh ảnh/video; dựng hình bằng code (ffmpeg, Pillow, Remotion)
+      output: Video, ảnh, giọng đọc đúng nội dung và đúng nhân vật
+      decision: Duyệt rồi đăng lên kênh học tập, mạng xã hội, website
+    levels:
+      basic: Dựng video bằng code từ ảnh có sẵn (Pillow/ffmpeg) + giọng TTS + phụ đề; chữ trên hình do code vẽ từ kịch bản; người duyệt trước khi đăng.
+      intermediate: Dây chuyền chạy lại được bằng một lệnh (kịch bản → giọng → nhạc → hình), nhân vật nhất quán, máy tự nghe lại lời đọc (ASR) và báo câu cần sửa; đo thời gian và chi phí mỗi phút video.
+      advanced: Mô hình sinh ảnh/video có ảnh tham chiếu (giữ nhân vật qua nhiều cảnh), giọng hoặc LoRA nhân vật riêng, sản xuất hàng loạt, kiểm duyệt nội dung và bản quyền, đo hiệu quả thật (tỷ lệ xem hết, kết quả học).
+    metrics: Tỷ lệ câu đọc đúng (máy nghe lại + người nghe); lỗi chữ trên hình; tỷ lệ video được duyệt ngay lần đầu; thời gian và chi phí mỗi phút video; tỷ lệ xem hết.
+    tools: [Claude Code, ffmpeg, Pillow, Remotion, "Piper / sherpa-onnx", "TTS thương mại (FPT.AI, Google, Azure, ElevenLabs)", "Kling, Veo, Sora"]
+    pitfalls: Để mô hình sinh vẽ chữ (sai dấu tiếng Việt); tin giọng TTS mà không nghe lại; nhân vật lệch nét giữa các cảnh; quên bản quyền nhân vật, nhạc, giọng đọc; nội dung cho trẻ em không có người duyệt.
+    practice_project: "Video 2 phút dạy 29 chữ cái tiếng Việt trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code (kịch bản YAML → giọng đọc → nhạc → hình) và tự kiểm tra lời đọc bằng ASR. Đã làm bản đầu — dự án g9-video-chu-cai."
+    practice_target: "Một lệnh dựng lại cả video (~3 phút, không tốn phí API); ≥ 90% câu đọc được máy nghe lại đúng cả khi có nhạc (bản đầu: 28/29); 100% chữ trên hình đúng chính tả; giáo viên duyệt."
+    practice_data: "Tự tạo: kịch bản 29 chữ cái (cách đọc âm, từ ví dụ), ảnh nhân vật; hình Noto Emoji (Apache 2.0); giọng Piper vi_VN vais1000 (dữ liệu VAIS-1000, CC BY 4.0). Lĩnh vực giáo dục."
+    principle: Chữ, số và lời dạy phải đúng tuyệt đối — để code vẽ chữ và máy nghe lại lời đọc; AI lo phần giọng và hình.
+    # Video mẫu hiện ngay trên trang nhóm của web: trình phát + nút nhảy tới từng chương (đọc từ file chương WebVTT).
+    demo:
+      title: Bảng chữ cái tiếng Việt cùng Sách Vui
+      video: projects/g9-video-chu-cai/media/video-chu-cai.mp4
+      poster: projects/g9-video-chu-cai/media/poster.jpg
+      subtitles: projects/g9-video-chu-cai/media/phu-de.vtt
+      chapters: projects/g9-video-chu-cai/media/chuong.vtt
+      docs: [g9_guide, g9_video, g9_qa]
+    skill_areas: {DATA: minor, STAT: needed, ML: minor, DL: core, LLM: core, OPT: minor, OPS: core, BIZ: core}

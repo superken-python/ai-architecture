@@ -2,7 +2,7 @@
 
 # Lộ trình học theo bước
 
-Từ cơ bản đến nâng cao: mỗi bước nêu việc cần làm, sản phẩm phải nộp và kỹ năng cần đạt kèm **mức mục tiêu**. Bộ kiểm tra bảo đảm kỹ năng tiên quyết luôn xuất hiện ở bước trước, mức mục tiêu không giảm, và lộ trình phủ **65/65 kỹ năng**. Nguyên tắc và cách dùng: [04-lo-trinh-hoc.md](../04-lo-trinh-hoc.md).
+Từ cơ bản đến nâng cao: mỗi bước nêu việc cần làm, sản phẩm phải nộp và kỹ năng cần đạt kèm **mức mục tiêu**. Bộ kiểm tra bảo đảm kỹ năng tiên quyết luôn xuất hiện ở bước trước, mức mục tiêu không giảm, và lộ trình phủ **67/67 kỹ năng**. Nguyên tắc và cách dùng: [04-lo-trinh-hoc.md](../04-lo-trinh-hoc.md).
 
 | Giai đoạn | Thời gian | Mục tiêu | Mốc |
 |---|---|---|---|
@@ -73,6 +73,7 @@ Từ cơ bản đến nâng cao: mỗi bước nêu việc cần làm, sản ph�
 | **Cá nhân hóa & tăng trưởng** | [4 · Gợi ý](nhom/g4-goi-y-xep-hang.md), [8 · Tối ưu](nhom/g8-toi-uu-nhan-qua.md) | [ML-07](mang/ml.md#ml-07) Truy xuất và xếp hạng hai tầng (retrieve → rerank) — *Nâng cao*<br>[ML-08](mang/ml.md#ml-08) Hệ gợi ý chuyên biệt — *Trung cấp*<br>[STAT-03](mang/stat.md#stat-03) Thiết kế thí nghiệm và A/B test — *Trung cấp*<br>[STAT-06](mang/stat.md#stat-06) Suy luận nhân quả và uplift — *Trung cấp*<br>[OPT-04](mang/opt.md#opt-04) Bandit và học tăng cường cơ bản — *Cơ bản* | [CMB-05](to-hop-ky-nang.md#cmb-05) Gợi ý và kiểm chứng bằng thí nghiệm, [CMB-06](to-hop-ky-nang.md#cmb-06) Dự đoán rồi can thiệp (churn + uplift) |
 | **Document AI** | [5 · Ảnh/TL](nhom/g5-anh-tai-lieu.md), [6 · LLM/RAG](nhom/g6-llm-rag.md) | [DL-01](mang/dl.md#dl-01) PyTorch nền tảng — *Trung cấp*<br>[DL-02](mang/dl.md#dl-02) Transfer learning và fine-tune mô hình pretrained — *Trung cấp*<br>[DL-04](mang/dl.md#dl-04) Thị giác máy tính (detection, segmentation, OCR) — *Trung cấp*<br>[DL-05](mang/dl.md#dl-05) Document AI và mô hình thị giác–ngôn ngữ (VLM) — *Trung cấp*<br>[OPS-05](mang/ops.md#ops-05) Tối ưu suy luận và serving model — *Cơ bản*<br>[EFF-07](mang/eff.md#eff-07) Kiểm chứng xác định và "không lỗi im lặng" — *Nâng cao*<br>[LLM-07](mang/llm.md#llm-07) Fine-tune, distill và tự host LLM — *Cơ bản* | [CMB-01](to-hop-ky-nang.md#cmb-01) Hồ sơ vay / eKYC từ đầu đến cuối |
 | **LLM ứng dụng & Agent** | [6 · LLM/RAG](nhom/g6-llm-rag.md), [7 · Agent](nhom/g7-agent-tu-dong-hoa.md) | [LLM-05](mang/llm.md#llm-05) Tool calling và điều phối workflow/agent — *Trung cấp*<br>[LLM-06](mang/llm.md#llm-06) An toàn và bảo mật hệ LLM — *Trung cấp*<br>[LLM-08](mang/llm.md#llm-08) Text-to-SQL và hỏi đáp số liệu — *Trung cấp*<br>[EFF-03](mang/eff.md#eff-03) Tinh gọn ngữ cảnh đầu vào — *Trung cấp*<br>[EFF-04](mang/eff.md#eff-04) Định tuyến và cascade — đúng việc, đúng công cụ — *Trung cấp*<br>[EFF-05](mang/eff.md#eff-05) Kiểm soát đầu ra và mức suy luận — *Trung cấp*<br>[OPS-06](mang/ops.md#ops-06) LLMOps — tracing, chi phí, độ trễ — *Trung cấp*<br>[DATA-06](mang/data.md#data-06) Văn bản tiếng Việt và dữ liệu phi cấu trúc — *Trung cấp*<br>[DL-01](mang/dl.md#dl-01) PyTorch nền tảng — *Cơ bản*<br>[DL-02](mang/dl.md#dl-02) Transfer learning và fine-tune mô hình pretrained — *Cơ bản*<br>[DL-06](mang/dl.md#dl-06) Xử lý giọng nói (ASR) — *Cơ bản* | [CMB-03](to-hop-ky-nang.md#cmb-03) Trợ lý nội bộ có RAG và thao tác được, [CMB-07](to-hop-ky-nang.md#cmb-07) Tổng đài thông minh, [CMB-08](to-hop-ky-nang.md#cmb-08) Phân loại lai ML + LLM (cascade tiết kiệm token), [CMB-09](to-hop-ky-nang.md#cmb-09) Hỏi số liệu bằng tiếng Việt (text-to-SQL agent), [CMB-10](to-hop-ky-nang.md#cmb-10) Trợ lý AI trong Excel nối với agent doanh nghiệp (Office add-in) |
+| **Nội dung đa phương tiện** | [9 · Nội dung](nhom/g9-tao-noi-dung.md), [6 · LLM/RAG](nhom/g6-llm-rag.md) | [PY-05](mang/py.md#py-05) Xử lý và dựng media bằng code — *Trung cấp*<br>[DL-07](mang/dl.md#dl-07) Sinh giọng nói, hình ảnh và video — *Trung cấp*<br>[LLM-04](mang/llm.md#llm-04) Đánh giá hệ LLM (evals) — *Trung cấp*<br>[OPS-03](mang/ops.md#ops-03) Pipeline và điều phối tác vụ — *Cơ bản* | — |
 
 <a id="giai-doan-d"></a>
 
@@ -92,7 +93,7 @@ Từ cơ bản đến nâng cao: mỗi bước nêu việc cần làm, sản ph�
 | **D4** Bảo mật, quyền và tuân thủ | — | Quyền tối thiểu cho agent, sandbox cho tool nguy hiểm, red-teaming định kỳ, tuân thủ bảo vệ dữ liệu cá nhân cùng pháp chế. | [OPS-08](mang/ops.md#ops-08) Bảo mật dữ liệu và tuân thủ — *Nâng cao*<br>[LLM-06](mang/llm.md#llm-06) An toàn và bảo mật hệ LLM — *Nâng cao* | Báo cáo red-team + danh mục dữ liệu được phép gửi ra ngoài đã được pháp chế duyệt. |
 | **D5** Phương pháp ở quy mô team | — | Eval nhiều tầng (offline → shadow → A/B) chạy trong CI, taxonomy lỗi dùng chung, design doc và kế hoạch go/no-go. | [BIZ-02](mang/biz.md#biz-02) Baseline nhanh và bộ đánh giá cố định (NHANH) — *Nâng cao*<br>[BIZ-03](mang/biz.md#biz-03) Phân tích lỗi và cải tiến lấy dữ liệu làm trung tâm (CHÍNH XÁC) — *Nâng cao*<br>[BIZ-04](mang/biz.md#biz-04) Trình bày, demo và thuyết phục (THUYẾT PHỤC) — *Nâng cao*<br>[PY-03](mang/py.md#py-03) Kiểm thử và chất lượng code — *Nâng cao*<br>[STAT-02](mang/stat.md#stat-02) Đo lường bất định của kết quả đánh giá — *Nâng cao* | Một quy trình đánh giá và phát hành dùng chung cho mọi dự án AI của team. |
 
-## Thanh ngang chữ T — baseline cho cả 8 nhóm
+## Thanh ngang chữ T — baseline cho cả 9 nhóm
 
 Ngoài kỹ năng nền tảng, mỗi nhóm cần thêm các kỹ năng sau ở mức **Cơ bản** để dựng được baseline.
 
@@ -106,6 +107,7 @@ Ngoài kỹ năng nền tảng, mỗi nhóm cần thêm các kỹ năng sau ở 
 | [6 · Ngôn ngữ, LLM và RAG](nhom/g6-llm-rag.md) | [LLM-01](mang/llm.md#llm-01) Gọi LLM API và prompt engineering, [LLM-02](mang/llm.md#llm-02) Structured output và kiểm chứng đầu ra, [LLM-03](mang/llm.md#llm-03) RAG — trả lời dựa trên tài liệu | Prompt + structured output + RAG tối giản |
 | [7 · AI Agent và tự động hóa quy trình](nhom/g7-agent-tu-dong-hoa.md) | [LLM-05](mang/llm.md#llm-05) Tool calling và điều phối workflow/agent | Workflow cố định + người duyệt |
 | [8 · Tối ưu hóa và suy luận nhân quả](nhom/g8-toi-uu-nhan-qua.md) | [OPT-01](mang/opt.md#opt-01) Quy hoạch tuyến tính và nguyên (LP/MIP), [STAT-03](mang/stat.md#stat-03) Thiết kế thí nghiệm và A/B test | LP với OR-Tools, A/B test đúng cách |
+| [9 · Tạo nội dung đa phương tiện](nhom/g9-tao-noi-dung.md) | [PY-05](mang/py.md#py-05) Xử lý và dựng media bằng code, [DL-07](mang/dl.md#dl-07) Sinh giọng nói, hình ảnh và video | Dựng video bằng code từ ảnh có sẵn + giọng TTS + phụ đề, máy nghe lại lời đọc |
 
 ## Thói quen xuyên suốt
 

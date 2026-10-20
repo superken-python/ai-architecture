@@ -113,3 +113,35 @@ def test_build_bundles_docs_for_in_site_viewer(tmp_path):
     assert (out / "md" / "docs/03-giai-doan-a-nen-tang/img/tornado.png").is_file()
     assert (out / "assets" / "vendor" / "mermaid" / "mermaid.min.js").is_file()
     assert (out / "assets" / "vendor" / "katex" / "katex.min.js").is_file()
+
+
+def test_parse_vtt_reads_cues():
+    text = "WEBVTT\n\n00:00:00.000 --> 00:00:07.273\nMở đầu\n\n01:02.500 --> 01:05.000\nA · cái áo\n"
+    assert site.parse_vtt(text) == [
+        {"t": 0.0, "end": 7.273, "title": "Mở đầu"},
+        {"t": 62.5, "end": 65.0, "title": "A · cái áo"},
+    ]
+
+
+def test_group_demo_video_is_published(tmp_path):
+    """Trang Nhóm 9 phát video mẫu ngay trên web: file được chép vào _site/md/, chương đọc từ file WebVTT."""
+    out = site.build(tmp_path / "_site", repo="owner/repo")
+    data = json.loads((out / "data" / "catalog.json").read_text(encoding="utf-8"))
+    demo = data["demos"]["G9"]
+    assert demo["video"] == "md/projects/g9-video-chu-cai/media/video-chu-cai.mp4"
+    for key in ("video", "poster", "subtitles"):
+        assert (out / demo[key]).is_file(), key
+    assert (out / "md/projects/g9-video-chu-cai/media/chuong.vtt").is_file()
+    titles = [ch["title"] for ch in demo["chapters"]]
+    assert len(titles) == 31 and titles[0] == "Mở đầu" and titles[1] == "A · cái áo" and titles[-1] == "Kết thúc"
+    assert set(demo["docs"]) <= set(data["meta"]["docs"])
+
+
+def test_demo_with_missing_file_is_rejected():
+    cat = c.load()
+    groups = [dict(g) for g in cat.groups]
+    g9 = next(g for g in groups if g["id"] == "G9")
+    g9["demo"] = {**g9["demo"], "video": "khong-co.mp4", "loai": 1}
+    errors = c.validate(dataclasses.replace(cat, groups=groups))
+    assert any("G9.demo: không có file khong-co.mp4" in e for e in errors)
+    assert any("G9.demo: trường lạ" in e for e in errors)

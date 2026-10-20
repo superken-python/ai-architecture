@@ -1,0 +1,3 @@
+# Sinh ra khi chạy — KHÔNG commit: font, hình, model giọng/ASR tải về; khung hình và âm thanh trung gian
+.cache/
+out/
