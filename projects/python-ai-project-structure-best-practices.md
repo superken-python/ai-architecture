@@ -5,8 +5,9 @@
 | :--- | :--- |
 | **Phiên bản** | 1.0 (Production Architecture Standard) |
 | **Ngày lập** | 2026-10-08 |
+| **Ngày bổ sung Web JavaScript** | 2026-10-20 |
 | **Trạng thái** | Approved / Best Practices Reference |
-| **Phạm vi** | Dự án Python AI hiện đại: Agentic Workflows, MCP Integration, Domain Packs, Semantic Layer, Enterprise API |
+| **Phạm vi** | Dự án Python AI hiện đại: Agentic Workflows, MCP Integration, Domain Packs, Semantic Layer, Enterprise API; tổ chức Web JavaScript cho giao diện chat và Office Add-in |
 | **Tech Stack Chuẩn** | Python 3.12+, FastAPI v0.135.1+, Pydantic v2, SQLModel, Poetry, Langfuse, DBHub/MCP |
 
 ---
@@ -206,6 +207,12 @@ my-ai-project/
 │               ├── schemas/
 │               └── service.py
 │
+├── web/                               # [WEB CLIENT] Giao diện và công cụ chạy phía client
+│   ├── taskpane.html                  # Điểm vào giao diện Office Add-in (nếu có)
+│   ├── styles.css
+│   ├── assets/
+│   └── js/                            # chat/, agent/, bom/, plans/, hosts/; chi tiết mục 3.1
+│
 ├── tests/                             # [TEST PYRAMID]
 │   ├── conftest.py                    # Pytest fixtures, mock LLM, mock MCP, in-memory DB
 │   ├── unit/                          # Unit tests (Mock 100% LLM và network)
@@ -224,6 +231,119 @@ my-ai-project/
     │   └── evaluators.py
     └── run_benchmark.py               # Script chạy đánh giá tự động và đẩy kết quả lên Langfuse
 ```
+
+---
+
+### 3.1. Tổ Chức Web JavaScript Theo `chat/agent/bom/plans/hosts`
+
+Với dự án Python AI có giao diện chat hoặc Excel Add-in, `web/` nằm cạnh `src/` để phân biệt mã chạy trong trình duyệt với mã Python trên server. JavaScript được chia theo trách nhiệm và tính năng, thay vì dồn toàn bộ giao diện, vòng chạy agent và thao tác Excel vào một file `chat.js`.
+
+Cấu trúc dưới đây là định hướng mở rộng cho trường hợp BOM/material trong Excel; chỉ tạo module khi đã có trách nhiệm tương ứng. Có thể dùng ES Modules thuần, không bắt buộc chuyển sang React, Vue hay TypeScript để áp dụng cách chia này.
+
+```text
+web/
+├── taskpane.html
+├── styles.css                         # Khi lớn hơn có thể tách CSS theo tính năng
+├── assets/
+└── js/
+    ├── main-taskpane.js               # Khởi tạo và nối các module; không chứa nghiệp vụ
+    ├── chat/
+    │   ├── chat-controller.js         # Nhận tin nhắn, điều phối lệnh và câu hỏi tự nhiên
+    │   ├── chat-state.js              # Thread ID, tin nhắn, trạng thái đang chạy
+    │   ├── message-view.js            # Render tin nhắn và trạng thái chờ
+    │   └── composer.js                # Ô nhập, submit, thao tác bắt đầu hội thoại mới
+    ├── agent/
+    │   ├── agui-client.js             # Gửi request và đọc stream sự kiện AG-UI
+    │   ├── agent-runner.js            # Vòng tạm dừng → chạy tool client → tiếp tục agent
+    │   └── tool-dispatcher.js         # Tra cứu tool đã đăng ký, validate args, trả kết quả
+    ├── bom/
+    │   ├── bom-api.js                 # Gọi API BOM, material, preset và pipeline
+    │   ├── bom-state.js               # BOM/material đang mở và tham chiếu plan gần nhất
+    │   ├── bom-card.js                # Hiển thị BOM, ứng viên và kết quả tìm material
+    │   ├── pipeline-form.js           # Chọn preset, upload techpack/trimlist
+    │   └── pipeline-jobs.js           # Poll trạng thái job; dừng polling khi rời luồng
+    ├── plans/
+    │   ├── plan-api.js                # Lấy dữ liệu plan đã map theo tiêu đề cột
+    │   ├── compare-plan.js            # Hàm thuần: khớp dòng, tính chênh lệch, báo mơ hồ
+    │   ├── sheet-groups.js            # Hàm thuần: nhận diện nhóm và vị trí chèn dòng
+    │   ├── write-plan.js              # Hàm thuần: tính cập nhật, chèn, ghi đè, thay nhóm
+    │   ├── plan-view.js               # Bảng xem trước, chọn dòng/cột, xác nhận hoặc hủy
+    │   ├── plan-controller.js         # Map → đọc sheet → tính plan → xác nhận → áp dụng
+    │   └── excel-tools.js             # Khai báo tool Excel và nối với các thao tác trên
+    ├── hosts/
+    │   ├── host-contract.js           # JSDoc/interface dữ liệu và thao tác host hỗ trợ
+    │   └── office-host.js             # Adapter Office.js: đọc, chọn, ghi trên workbook
+    └── shared/
+        ├── http.js                   # HTTP, xử lý lỗi và truyền request/trace ID
+        ├── logger.js                 # Logging phía client
+        └── dom.js                    # Helper DOM/escape nhỏ dùng chung
+```
+
+#### Trách nhiệm và ranh giới module
+
+| Module | Chịu trách nhiệm | Ranh giới cần giữ |
+| :--- | :--- | :--- |
+| `chat/` | Trải nghiệm hội thoại, nhập và hiển thị tin nhắn, điều phối yêu cầu người dùng | Không chứa thuật toán khớp BOM, polling pipeline hoặc lệnh Office.js |
+| `agent/` | Giao thức AG-UI, vòng chạy agent, dispatch tool và kết quả tiếp tục | Không render thẻ BOM, không tự quyết định giá trị ghi hoặc bỏ qua bước xác nhận |
+| `bom/` | Luồng BOM/material, preset, form pipeline và ngữ cảnh nghiệp vụ hiện tại | Nghiệp vụ truy xuất/gộp dữ liệu chuẩn nằm ở service Python; module này quản lý luồng phía client |
+| `plans/` | So sánh, lựa chọn phạm vi, tạo phương án ghi và xác nhận của người dùng | Thuật toán nhận dữ liệu đầu vào rõ ràng; thao tác workbook đi qua host được truyền vào |
+| `hosts/` | Chuyển đổi giữa giao kèo ứng dụng và API của môi trường như Office.js | Không biết prompt, AG-UI, API BOM hoặc DOM hội thoại |
+| `shared/` | Tiện ích kỹ thuật nhỏ được nhiều module sử dụng | Không trở thành nơi gom nghiệp vụ hoặc trạng thái toàn ứng dụng |
+
+`bom/` là module nghiệp vụ cụ thể của ví dụ Excel Agent. Dự án thuộc lĩnh vực khác có thể thay bằng module tương ứng; `chat/`, `agent/`, `plans/`, `hosts/` chỉ được giữ khi phù hợp với chức năng thực tế.
+
+#### Quy tắc phụ thuộc và quản lý trạng thái
+
+1. **Nối các module tại điểm khởi tạo:** `main-taskpane.js` tạo host, API client, state, controller và đăng ký tool. Truyền các dependency cần thiết qua tham số hoặc callback; tránh để các module tự import singleton của nhau.
+2. **Tách giao thức khỏi nghiệp vụ:** `agent-runner.js` chỉ biết giao kèo `execute(name, args)` của dispatcher. Tool Excel được đăng ký từ `plans/excel-tools.js`; runner không cần import thuật toán BOM hoặc Office.js.
+3. **Giữ thuật toán thuần:** `compare-plan.js`, `sheet-groups.js`, `write-plan.js` không truy cập DOM, `fetch`, storage hay `Excel.run`. Cùng đầu vào phải tạo cùng kết quả để kiểm thử độc lập.
+4. **Giới hạn truy cập host:** Code Office.js nằm trong `office-host.js`. Plan controller nhận một host có các thao tác như `context()`, `readTable()`, `select()` và `applyPlan()`; test dùng fake host triển khai cùng giao kèo.
+5. **Mỗi trạng thái có một nơi sở hữu:** `chat-state` giữ hội thoại; `bom-state` giữ BOM/material hiện tại; trạng thái chọn dòng/cột thuộc từng bản xem trước. Dựng snapshot context cho agent từ các nguồn này, không sao chép thành nhiều biến toàn cục có thể lệch nhau.
+6. **Quản lý vòng đời tác vụ:** Luồng stream/polling cần có cách dừng và dọn listener/timer khi tạo chat mới hoặc đóng giao diện. Kết quả về muộn phải được đối chiếu với thread/job hiện hành trước khi cập nhật UI. Dừng polling chỉ dừng theo dõi phía client; muốn hủy job server cần API hủy riêng.
+
+#### Luồng xem trước và ghi vào Excel
+
+```text
+Người dùng nhập yêu cầu
+    → chat-controller
+    → lệnh trực tiếp hoặc agent-runner
+    → plan-controller nhận plan_id + phạm vi
+    → plan-api lấy dữ liệu chuẩn từ server + host đọc sheet
+    → compare-plan / write-plan tính thay đổi
+    → plan-view hiển thị và chờ xác nhận
+    → host kiểm tra lại dữ liệu đích rồi ghi
+    → trả kết quả về giao diện hoặc tiếp tục agent
+```
+
+- **Plan dữ liệu trên server** giữ các bản ghi nguồn BOM/material; **phương án ghi phía client** mô tả ô cập nhật, dòng chèn, giá trị cũ và cảnh báo. Hai cấu trúc cần tên và giao kèo rõ ràng để tránh nhầm lẫn.
+- Agent chọn dữ liệu bằng `plan_id`, ref và phạm vi; giá trị nguồn được lấy lại từ server. Quy tắc gộp material/BOM và ý nghĩa của ô trống phải được xác định rõ trong giao kèo.
+- Cả nút ghi trực tiếp và tool do agent gọi dùng chung luồng xác nhận. Nếu sheet hoặc dữ liệu đích thay đổi sau khi xem trước, yêu cầu so sánh lại trước khi áp dụng.
+
+#### Giao kèo dữ liệu và kiểm thử khi nhiều người cùng phát triển
+
+Backend Python và frontend cần thống nhất schema của plan, mapped record, trạng thái job, tham số tool và kết quả tool. Có thể dùng OpenAPI/JSON Schema cho giao kèo API, kết hợp TypeScript hoặc JSDoc để kiểm tra phía client; dữ liệu đến từ mạng/model vẫn cần được validate tại ranh giới. Các bản khai báo dùng trong fixture cần được kiểm tra đồng bộ với giao kèo thực tế.
+
+```text
+tests/
+├── js/
+│   ├── plans/                         # Khớp trùng, mơ hồ, ô trống, chèn/ghi đè, thay nhóm
+│   ├── agent/                         # Stream lỗi, resume tool, giới hạn vòng, hủy luồng
+│   ├── bom/                           # Polling, kết quả về muộn, reset ngữ cảnh
+│   └── fakes/
+│       └── fake-host.js               # Host giả dùng cho test JavaScript
+└── e2e/                               # Luồng giao diện với host/backend giả
+```
+
+| Mảng công việc | Vùng code chính | Giao kèo cần review chung |
+| :--- | :--- | :--- |
+| Giao diện hội thoại | `chat/`, phần hiển thị của `bom/` và `plans/` | State, callback, dữ liệu render |
+| Tích hợp agent | `agent/`, adapter tool | AG-UI, tool schema, context và kết quả tool |
+| BOM/pipeline | `bom/`, service/schema Python tương ứng | API, trạng thái job, quy tắc BOM/material |
+| Thao tác Excel | Thuật toán trong `plans/`, `hosts/` | Snapshot sheet, phương án ghi, xác nhận và phát hiện thay đổi |
+
+Trong merge request, CI nên chạy lint JavaScript, kiểm tra kiểu nếu được cấu hình, test thuật toán và test giao kèo; chạy e2e phù hợp với thay đổi. Test bằng Office giả cần được bổ sung bằng kiểm tra trên Excel thật cho thay đổi liên quan hành vi Office.js.
+
+**Lộ trình áp dụng:** tách API client và state trước, tiếp theo tách view/form, rồi đưa vòng agent vào `agent/` và thuật toán Excel vào `plans/`. Giữ kiểm tra hành vi ở từng bước; không cần tạo toàn bộ cây thư mục ngay khi dự án còn nhỏ.
 
 ---
 
