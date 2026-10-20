@@ -15,18 +15,34 @@ Dữ liệu giả của [Lab 00](../../docs/self-practices/agent_framework_learn
 
 ## Cài đặt
 
-Phiên bản đã chạy (17/10/2026): Python 3.12, `agno` 3.1.3, `mcp` 2.3.0, `fastmcp` 4.1.0, `ag-ui-protocol` 1.0.0, `a2a-sdk` 0.3.26 — đủ danh sách trong `requirements.txt`. Từ thư mục lab:
+Phiên bản đã chạy (17/10/2026): Python 3.12, `agno` 3.1.3, `mcp` 2.3.0, `fastmcp` 4.1.0, `ag-ui-protocol` 1.0.0, `a2a-sdk` 0.3.26 — đủ danh sách trong `requirements.txt`.
+
+Thư mục này nằm trong repo ai-architecture (cũng là một project uv), nên lệnh dưới đây chạy bằng môi trường riêng dựng từ
+`requirements.txt` (`--no-project`), không đụng `pyproject.toml` của repo. Muốn dựng project của riêng bạn từ thư mục
+trống, có `.venv` và mở bằng PyCharm, làm theo
+[Cách B ở mục 3.1 của guide](../../docs/self-practices/guide_01_agno.md#cách-b--bắt-đầu-từ-thư-mục-trống).
+
+Từ gốc repo, chép cả khối vào Terminal (bash hoặc zsh của macOS). Hàm `lab01` thay cho tiền tố dài; nó chỉ có trong
+cửa sổ Terminal đang mở, mở cửa sổ mới thì dán lại dòng thứ hai.
 
 ```bash
 cd labs/llm-05-trung-cap-agno-agentos
-AGNO='uv run --no-project --python 3.12 --with-requirements requirements.txt'
-$AGNO python -m pytest -q                          # toàn bộ test, ~1,5 phút, không cần API key
-$AGNO python mock_llm.py                           # model giả ở :8900 để chạy các module bằng tay
-cp .env.example .env                               # chọn OpenAI, model local hoặc mock
-$AGNO python agno_cli.py report-01 "Lập báo cáo Q2"  # baseline
-$AGNO python -m agno_lab.p01_agent "Phòng ban nào bị cảnh báo ở 2026-Q2?"
-$AGNO python -m agno_lab.p12_os                    # AgentOS ở http://localhost:7777/docs
+lab01() { uv run --no-project --python 3.12 --with-requirements requirements.txt "$@"; }
+lab01 python -m pytest -q
 ```
+
+| Lệnh | Làm gì |
+| --- | --- |
+| `lab01 python -m pytest -q` | Toàn bộ test, ~1,5 phút, không cần API key |
+| `lab01 python mock_llm.py` | Model giả ở cổng 8900 để chạy các module bằng tay; để nó chạy ở một cửa sổ Terminal riêng |
+| `cp .env.example .env` | Chọn OpenAI, model local hoặc mock |
+| `lab01 python agno_cli.py report-01 "Lập báo cáo Q2"` | Baseline |
+| `lab01 python -m agno_lab.p01_agent "Phòng ban nào bị cảnh báo ở 2026-Q2?"` | Phần 1 |
+| `lab01 python -m agno_lab.p12_os` | AgentOS ở <http://localhost:7777/docs> |
+
+Lệnh không có chú thích `#` phía sau vì zsh mặc định không hiểu `#` khi dán vào Terminal; biến kiểu
+`AGNO='uv run ...'` rồi gọi `$AGNO python ...` cũng không chạy trên zsh (zsh không tách biến thành nhiều từ), nên ở đây
+dùng hàm.
 
 Sửa code xong: `python sync_doc.py` cập nhật các khối code trong tài liệu.
 

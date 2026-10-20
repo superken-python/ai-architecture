@@ -10,6 +10,38 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-20 · Lab 01: tạo project từ thư mục trống với `.venv`, PyCharm, khối lệnh dán được vào zsh
+
+**Đã làm**
+
+- `docs/self-practices/guide_01_agno.md` mục 3.1 viết lại thành hai cách. **Cách A**: đã có project của Lab 00, chỉ
+  `uv add -r requirements.txt`. **Cách B**: thư mục trống → `uv init --bare --no-workspace --python 3.12` →
+  `uv python pin 3.12` → `uv venv` → `uv add -r requirements.txt` → chép 6 file nền của Lab 00 (bản đã sửa cho mcp 2.x)
+  → kiểm tra. Có bảng giải thích từng lệnh, một khối macOS/Linux và một khối PowerShell để chép một lần, mục **Mở
+  project trong PyCharm** (tự nhận `.venv`, chọn interpreter bằng tay, bảng phím tắt macOS/Windows). Hết lỗi
+  `error: No pyproject.toml found…` khi chạy `uv add` ở thư mục trống.
+- Bảng lỗi mục 8.1 thêm 4 dòng: thiếu `pyproject.toml`, `uv add` sửa nhầm `pyproject.toml` của project cha,
+  `zsh: command not found: #`, PyCharm gạch đỏ import.
+- `labs/llm-05-trung-cap-agno-agentos/README.md`: phần Cài đặt dùng hàm `lab01() { uv run --no-project … "$@"; }` thay
+  cho biến `$AGNO` (zsh không tách biến thành nhiều từ nên `$AGNO python …` báo `command not found`); chú thích chuyển
+  sang bảng; thêm link tới Cách B.
+
+**Quyết định**
+
+- Khối lệnh để dán không có chú thích `#`: zsh mặc định của macOS coi `#` là tên lệnh khi dán vào Terminal, dòng
+  `REPO=…  # ghi chú` để `REPO` rỗng và các lệnh `cp` sau đó hỏng. Đặt `setopt interactivecomments` ở dòng đầu khối dán
+  không cứu được vì zsh đọc cả khối dán rồi mới chạy (đã thử bằng pty + bracketed paste). Mỗi bước in tên bằng
+  `echo '== N) …'`.
+- `uv init --bare --no-workspace`: chỉ tạo `pyproject.toml`, không gộp vào project uv cha nếu người học lỡ đặt thư mục
+  bên trong repo.
+- Kiểm chứng (uv 0.11): khối lệnh lấy nguyên văn từ tài liệu chạy trên thư mục trống bằng bash và bằng zsh 5.9 (dán qua
+  pty), 74 test của project tham chiếu qua trong môi trường tạo ra; `.venv` có sẵn từ `python -m venv` (3.11, 3.13)
+  được `uv add` tạo lại bằng 3.12. Khối Cài đặt của README chạy qua 117 test (74 + 43 doc-sync) bằng cả hai shell.
+
+**Còn mở**
+
+- Chạy thử khối PowerShell trên Windows và các bước chọn interpreter trên PyCharm bản mới (CHECKLIST).
+
 ## 2026-10-19 · Dự án luyện tập và dữ liệu: mô tả, mục tiêu, bộ dữ liệu cho người mới
 
 **Đã làm**

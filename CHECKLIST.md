@@ -76,6 +76,10 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
       ([tài liệu](docs/self-practices/guide_01_agno.md), [project tham chiếu](labs/llm-05-trung-cap-agno-agentos/README.md))
 - [ ] **P2** Lab 01: chạy lại 16 phần với model thật (gpt-5-mini và một model local), ghi chỗ hành vi khác `mock_llm`
 - [ ] **P3** Lab 01: kiểm chứng nối Claude Code vào MCP server của AgentOS (`claude mcp add`, Phần 15) và JWT của AgentOS
+- [x] **P1** Lab 01: tạo project từ thư mục trống (`uv init` → `.venv` → `uv add` → PyCharm), khối lệnh dán được vào zsh
+      của macOS ([Cách B, mục 3.1](docs/self-practices/guide_01_agno.md#cách-b--bắt-đầu-từ-thư-mục-trống))
+- [ ] **P3** Lab 01: chạy thử khối PowerShell của Cách B trên Windows và các bước chọn interpreter trên PyCharm bản mới;
+      sửa tên menu nếu khác
 - [ ] **P3 · để sau** `llm-05`: endpoint AG-UI cho harness LangChain (thay AgentOS cho CMB-10) — hoãn theo quyết định
       2026-10-17: tập trung harness và workflow agent trước
 

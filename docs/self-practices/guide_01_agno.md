@@ -42,9 +42,22 @@ API tham khảo dùng `agno.db.sqlite.SqliteDb`, `db=`, `add_history_to_context`
 
 ## 3. Phần 0 — Chuẩn bị project
 
-### 3.1 Cài thư viện
+### 3.1 Tạo project và cài thư viện
 
-Trong project thực hành đã tạo ở Lab 00, chép file pin version dưới đây vào gốc project rồi cài:
+`uv add` chỉ chạy trong một **project uv** — thư mục đã có `pyproject.toml`. Chạy ở một thư mục trống sẽ báo:
+
+```text
+error: No `pyproject.toml` found in current directory or any parent directory
+```
+
+Chọn cách theo điểm xuất phát của bạn:
+
+| Điểm xuất phát | Làm theo |
+| --- | --- |
+| Đã làm Lab 00: thư mục `enterprise-report-lab` có `pyproject.toml` và `.venv` | [Cách A](#cách-a--đã-có-project-của-lab-00) — 2 lệnh |
+| Bắt đầu từ thư mục trống: tạo project mới, chép `requirements.txt`, tạo `.venv`, mở bằng PyCharm | [Cách B](#cách-b--bắt-đầu-từ-thư-mục-trống) — chép một khối lệnh |
+
+Cả hai cách dùng chung file pin version dưới đây (bản gốc ở `labs/llm-05-trung-cap-agno-agentos/requirements.txt`):
 
 **File: `requirements.txt`**
 
@@ -67,18 +80,147 @@ httpx==0.28.1
 pytest==9.1.1
 ```
 
+#### Cách A — đã có project của Lab 00
+
+Chép `requirements.txt` vào gốc project rồi cài. `uv add` cập nhật `pyproject.toml` và `uv.lock`, đồng thời nâng `mcp`
+1.x của Lab 00 lên 2.3.0:
+
 ```bash
-uv add -r requirements.txt      # cập nhật pyproject.toml + uv.lock; mcp 1.x của Lab 00 được nâng lên 2.3.0
+uv add -r requirements.txt
 uv run python setup_assets.py
 ```
 
+#### Cách B — bắt đầu từ thư mục trống
+
+Cả quy trình: tạo thư mục → biến thành project uv → tạo `.venv` → cài thư viện → lấy nền của Lab 00 → mở bằng
+PyCharm. Đặt thư mục **bên ngoài** repo ai-architecture (và mọi project uv khác): nằm bên trong mà quên bước `uv init`
+thì `uv add` coi project cha là của bạn và sửa `pyproject.toml` của nó mà không báo lỗi gì.
+
+| Lệnh | Làm gì |
+| --- | --- |
+| `uv init --bare --no-workspace --python 3.12` | Tạo đúng một file `pyproject.toml` (không tạo `main.py`, `README.md`); `--no-workspace` để không bị gộp vào project cha. Chạy lại khi đã có `pyproject.toml` thì uv báo `Project is already initialized` — không sao |
+| `uv python pin 3.12` | Ghi `.python-version` để uv và PyCharm cùng dùng Python 3.12 |
+| `uv venv --python 3.12` | Tạo môi trường ảo `.venv/`; máy chưa có Python 3.12 thì uv tự tải. Đã có `.venv` (kể cả tạo bằng `python -m venv`) thì uv báo lỗi `A virtual environment already exists` và không làm gì — không sao: bước `uv add` dùng lại `.venv` đó, hoặc tự xoá rồi tạo lại nếu nó không phải Python 3.12 |
+| `uv add -r requirements.txt` | Cài đúng version vào `.venv`, ghi danh sách vào `pyproject.toml`, khoá toàn bộ phiên bản trong `uv.lock` |
+| `uv run python ...` | Chạy bằng Python trong `.venv`, không cần `activate` |
+
+**macOS / Linux** — sửa dòng `REPO=` thành nơi bạn đã clone repo ai-architecture, rồi chép cả khối vào Terminal. Mỗi
+dòng `echo '== ...'` in ra bước đang chạy; lỗi hiện ngay dưới bước nào thì xem lại bước đó.
+
+```bash
+REPO=~/ai-architecture
+LAB="$REPO/labs/llm-05-trung-cap-agno-agentos"
+
+echo '== 1) Tạo thư mục project mới, nằm NGOÀI repo ai-architecture'
+mkdir -p ~/labs/enterprise-report-lab && cd ~/labs/enterprise-report-lab
+
+echo '== 2) Biến thư mục thành project uv (chỉ tạo pyproject.toml), ghim Python 3.12'
+uv init --bare --no-workspace --python 3.12
+uv python pin 3.12
+
+echo '== 3) Tạo môi trường ảo .venv'
+uv venv --python 3.12
+
+echo '== 4) Chép requirements.txt rồi cài vào .venv; uv ghi pyproject.toml và uv.lock'
+cp "$LAB/requirements.txt" .
+uv add -r requirements.txt
+
+echo '== 5) Lấy nền của Lab 00: 6 file đã sửa sẵn cho mcp 2.x, các thư mục, .gitignore, dữ liệu mẫu'
+cp "$LAB"/{setup_assets,service,rules,reporting,mcp_client,mcp_db_server}.py .
+mkdir -p agno_lab tests storage && touch agno_lab/__init__.py
+printf '.env\n.venv/\n__pycache__/\ndata/\nstorage/\n.idea/\n' > .gitignore
+uv run python setup_assets.py
+
+echo '== 6) Kiểm tra: phải thấy agno 3.1.3 | mcp 2.3.0, rồi số liệu 3 phòng ban của 2026-Q2 và 2026-Q1'
+uv run python -c "import importlib.metadata as m; print('agno', m.version('agno'), '| mcp', m.version('mcp'))"
+uv run python mcp_client.py
+```
+
+Xong thì mở thư mục bằng PyCharm (macOS; PyCharm Community bản cũ thì thay `"PyCharm"` bằng `"PyCharm CE"`; Linux và
+Windows xem [Mở project trong PyCharm](#mở-project-trong-pycharm)):
+
+```bash
+open -a "PyCharm" ~/labs/enterprise-report-lab
+```
+
+> Khối lệnh cố ý không có chú thích `#`. zsh (shell mặc định của macOS) khi dán lệnh vào Terminal coi `#` là tên một
+> lệnh: dòng `REPO=~/ai-architecture  # ghi chú` báo `zsh: command not found: #` và để `REPO` rỗng, kéo theo mọi lệnh
+> `cp` phía sau hỏng. Muốn zsh hiểu `#` như bash, chạy riêng `setopt interactivecomments` trước khi dán (đặt lệnh này ở
+> dòng đầu khối dán thì không có tác dụng), hoặc thêm dòng đó vào `~/.zshrc` để bật lâu dài.
+
+**Windows (PowerShell):**
+
+```powershell
+$REPO = "$HOME\ai-architecture"                          # nơi bạn clone repo ai-architecture
+$LAB = "$REPO\labs\llm-05-trung-cap-agno-agentos"
+
+# 1) Thư mục project mới — NGOÀI repo ai-architecture
+New-Item -ItemType Directory -Force "$HOME\labs\enterprise-report-lab" | Out-Null
+Set-Location "$HOME\labs\enterprise-report-lab"
+
+# 2)–4) Project uv, Python 3.12, .venv, cài thư viện
+uv init --bare --no-workspace --python 3.12
+uv python pin 3.12
+uv venv --python 3.12
+Copy-Item "$LAB\requirements.txt" .
+uv add -r requirements.txt
+
+# 5) Nền của Lab 00
+"setup_assets", "service", "rules", "reporting", "mcp_client", "mcp_db_server" | ForEach-Object { Copy-Item "$LAB\$_.py" . }
+New-Item -ItemType Directory -Force agno_lab, tests, storage | Out-Null
+New-Item -ItemType File -Force agno_lab\__init__.py | Out-Null
+Set-Content .gitignore ".env`n.venv/`n__pycache__/`ndata/`nstorage/`n.idea/"
+uv run python setup_assets.py
+
+# 6) Kiểm tra
+uv run python -c "import importlib.metadata as m; print('agno', m.version('agno'), '| mcp', m.version('mcp'))"
+uv run python mcp_client.py
+```
+
+Bước 5 chép 6 file nền của Lab 00 từ project tham chiếu. Hai file `mcp_db_server.py` và `mcp_client.py` ở đó đã sửa cho
+mcp 2.x, nên [Bước 0](#32-bước-0--nâng-mcp-lên-2x) coi như xong — chỉ cần chạy phần nghiệm thu. Muốn tự gõ nền thì làm
+[Lab 00](agent_framework_learning_from_scratch.md) trong chính thư mục này rồi bỏ qua bước 5. Đem project sang máy khác:
+commit `pyproject.toml` và `uv.lock`, rồi chạy `uv sync --locked` để dựng lại `.venv` đúng từng phiên bản.
+
+> Chỉ muốn một `.venv` kiểu pip, không cần project: `uv venv --python 3.12` rồi `uv pip install -r requirements.txt`.
+> `uv run` vẫn dùng `.venv` của thư mục, nhưng không có `uv.lock` để dựng lại y hệt, và `uv add` vẫn báo lỗi như trên
+> cho tới khi chạy `uv init --bare --no-workspace --python 3.12`.
+
 Cài xong giữ `uv.lock`. Extra `sqlite` của Agno kéo theo `sqlalchemy[asyncio]` (có `greenlet`), thay cho lệnh `uv add 'sqlalchemy[asyncio]'` của bản cũ. `lancedb` (Phần 6) kéo theo `pyarrow`, khoảng 340 MB; bỏ extra `lancedb` nếu chưa học Phần 6.
 
-**PyCharm:** `⌥F12` mở Terminal, `⌘1` mở Project, `⌘⇧A` → New để tạo file. Đánh dấu thư mục `tests` là Test Sources Root (chuột phải → Mark Directory as) để chạy test bằng nút ▶ cạnh tên hàm.
+#### Mở project trong PyCharm
+
+1. **Tạo `.venv` trước, mở PyCharm sau** (đúng thứ tự ở Cách B). Khi đó PyCharm dùng lại `.venv` có sẵn thay vì tự tạo
+   một môi trường thứ hai.
+2. Mở thư mục: **File → Open…** chọn `enterprise-report-lab`, hoặc chạy `open -a "PyCharm" .` trong Terminal (macOS).
+   Có JetBrains Toolbox với shell script đã bật thì chạy `pycharm .`.
+3. Nhìn góc dưới bên phải: PyCharm thường tự nhận `.venv` ở gốc project và hiện `Python 3.12 (enterprise-report-lab)`
+   (bản mới có thể ghi `uv (enterprise-report-lab)`).
+4. Nếu chưa đúng (hiện *No interpreter* hoặc một Python khác): bấm vào tên interpreter ở góc dưới bên phải → **Add New
+   Interpreter → Add Local Interpreter…** → **Select existing**, Type **Python** (bản cũ: *Virtualenv Environment →
+   Existing environment*) → Python path là `.venv/bin/python` trong thư mục project (Windows:
+   `.venv\Scripts\python.exe`) → **OK**. Cũng vào được qua **Settings** (`⌘,`; Windows/Linux `Ctrl+Alt+S`) →
+   **Project: enterprise-report-lab → Python Interpreter**. Lỡ mở PyCharm trước khi chạy `uv add` cũng không sao: uv
+   dùng lại hoặc tạo lại `.venv` ở đúng đường dẫn đó; nếu PyCharm vẫn hiện sai phiên bản Python thì chọn lại như trên.
+5. PyCharm hiện thanh gợi ý *Install requirements* hoặc hỏi cài `pip`: bỏ qua. Thư viện đã nằm trong `.venv` do uv cài;
+   thêm thư viện về sau bằng `uv add <tên gói>` trong Terminal của PyCharm (`⌥F12`).
+6. Kiểm tra: mở `service.py` không còn import gạch đỏ; Terminal của PyCharm chạy được `uv run python mcp_client.py`.
+7. Run Configuration để **working directory** là gốc project. Đánh dấu thư mục `tests` là *Test Sources Root* (chuột
+   phải → Mark Directory as) để chạy test bằng nút ▶ cạnh tên hàm.
+
+Phím tắt hay dùng (macOS / Windows và Linux):
+
+| Việc | macOS | Windows / Linux |
+| --- | --- | --- |
+| Mở Terminal trong PyCharm | `⌥F12` | `Alt+F12` |
+| Mở cây Project | `⌘1` | `Alt+1` |
+| Tạo file mới (đang chọn thư mục trong cây Project) | `⌘N` | `Alt+Insert` |
+| Tìm và chạy mọi lệnh theo tên, ví dụ "Python Interpreter" | `⌘⇧A` | `Ctrl+Shift+A` |
+| Mở Settings | `⌘,` | `Ctrl+Alt+S` |
 
 ### 3.2 Bước 0 — nâng MCP lên 2.x
 
-Lab 00 cố ý dùng SDK `mcp` 1.x và dặn "không nâng lên v2 rồi giữ nguyên imports". Lab 01 **phải** nâng: `agno[mcp]` của Agno 3.1.3 cần `mcp>=2.1,<3` và `fastmcp>=4,<5`. Đã đo: với mcp 1.30, `from agno.tools.mcp import MCPTools` lỗi ngay `ImportError: cannot import name 'MCPError'`. Lệnh `uv add -r requirements.txt` ở trên đã nâng `mcp`; giờ sửa hai file của Lab 00 cho đúng API 2.x.
+Lab 00 cố ý dùng SDK `mcp` 1.x và dặn "không nâng lên v2 rồi giữ nguyên imports". Lab 01 **phải** nâng: `agno[mcp]` của Agno 3.1.3 cần `mcp>=2.1,<3` và `fastmcp>=4,<5`. Đã đo: với mcp 1.30, `from agno.tools.mcp import MCPTools` lỗi ngay `ImportError: cannot import name 'MCPError'`. Lệnh `uv add -r requirements.txt` ở trên đã nâng `mcp`; giờ sửa hai file của Lab 00 cho đúng API 2.x. Làm theo Cách B thì hai file đã là bản 2.x: đọc để biết đổi gì rồi chạy phần nghiệm thu.
 
 **`mcp_client.py`: sửa đúng một dòng.** mcp 2.x đổi `isError` thành `is_error`:
 
@@ -137,8 +279,10 @@ if __name__ == "__main__":
 ### 3.3 Cấu trúc project
 
 ```text
-enterprise-report-lab/                  ← project thực hành của bạn (tạo ở Lab 00)
+enterprise-report-lab/                  ← project thực hành của bạn (tạo ở Lab 00, hoặc Cách B ở mục 3.1)
 ├── .env                                ← không commit (mẫu: .env.example ở mục 3.4)
+├── .venv/                              ← môi trường ảo do uv tạo (không commit)
+├── pyproject.toml  uv.lock  .python-version  ← uv tạo ở mục 3.1; commit để dựng lại bằng uv sync --locked
 ├── requirements.txt                    ← mục 3.1
 ├── setup_assets.py  service.py  rules.py  reporting.py     ← Lab 00, giữ nguyên
 ├── mcp_db_server.py  mcp_client.py     ← Lab 00, sửa theo Bước 0
@@ -910,6 +1054,10 @@ Thay fixture theo hợp đồng research ở Lab 00, kiểm tra counter cache hi
 
 | Lỗi | Hướng xử lý |
 | --- | --- |
+| `error: No pyproject.toml found in current directory or any parent directory` khi chạy `uv add` | Thư mục chưa là project uv: chạy `uv init --bare --no-workspace --python 3.12` trước ([Cách B, mục 3.1](#cách-b--bắt-đầu-từ-thư-mục-trống)) |
+| `uv add` không báo lỗi nhưng thêm thư viện vào `pyproject.toml` của repo khác | Thư mục lab nằm bên trong một project uv khác (ví dụ trong repo ai-architecture): hoàn tác bằng git, chuyển thư mục ra ngoài, làm lại Cách B |
+| `zsh: command not found: #` khi dán lệnh vào Terminal macOS | zsh chưa bật chú thích khi gõ lệnh: chạy riêng `setopt interactivecomments` rồi dán lại, hoặc thêm dòng đó vào `~/.zshrc`. Kiểm tra lại các biến như `REPO` vì dòng có `#` phía sau không được gán |
+| PyCharm gạch đỏ import nhưng `uv run` vẫn chạy được | Interpreter của PyCharm chưa trỏ `.venv` của project: chọn lại theo [mục 3.1](#mở-project-trong-pycharm) |
 | `No module named agno.storage` | Đang dùng API cũ; dùng `agno.db.sqlite` |
 | `ImportError: cannot import name 'MCPError'` khi import `agno.tools.mcp` | Còn mcp 1.x; làm Bước 0 |
 | `No module named 'mcp.server.fastmcp'` sau khi nâng mcp | mcp 2.x đổi tên: `mcp.server.mcpserver.MCPServer` |
@@ -939,6 +1087,7 @@ Thay fixture theo hợp đồng research ở Lab 00, kiểm tra counter cache hi
 ### 8.3 Phạm vi đã kiểm chứng
 
 - 74 test của project tham chiếu chạy với `mock_llm`, gồm cả server thật bằng tiến trình riêng (MCP HTTP, AgentOS có khoá và tracing), và một lần cài sạch từ `requirements.txt`.
+- Cách B (mục 3.1), ngày 20/10/2026 với uv 0.11: khối lệnh macOS/Linux chạy nguyên văn trên thư mục trống bằng bash và bằng zsh 5.9 (dán kiểu bracketed paste như Terminal của macOS). uv tạo `.venv` Python 3.12, cài agno 3.1.3 và mcp 2.3.0, `mcp_client.py` in đủ số liệu Q2/Q1, và 74 test của project tham chiếu chạy qua trong môi trường đó. Đã thử thêm trường hợp có sẵn `.venv` tạo bằng `python -m venv` (3.11, 3.13): `uv add` tự tạo lại bằng 3.12. Khối PowerShell và các bước PyCharm viết theo tài liệu, chưa chạy thử.
 - Hành vi ghi "đã đo" được đo trên Agno 3.1.3 bằng request thật mà mock nhận, không lấy từ tài liệu marketing. Chỗ ghi "đọc code" hoặc "chưa kiểm chứng" thì chưa có test.
 - Mock không đánh giá chất lượng câu trả lời của model thật. Chạy lại các phần với model của bạn và dùng eval (Phần 16) để biết chất lượng.
 
