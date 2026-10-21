@@ -24,7 +24,7 @@ quả vào tài liệu công ty. Dữ liệu tải về đặt trong `data/` và
 | [6 · LLM và RAG](#g6) | "Quy định nói gì về chuyện này?" | Trợ lý hỏi đáp có trích điều luật làm căn cứ | Bộ luật Lao động 2019 · pháp luật, nhân sự | Trả lời đúng ≥ 85%, 100% có trích dẫn, không bịa |
 | [7 · Agent](#g7) | "Làm giúp tôi cả chuỗi việc báo giá" | Agent đọc email → tra giá → soạn báo giá → chờ người duyệt | Email và bảng giá tự tạo · bán hàng B2B | Đúng ≥ 90% email, không bịa giá, không gửi khi chưa duyệt |
 | [8 · Tối ưu và nhân quả](#g8) | "Xe đi tuyến nào? Gửi khuyến mãi cho ai?" | Xếp tuyến giao hàng; đo tác động thật của email khuyến mãi | Toạ độ tự sinh + Hillstrom · logistics, marketing | Quãng đường ngắn hơn ≥ 15%; chọn khách để gửi mà lãi hơn gửi cho tất cả |
-| [9 · Tạo nội dung](#g9) | "Làm giúp video dạy chữ cái cho bé" | Video 2 phút dạy 29 chữ cái trên nền nhạc, một nhân vật xuyên suốt, dựng bằng code | Kịch bản và ảnh nhân vật tự tạo, Noto Emoji, giọng Piper vi_VN · giáo dục | Dựng lại bằng một lệnh; ≥ 90% câu đọc được máy nghe lại đúng; 100% chữ đúng chính tả |
+| [9 · Tạo nội dung](#g9) | "Làm giúp video dạy chữ cái cho bé" | Video 3 phút dạy 29 chữ cái trên nền nhạc, hai nhân vật cử động đứng hai góc bảng học, dựng bằng code | Kịch bản và video nhân vật tự tạo, Noto Emoji, giọng Piper vi_VN · giáo dục | Dựng lại bằng một lệnh; ≥ 90% câu đọc được máy nghe lại đúng; 100% chữ đúng chính tả |
 
 Dự án nào cũng đi cùng một con đường — **ĐÚNG → NHANH → CHÍNH XÁC → THUYẾT PHỤC**: hỏi đúng câu hỏi, đo cách làm hiện
 tại trước, cải tiến tới khi hơn rõ ràng, rồi quy kết quả ra tiền hoặc thời gian cho người quyết định.
@@ -347,17 +347,18 @@ Làm xong cả hai bài, bạn đạt mức **Trung cấp** của [Nhóm 8](../0
   slide, ảnh, nhạc bằng tay mất vài giờ, sửa một chữ là làm lại từ đầu. Công cụ tạo video bằng AI thì hay viết sai dấu
   tiếng Việt và làm nhân vật lệch nét giữa các cảnh.
 - **Dự án làm gì:** viết kịch bản 29 chữ cái thành một file YAML, rồi để code làm hết phần còn lại: giọng đọc tiếng Việt
-  chạy offline, nhạc nền tự tổng hợp, vẽ từng khung hình (nhân vật nhún theo nhịp, thẻ chữ, hình minh họa, phụ đề chạy
-  theo lời) và ghép thành MP4 bằng ffmpeg. Máy nhận dạng giọng nói (ASR) nghe lại từng câu để báo câu cần sửa. So với
+  chạy offline, nhạc nền tự tổng hợp, tách nhân vật khỏi video ngắn thành ảnh động nền trong suốt, vẽ từng khung hình
+  (bảng học ở giữa, nhân vật hai góc nhún theo nhịp và theo lời, hình minh họa, phụ đề chạy theo lời) và ghép thành MP4
+  bằng ffmpeg. Máy nhận dạng giọng nói (ASR) nghe lại từng câu để báo câu cần sửa. So với
   cách làm tay: thời gian làm một video và số lỗi chữ, lỗi đọc.
 - **Mục tiêu đạt được:** một lệnh dựng lại cả video (~3 phút, không tốn phí API); **≥ 90%** câu đọc được máy nghe lại
   đúng cả khi có nhạc; **100%** chữ trên hình đúng chính tả; giáo viên nghe duyệt trước khi dùng.
-- **Dữ liệu:** tự tạo — kịch bản (chữ cái, cách đọc âm, từ ví dụ) và ảnh nhân vật; hình minh họa Noto Emoji (Apache 2.0);
+- **Dữ liệu:** tự tạo — kịch bản (chữ cái, cách đọc âm, từ ví dụ) và video nhân vật (Gemini); hình minh họa Noto Emoji (Apache 2.0);
   giọng Piper vi_VN vais1000, huấn luyện trên dữ liệu VAIS-1000 (CC BY 4.0, phải ghi nguồn). Bộ đánh giá là chính 31 câu
   của kịch bản. Lĩnh vực: giáo dục.
 
-Đã có bản đầu chạy được: [dự án g9-video-chu-cai](../../projects/g9-video-chu-cai/README.md) (máy nghe đúng 28/29 câu
-chữ cái). Làm lại cho bài học khác là đạt mức **Trung cấp** của [Nhóm 9](../02-skill-map/generated/nhom/g9-tao-noi-dung.md).
+Đã có bản chạy được: [dự án g9-video-chu-cai](../../projects/g9-video-chu-cai/README.md) (video 3 phút, máy nghe đúng
+28/29 câu chữ cái). Làm lại cho bài học khác là đạt mức **Trung cấp** của [Nhóm 9](../02-skill-map/generated/nhom/g9-tao-noi-dung.md).
 
 <a id="tai-kaggle"></a>
 

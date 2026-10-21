@@ -116,6 +116,6 @@ Python, Git, môi trường, kiểm thử, gọi API bền vững, dựng media 
 - **Tiên quyết:** [PY-01](../mang/py.md#py-01) Python cho dữ liệu và AI
 - **Mở khóa:** —
 - **Công cụ:** Pillow, numpy, ffmpeg, MoviePy, Remotion
-- **Đạt khi:** Một lệnh dựng lại được video 2 phút từ kịch bản; sửa một chữ trong kịch bản thì video mới hiện đúng chữ đó.
+- **Đạt khi:** Một lệnh dựng lại được video 3 phút từ kịch bản; sửa một chữ trong kịch bản thì video mới hiện đúng chữ đó.
 - **Token & độ chính xác:** Xem vài khung hình PNG thay vì dựng cả video sau mỗi lần sửa; nhớ kết quả giọng đọc và tài nguyên tải về.
 - **Trong lộ trình:** Hướng Nội dung đa phương tiện (Trung cấp) · Thanh ngang chữ T · Nhóm 9 (Cơ bản) — xem [lộ trình theo bước](../lo-trinh.md)

@@ -57,7 +57,7 @@ def test_rejects_broken_letter(script_data, tmp_path, patch, message):
 
 def test_rejects_duplicate_letter_and_unknown_engine(script_data, tmp_path):
     data = copy.deepcopy(script_data)
-    data["character"]["image"] = str((lesson.Path(__file__).parents[1] / "assets/nhan-vat/sach-vui.png").resolve())
+    data["characters"] = []
     data["letters"].append(copy.deepcopy(data["letters"][0]))
     with pytest.raises(lesson.LessonError, match="lặp"):
         lesson.parse(data, tmp_path)
@@ -65,3 +65,36 @@ def test_rejects_duplicate_letter_and_unknown_engine(script_data, tmp_path):
     data["voice"]["engine"] = "robot"
     with pytest.raises(lesson.LessonError, match="không hợp lệ"):
         lesson.parse(data, tmp_path)
+
+
+def test_two_characters_one_speaker_and_their_sources(full_lesson):
+    left, right = full_lesson.characters
+    assert (left.name, left.side, left.speaks) == ("Thỏ Bông", "left", False)
+    assert (right.name, right.side, right.speaks) == ("Sách Vui", "right", True)
+    for c in full_lesson.characters:
+        assert c.sprite.suffix == ".webp" and c.sprite.exists()
+        assert c.source is not None and c.source.video.exists() and c.source.end > c.source.start
+        assert len(c.source.crop) == 4
+
+
+def test_three_minute_pacing_settings(full_lesson):
+    assert full_lesson.bpm == 88 and full_lesson.voice_speed == 0.75
+    g = next(x for x in full_lesson.letters if x.letter == "G")
+    assert g.speed == 0.8  # chậm hơn thì "gờ" bị nghe thành "khờ" (reports/kiem-tra-giong.md)
+    assert all(x.speed is None for x in full_lesson.letters if x.letter != "G")
+
+
+@pytest.mark.parametrize(
+    ("patch", "message"),
+    [
+        ({"side": "top"}, "không hợp lệ"),
+        ({"side": "right"}, "mỗi góc"),
+        ({"speaks": True}, "chỉ một nhân vật"),
+        ({"sprite": "khong-co.webp", "source": None}, "không có ảnh nhân vật"),
+    ],
+)
+def test_rejects_broken_characters(script_data, patch, message):
+    data = copy.deepcopy(script_data)
+    data["characters"][0].update(patch)  # Thỏ Bông (trái, không đọc)
+    with pytest.raises(lesson.LessonError, match=message):
+        lesson.parse(data, lesson.Path(__file__).parents[1] / "kich-ban")

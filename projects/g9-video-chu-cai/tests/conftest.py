@@ -24,12 +24,14 @@ def full_lesson() -> lesson.Lesson:
 
 @pytest.fixture
 def make_script(tmp_path: Path, script_data: dict):
-    """Ghi một kịch bản rút gọn ra thư mục tạm (đường dẫn ảnh nhân vật đổi sang tuyệt đối)."""
+    """Ghi một kịch bản rút gọn ra thư mục tạm (đường dẫn ảnh động nhân vật đổi sang tuyệt đối)."""
 
     def _make(n_letters: int = 3, **changes) -> Path:
         data = copy.deepcopy(script_data)
         data["letters"] = data["letters"][:n_letters]
-        data["character"]["image"] = str((config.DEFAULT_SCRIPT.parent / data["character"]["image"]).resolve())
+        for c in data["characters"]:
+            c["sprite"] = str((config.DEFAULT_SCRIPT.parent / c["sprite"]).resolve())
+            c.pop("source", None)  # video gốc chỉ cần cho `make sprites`
         data["voice"]["recordings"] = str(tmp_path / "giong-thu-am")
         data["voice"]["engine"] = "silent"
         for key, value in changes.items():

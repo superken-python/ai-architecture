@@ -14,6 +14,7 @@ DEFAULT_SCRIPT = PROJECT_ROOT / "kich-ban" / "chu-cai.yaml"
 
 WIDTH, HEIGHT, FPS = 1280, 720, 30
 SAMPLE_RATE = 44_100
+SPRITE_FPS = 24  # nhịp hình của ảnh động nhân vật (giống video Gemini gốc)
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,17 @@ ASR = Download(
     "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-zipformer-vi-int8-2025-04-20.tar.bz2",
     "48d0fdc9b3515eb9b00c4dfec2883207ee5ebe5c95b1959e7afce87fc3391938",
     "models/sherpa-onnx-zipformer-vi-int8-2025-04-20.tar.bz2",
+)
+# Hai mô hình tách nền (Apache 2.0) đóng gói ONNX trong bản phát hành của rembg — chỉ cần khi chạy `make sprites`.
+SEGMENT_U2NET = Download(
+    "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx",
+    "8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491",
+    "models/u2net.onnx",
+)
+SEGMENT_ISNET = Download(
+    "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
+    "60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a",
+    "models/isnet-general-use.onnx",
 )
 # Noto Emoji (Apache 2.0), ghim theo commit để hình không đổi khi kho nguồn thay đổi.
 EMOJI_URL = (

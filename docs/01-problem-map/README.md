@@ -72,10 +72,11 @@ khả thi và solution approach, chưa triển khai.
 
 ## Use case bổ sung · Video dạy chữ cái tiếng Việt (Nhóm 9)
 
-[Video dạy chữ cái cùng Sách Vui](../../projects/g9-video-chu-cai/README.md) thuộc **G9 · Tạo nội dung đa phương
-tiện**: video 2 phút dạy 29 chữ cái trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code (kịch bản YAML →
-giọng đọc → nhạc → hình → ffmpeg) và cho máy nghe lại lời đọc bằng ASR. Tách bài toán con: viết kịch bản là G6, dây chuyền
-dựng là kỹ năng pipeline (OPS-03), còn phần lõi — sinh giọng đọc và dựng media — là G9. Có [hướng dẫn tự làm bằng Claude
+[Video dạy chữ cái cùng Thỏ Bông và Sách Vui](../../projects/g9-video-chu-cai/README.md) thuộc **G9 · Tạo nội dung đa
+phương tiện**: video 3 phút dạy 29 chữ cái trên nền nhạc, bảng học ở giữa, hai nhân vật cử động đứng hai góc (tách nền
+từ video Gemini), dựng bằng code (kịch bản YAML → giọng đọc → nhạc → hình → ffmpeg) và cho máy nghe lại lời đọc bằng
+ASR. Tách bài toán con: viết kịch bản là G6, dây chuyền dựng là kỹ năng pipeline (OPS-03), còn phần lõi — sinh giọng
+đọc, tách nhân vật, dựng media — là G9. Có [hướng dẫn tự làm bằng Claude
 Code](../../projects/g9-video-chu-cai/docs/huong-dan-claude-code.md).
 
 ## Ma trận kỹ năng theo nhóm (giai đoạn 1)

@@ -1,6 +1,7 @@
 """Dòng lệnh: python -m chu_cai_video <lệnh>. Gõ `make` trong thư mục dự án để xem các lệnh thường dùng.
 
 assets   tải font, hình, giọng đọc (và model ASR nếu thêm --asr) vào .cache/
+sprites  tách nhân vật khỏi video gốc → ảnh động WebP nền trong suốt (cần nhóm phụ thuộc `sprites`)
 voice    đọc mọi câu của kịch bản, in độ dài từng câu so với khúc nhạc
 frame    vẽ vài khung hình xem thử → out/khung-<giây>.png
 render   dựng video → media/video-chu-cai.mp4 + ảnh bìa + chương và phụ đề (.vtt)
@@ -92,6 +93,24 @@ def cmd_assets(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sprites(args: argparse.Namespace) -> int:
+    from chu_cai_video import sprites  # nhập muộn: cần onnxruntime
+
+    les = lesson.load(args.script)
+    todo = [c for c in les.characters if c.source and (not args.only or c.name in args.only)]
+    if not todo:
+        print("Không có nhân vật nào có `source` (video gốc) trong kịch bản")
+        return 1
+    segmenter = sprites.Segmenter()
+    for c in todo:
+        assert c.source is not None
+        began = time.monotonic()
+        n = sprites.extract(c.source, c.sprite, segmenter)
+        size = c.sprite.stat().st_size / 1e6
+        print(f"✓ {c.name}: {shown(c.sprite)} ({n} khung, {size:.1f} MB) sau {time.monotonic() - began:.0f}s")
+    return 0
+
+
 def cmd_voice(args: argparse.Namespace) -> int:
     les = lesson.load(args.script)
     tl = timeline.build(les)
@@ -156,6 +175,8 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     p_assets = sub.add_parser("assets", help="tải tài nguyên vào .cache/")
     p_assets.add_argument("--asr", action="store_true", help="tải cả model nghe lại (~60 MB)")
+    p_sprites = sub.add_parser("sprites", help="tách nhân vật khỏi video gốc")
+    p_sprites.add_argument("--only", nargs="*", help="chỉ tách các nhân vật có tên này")
     for name in ("voice", "frame", "render"):
         p = sub.add_parser(name)
         p.add_argument("--voice", choices=["piper", "silent"], help="ghi đè voice.engine của kịch bản")
@@ -168,7 +189,14 @@ def main(argv: list[str] | None = None) -> int:
     p_qa = sub.add_parser("qa", help="máy nghe lại lời đọc")
     p_qa.add_argument("--report", type=Path, default=config.REPORTS / "kiem-tra-giong.md")
     args = parser.parse_args(argv)
-    handler = {"assets": cmd_assets, "voice": cmd_voice, "frame": cmd_frame, "render": cmd_render, "qa": cmd_qa}
+    handler = {
+        "assets": cmd_assets,
+        "sprites": cmd_sprites,
+        "voice": cmd_voice,
+        "frame": cmd_frame,
+        "render": cmd_render,
+        "qa": cmd_qa,
+    }
     try:
         return handler[args.command](args)
     except (lesson.LessonError, assets.AssetError, ValueError, RuntimeError) as e:

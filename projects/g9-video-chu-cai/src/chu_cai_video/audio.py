@@ -71,8 +71,10 @@ def trim(x: np.ndarray, sr: int, threshold_db: float = -45.0, pad: float = 0.03)
     return y
 
 
-def longest_pause(x: np.ndarray, sr: int, lo: float = 0.25, hi: float = 0.8, min_len: float = 0.04) -> float | None:
-    """Thời điểm (giây) kết thúc khoảng ngắt dài nhất nằm giữa câu — chỗ dấu phẩy trước từ ví dụ."""
+def longest_gap(
+    x: np.ndarray, sr: int, lo: float = 0.25, hi: float = 0.8, min_len: float = 0.04
+) -> tuple[float, float] | None:
+    """(đầu, cuối) — giây — của khoảng ngắt dài nhất giữa câu: chỗ dấu phẩy; `cuối` là lúc bắt đầu đọc từ ví dụ."""
     level = frame_rms(x, sr, 0.01)
     if level.size == 0:
         return None
@@ -92,7 +94,19 @@ def longest_pause(x: np.ndarray, sr: int, lo: float = 0.25, hi: float = 0.8, min
             i += 1
     if best is None or (best[1] - best[0]) * 0.01 < min_len:
         return None
-    return best[1] * 0.01
+    return best[0] * 0.01, best[1] * 0.01
+
+
+def insert_silence(x: np.ndarray, sr: int, at: float, seconds: float) -> np.ndarray:
+    """Chèn `seconds` giây im lặng tại giây `at`; hai mép cắt làm mềm 10 ms để không nghe tiếng 'tạch'."""
+    i = int(at * sr)
+    head, tail = x[:i].astype(np.float32), x[i:].astype(np.float32)
+    n = min(int(0.01 * sr), head.size, tail.size)
+    if n:
+        ramp = np.linspace(1, 0, n, dtype=np.float32)
+        head[-n:] *= ramp
+        tail[:n] *= ramp[::-1]
+    return np.concatenate([head, np.zeros(int(seconds * sr), np.float32), tail])
 
 
 def smooth_envelope(x: np.ndarray, sr: int, attack: float = 0.03, release: float = 0.25) -> np.ndarray:

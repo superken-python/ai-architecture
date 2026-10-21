@@ -21,9 +21,9 @@
 - **Metric chính:** Tỷ lệ câu đọc đúng (máy nghe lại + người nghe); lỗi chữ trên hình; tỷ lệ video được duyệt ngay lần đầu; thời gian và chi phí mỗi phút video; tỷ lệ xem hết.
 - **Công cụ:** Claude Code, ffmpeg, Pillow, Remotion, Piper / sherpa-onnx, TTS thương mại (FPT.AI, Google, Azure, ElevenLabs), Kling, Veo, Sora
 - **Bẫy thường gặp:** Để mô hình sinh vẽ chữ (sai dấu tiếng Việt); tin giọng TTS mà không nghe lại; nhân vật lệch nét giữa các cảnh; quên bản quyền nhân vật, nhạc, giọng đọc; nội dung cho trẻ em không có người duyệt.
-- **Dự án luyện tập:** Video 2 phút dạy 29 chữ cái tiếng Việt trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code (kịch bản YAML → giọng đọc → nhạc → hình) và tự kiểm tra lời đọc bằng ASR. Đã làm bản đầu — dự án g9-video-chu-cai.
-- **Mục tiêu đạt được:** Một lệnh dựng lại cả video (~3 phút, không tốn phí API); ≥ 90% câu đọc được máy nghe lại đúng cả khi có nhạc (bản đầu: 28/29); 100% chữ trên hình đúng chính tả; giáo viên duyệt.
-- **Dữ liệu:** Tự tạo: kịch bản 29 chữ cái (cách đọc âm, từ ví dụ), ảnh nhân vật; hình Noto Emoji (Apache 2.0); giọng Piper vi_VN vais1000 (dữ liệu VAIS-1000, CC BY 4.0). Lĩnh vực giáo dục. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g9)
+- **Dự án luyện tập:** Video 3 phút dạy 29 chữ cái tiếng Việt trên nền nhạc: bảng học ở giữa, hai nhân vật cử động (tách nền từ video Gemini) đứng hai góc; dựng bằng code (kịch bản YAML → giọng đọc → nhạc → hình) và tự kiểm tra lời đọc bằng ASR. Đã làm — dự án g9-video-chu-cai.
+- **Mục tiêu đạt được:** Một lệnh dựng lại cả video (~3 phút, không tốn phí API); ≥ 90% câu đọc được máy nghe lại đúng cả khi có nhạc (hiện tại: 28/29); 100% chữ trên hình đúng chính tả; giáo viên duyệt.
+- **Dữ liệu:** Tự tạo: kịch bản 29 chữ cái (cách đọc âm, từ ví dụ), hai video nhân vật tạo bằng Gemini; hình Noto Emoji (Apache 2.0); giọng Piper vi_VN vais1000 (dữ liệu VAIS-1000, CC BY 4.0). Lĩnh vực giáo dục. [Mô tả chi tiết dự án và dữ liệu](../../../00-setup/05-du-lieu-luyen-tap.md#g9)
 - **Nguyên tắc:** Chữ, số và lời dạy phải đúng tuyệt đối — để code vẽ chữ và máy nghe lại lời đọc; AI lo phần giọng và hình.
 
 ## Kỹ năng cần cho nhóm này

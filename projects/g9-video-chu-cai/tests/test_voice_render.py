@@ -1,10 +1,12 @@
+import dataclasses
 import shutil
 import subprocess
 
 import numpy as np
 import pytest
+from PIL import Image
 
-from chu_cai_video import audio, cli, config, lesson, qa, render, timeline, voice
+from chu_cai_video import audio, character, cli, config, lesson, qa, render, sprites, timeline, voice
 
 
 def test_silent_voice_fits_and_recordings_override(make_script, tmp_path):
@@ -21,6 +23,31 @@ def test_silent_voice_fits_and_recordings_override(make_script, tmp_path):
     assert all(s.end <= s.segment.end for s in spoken)
     track = voice.voice_track(spoken, tl.duration)
     assert np.abs(track).max() > 0  # câu thu âm có mặt trong rãnh giọng
+
+
+class GapEngine:
+    """Giả giọng máy: hai tiếng ồn cách nhau một khoảng lặng ngắn (giống dấu phẩy trong câu)."""
+
+    name = "piper"
+
+    def key(self, speed=None):
+        return f"gap|{speed}"
+
+    def synth(self, text, speed=None):
+        rng = np.random.default_rng(0)
+        part = (0.3 * rng.standard_normal(int(0.8 * config.SAMPLE_RATE))).astype(np.float32)
+        gap = np.zeros(int(0.1 * config.SAMPLE_RATE), np.float32)
+        return np.concatenate([part, gap, part]), config.SAMPLE_RATE
+
+
+def test_machine_voice_gets_a_longer_pause_before_the_example_word(make_script, tmp_path):
+    base = lesson.load(make_script(1))
+    tl = timeline.build(base)
+    plain = voice.speak(dataclasses.replace(base, voice_pause=0.0), tl, GapEngine(), cache=tmp_path)[1]
+    slow = voice.speak(dataclasses.replace(base, voice_pause=0.35), tl, GapEngine(), cache=tmp_path)[1]
+    assert slow.duration == pytest.approx(plain.duration + 0.35, abs=0.01)
+    assert slow.word_at == pytest.approx(plain.word_at + 0.35, abs=0.01)
+    assert plain.word_at == pytest.approx(0.8 + 0.1, abs=0.02)  # từ ví dụ bắt đầu sau khoảng lặng
 
 
 def test_line_longer_than_its_bars_is_reported(make_script):
@@ -47,8 +74,57 @@ def test_frames_render_offline(make_script):
     for t in (0.5, seg.voice_at + 1.5, p.timeline.segments[-1].start + 2.0, p.timeline.duration - 0.01):
         img = r.frame(t)
         assert img.size == (config.WIDTH, config.HEIGHT) and img.mode == "RGB"
-    card = np.asarray(r.frame(seg.end - 0.5).crop((640, 130, 1180, 330)), dtype=float)
-    assert card.mean() > 180  # thẻ chữ trắng đã hiện
+    frame = r.frame(seg.end - 0.5)
+    card = np.asarray(frame.crop((render.CARD_X + 40, 130, render.CARD_X + render.CARD_W - 40, 330)), dtype=float)
+    assert card.mean() > 180  # thẻ chữ trắng ở giữa đã hiện
+    for side in ("left", "right"):  # hai nhân vật đứng hai góc dưới: có nhiều điểm sáng (lông thỏ, trang sách)
+        x = render.CHAR_X[side]
+        corner = np.asarray(frame.crop((x - 100, render.CHAR_FOOT - 200, x + 100, render.CHAR_FOOT - 40)), dtype=float)
+        assert (corner.mean(axis=2) > 180).mean() > 0.15, side
+
+
+def test_read_along_cue_fills_the_gap_after_the_line(make_script):
+    p = cli.prepare(make_script(1), "silent")
+    r = render.Renderer(p.lesson, p.timeline, p.spoken, p.music, p.voice, render.Fonts({}), {"A": None})
+    seg = p.timeline.segments[1]
+    window = r.repeat_window(seg)
+    assert window is not None and p.spoken[1].end < window[0] < window[1] < seg.end
+    x, y = config.WIDTH // 2, render.SUB_Y
+    cue = np.asarray(r.frame(sum(window) / 2).crop((x - 100, y - 12, x + 100, y + 12)), dtype=float)
+    # nhãn vàng "Bé đọc theo nào!" ở chỗ phụ đề
+    assert ((cue[..., 0] > 200) & (cue[..., 1] > 170) & (cue[..., 2] < 120)).mean() > 0.3
+    music = {"bpm": 132, "intro_bars": 4, "letter_bars": 2, "outro_bars": 4}
+    fast = cli.prepare(make_script(1, music=music, intro="Xin chào các bạn!"), "silent")
+    r = render.Renderer(fast.lesson, fast.timeline, fast.spoken, fast.music, fast.voice, render.Fonts({}), {"A": None})
+    assert r.repeat_window(fast.timeline.segments[1]) is None  # nhịp nhanh: không còn chỗ cho bé đọc theo
+
+
+def test_sprite_plays_forward_then_backward(tmp_path):
+    frames = [Image.new("RGBA", (40, 80), (v, 0, 0, 255)) for v in (10, 20, 30)]
+    path = tmp_path / "nhan-vat.webp"
+    sprites.save_webp(frames, path)
+    s = character.Sprite(path, box=(20, 100))
+    assert s.size == (20, 40)  # co vừa khung, giữ tỉ lệ
+    seen = [s.at(k / config.SPRITE_FPS).getpixel((10, 20))[0] for k in range(6)]
+    assert [round(v / 10) for v in seen] == [1, 2, 3, 2, 1, 2]
+
+
+def test_sprite_mask_keeps_details_inside_the_ring_only():
+    h = w = 200
+    body = np.zeros((h, w), np.float32)
+    body[60:140, 60:140] = 1.0  # thân nhân vật: U²-Net chắc chắn
+    detail = body.copy()
+    detail[50:60, 60:140] = 1.0  # quai tai nghe mảnh: chỉ ISNet thấy
+    detail[0:6, :] = 1.0  # vòng sáng ở mép: ISNet lấy nhầm
+    alpha = sprites.combine(body, detail, radius=80)
+    assert alpha[100, 100] == 1.0 and alpha[55, 100] == 1.0
+    assert alpha[2, 100] == 0.0
+    rgb = np.full((h, w, 3), (30, 50, 90), np.float32)  # nền xanh đậm
+    rgb[60:140, 60:140] = (240, 240, 240)
+    hole = body.copy()
+    hole[20:40, 80:120] = 1.0  # U²-Net lấp cả khoảng nền giữa quai tai nghe và đầu
+    alpha = sprites.combine(hole, detail, radius=80, rgb=rgb)
+    assert alpha[30, 100] == 0.0 and alpha[100, 100] == 1.0
 
 
 def test_vtt_files_list_every_chapter_and_line(make_script):

@@ -18,6 +18,8 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.16,<0.17"]  # ruff cùng phiên bản với repo gốc
+# Chỉ để tách nhân vật khỏi video gốc (`make sprites`); dựng video không cần.
+sprites = ["onnxruntime>=1.20"]
 
 [tool.uv]
 default-groups = ["dev"]

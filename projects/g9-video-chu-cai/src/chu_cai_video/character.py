@@ -1,4 +1,4 @@
-"""Cắt nhân vật ra khỏi ảnh gốc: lấy vùng tròn (huy hiệu) với viền mềm, phóng to và làm nét lại."""
+"""Nhân vật trên hình: ảnh động nền trong suốt (WebP từ `make sprites`) phát xuôi rồi ngược, và quầng sáng phía sau."""
 
 from __future__ import annotations
 
@@ -6,19 +6,38 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter
 
+from chu_cai_video import config
 
-def badge(path: Path, cx: int, cy: int, r: int, size: int) -> Image.Image:
-    """Ảnh RGBA vuông `size`×`size`: vùng tròn tâm (cx, cy) bán kính r của ảnh gốc, ngoài vòng tròn trong suốt."""
-    src = Image.open(path).convert("RGBA")
-    box = (cx - r, cy - r, cx + r, cy + r)
-    crop = src.crop(box).resize((size, size), Image.Resampling.LANCZOS)
-    crop = crop.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
-    # Mặt nạ vẽ ở 4× rồi thu nhỏ để viền tròn mịn, thêm 1–2 px mờ cho khỏi răng cưa.
-    big = Image.new("L", (size * 4, size * 4), 0)
-    ImageDraw.Draw(big).ellipse((6, 6, size * 4 - 6, size * 4 - 6), fill=255)
-    mask = big.resize((size, size), Image.Resampling.LANCZOS).filter(ImageFilter.GaussianBlur(0.8))
-    crop.putalpha(mask)
-    return crop
+
+class Sprite:
+    """Các khung hình RGBA của một nhân vật, co vừa khung `box` (rộng, cao).
+
+    Phát xuôi rồi ngược (ping-pong): đoạn video gốc không nối vòng được, đi qua đi lại thì chuyển động vẫn liền mạch.
+    """
+
+    def __init__(self, path: Path, box: tuple[int, int]) -> None:
+        if not path.exists():
+            raise RuntimeError(f"Chưa có ảnh nhân vật {path.name} — chạy `make sprites` để tách từ video gốc")
+        frames: list[Image.Image] = []
+        with Image.open(path) as im:
+            for i in range(getattr(im, "n_frames", 1)):
+                im.seek(i)
+                frames.append(im.convert("RGBA"))
+        scale = min(box[0] / frames[0].width, box[1] / frames[0].height)
+        size = (round(frames[0].width * scale), round(frames[0].height * scale))
+        self.frames = [f.resize(size, Image.Resampling.LANCZOS) for f in frames]
+
+    @property
+    def size(self) -> tuple[int, int]:
+        return self.frames[0].size
+
+    def at(self, t: float) -> Image.Image:
+        """Khung hình lúc `t` giây."""
+        n = len(self.frames)
+        if n == 1:
+            return self.frames[0]
+        k = int(t * config.SPRITE_FPS) % (2 * n - 2)
+        return self.frames[k if k < n else 2 * n - 2 - k]
 
 
 def glow(size: int, color: tuple[int, int, int], strength: float = 0.75) -> Image.Image:

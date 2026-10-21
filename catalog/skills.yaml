@@ -120,7 +120,7 @@ skills:
     used_by: {G5: minor, G9: core}
     prereqs: [PY-01]
     tools: [Pillow, numpy, ffmpeg, MoviePy, Remotion]
-    done_when: Một lệnh dựng lại được video 2 phút từ kịch bản; sửa một chữ trong kịch bản thì video mới hiện đúng chữ đó.
+    done_when: Một lệnh dựng lại được video 3 phút từ kịch bản; sửa một chữ trong kịch bản thì video mới hiện đúng chữ đó.
     efficiency_note: Xem vài khung hình PNG thay vì dựng cả video sau mỗi lần sửa; nhớ kết quả giọng đọc và tài nguyên tải về.
 
   # ───────────────────────── DATA · SQL & dữ liệu ─────────────────────────

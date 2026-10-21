@@ -10,6 +10,40 @@ Quy ước khi thêm một mục:
 
 ---
 
+## 2026-10-21 · Video chữ cái bản 3 phút: hai nhân vật cử động, bảng học ở giữa, đọc chậm hơn
+
+**Đã làm**
+
+- **Hai nhân vật tách từ video Gemini** (người dùng gửi): Thỏ Bông (thỏ đeo tai nghe) đứng góc trái, Sách Vui (sách
+  đeo tai nghe, người đọc lời) đứng góc phải, bảng học ở giữa, phụ đề lọt giữa hai nhân vật. Module mới
+  `sprites.py` + `make sprites`: lấy đoạn 2,5 giây của mỗi video, tách nền từng khung bằng U²-Net + ISNet (onnxruntime,
+  nhóm phụ thuộc tùy chọn `sprites`, mô hình ghim mã băm), lưu ảnh động WebP nền trong suốt (1,6–1,8 MB mỗi nhân vật,
+  commit sẵn). Video gốc commit ở `assets/nhan-vat/nguon/`. Ảnh tĩnh `sach-vui.png` và phần cắt huy hiệu tròn bỏ đi.
+- **Bố cục và chuyển động:** ảnh động phát xuôi rồi ngược; Sách Vui nhún theo giọng đọc, Thỏ Bông nhún theo phách và
+  nhảy lên lúc hiện từ ví dụ; mỗi nhân vật hiện ra lúc câu chào gọi tên; mở đầu có đĩa chữ "Aa" với các chữ cái bay
+  vòng quanh; sau mỗi câu đọc có nhãn "Bé đọc theo nào!" và chữ cái nảy theo phách.
+- **3 phút, đọc chậm hơn:** 88 nhịp/phút (mỗi chữ 5,5 giây thay vì 3,6), `voice.speed` 0,8 → 0,75. Kịch bản thêm
+  `characters`, `speed` riêng cho từng câu, `voice.pause`. Video 3:00, ~15 MB, dựng lại ~3 phút. Máy nghe lại: từ ví dụ
+  28/29 (cả khi có nhạc), âm đọc 28/29 — giữ như bản 2 phút; chỉ còn chữ P.
+- Tài liệu cập nhật: README dự án (bảng thử cách tách nền, vòng cải tiến giọng 5), hướng dẫn Claude Code (mục nhân
+  vật viết lại, cách B, lỗi thường gặp), catalog G9, trang dữ liệu luyện tập, bản đồ bài toán. 32 test chạy offline.
+
+**Quyết định**
+
+- **Tách nền bằng hai mô hình ghép lại:** đã thử ISNet-anime (thỏ chập chờn, hỏng với sách), SAM (dính nền), ISNet
+  (dính vòng sáng), U²-Net (mất quai tai nghe, lấp kín khoảng nền giữa quai và sách). Ghép: alpha = max(U²-Net, ISNet
+  trong đĩa tròn nhỏ hơn vòng sáng); chỗ hai mô hình bất đồng mà màu gần màu nền thì trả về nền.
+- **Commit ảnh động đã tách**, không tách lúc dựng: dựng video không cần ~350 MB mô hình và onnxruntime.
+- **Không chèn thêm khoảng ngắt ở dấu phẩy:** thử 0,15–0,35 giây thì máy nghe sai thêm 3–4 âm (Ê, R, U, Ư), nên để 0
+  và đọc chậm bằng `speed`. G giữ tốc độ 0,8 (chậm hơn thì "gờ" bị nghe thành "khờ"); O đổi "con chó" → "quả bóng".
+- Câu chào gọi tên cả hai nhân vật: "Thỏ Bông" đứng cuối câu bị đọc dính thành "thỏng"; thử 16 cách viết, chọn "Sách
+  Vui đây, còn đây là bạn Thỏ Bông của mình" (máy nghe đúng cả hai tên).
+
+**Còn mở** (chuyển sang CHECKLIST)
+
+- Thu âm chữ P và giáo viên nghe duyệt — áp dụng cho bản 3 phút.
+- Sách Vui chưa nhép miệng theo lời: cần thêm đoạn video "đang nói"/"im lặng" và chọn theo giọng đọc.
+
 ## 2026-10-20 · Nhóm 9 · Tạo nội dung đa phương tiện + video dạy chữ cái tiếng Việt dựng bằng code
 
 **Đã làm**

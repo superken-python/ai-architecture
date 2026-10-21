@@ -95,8 +95,10 @@ Mỗi lab: `labs/<id>-<mức>-<tên>/` theo `templates/lab/README.md`.
       (cách đọc âm, dấu thanh, hình hợp lứa tuổi) trước khi dùng với bé.
 - [ ] **P1** `projects/g9-video-chu-cai/` — chủ dự án chọn bài tiếp theo cho lớp 3 (vd. vần, từ chỉ sự vật – hoạt động –
       đặc điểm); mở rộng kịch bản cho thẻ nhiều chữ (vần "ang", "anh") thay vì một chữ cái.
-- [ ] **P2** `projects/g9-video-chu-cai/` — thử cách B cho cảnh mở đầu/kết (công cụ tạo video có ảnh tham chiếu nhân
-      vật), giữ phần dạy chữ bằng code; so chi phí và độ nhất quán nhân vật.
+- [x] **G9** Video bản 3 phút: hai nhân vật cử động tách từ video Gemini (Thỏ Bông trái, Sách Vui phải), bảng học ở
+      giữa, đọc chậm hơn (88 nhịp/phút, `speed` 0,75), nhãn "Bé đọc theo nào!" sau mỗi câu; `make sprites`.
+- [ ] **P2** `projects/g9-video-chu-cai/` — Sách Vui nhép miệng theo lời: tạo thêm đoạn video "đang nói" và "im lặng"
+      (cùng ảnh tham chiếu), tách bằng `make sprites`, chọn đoạn theo giọng đọc.
 
 - [x] **G7 + G6** Nghiên cứu [GPT Excel Agent Chatbot](projects/gpt-excel-agent-chatbot/README.md): mô tả bài toán,
       solution approach, khả thi và nguồn Microsoft; chỉ Markdown, chưa code.

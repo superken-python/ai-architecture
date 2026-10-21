@@ -323,9 +323,9 @@ sections:
         combos: [CMB-10]
         groups: [G7]
       - key: g9_video
-        title: Dự án G9 · Video dạy chữ cái cùng Sách Vui
+        title: Dự án G9 · Video dạy chữ cái cùng Thỏ Bông và Sách Vui
         path: projects/g9-video-chu-cai/README.md
-        desc: "Video 2 phút dạy 29 chữ cái trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code; xem video ngay trên trang."
+        desc: "Video 3 phút dạy 29 chữ cái trên nền nhạc: bảng học ở giữa, hai nhân vật cử động đứng hai góc, dựng bằng code; xem video ngay trên trang."
         tag: Có video
         kind: project
         groups: [G9]

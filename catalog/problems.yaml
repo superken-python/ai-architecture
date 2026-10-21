@@ -259,13 +259,13 @@ groups:
     metrics: Tỷ lệ câu đọc đúng (máy nghe lại + người nghe); lỗi chữ trên hình; tỷ lệ video được duyệt ngay lần đầu; thời gian và chi phí mỗi phút video; tỷ lệ xem hết.
     tools: [Claude Code, ffmpeg, Pillow, Remotion, "Piper / sherpa-onnx", "TTS thương mại (FPT.AI, Google, Azure, ElevenLabs)", "Kling, Veo, Sora"]
     pitfalls: Để mô hình sinh vẽ chữ (sai dấu tiếng Việt); tin giọng TTS mà không nghe lại; nhân vật lệch nét giữa các cảnh; quên bản quyền nhân vật, nhạc, giọng đọc; nội dung cho trẻ em không có người duyệt.
-    practice_project: "Video 2 phút dạy 29 chữ cái tiếng Việt trên nền nhạc, một nhân vật xuyên suốt, dựng hoàn toàn bằng code (kịch bản YAML → giọng đọc → nhạc → hình) và tự kiểm tra lời đọc bằng ASR. Đã làm bản đầu — dự án g9-video-chu-cai."
-    practice_target: "Một lệnh dựng lại cả video (~3 phút, không tốn phí API); ≥ 90% câu đọc được máy nghe lại đúng cả khi có nhạc (bản đầu: 28/29); 100% chữ trên hình đúng chính tả; giáo viên duyệt."
-    practice_data: "Tự tạo: kịch bản 29 chữ cái (cách đọc âm, từ ví dụ), ảnh nhân vật; hình Noto Emoji (Apache 2.0); giọng Piper vi_VN vais1000 (dữ liệu VAIS-1000, CC BY 4.0). Lĩnh vực giáo dục."
+    practice_project: "Video 3 phút dạy 29 chữ cái tiếng Việt trên nền nhạc: bảng học ở giữa, hai nhân vật cử động (tách nền từ video Gemini) đứng hai góc; dựng bằng code (kịch bản YAML → giọng đọc → nhạc → hình) và tự kiểm tra lời đọc bằng ASR. Đã làm — dự án g9-video-chu-cai."
+    practice_target: "Một lệnh dựng lại cả video (~3 phút, không tốn phí API); ≥ 90% câu đọc được máy nghe lại đúng cả khi có nhạc (hiện tại: 28/29); 100% chữ trên hình đúng chính tả; giáo viên duyệt."
+    practice_data: "Tự tạo: kịch bản 29 chữ cái (cách đọc âm, từ ví dụ), hai video nhân vật tạo bằng Gemini; hình Noto Emoji (Apache 2.0); giọng Piper vi_VN vais1000 (dữ liệu VAIS-1000, CC BY 4.0). Lĩnh vực giáo dục."
     principle: Chữ, số và lời dạy phải đúng tuyệt đối — để code vẽ chữ và máy nghe lại lời đọc; AI lo phần giọng và hình.
     # Video mẫu hiện ngay trên trang nhóm của web: trình phát + nút nhảy tới từng chương (đọc từ file chương WebVTT).
     demo:
-      title: Bảng chữ cái tiếng Việt cùng Sách Vui
+      title: Bảng chữ cái tiếng Việt cùng Thỏ Bông và Sách Vui
       video: projects/g9-video-chu-cai/media/video-chu-cai.mp4
       poster: projects/g9-video-chu-cai/media/poster.jpg
       subtitles: projects/g9-video-chu-cai/media/phu-de.vtt

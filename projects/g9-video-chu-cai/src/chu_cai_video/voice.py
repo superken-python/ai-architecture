@@ -60,7 +60,7 @@ class PiperEngine:
         self.model = model or assets.model_dir(config.VOICE)
         self.speed = speed
         onnx = next(self.model.glob("*.onnx"))
-        self.key = f"{onnx.name}|{speed}|noise0"
+        self.onnx_name = onnx.name
         self.tts = sherpa_onnx.OfflineTts(
             sherpa_onnx.OfflineTtsConfig(
                 model=sherpa_onnx.OfflineTtsModelConfig(
@@ -76,8 +76,12 @@ class PiperEngine:
             )
         )
 
-    def synth(self, text: str) -> tuple[np.ndarray, int]:
-        result = self.tts.generate(text, sid=0, speed=self.speed)
+    def key(self, speed: float | None = None) -> str:
+        """Khóa bộ nhớ đệm: đổi model hoặc tốc độ thì đọc lại."""
+        return f"{self.onnx_name}|{speed or self.speed}|noise0"
+
+    def synth(self, text: str, speed: float | None = None) -> tuple[np.ndarray, int]:
+        result = self.tts.generate(text, sid=0, speed=speed or self.speed)
         return np.asarray(result.samples, dtype=np.float32), result.sample_rate
 
 
@@ -85,9 +89,11 @@ class SilentEngine:
     """Không lời: mỗi tiếng ~0,3 giây im lặng — giữ đúng nhịp để xem thử hình mà không cần model."""
 
     name = "silent"
-    key = "silent"
 
-    def synth(self, text: str) -> tuple[np.ndarray, int]:
+    def key(self, speed: float | None = None) -> str:
+        return "silent"
+
+    def synth(self, text: str, speed: float | None = None) -> tuple[np.ndarray, int]:
         syllables = max(1, len(text.split()))
         return np.zeros(int(0.3 * syllables * config.SAMPLE_RATE), dtype=np.float32), config.SAMPLE_RATE
 
@@ -106,14 +112,14 @@ def _normalize(x: np.ndarray) -> np.ndarray:
     return (y * (0.95 / peak) if peak > 0.95 else y).astype(np.float32)
 
 
-def _machine(engine: PiperEngine | SilentEngine, text: str, cache: Path) -> np.ndarray:
+def _machine(engine: PiperEngine | SilentEngine, text: str, cache: Path, speed: float | None = None) -> np.ndarray:
     if engine.name == "silent":
         return engine.synth(text)[0]
-    path = cache / "voice" / f"{hashlib.sha1(f'{engine.key}|{text}'.encode()).hexdigest()[:16]}.wav"
+    path = cache / "voice" / f"{hashlib.sha1(f'{engine.key(speed)}|{text}'.encode()).hexdigest()[:16]}.wav"
     if path.exists():
         samples, sr = audio.read_wav(path)
     else:
-        samples, sr = engine.synth(text)
+        samples, sr = engine.synth(text, speed)
         audio.write_wav(path, samples, sr)
     return audio.resample(samples, sr, config.SAMPLE_RATE)
 
@@ -131,12 +137,19 @@ def speak(
             raw, sr = audio.read_wav(recording)
             samples, source = audio.resample(raw, sr, config.SAMPLE_RATE), "thu-am"
         else:
-            samples, source = _machine(engine, text, cache), engine.name
+            speed = seg.letter.speed if seg.letter else None
+            samples, source = _machine(engine, text, cache, speed), engine.name
         if source != "silent":
             samples = _normalize(audio.trim(samples, config.SAMPLE_RATE))
         word_at = None
         if seg.letter is not None:
-            word_at = audio.longest_pause(samples, config.SAMPLE_RATE) if source != "silent" else None
+            gap = audio.longest_gap(samples, config.SAMPLE_RATE) if source != "silent" else None
+            if gap is not None:
+                word_at = gap[1]
+                if source == "piper" and lesson.voice_pause > 0:  # giọng máy: ngắt thêm cho bé nghe tách hai phần
+                    middle = (gap[0] + gap[1]) / 2
+                    samples = audio.insert_silence(samples, config.SAMPLE_RATE, middle, lesson.voice_pause)
+                    word_at += lesson.voice_pause
             if word_at is None:  # không tìm thấy chỗ ngắt: từ ví dụ hiện ở giữa câu
                 word_at = 0.5 * samples.size / config.SAMPLE_RATE
         item = Spoken(seg, text, samples, source, word_at)

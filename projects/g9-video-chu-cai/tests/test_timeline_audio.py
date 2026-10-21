@@ -6,10 +6,10 @@ from chu_cai_video import audio, lesson, music, timeline
 SR = 44_100
 
 
-def test_two_minutes_and_segments_follow_the_beat(full_lesson):
+def test_three_minutes_and_segments_follow_the_beat(full_lesson):
     tl = timeline.build(full_lesson)
     assert tl.duration == pytest.approx((4 + 2 * 29 + 4) * tl.bar)
-    assert tl.duration == pytest.approx(120.0)
+    assert tl.duration == pytest.approx(180.0)
     for a, b in zip(tl.segments, tl.segments[1:], strict=False):
         assert a.end == pytest.approx(b.start)
     for seg in tl.segments:
@@ -40,8 +40,17 @@ def test_trim_and_pause_detection():
     x = np.concatenate([silence, burst, np.zeros(int(0.12 * SR), np.float32), burst, silence])
     y = audio.trim(x, SR)
     assert y.size < x.size - int(0.3 * SR)
-    pause_end = audio.longest_pause(y, SR)
-    assert pause_end == pytest.approx(0.03 + 0.3 + 0.12, abs=0.03)
+    start, end = audio.longest_gap(y, SR)
+    assert end == pytest.approx(0.03 + 0.3 + 0.12, abs=0.03)
+    assert end - start == pytest.approx(0.12, abs=0.03)
+
+
+def test_insert_silence_widens_the_pause():
+    x = np.ones(SR, np.float32) * 0.5
+    y = audio.insert_silence(x, SR, 0.4, 0.35)
+    assert y.size == x.size + int(0.35 * SR)
+    assert np.abs(y[int(0.41 * SR) : int(0.74 * SR)]).max() == 0  # khoảng lặng mới
+    assert y[int(0.2 * SR)] == pytest.approx(0.5) and y[-1] == pytest.approx(0.5)  # hai phần câu giữ nguyên
 
 
 def test_music_ducks_under_voice_and_mix_peaks_at_minus_1_dbfs():

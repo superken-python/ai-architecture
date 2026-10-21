@@ -1,4 +1,4 @@
-# Kịch bản video "Bảng chữ cái tiếng Việt cùng Sách Vui" — nguồn duy nhất của video.
+# Kịch bản video "Bảng chữ cái tiếng Việt cùng Thỏ Bông và Sách Vui" — nguồn duy nhất của video.
 # Sửa file này rồi chạy `make video` để dựng lại. Chữ trên hình lấy nguyên văn từ đây nên luôn đúng chính tả.
 #
 # Mỗi chữ cái:
@@ -9,36 +9,59 @@
 #   emoji   hình minh họa (Noto Emoji), hoặc
 #   image   đường dẫn ảnh riêng (PNG nền trong), tính từ thư mục chứa file này
 #   say     (tùy chọn) câu cho giọng đọc, thay cho mẫu voice.line — dùng khi giọng đọc sai một từ
+#   speed   (tùy chọn) tốc độ đọc riêng câu này, thay cho voice.speed
 #
 # Từ ví dụ được chọn bằng phép đo: giọng đọc tạo câu, mô hình nhận dạng giọng nói nghe lại, giữ từ được nghe đúng
 # (xem reports/kiem-tra-giong.md). Muốn thay một câu bằng giọng thật: thu âm rồi đặt file vào giong-thu-am/<id>.wav.
 
 title: Bảng chữ cái tiếng Việt
 
-character:
-  name: Sách Vui
-  image: ../assets/nhan-vat/sach-vui.png
-  # Vùng tròn chứa nhân vật trong ảnh gốc (tâm x, tâm y, bán kính — đơn vị pixel của ảnh gốc).
-  crop: {cx: 256, cy: 142, r: 125}
+# Hai nhân vật đứng hai góc dưới, bảng học ở giữa. Ảnh động (WebP nền trong suốt) tách từ video Gemini trong
+# assets/nhan-vat/nguon/ bằng `make sprites`: lấy đoạn [start, end) giây, cắt vùng crop [x, y, rộng, cao], tách nền
+# (radius: bán kính vùng giữ chi tiết mảnh như tai nghe, nhỏ hơn vòng sáng quanh nhân vật), thu về cao `height` px.
+characters:
+  - name: Thỏ Bông
+    side: left
+    sprite: ../assets/nhan-vat/tho-bong.webp
+    source:
+      video: ../assets/nhan-vat/nguon/tho-bong.mp4
+      start: 0.0
+      end: 2.5
+      crop: [320, 40, 640, 640]
+      radius: 252
+      height: 360
+  - name: Sách Vui
+    side: right
+    speaks: true      # Sách Vui là người đọc: nhún theo giọng đọc
+    sprite: ../assets/nhan-vat/sach-vui.webp
+    source:
+      video: ../assets/nhan-vat/nguon/sach-vui.mp4
+      start: 0.0
+      end: 2.5
+      crop: [320, 40, 640, 640]
+      radius: 252
+      height: 300
 
 music:
-  bpm: 132          # 132 nhịp/phút: mỗi chữ cái 2 ô nhịp ≈ 3,6 giây, cả video đúng 2 phút
+  bpm: 88           # 88 nhịp/phút: mỗi chữ cái 2 ô nhịp ≈ 5,5 giây, cả video đúng 3 phút
   intro_bars: 4
   letter_bars: 2
   outro_bars: 4
 
 voice:
   engine: piper     # piper (giọng Piper vi_VN chạy offline) | silent (không lời, để xem thử nhanh)
-  speed: 0.8        # < 1 là đọc chậm hơn bình thường, hợp với bé
+  speed: 0.75       # < 1 là đọc chậm hơn bình thường, hợp với bé
+  pause: 0          # giây ngắt thêm trước "như trong..." (giọng máy). Đã đo 0,15–0,35: máy nghe lại sai thêm 3–4 âm
+                    # (Ê, R, U, Ư) nên để 0; giọng đọc chậm nhờ speed và mỗi chữ có 5,5 giây
   line: "Đây là chữ {sound}, như trong {phrase}."
   recordings: ../giong-thu-am   # file <id>.wav ở đây thay cho giọng máy của câu tương ứng
 
-intro: Xin chào các bạn nhỏ! Mình là Sách Vui. Hôm nay, cùng mình học hai mươi chín chữ cái tiếng Việt nhé!
+intro: Xin chào các bạn nhỏ! Sách Vui đây, còn đây là bạn Thỏ Bông của mình. Hôm nay, cùng chúng mình học hai mươi chín chữ cái tiếng Việt nhé!
 outro: Giỏi quá! Các bạn đã học xong hai mươi chín chữ cái rồi. Hẹn gặp lại nhé!
 
 # Câu có `say` riêng: theo bảng kiểm tra, mẫu chung làm giọng đọc sai dấu thanh của âm (á → "a rát", ca → "cà",
-# quy → "quỵ", ê → "ệ"); thêm "nhé" hoặc lặp âm thì máy nghe lại đúng. P: giọng này không đọc được âm "pờ" — cần
-# thu âm thật (giong-thu-am/chu-20.wav).
+# quy → "quỵ", ê → "ệ"); thêm "nhé" hoặc lặp âm thì máy nghe lại đúng. G đọc ở tốc độ 0,8: chậm hơn thì "gờ" bị nghe
+# thành "khờ". P: giọng này không đọc được âm "pờ" — cần thu âm thật (giong-thu-am/chu-20.wav).
 letters:
   - {letter: A, sound: a, phrase: cái áo, word: áo, emoji: "👕"}
   - {letter: Ă, sound: á, phrase: khăn quàng, word: khăn, emoji: "🧣", say: "Đây là chữ á nhé, như trong khăn quàng."}
@@ -49,14 +72,14 @@ letters:
   - {letter: Đ, sound: đờ, phrase: đồng hồ, word: đồng, emoji: "⏰"}
   - {letter: E, sound: e, phrase: em bé, word: em, emoji: "👶"}
   - {letter: Ê, sound: ê, phrase: cái lều, word: lều, emoji: "⛺", say: "Đây là chữ ê, ê, như trong cái lều."}
-  - {letter: G, sound: gờ, phrase: con gà, word: gà, emoji: "🐔"}
+  - {letter: G, sound: gờ, phrase: con gà, word: gà, emoji: "🐔", speed: 0.8}
   - {letter: H, sound: hờ, phrase: bông hoa, word: hoa, emoji: "🌸"}
   - {letter: I, sound: i, phrase: bút chì, word: chì, emoji: "✏"}
   - {letter: K, sound: ca, phrase: cái kéo, word: kéo, emoji: "✂", say: "Đây là chữ ca nhé, như trong cái kéo."}
   - {letter: L, sound: lờ, phrase: chiếc lá, word: lá, emoji: "🍃"}
   - {letter: M, sound: mờ, phrase: con mèo, word: mèo, emoji: "🐱"}
   - {letter: N, sound: nờ, phrase: cây nấm, word: nấm, emoji: "🍄"}
-  - {letter: O, sound: o, phrase: con chó, word: chó, emoji: "🐶"}
+  - {letter: O, sound: o, phrase: quả bóng, word: bóng, emoji: "⚽"}
   - {letter: Ô, sound: ô, phrase: ô tô, word: ô, emoji: "🚗"}
   - {letter: Ơ, sound: ơ, phrase: quả ớt, word: ớt, emoji: "🌶"}
   - {letter: P, sound: pờ, phrase: cục pin, word: pin, emoji: "🔋"}

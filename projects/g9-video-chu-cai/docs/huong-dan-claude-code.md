@@ -1,13 +1,15 @@
 # Tự làm video hoạt hình dạy học bằng Claude Code (cách A: dựng bằng code)
 
-Hướng dẫn này đi lại đúng các bước đã làm ra [video chữ cái cùng Sách Vui](../README.md), để bạn tự làm video khác:
+Hướng dẫn này đi lại đúng các bước đã làm ra [video chữ cái cùng Thỏ Bông và Sách Vui](../README.md), để bạn tự làm
+video khác:
 đổi nhân vật, đổi bài học, đổi giọng. Claude Code viết và chạy code giúp bạn. Bạn giữ ba việc: chọn nội dung, nhìn
 khung hình, nghe duyệt lời đọc.
 
 > [!NOTE]
 > Claude (kể cả gói Max) **không có mô hình tạo video hay hình ảnh**. Cách A không cần: Claude Code viết code vẽ từng
-> khung hình từ ảnh nhân vật của bạn, ghép giọng đọc và nhạc bằng ffmpeg. Kết quả là video hoạt hình ghép (nhân vật
-> nhún, nghiêng, phóng to theo nhịp), không phải anime cử động tay chân. Muốn vậy xem [mục 8](#8--muốn-nhân-vật-cử-động-thật-cách-b).
+> khung hình, ghép giọng đọc và nhạc bằng ffmpeg. Nhân vật cử động được nếu bạn có video ngắn của nhân vật (tạo bằng
+> Gemini, Veo, Kling…): code tách nhân vật khỏi nền thành ảnh động rồi đặt vào video, xem
+> [mục 1](#1--nhân-vật-video-ngắn-tách-thành-ảnh-động). Chữ, giọng đọc, nhịp vẫn do code đặt, nên luôn đúng.
 
 | | |
 |---|---|
@@ -20,8 +22,9 @@ khung hình, nghe duyệt lời đọc.
 1. **Claude Code** — cài theo [hướng dẫn chính thức](https://code.claude.com/docs), đăng nhập bằng tài khoản Claude.
 2. **uv** và **ffmpeg**: macOS `brew install uv ffmpeg`; Ubuntu `sudo apt install ffmpeg` rồi cài uv theo
    [docs/00-setup](../../../docs/00-setup/README.md).
-3. **Ảnh nhân vật** — một ảnh PNG/JPG, nhân vật nằm trong một vùng tròn hoặc vuông rõ ràng. Ảnh tự tạo bằng công cụ
-   tạo ảnh (Gemini, ChatGPT…) dùng được; tránh nhân vật có bản quyền (Doraemon, Pikachu…) nếu định đăng công khai.
+3. **Video nhân vật** — mỗi nhân vật một video ngắn (5–10 giây), nhân vật đứng giữa, nền tách bạch (nền tối, vòng
+   sáng như video mẫu là được). Tự tạo bằng Gemini, Veo, Kling… từ ảnh nhân vật; tránh nhân vật có bản quyền
+   (Doraemon, Pikachu…) nếu định đăng công khai. Ảnh PNG nền trong suốt cũng dùng được (nhân vật đứng yên).
 
 Mở terminal ở thư mục dự án rồi chạy:
 
@@ -29,28 +32,38 @@ Mở terminal ở thư mục dự án rồi chạy:
 cd projects/g9-video-chu-cai
 make setup     # môi trường Python đúng theo uv.lock
 make assets    # tải font, hình, giọng đọc, model nghe lại (~150 MB, một lần)
-make test      # 21 test phải xanh trước khi sửa gì
+make test      # 32 test phải xanh trước khi sửa gì
 claude         # mở Claude Code ngay trong thư mục này
 ```
 
-## 1 · Nhân vật: một ảnh dùng xuyên suốt
+## 1 · Nhân vật: video ngắn, tách thành ảnh động
 
-Video chỉ cần **một** ảnh nhân vật. Code cắt vùng tròn chứa nhân vật, làm mềm viền, phóng to và cho nhân vật nhún theo
-phách nhạc, nghiêng nhẹ, to lên khi đang đọc. Vì dùng đúng một ảnh, nhân vật luôn giống nhau ở mọi cảnh. Đây là điểm
-khó nhất nếu dùng công cụ tạo video.
+Video mẫu có hai nhân vật đứng hai góc dưới, bảng học ở giữa: **Thỏ Bông** bên trái, **Sách Vui** bên phải (người đọc
+lời). Mỗi nhân vật là một video Gemini 10 giây có nền sao, vòng sáng, nốt nhạc bay. `make sprites` lấy đoạn 2,5 giây
+đầu, tách nhân vật khỏi nền bằng hai mô hình tách nền chạy offline, lưu thành ảnh động WebP nền trong suốt
+(`assets/nhan-vat/*.webp`, đã commit sẵn). Khi dựng video, ảnh động phát xuôi rồi ngược cho liền mạch; Sách Vui nhún
+theo giọng đọc, Thỏ Bông nhún theo phách và nhảy lên lúc hiện từ ví dụ. Vì mọi cảnh dùng đúng đoạn video ấy, nhân vật
+luôn giống nhau — điều khó nhất nếu để công cụ tạo video làm cả bài.
 
-1. Chép ảnh vào `assets/nhan-vat/`, sửa `character.image` trong kịch bản.
-2. Đặt `character.crop` = tâm và bán kính vùng tròn (pixel của ảnh gốc). Không chắc thì nhờ Claude Code:
+1. Chép video vào `assets/nhan-vat/nguon/`.
+2. Khai báo trong `characters` của kịch bản: `name`, `side` (`left`/`right`), `sprite` (file WebP sẽ sinh ra),
+   `speaks: true` cho nhân vật đọc lời, và `source`: đoạn giây (`start`, `end`), vùng cắt chứa nhân vật
+   (`crop: [x, y, rộng, cao]`), `radius` (bán kính vùng giữ chi tiết mảnh, nhỏ hơn vòng sáng quanh nhân vật), `height`.
+3. `make sprites` (lần đầu tải ~350 MB mô hình; ~1,5 phút mỗi nhân vật trên CPU 4 nhân), rồi `make preview`.
+
+Vì sao hai mô hình: U²-Net lấy trọn thân nhưng bỏ sót chi tiết mảnh (quai tai nghe của thỏ) và lấp kín khoảng nền giữa
+quai tai nghe và quyển sách; ISNet giữ chi tiết nhưng lấy luôn vòng sáng. Code lấy phần chắc chắn của cả hai, chỗ hai
+mô hình bất đồng mà màu gần màu nền thì trả về nền (xem bảng thử nghiệm trong [README](../README.md)).
 
 ```text
-Ảnh nhân vật mới ở assets/nhan-vat/meo-mun.png. Hãy tìm vùng tròn chứa trọn nhân vật (tâm x, y, bán kính),
-cập nhật character.crop trong kich-ban/chu-cai.yaml, chạy `make preview` rồi xem out/khung-*.png:
-nhân vật có bị cắt mất tai, viền có lộ nền cũ không. Chỉnh đến khi đẹp.
+Tôi có video nhân vật mới assets/nhan-vat/nguon/meo-mun.mp4 (nền tối, nhân vật ở giữa). Thay Thỏ Bông bằng Mèo Mun
+trong kich-ban/chu-cai.yaml: tìm đoạn 2–3 giây nhân vật cử động đều, vùng cắt chứa trọn nhân vật, chạy make sprites
+rồi tự xem ảnh động trên nền tối và nền sáng: có sót nền, mất tai, mất đuôi không. Chỉnh radius/crop đến khi sạch.
 ```
 
 ## 2 · Kịch bản: một file YAML là nguồn duy nhất
 
-Mọi thứ trên hình và trong tai đều lấy từ [`kich-ban/chu-cai.yaml`](../kich-ban/chu-cai.yaml): tiêu đề, tên nhân vật,
+Mọi thứ trên hình và trong tai đều lấy từ [`kich-ban/chu-cai.yaml`](../kich-ban/chu-cai.yaml): tiêu đề, nhân vật,
 nhịp nhạc, câu chào, và với mỗi chữ cái: cách đọc, từ ví dụ, từ chứa chữ cái, hình minh họa. Chữ trên hình được vẽ từ
 file này bằng font thật, nên **không bao giờ sai dấu**. Ngược lại, công cụ tạo ảnh/video hay viết sai dấu tiếng Việt.
 
@@ -70,14 +83,14 @@ từ không nằm trong cụm từ, thiếu hình, hay chữ cái bị lặp.
 Dựng cả video mất ~3 phút; xem vài khung hình chỉ mất vài giây. Hãy sửa bố cục bằng khung hình trước:
 
 ```bash
-make preview                                              # mở đầu, chuyển cảnh, 3 chữ đầu, kết thúc
-uv run python -m chu_cai_video frame --at 10.6 61.5 116   # hoặc chọn giây cần xem
+make preview                                               # mở đầu, chuyển cảnh, 3 chữ đầu, kết thúc
+uv run python -m chu_cai_video frame --at 4.6 15.5 172     # hoặc chọn giây cần xem
 ```
 
 Claude Code đọc được ảnh, nên có thể tự xem khung hình và sửa code vẽ:
 
 ```text
-Xem out/khung-*.png. Phụ đề đang che bảng tên nhân vật ở cảnh mở đầu; thẻ chữ hơi sát mép phải.
+Xem out/khung-*.png. Ý tưởng: bảng học ở giữa, hai nhân vật đứng hai góc trái phải, phụ đề lọt giữa hai nhân vật.
 Sửa bố cục trong render.py, vẽ lại khung hình và cho tôi xem trước/sau.
 ```
 
@@ -90,7 +103,8 @@ Sửa bố cục trong render.py, vẽ lại khung hình và cho tôi xem trư�
 [`music.py`](../src/chu_cai_video/music.py) tạo nhạc bằng numpy: trống nhẹ, bass nảy, đàn gảy phách lẻ, tiếng "ting"
 khi sang chữ mới, và một câu đáp ngắn của mộc cầm sau mỗi lời đọc. Không dùng bản thu của ai nên đăng ở đâu cũng được.
 
-- Nhịp: `music.bpm`. Mỗi chữ cái chiếm `letter_bars` ô nhịp (mặc định 2). Ở 132 nhịp/phút, cả video đúng 2 phút.
+- Nhịp: `music.bpm`. Mỗi chữ cái chiếm `letter_bars` ô nhịp (mặc định 2). Ở 88 nhịp/phút, mỗi chữ 5,5 giây và cả
+  video đúng 3 phút (132 nhịp/phút → 2 phút). Phần thời gian sau lời đọc hiện "Bé đọc theo nào!" để bé đọc lại.
 - Khi có lời, nhạc tự hạ 9 dB (ducking). Đo được: lời to hơn nhạc 14 dB lúc đang đọc.
 - Muốn dùng nhạc có sẵn: chọn bản có giấy phép rõ ràng, rồi nhờ Claude thay `music.render` bằng hàm đọc file WAV và
   cắt cho đủ độ dài.
@@ -110,6 +124,7 @@ Giọng đọc là phần dễ sai nhất, và bạn sẽ không nghe hết 31 c
 | Đọc cả câu thay vì từ đứng riêng | Luôn luôn | "Bờ, con bò!" (máy nghe đúng 8/29) → "Đây là chữ bờ, như trong con bò." (18/29) |
 | Đổi từ ví dụ | Giọng đọc sai một từ | N: "con nai" → "cây nấm"; V: "con vịt" → "cái váy" |
 | Câu riêng `say` | Sai dấu thanh của âm | "Đây là chữ quy nhé, …" (không có "nhé" thì máy nghe thành "quỵ") |
+| Tốc độ riêng `speed` | Đọc chậm cả bài làm sai một âm | Cả bài 0,75; riêng G 0,8 (chậm hơn thì "gờ" nghe thành "khờ") |
 | Thu âm thật | Giọng máy không đọc được | Âm "pờ": thu câu của chữ P, lưu `giong-thu-am/chu-20.wav` |
 
 Thu âm bằng điện thoại cho nhanh, rồi đổi sang WAV 16 bit và đặt đúng tên file (id câu có trong bảng kiểm tra):
@@ -118,6 +133,9 @@ Thu âm bằng điện thoại cho nhanh, rồi đổi sang WAV 16 bit và đặ
 ffmpeg -i ghi-am-chu-p.m4a -ac 1 -ar 44100 -c:a pcm_s16le giong-thu-am/chu-20.wav
 make video && make qa      # câu chu-20 giờ có nguồn "thu-am"
 ```
+
+Muốn đọc chậm hơn nữa: giảm `voice.speed`, hoặc thử `voice.pause` (giây ngắt thêm trước "như trong…") — rồi chạy lại
+`make qa`. Ở video mẫu, ngắt thêm 0,15–0,35 giây làm máy nghe sai thêm 3–4 âm nên đang để 0.
 
 Muốn giọng hay hơn cho cả video: thu âm cả 31 câu (giáo viên đọc, mỗi câu một file), hoặc dùng dịch vụ đọc tiếng
 Việt (FPT.AI, Vbee, Google, Azure, ElevenLabs) rồi lưu kết quả vào `giong-thu-am/`. Vẫn chạy `make qa` để kiểm tra.
@@ -145,15 +163,15 @@ một chương) và phụ đề WebVTT. Trang web lộ trình hiện video ở t
 - [ ] Nhân vật, nhạc, giọng đọc có quyền sử dụng; dòng ghi nguồn ở cuối video còn nguyên.
 - [ ] Đăng lên YouTube: chọn "Dành cho trẻ em"; mô tả có ghi nguồn giọng đọc (CC BY 4.0).
 
-## 8 · Muốn nhân vật cử động thật (cách B)
+## 8 · Muốn nhân vật cử động nhiều hơn (cách B)
 
-Cách A không làm được tay chân cử động, khẩu hình, đổi góc máy. Những việc đó cần một công cụ tạo video (Kling, Veo,
-Seedance, Sora…) có tính năng giữ nhân vật theo ảnh tham chiếu. Cách ghép hợp lý:
+Video mẫu đã ghép một phần cách B: nhân vật lấy từ video Gemini. Muốn hơn nữa (nhép miệng theo lời, nhiều động tác,
+đổi góc máy) thì cần nhiều đoạn video nhân vật hơn:
 
-- Dùng công cụ tạo video cho vài cảnh ngắn **không có chữ** (mở đầu, kết thúc), mỗi cảnh 5–10 giây, đưa ảnh nhân vật
-  làm tham chiếu.
-- Giữ phần dạy chữ bằng cách A, vì chữ và giọng phải đúng tuyệt đối. Chữ chèn bằng code, giọng từ `giong-thu-am/`.
-- Nhờ Claude Code ghép các cảnh: đọc clip, cắt cho khớp nhịp, chèn trước/sau phần dạy chữ. ffmpeg làm được hết.
+- Tạo vài đoạn ngắn **không có chữ** cho mỗi nhân vật: "đang nói", "im lặng", "vỗ tay"… cùng ảnh tham chiếu để giữ
+  nhân vật giống nhau. Tách từng đoạn bằng `make sprites` (mỗi đoạn một `source`).
+- Nhờ Claude Code chọn đoạn theo dòng thời gian: "đang nói" khi có giọng đọc, "vỗ tay" ở cảnh kết.
+- Giữ phần dạy chữ bằng code, vì chữ và giọng phải đúng tuyệt đối. Công cụ tạo video hay viết sai dấu tiếng Việt.
 
 ## 9 · Lỗi thường gặp
 
@@ -165,13 +183,17 @@ Seedance, Sora…) có tính năng giữ nhân vật theo ảnh tham chiếu. C�
 | `Không tải được …` | Mạng chặn GitHub hoặc Google Fonts: tải tay file trong `config.py` vào `.cache/` (mã băm được kiểm khi dùng) |
 | Chữ hiện bằng font khác | Không tải được Baloo 2, đang dùng font dự phòng của máy — chạy lại `make assets` |
 | Hình minh họa là vòng tròn có chữ cái | Không tải được emoji; dùng ảnh riêng: `image: ../assets/hinh/bo.png` |
+| `Chưa có ảnh nhân vật … — chạy make sprites` | Chưa tách nhân vật từ video gốc: `make sprites` |
+| Nhân vật còn dính nền, vòng sáng | Giảm `radius` (vùng giữ chi tiết), thu `crop` sát nhân vật, chọn đoạn giây nhân vật không chạm vòng sáng |
+| Nhân vật mất tai, mất chi tiết mảnh | Tăng `radius` để ISNet giữ chi tiết; xem lại ảnh động trên nền sáng cho dễ thấy |
 
 ## Prompt mẫu cho cả quy trình
 
 ```text
-Tôi muốn làm video 2 phút dạy chữ cái tiếng Việt cho bé, dùng nhân vật trong assets/nhan-vat/<ảnh>.png xuyên suốt,
-trên nền nhạc vui. Làm theo projects/g9-video-chu-cai: (1) cập nhật kịch bản kich-ban/chu-cai.yaml, (2) chạy
-make preview và tự xem khung hình, sửa bố cục nếu chồng chéo, (3) chạy make video rồi make qa, (4) với câu bị đánh ✗,
-thử đổi từ ví dụ hoặc thêm câu `say`, chạy lại make qa; câu nào vẫn sai thì liệt kê để tôi thu âm.
+Tôi muốn làm video 3 phút dạy chữ cái tiếng Việt cho bé, hai nhân vật trong assets/nhan-vat/nguon/*.mp4 đứng hai
+góc, bảng học ở giữa, trên nền nhạc vui. Làm theo projects/g9-video-chu-cai: (1) cập nhật kịch bản
+kich-ban/chu-cai.yaml và chạy make sprites, tự xem ảnh động đã tách, (2) chạy make preview và tự xem khung hình, sửa
+bố cục nếu chồng chéo, (3) chạy make video rồi make qa, (4) với câu bị đánh ✗, thử đổi từ ví dụ, thêm câu `say` hoặc
+`speed` riêng, chạy lại make qa; câu nào vẫn sai thì liệt kê để tôi thu âm.
 Mỗi bước báo kết quả bằng số (câu đúng / tổng), không dán log dài.
 ```
