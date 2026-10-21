@@ -18,7 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
-from chu_cai_video import assets, audio, config, lesson, music, render, timeline, voice
+from chu_cai_video import assets, audio, config, lesson, music, render, sfx, timeline, voice
 
 
 @dataclass
@@ -29,22 +29,36 @@ class Project:
     music: np.ndarray
     voice: np.ndarray
     mixed: np.ndarray
+    events: list[sfx.Event]
 
 
 def prepare(script: Path, engine: str | None = None) -> Project:
-    """Kịch bản → dòng thời gian → giọng đọc → nhạc → bản trộn (chưa vẽ hình)."""
+    """Kịch bản → dòng thời gian → giọng đọc → tiếng động → nhạc → bản trộn (chưa vẽ hình)."""
     les = lesson.load(script)
     tl = timeline.build(les)
     spoken = voice.speak(les, tl, voice.engine_for(les, engine))
     track = voice.voice_track(spoken, tl.duration)
+    events = render.sound_events(les, tl, spoken)
+    effects = sfx.render(events, tl.duration, config.SAMPLE_RATE)
     bgm = music.render(tl, config.SAMPLE_RATE)
-    mixed = audio.mix(track, bgm, config.SAMPLE_RATE)
-    return Project(les, tl, spoken, bgm, track, mixed)
+    mixed = audio.mix(track + effects[: track.size], bgm, config.SAMPLE_RATE)  # nhạc tự hạ khi có lời và tiếng kêu
+    return Project(les, tl, spoken, bgm, track, mixed, events)
 
 
 def make_renderer(p: Project) -> render.Renderer:
     fonts = render.Fonts(assets.font_files())
-    return render.Renderer(p.lesson, p.timeline, p.spoken, p.music, p.voice, fonts, render.pictures_for(p.lesson))
+    pictures = render.pictures_for(p.lesson)
+    return render.Renderer(p.lesson, p.timeline, p.spoken, p.music, p.voice, fonts, pictures, p.events)
+
+
+def poster_time(p: Project) -> float:
+    """Ảnh bìa: lúc con vật đầu tiên đang kêu (bong bóng lời đã hiện); không có con vật thì giữa chữ thứ tư."""
+    calls = [e for e in p.events if e.cue]
+    if calls:
+        return calls[0].at + 0.5
+    segs = p.timeline.letter_segments()
+    seg = segs[min(3, len(segs) - 1)]
+    return seg.voice_at + 2.0
 
 
 def shown(path: Path) -> str:
@@ -149,8 +163,7 @@ def cmd_render(args: argparse.Namespace) -> int:
     print(f"Dựng {out.name}: {p.timeline.duration:.1f}s, {config.WIDTH}×{config.HEIGHT}, {config.FPS} hình/giây")
     render.encode(r, wav, out, start=args.start, end=args.end)
     if args.start == 0 and args.end is None:  # bản đầy đủ: thêm ảnh bìa, chương, phụ đề cạnh video
-        poster_seg = p.timeline.letter_segments()[min(3, len(p.timeline.letter_segments()) - 1)]
-        r.frame(poster_seg.end - 0.5).save(out.with_name("poster.jpg"), quality=88)
+        r.frame(poster_time(p)).save(out.with_name("poster.jpg"), quality=88)
         out.with_name("chuong.vtt").write_text(chapters_vtt(p), encoding="utf-8")
         out.with_name("phu-de.vtt").write_text(subtitles_vtt(p), encoding="utf-8")
     size = out.stat().st_size / 1e6

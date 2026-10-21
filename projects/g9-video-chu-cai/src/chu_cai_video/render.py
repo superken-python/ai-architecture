@@ -1,7 +1,9 @@
 """Vẽ từng khung hình bằng Pillow theo dòng thời gian rồi đẩy thẳng vào ffmpeg (không lưu hàng nghìn file ảnh).
 
-Mọi chữ trên hình được vẽ từ kịch bản bằng font thật, nên luôn đúng chính tả và dấu tiếng Việt. Các lớp tĩnh (nền, thẻ
-chữ, phụ đề, nhân vật) vẽ sẵn một lần; mỗi khung hình chỉ ghép lại với vị trí, độ lớn, độ trong theo thời gian.
+Nhân vật chính là các chữ cái (actor.py). Mở đầu: các chữ nhảy lên đứng thành hàng, vẫy tay, rồi nhảy vào hàng chữ
+trên cùng. Đến lượt chữ nào, chữ đó nhảy xuống sân khấu, tự giới thiệu, nhìn hình ví dụ hiện trên bảng — con vật thì
+nhảy ra khỏi bảng và kêu — rồi nhảy về chỗ. Kết thúc: cả hàng nhảy xuống nhảy múa. Mọi chữ trên hình vẽ từ kịch bản
+bằng font thật, nên luôn đúng chính tả và dấu tiếng Việt. Các lớp tĩnh vẽ sẵn một lần; mỗi khung hình chỉ ghép lại.
 """
 
 from __future__ import annotations
@@ -16,7 +18,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from chu_cai_video import assets, audio, character, config
+from chu_cai_video import actor, assets, audio, character, config, sfx
+from chu_cai_video.actor import Pose
 from chu_cai_video.lesson import Lesson, Letter
 from chu_cai_video.timeline import Segment, Timeline
 from chu_cai_video.voice import Spoken
@@ -28,20 +31,25 @@ YELLOW = (255, 212, 59)
 ORANGE = (255, 140, 66)
 PALETTE = [(232, 65, 79), (242, 124, 30), (47, 168, 79), (43, 125, 233), (123, 76, 224), (224, 69, 123), (19, 150, 160)]
 
-# Bố cục (pixel trên khung 1280×720): bảng học ở giữa, hai nhân vật đứng hai góc dưới, phụ đề giữa hai nhân vật
+# Bố cục (pixel trên khung 1280×720): chữ cái đứng sân khấu bên trái, bảng học bên phải, hàng chữ cái trên cùng
 CHIP_W, CHIP_H, CHIP_GAP, CHIP_Y = 34, 40, 4, 16
 CARD_W, CARD_H = 620, 500
-CARD_X, CARD_Y = (W - CARD_W) // 2, 100
+CARD_X, CARD_Y = 600, 100
 SPLIT_Y = 330  # ranh giới phần chữ cái / phần từ ví dụ trong thẻ
-CHAR_BOX = (290, 330)  # khung tối đa của mỗi nhân vật (rộng, cao)
-CHAR_X = {"left": CARD_X / 2, "right": W - CARD_X / 2}  # tâm ngang nhân vật: giữa khoảng trống hai bên bảng
-CHAR_FOOT = 668  # chân nhân vật; bảng tên ngay bên dưới
-DISC_C, DISC_D = (W / 2, 400), 200  # đĩa chữ "Aa" giữa màn hình lúc mở đầu: tâm, đường kính
-SUB_Y, SUB_W = 664, 600  # tâm dòng phụ đề, bề ngang tối đa (lọt giữa hai nhân vật)
+PIC = 140  # cạnh hình minh họa trong thẻ
+PIC_C = (CARD_X + 44 + PIC / 2, CARD_Y + SPLIT_Y + (CARD_H - SPLIT_Y) / 2)  # tâm hình minh họa trong thẻ
+CALL_C, CALL_SCALE = (530, 300), 1.7  # con vật nhảy ra khỏi thẻ tới đây khi kêu, to lên
+STAGE = (260, 612)  # chỗ chữ cái đứng trên sân khấu (điểm chạm đất)
+ACTOR_H = 230  # chiều cao thân chữ trên sân khấu
+HOP_DOWN, HOP_UP = 0.45, 0.5  # giây: nhảy từ hàng chữ xuống sân khấu / nhảy về
+CHAR_BOX = (290, 330)  # khung tối đa của nhân vật dẫn chuyện (Thỏ Bông, Sách Vui) — chỉ ở mở đầu và kết thúc
+CHAR_X = {"left": 165, "right": W - 165}
+CHAR_FOOT = 668
+SUB_Y = 664  # tâm dòng phụ đề
 CREDITS = (
     "Giọng đọc: Piper vi_VN vais1000 · dữ liệu VAIS-1000 (CC BY 4.0)",
-    "Nhân vật: tạo bằng Gemini · Hình: Noto Emoji (Apache 2.0)",
-    "Chữ: Baloo 2 (OFL) · Nhạc: tự tổng hợp bằng code",
+    "Hình: Noto Emoji (Apache 2.0) · Chữ: Baloo 2 (OFL)",
+    "Nhạc và tiếng con vật: tự tổng hợp bằng code",
 )
 
 
@@ -187,6 +195,75 @@ def word_times(spoken: Spoken) -> list[float]:
     return times
 
 
+# ───────────────────────────── chuyển động của chữ cái ─────────────────────────────
+
+
+@dataclass(frozen=True)
+class Move:
+    """Chỗ đặt nhân vật chữ cái ở một khung hình: điểm chạm đất, độ lớn, độ bẹp (+) / giãn (−)."""
+
+    pos: tuple[float, float]
+    scale: float
+    squash: float = 0.0
+
+
+def hop(
+    t: float, t0: float, dur: float, a: tuple[float, float], b: tuple[float, float], sa: float, sb: float, lift: float
+) -> Move:
+    """Nhảy từ a tới b trong `dur` giây theo đường cong (cao thêm `lift` px); giãn người khi bay, độ lớn sa → sb."""
+    u = clamp01((t - t0) / dur)
+    e = ease_in_out(u)
+    x = a[0] + (b[0] - a[0]) * e
+    y = a[1] + (b[1] - a[1]) * u - lift * 4 * u * (1 - u)
+    return Move((x, y), sa + (sb - sa) * e, -0.45 * math.sin(math.pi * u))
+
+
+def landing(dt: float) -> float:
+    """Độ bẹp `dt` giây sau khi tiếp đất: bẹp mạnh rồi nảy nhẹ, tắt dần."""
+    return 0.55 * math.exp(-dt / 0.08) * math.cos(2 * math.pi * dt / 0.24) if 0 <= dt < 0.5 else 0.0
+
+
+def bump(k: float) -> float:
+    """Một nhịp nhún 0 → 1 → 0 khi k đi từ 0 tới 1."""
+    return math.sin(math.pi * k) if 0 < k < 1 else 0.0
+
+
+def blink(t: float, i: int) -> float:
+    """Chớp mắt: mỗi chữ một nhịp riêng (3–4,5 giây một lần), mỗi lần 0,14 giây."""
+    period = 3.0 + 0.37 * (i % 5)
+    k = (t + 0.71 * i) % period
+    return max(0.0, 1 - abs(k / 0.07 - 1)) if k < 0.14 else 0.0
+
+
+def lineup(n: int) -> tuple[list[tuple[float, float]], float]:
+    """Chỗ đứng của n chữ cái ở mở đầu và kết thúc (tối đa 10 chữ một hàng, giữa màn hình) và độ lớn của chữ."""
+    cols = min(n, 10)
+    rows = math.ceil(n / cols)
+    scale, dx, dy = (0.42, 150, 0) if n <= 6 else (0.34, 60, 125)
+    spots = []
+    for i in range(n):
+        r, c = divmod(i, cols)
+        in_row = min(cols, n - r * cols)
+        spots.append((W / 2 + (c - (in_row - 1) / 2) * dx, 470 + (r - (rows - 1) / 2) * dy))
+    return spots, scale
+
+
+def sound_events(lesson: Lesson, timeline: Timeline, spoken: list[Spoken]) -> list[sfx.Event]:
+    """Tiếng động theo dòng thời gian: "boing" khi chữ cái tiếp đất, tiếng con vật sau câu đọc của chữ có con vật."""
+    by_id = {s.cue_id: s for s in spoken}
+    events = []
+    for seg in timeline.letter_segments():
+        assert seg.letter is not None
+        events.append(sfx.Event("boing", seg.start + HOP_DOWN, 0.35))
+        line = by_id.get(seg.cue_id)
+        if seg.letter.call and line is not None:
+            events.append(sfx.Event(seg.letter.call, line.end + sfx.CALL_GAP, 1.0, cue=seg.cue_id))
+    return events
+
+
+# ───────────────────────────── dựng khung hình ─────────────────────────────
+
+
 class Renderer:
     def __init__(
         self,
@@ -197,6 +274,7 @@ class Renderer:
         voice: np.ndarray,
         fonts: Fonts,
         pictures: dict[str, Image.Image | None],
+        events: list[sfx.Event] | None = None,
     ) -> None:
         self.lesson, self.timeline, self.fonts = lesson, timeline, fonts
         self.spoken = {s.cue_id: s for s in spoken}
@@ -211,30 +289,35 @@ class Renderer:
             for i in range(14)
         ]
         self.chips = self._chips()
+        letters = lesson.letters
+        self.actors = {x.letter: actor.LetterActor(x.letter, self._color(x), fonts(800, 400), ACTOR_H) for x in letters}
+        self.chip_scale = (CHIP_H - 2) / (ACTOR_H * 1.3)  # chữ cái thu nhỏ vừa ô trong hàng trên cùng
+        self.spots, self.spot_scale = lineup(len(letters))
+        self.shadow = self._shadow()
+        self.pics = {x.letter: self._picture(x, pictures.get(x.letter)) for x in letters}
+        self.card = self._card_base()
+        self.tops = {x.letter: self._card_top(x) for x in letters}
+        self.bottoms = {x.letter: self._card_bottom(x, self.pics[x.letter]) for x in letters}
+        self.bottoms_empty = {x.letter: self._card_bottom(x, None) for x in letters}  # lúc con vật nhảy ra ngoài
+        self.bubbles = {x.letter: self._bubble(x.call_text) for x in letters if x.call_text}
+        self.calls = {e.cue: e for e in (events or []) if e.cue}
+        self.call_len = {cue: sfx.sound(e.name, sr).size / sr for cue, e in self.calls.items()}
         self.sprites = {c.name: character.Sprite(c.sprite, CHAR_BOX) for c in lesson.characters}
         self.glows = {c.name: character.glow(int(max(CHAR_BOX) * 1.3), (110, 170, 255)) for c in lesson.characters}
         self.tags = {c.name: self._pill(c.name, ORANGE if c.speaks else (43, 125, 233)) for c in lesson.characters}
         self.appear_at = self._appear_times()
-        self.disc = self._disc()
-        self.card = self._card_base()
-        self.tops = {x.letter: self._card_top(x) for x in lesson.letters}
-        self.bottoms = {x.letter: self._card_bottom(x, pictures.get(x.letter)) for x in lesson.letters}
         self.lines = {cue: self._line(s) for cue, s in self.spoken.items()}
         self.title = text_image(lesson.title, fonts(800, 64), WHITE, 5, (226, 88, 34), shadow=(20, 20, 60, 140))
-        names = " và ".join(c.name for c in lesson.characters)
-        self.subtitle = text_image(f"cùng {names}", fonts(700, 38), YELLOW, shadow=(20, 20, 60, 140))
+        self.subtitle = text_image(f"cùng {len(letters)} bạn chữ cái", fonts(700, 38), YELLOW, shadow=(20, 20, 60, 140))
         self.bravo = text_image("Giỏi quá!", fonts(800, 84), YELLOW, 5, (200, 80, 20), shadow=(20, 20, 60, 140))
         self.repeat_cue = self._pill("Bé đọc theo nào!", YELLOW, ink=NAVY, size=30)
-        self.orbit = [self._ball(x, PALETTE[i % len(PALETTE)], 64, 36) for i, x in enumerate(lesson.letters[:8])]
-        self.grid = [
-            self._ball(x, PALETTE[i % len(PALETTE)], 80, 50, square=True) for i, x in enumerate(lesson.letters)
-        ]
         self.confetti = [
             (rng.uniform(0, W), rng.uniform(-400, -20), rng.uniform(90, 180), rng.uniform(0, 6.28), PALETTE[i % 7])
             for i in range(70)
         ]
         # Ghi nguồn ở cuối video (giọng đọc CC BY 4.0 bắt buộc ghi nguồn khi đăng).
-        self.credits = [text_image(line, fonts(500, 20), (225, 230, 255)) for line in CREDITS]
+        credits = CREDITS + (("Thỏ Bông, Sách Vui: video tạo bằng Gemini",) if lesson.characters else ())
+        self.credits = [text_image(line, fonts(500, 20), (225, 230, 255)) for line in credits]
 
     # ── các lớp vẽ sẵn ──
     @staticmethod
@@ -242,6 +325,10 @@ class Renderer:
         level = audio.frame_rms(x, sr, 1 / config.FPS)
         ref = float(np.percentile(level, 95)) if level.size else 1.0
         return np.clip(level / (ref or 1.0), 0, 1)
+
+    @staticmethod
+    def _color(x: Letter) -> tuple[int, int, int]:
+        return PALETTE[(x.index - 1) % len(PALETTE)]
 
     def _background(self) -> Image.Image:
         y = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
@@ -270,13 +357,43 @@ class Renderer:
             for state, fill, ink in (
                 ("todo", (255, 255, 255, 38), (255, 255, 255, 170)),
                 ("done", (255, 255, 255, 220), NAVY),
-                ("now", (*YELLOW, 255), NAVY),
+                ("away", (*YELLOW, 40), (*YELLOW, 120)),  # chữ đang ở sân khấu: ô trống viền vàng
             ):
                 chip = rounded((CHIP_W, CHIP_H), 10, fill)
-                ImageDraw.Draw(chip).text((CHIP_W / 2, CHIP_H / 2 + 1), x.letter, font=font, fill=ink, anchor="mm")
+                draw = ImageDraw.Draw(chip)
+                if state == "away":
+                    draw.rounded_rectangle((1, 1, CHIP_W - 2, CHIP_H - 2), 10, outline=(*YELLOW, 255), width=2)
+                draw.text((CHIP_W / 2, CHIP_H / 2 + 1), x.letter, font=font, fill=ink, anchor="mm")
                 states[state] = chip
             out[x.letter] = states
         return out
+
+    def _shadow(self) -> Image.Image:
+        img = Image.new("RGBA", (240, 60), (0, 0, 0, 0))
+        ImageDraw.Draw(img).ellipse((20, 15, 220, 45), fill=(8, 6, 30, 120))
+        return img.filter(ImageFilter.GaussianBlur(6))
+
+    def _picture(self, x: Letter, picture: Image.Image | None) -> Image.Image:
+        if picture is None:  # không có hình: vòng tròn màu với chữ cái
+            color = self._color(x)
+            picture = rounded((PIC, PIC), PIC // 2, (*color, 60))
+            ImageDraw.Draw(picture).text(
+                (PIC / 2, PIC / 2), x.letter, font=self.fonts(800, 90), fill=color, anchor="mm"
+            )
+        return picture.resize((PIC, PIC), Image.Resampling.LANCZOS)
+
+    def _bubble(self, text: str) -> Image.Image:
+        """Bong bóng lời của con vật ("Ụm bò!"), đuôi chỉ xuống bên phải — về phía đầu con vật."""
+        label = text_image(text, self.fonts(800, 46), NAVY)
+        w, h = label.width + 36, label.height + 14
+        img = Image.new("RGBA", (w + 10, h + 44), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.rounded_rectangle((4, 4, 4 + w, 4 + h), radius=h // 2, fill=(*WHITE, 255), outline=(*NAVY, 255), width=4)
+        tail = [(0.58 * w, h), (0.78 * w, h), (0.9 * w, h + 38)]
+        d.polygon(tail, fill=(*WHITE, 255), outline=(*NAVY, 255), width=4)
+        d.line([(0.58 * w + 4, h + 1), (0.78 * w - 4, h + 1)], fill=(*WHITE, 255), width=6)  # xoá viền chỗ nối đuôi
+        composite(img, label, 22, 11)
+        return img
 
     def _pill(
         self, text: str, color: tuple[int, int, int], ink: tuple[int, int, int] = WHITE, size: int = 26
@@ -288,7 +405,7 @@ class Renderer:
         return tag
 
     def _appear_times(self) -> dict[str, float]:
-        """Lúc mỗi nhân vật xuất hiện: khi câu mở đầu nhắc tới tên (ước lượng theo tiếng), không có tên thì lần lượt."""
+        """Lúc nhân vật dẫn chuyện xuất hiện: khi câu mở đầu nhắc tên (ước lượng theo tiếng), nếu không thì lần lượt."""
         intro = self.spoken.get("mo-dau")
         words = [w.strip(",.!?").lower() for w in intro.text.split()] if intro else []
         times = word_times(intro) if intro else []
@@ -298,26 +415,6 @@ class Renderer:
             at = next((i for i in range(len(words)) if words[i : i + len(name)] == name), None)
             out[c.name] = intro.start + times[at] - 0.2 if intro and at is not None else 0.3 + 0.4 * k
         return out
-
-    def _disc(self) -> Image.Image:
-        """Đĩa trắng có chữ "Aa" — biểu tượng của bài học, đứng giữa màn hình lúc mở đầu."""
-        pad = 30
-        size = DISC_D + 2 * pad
-        img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        ImageDraw.Draw(img).ellipse((pad + 4, pad + 10, pad + DISC_D + 4, pad + DISC_D + 10), fill=(8, 10, 40, 150))
-        img = img.filter(ImageFilter.GaussianBlur(10))
-        draw = ImageDraw.Draw(img)
-        draw.ellipse((pad, pad, pad + DISC_D, pad + DISC_D), fill=(252, 252, 255, 255))
-        draw.ellipse((pad + 10, pad + 10, pad + DISC_D - 10, pad + DISC_D - 10), outline=(*YELLOW, 255), width=6)
-        font = self.fonts(800, 120)
-        gap = 4
-        total = font.getlength("A") + gap + font.getlength("a")
-        x0 = size / 2 - total / 2
-        baseline = size / 2 + 42
-        for text, x, color in (("A", x0, PALETTE[0]), ("a", x0 + font.getlength("A") + gap, PALETTE[3])):
-            draw.text((x + 4, baseline + 5), text, font=font, fill=(*darker(color, 0.55), 110), anchor="ls")
-            draw.text((x, baseline), text, font=font, fill=color, anchor="ls")
-        return img
 
     def _card_base(self) -> Image.Image:
         pad = 30
@@ -332,7 +429,7 @@ class Renderer:
         return img
 
     def _card_top(self, x: Letter) -> Image.Image:
-        color = PALETTE[(x.index - 1) % len(PALETTE)]
+        color = self._color(x)
         canvas = Image.new("RGBA", (CARD_W * 2, 640), (0, 0, 0, 0))
         draw = ImageDraw.Draw(canvas)
         upper, lower = self.fonts(800, 230), self.fonts(800, 190)
@@ -355,17 +452,11 @@ class Renderer:
         composite(top, pill, (CARD_W - pill.width) // 2, 262)
         return top
 
-    def _card_bottom(self, x: Letter, picture: Image.Image | None) -> Image.Image:
-        color = PALETTE[(x.index - 1) % len(PALETTE)]
+    def _card_bottom(self, x: Letter, pic: Image.Image | None) -> Image.Image:
+        color = self._color(x)
         bottom = Image.new("RGBA", (CARD_W, CARD_H - SPLIT_Y), (0, 0, 0, 0))
-        size = 140
-        if picture is None:  # không có hình: vòng tròn màu với chữ cái
-            picture = rounded((size, size), size // 2, (*color, 60))
-            ImageDraw.Draw(picture).text(
-                (size / 2, size / 2), x.letter, font=self.fonts(800, 90), fill=color, anchor="mm"
-            )
-        pic = picture.resize((size, size), Image.Resampling.LANCZOS)
-        composite(bottom, pic, 44, (bottom.height - size) // 2)
+        if pic is not None:
+            composite(bottom, pic, 44, (bottom.height - PIC) // 2)
         lo, hi = x.highlight()
         before, mark, after = x.phrase[:lo], x.phrase[lo:hi], x.phrase[hi:]
         room = CARD_W - 230
@@ -395,11 +486,13 @@ class Renderer:
         words = spoken.text.split()
         times = word_times(spoken)
         space = font.getlength(" ")
+        # Ở mở đầu và kết thúc, phụ đề lọt giữa hai nhân vật dẫn chuyện đứng hai góc.
+        limit = 560 if self.lesson.characters and spoken.segment.letter is None else W - 200
         rows: list[list[int]] = [[]]
         width = 0.0
         for i, w in enumerate(words):  # mỗi câu một dòng (hiện lần lượt), câu quá dài thì xuống dòng
             wl = font.getlength(w)
-            if rows[-1] and width + space + wl > SUB_W - 40:
+            if rows[-1] and width + space + wl > limit:
                 rows.append([])
                 width = 0.0
             width += (space if rows[-1] else 0) + wl
@@ -428,15 +521,6 @@ class Renderer:
                 x += wl + space
         return Line(white, yellow, spans, row_box, spoken)
 
-    def _ball(
-        self, x: Letter, color: tuple[int, int, int], size: int, font_px: int, square: bool = False
-    ) -> Image.Image:
-        img = rounded((size, size), 18 if square else size // 2, (*color, 255))
-        ImageDraw.Draw(img).text(
-            (size / 2, size / 2 + 2), x.letter, font=self.fonts(800, font_px), fill=WHITE, anchor="mm"
-        )
-        return img
-
     # ── vẽ một khung hình ──
     def env_at(self, env: np.ndarray, t: float) -> float:
         i = int(t * config.FPS)
@@ -449,24 +533,21 @@ class Renderer:
         draw = ImageDraw.Draw(img, "RGBA")
         self._draw_notes(img, t)
         self._draw_bars(draw, t)
-        intro = tl.segments[0]
-        outro = tl.segments[-1]
-        to_main = ease_in_out((t - (intro.end - 0.8)) / 0.8)  # cuối phần mở đầu: tiêu đề và đĩa chữ mờ dần
         if seg.kind == "intro":
-            self._draw_orbit(img, t, to_main, front=False)
-            self._draw_disc(img, t, to_main)
-            self._draw_orbit(img, t, to_main, front=True)
-            self._draw_intro(img, t, to_main)
-        if seg.kind == "letter" or (seg.kind == "intro" and to_main > 0):
-            self._draw_chips(img, t, seg, to_main)
-        if seg.kind == "letter":
-            self._draw_card(img, t, seg)
+            self._draw_intro(img, t, seg)
+        elif seg.kind == "letter":
+            out = self.call_out(t, seg)
+            self._draw_chips(img, t, seg)
+            self._draw_card(img, t, seg, picture_out=out > 0.02)
+            self._draw_stage(img, t, seg)
+            self._draw_call(img, t, seg, out)
             self._draw_repeat(img, t, seg)
-        if seg.kind == "outro":
+        else:
             self._draw_outro(img, t, seg)
-        self._draw_characters(img, t, seg)
+        if seg.kind != "letter":
+            self._draw_characters(img, t, seg)
         self._draw_subtitle(img, draw, t, seg)
-        fade = clamp01((t - (outro.end - 0.6)) / 0.6)
+        fade = clamp01((t - (tl.segments[-1].end - 0.6)) / 0.6)
         if fade > 0:
             img = Image.blend(img, Image.new("RGBA", img.size, (8, 8, 24, 255)), fade)
         return img.convert("RGB")
@@ -488,52 +569,82 @@ class Renderer:
             h = 4 + 50 * level * (0.2 + 0.8 * wave)
             draw.rounded_rectangle((i * w + 3, H - h, (i + 1) * w - 3, H + 6), 4, fill=(110, 200, 255, 42))
 
-    def _draw_characters(self, img: Image.Image, t: float, seg: Segment) -> None:
-        """Hai nhân vật ở hai góc dưới: người đọc nhún theo giọng; bạn kia nhún theo phách, nhảy khi hiện từ ví dụ."""
-        talk = self.env_at(self.voice_env, t)
+    def _draw_actor(self, img: Image.Image, x: Letter, pose: Pose, move: Move) -> None:
+        im, feet = self.actors[x.letter].draw(pose)
+        actor.place_actor(img, im, feet, move.pos, move.scale, move.squash)
+
+    # ── hàng chữ cái trên cùng ──
+    def chip_center(self, x: Letter) -> tuple[float, float]:
+        n = len(self.lesson.letters)
+        x0 = (W - (n * CHIP_W + (n - 1) * CHIP_GAP)) / 2
+        return x0 + (x.index - 1) * (CHIP_W + CHIP_GAP) + CHIP_W / 2, CHIP_Y + CHIP_H / 2
+
+    def _chip_feet(self, x: Letter) -> tuple[float, float]:
+        cx, _ = self.chip_center(x)
+        return cx, CHIP_Y + CHIP_H - 1
+
+    def _steps(self) -> tuple[float, float]:
+        """Khoảng cách thời gian giữa hai chữ liên tiếp khi nhảy ra đứng hàng, khi nhảy vào/ra hàng chữ trên cùng."""
+        n = len(self.lesson.letters)
+        return min(0.12, 2.4 / n), min(0.05, 0.9 / n)
+
+    def _intro_times(self, x: Letter, seg: Segment) -> tuple[float, float]:
+        """(lúc nhảy ra chỗ đứng, lúc nhảy lên hàng chữ trên cùng) của chữ x ở mở đầu."""
+        step_in, step_up = self._steps()
+        i = x.index - 1
+        return 0.9 + i * step_in, seg.end - 1.3 + i * step_up
+
+    def _outro_time(self, x: Letter, seg: Segment) -> float:
+        """Lúc chữ x rời hàng chữ trên cùng, nhảy xuống nhảy múa ở kết thúc."""
+        return seg.start + 0.15 + (x.index - 1) * self._steps()[1]
+
+    def _draw_chips(self, img: Image.Image, t: float, seg: Segment) -> None:
+        for x in self.lesson.letters:
+            if seg.kind == "intro":
+                state = "todo" if t >= self._intro_times(x, seg)[1] + HOP_UP else None
+            elif seg.kind == "outro":
+                state = "done" if t < self._outro_time(x, seg) else None
+            else:
+                assert seg.letter is not None
+                current = seg.letter.index
+                state = "done" if x.index < current else "todo" if x.index > current else "away"
+                if x.index == current and t >= seg.end - 0.05:
+                    state = "done"
+            if state:
+                place(img, self.chips[x.letter][state], self.chip_center(x))
+
+    # ── mở đầu ──
+    def _draw_intro(self, img: Image.Image, t: float, seg: Segment) -> None:
+        hide = 1 - clamp01((t - (seg.end - 1.6)) / 0.4)  # tiêu đề mờ đi trước khi các chữ nhảy lên hàng trên cùng
+        place(img, self.title, (W / 2, 82), scale=ease_out_back((t - 0.15) / 0.45), alpha=hide)
+        place(img, self.subtitle, (W / 2, 148), scale=ease_out_back((t - 0.55) / 0.4), alpha=hide)
+        self._draw_chips(img, t, seg)
         phase = self.timeline.beat_phase(t)
-        beat_hop = (16 if seg.kind == "outro" else 6) * math.sin(math.pi * phase) ** 2
-        spoken = self.spoken.get(seg.cue_id)
-        jump = 0.0
-        if seg.letter is not None and spoken is not None and spoken.word_at:
-            k = (t - (spoken.start + spoken.word_at)) / 0.5
-            jump = 26 * math.sin(math.pi * k) if 0 < k < 1 else 0.0
-        for i, c in enumerate(self.lesson.characters):
-            appear = ease_out_back((t - self.appear_at[c.name]) / 0.5)
-            if appear <= 0.02:
+        for x in self.lesson.letters:
+            i = x.index - 1
+            spot = self.spots[i]
+            t_in, t_up = self._intro_times(x, seg)
+            if t < t_in or t >= t_up + HOP_UP:
                 continue
-            sprite = self.sprites[c.name]
-            frame = sprite.at(t + 1.3 * i)  # lệch pha: hai nhân vật không cử động giống hệt nhau
-            h = sprite.size[1]
-            cx = CHAR_X[c.side]
-            if c.speaks:
-                hop, scale, angle = beat_hop * 0.5, 1 + 0.05 * talk, 3 * talk * math.sin(t * 15)
-                shine = 0.3 + 0.45 * talk
-            else:
-                hop, scale, angle, shine = beat_hop + jump, 1.0, 0.0, 0.3
-            place(img, self.glows[c.name], (cx, CHAR_FOOT - h / 2), scale=appear, alpha=shine)
-            place(img, frame, (cx, CHAR_FOOT - h / 2 - hop), scale=scale * appear, angle=angle)
-            place(img, self.tags[c.name], (cx, CHAR_FOOT + 22), scale=appear)
+            if t < t_in + HOP_DOWN:  # nhảy từ dưới lên chỗ đứng
+                move = hop(t, t_in, HOP_DOWN, (spot[0], H + 160), spot, self.spot_scale, self.spot_scale, 160)
+                pose = Pose(cheer=0.7, look=(0.0, -0.4))
+            elif t < t_up:  # đứng thành hàng, vẫy tay, nhún theo nhạc
+                bob = 6 * math.sin(math.pi * ((phase + 0.5 * (i % 2)) % 1)) ** 2
+                move = Move((spot[0], spot[1] - bob), self.spot_scale, landing(t - t_in - HOP_DOWN))
+                pose = Pose(wave=0.6 * t + 0.3 * i, blink=blink(t, i), cheer=0.25 + 0.2 * (i % 2))
+            else:  # nhảy lên hàng chữ trên cùng
+                move = hop(t, t_up, HOP_UP, spot, self._chip_feet(x), self.spot_scale, self.chip_scale, 120)
+                pose = Pose(cheer=0.6, look=(0.0, -0.7))
+            self._draw_actor(img, x, pose, move)
 
-    def _draw_chips(self, img: Image.Image, t: float, seg: Segment, to_main: float) -> None:
-        letters = self.lesson.letters
-        total = len(letters) * CHIP_W + (len(letters) - 1) * CHIP_GAP
-        x0 = (W - total) // 2
-        drop = -70 * (1 - (ease_in_out((to_main - 0.4) / 0.6) if seg.kind == "intro" else 1))  # sau khi tiêu đề mờ đi
-        current = seg.letter.index if seg.letter else 0
-        for x in letters:
-            cx = x0 + (x.index - 1) * (CHIP_W + CHIP_GAP) + CHIP_W / 2
-            cy = CHIP_Y + CHIP_H / 2 + drop
-            if x.index == current:
-                pop = ease_out_back((t - seg.start) / 0.3)
-                place(img, self.chips[x.letter]["now"], (cx, cy + 3 * (1 - pop)), scale=1.0 + 0.18 * pop)
-            else:
-                place(img, self.chips[x.letter]["done" if x.index < current else "todo"], (cx, cy))
-
+    # ── từng chữ cái ──
     def repeat_window(self, seg: Segment) -> tuple[float, float] | None:
-        """Khoảng "bé đọc theo": từ lúc phụ đề câu đọc tắt tới gần hết khúc nhạc của chữ (None nếu quá ngắn)."""
+        """Khoảng "bé đọc theo": từ lúc phụ đề câu đọc tắt tới gần hết khúc nhạc của chữ (None nếu quá ngắn).
+
+        Chữ có tiếng con vật thì không có: con vật kêu đã chiếm chỗ đó."""
         spoken = self.spoken.get(seg.cue_id)
-        if seg.letter is None or spoken is None:
+        if seg.letter is None or spoken is None or seg.cue_id in self.calls:
             return None
         start, end = spoken.end + 0.75, seg.end - 0.3
         return (start, end) if end - start >= 1.0 else None
@@ -544,7 +655,73 @@ class Renderer:
             show = clamp01((window[1] - t) / 0.2)
             place(img, self.repeat_cue, (W / 2, SUB_Y), scale=ease_out_back((t - window[0]) / 0.35), alpha=show)
 
-    def _draw_card(self, img: Image.Image, t: float, seg: Segment) -> None:
+    def _draw_stage(self, img: Image.Image, t: float, seg: Segment) -> None:
+        """Chữ cái đang học: nhảy xuống sân khấu, tự giới thiệu, nhìn hình ví dụ và con vật, rồi nhảy về chỗ."""
+        x = seg.letter
+        assert x is not None
+        i = x.index - 1
+        land_at, up_at = seg.start + HOP_DOWN, seg.end - HOP_UP - 0.05
+        phase = self.timeline.beat_phase(t)
+        if t < land_at:
+            move = hop(t, seg.start, HOP_DOWN, self._chip_feet(x), STAGE, self.chip_scale, 1.0, 110)
+            pose = Pose(cheer=0.6, look=(0.0, 0.5))
+        elif t >= up_at:
+            move = hop(t, up_at, HOP_UP, STAGE, self._chip_feet(x), 1.0, self.chip_scale, 110)
+            pose = Pose(cheer=0.6, look=(0.0, -0.8))
+        else:
+            spoken = self.spoken.get(seg.cue_id)
+            talking = spoken is not None and spoken.start <= t <= spoken.end
+            look, cheer, jump = (0.25, 0.0), 0.0, 0.0
+            if spoken is not None and spoken.word_at:  # từ ví dụ hiện trên thẻ: quay sang nhìn, nhún một cái
+                shown_at = spoken.start + spoken.word_at
+                look = (1.0, 0.3) if t >= shown_at else look
+                jump += 22 * bump((t - shown_at) / 0.45)
+            call = self.calls.get(seg.cue_id)
+            if call is not None and t >= call.at - 0.3:  # con vật nhảy ra: nhìn theo, giơ tay, nhảy cẫng lên
+                look = (1.0, -0.5)
+                cheer = 0.9 if t < call.at + self.call_len[seg.cue_id] + 0.2 else 0.3
+                jump += 34 * bump((t - call.at) / 0.5)
+            window = self.repeat_window(seg)
+            if window and window[0] <= t < window[1]:  # bé đọc theo: nhìn bé, nhún theo phách
+                look, cheer = (0.0, 0.0), 0.35
+            bob = 4 * math.sin(math.pi * phase) ** 2
+            talk = self.env_at(self.voice_env, t) if talking else 0.0
+            move = Move((STAGE[0], STAGE[1] - bob - jump), 1.0, landing(t - land_at))
+            pose = Pose(talk=talk, blink=blink(t, i), look=look, cheer=cheer, wave=0.35 * t)
+        height = STAGE[1] - move.pos[1]
+        if move.scale > 0.5:  # bóng trên sàn, nhỏ đi khi nhảy lên cao
+            place(img, self.shadow, (STAGE[0], STAGE[1] + 2), scale=max(0.4, 1 - height / 300), alpha=move.scale)
+        self._draw_actor(img, x, pose, move)
+
+    def call_out(self, t: float, seg: Segment) -> float:
+        """Con vật đã nhảy ra khỏi thẻ bao xa: 0 = còn trong thẻ, 1 = đứng ngoài, cạnh chữ cái."""
+        call = self.calls.get(seg.cue_id)
+        if call is None:
+            return 0.0
+        out_at, back_at = call.at - 0.3, call.at + self.call_len[seg.cue_id] + 0.15
+        if t < out_at or t > back_at + 0.35:
+            return 0.0
+        return ease_out_back((t - out_at) / 0.35) if t < back_at else 1 - ease_in_out((t - back_at) / 0.35)
+
+    def _draw_call(self, img: Image.Image, t: float, seg: Segment, k: float) -> None:
+        if k <= 0.02:
+            return
+        x, call = seg.letter, self.calls[seg.cue_id]
+        assert x is not None
+        length = self.call_len[seg.cue_id]
+        calling = call.at <= t < call.at + length
+        pos = (PIC_C[0] + (CALL_C[0] - PIC_C[0]) * k, PIC_C[1] + (CALL_C[1] - PIC_C[1]) * k)
+        lift = 14 * abs(math.sin(2 * math.pi * 2.5 * (t - call.at))) if calling else 0.0
+        angle = 7 * math.sin(2 * math.pi * 4 * (t - call.at)) if calling else 0.0
+        place(img, self.pics[x.letter], (pos[0], pos[1] - lift), scale=1 + (CALL_SCALE - 1) * k, angle=angle)
+        bubble = self.bubbles.get(x.letter)
+        if bubble is not None and t >= call.at:
+            show = clamp01((call.at + length + 0.15 - t) / 0.2)
+            size = PIC * CALL_SCALE  # bong bóng ở phía trên bên trái con vật, tránh hàng chữ cái trên cùng
+            spot = (pos[0] - 0.3 * size - 0.35 * bubble.width, pos[1] - 0.5 * size - 0.5 * bubble.height)
+            place(img, bubble, spot, scale=ease_out_back((t - call.at) / 0.3), alpha=show)
+
+    def _draw_card(self, img: Image.Image, t: float, seg: Segment, picture_out: bool) -> None:
         letter = seg.letter
         assert letter is not None
         first = self.timeline.letter_segments()[0]
@@ -566,39 +743,16 @@ class Renderer:
         word_at = seg.voice_at + (spoken.word_at if spoken and spoken.word_at else 1.0) - 0.05
         k = (t - word_at) / 0.35
         if k > 0:
+            bottoms = self.bottoms_empty if picture_out else self.bottoms
             place(
                 img,
-                self.bottoms[letter.letter],
+                bottoms[letter.letter],
                 (card_cx, CARD_Y + SPLIT_Y + (CARD_H - SPLIT_Y) / 2 + 30 * (1 - ease_out_back(k))),
                 scale=(0.5 + 0.5 * ease_out_back(k)) * (1 - 0.15 * leave),
                 alpha=clamp01(k * 3) * (1 - leave),
             )
 
-    def _draw_intro(self, img: Image.Image, t: float, to_main: float) -> None:
-        hide = 1 - clamp01(to_main * 2.5)  # tiêu đề mờ đi trước khi hàng chữ cái trượt xuống
-        place(img, self.title, (W / 2, 82), scale=ease_out_back((t - 0.15) / 0.45), alpha=hide)
-        place(img, self.subtitle, (W / 2, 148), scale=ease_out_back((t - 0.55) / 0.4), alpha=hide)
-
-    def _draw_disc(self, img: Image.Image, t: float, to_main: float) -> None:
-        hide = 1 - clamp01(to_main * 2.5)
-        pulse = 0.04 * (1 - self.timeline.beat_phase(t)) ** 2  # nảy nhẹ theo phách
-        angle = 4 * math.sin(2 * math.pi * t / 3.2)
-        place(img, self.disc, DISC_C, scale=ease_out_back((t - 0.7) / 0.5) * (1 + pulse), alpha=hide, angle=angle)
-
-    def _draw_orbit(self, img: Image.Image, t: float, to_main: float, front: bool) -> None:
-        """Chữ cái bay vòng quanh đĩa "Aa": nửa sau vẽ trước đĩa (nhỏ, mờ), nửa trước vẽ sau — như quỹ đạo 3D."""
-        hide = 1 - clamp01(to_main * 2.5)
-        cx, cy = DISC_C
-        n = len(self.orbit)
-        for i, ball in enumerate(self.orbit):
-            angle = 2 * math.pi * i / n + 0.55 * t
-            depth = math.sin(angle)  # > 0: phía trước
-            if (depth > 0) != front:
-                continue
-            pop = ease_out_back((t - 1.0 - 0.18 * i) / 0.35)
-            pos = (cx + 240 * math.cos(angle), cy + 125 * depth)
-            place(img, ball, pos, scale=pop * hide * (0.85 + 0.2 * depth), alpha=hide * (0.75 + 0.25 * depth))
-
+    # ── kết thúc ──
     def _draw_outro(self, img: Image.Image, t: float, seg: Segment) -> None:
         local = t - seg.start
         draw = ImageDraw.Draw(img, "RGBA")
@@ -609,17 +763,54 @@ class Renderer:
                 pts = [(x + 8 * math.cos(a + k * math.pi / 2), y + 5 * math.sin(a + k * math.pi / 2)) for k in range(4)]
                 draw.polygon(pts, fill=(*color, 220))
         place(img, self.bravo, (W / 2, 80), scale=ease_out_back((local - 0.1) / 0.45))
-        cols, size, gap = 6, 80, 14
-        x0 = (W - (cols * size + (cols - 1) * gap)) / 2 + size / 2
-        y0 = 156 + size / 2
-        for i, ball in enumerate(self.grid):
-            pop = ease_out_back((local - 0.35 - 0.07 * i) / 0.35)
-            wave = 5 * math.sin(2 * math.pi * 0.8 * t + 0.5 * i)
-            place(img, ball, (x0 + (i % cols) * (size + gap), y0 + (i // cols) * (size + gap) + wave), scale=pop)
+        self._draw_chips(img, t, seg)
+        phase = self.timeline.beat_phase(t)
+        for x in self.lesson.letters:
+            i = x.index - 1
+            t_down = self._outro_time(x, seg)
+            if t < t_down:
+                continue
+            spot = self.spots[i]
+            if t < t_down + HOP_DOWN:
+                move = hop(t, t_down, HOP_DOWN, self._chip_feet(x), spot, self.chip_scale, self.spot_scale, 90)
+                pose = Pose(cheer=0.7, look=(0.0, 0.5))
+            else:  # nhảy múa: nảy theo phách, hai hàng xen kẽ, giơ tay
+                ph = (phase + 0.5 * (i % 2)) % 1
+                move = Move((spot[0], spot[1] - 26 * bump(ph)), self.spot_scale, 0.4 * max(0.0, 1 - ph / 0.12))
+                pose = Pose(cheer=0.8 + 0.2 * math.sin(2 * math.pi * ph), blink=blink(t, i), wave=t + 0.2 * i)
+            self._draw_actor(img, x, pose, move)
         spoken = self.spoken.get(seg.cue_id)
         after = (spoken.end + 0.7) if spoken else seg.start + 3.0  # sau khi phụ đề câu kết đã tắt
-        for k, line in enumerate(self.credits):
-            place(img, line, (W / 2, SUB_Y - 26 + 25 * k), alpha=clamp01((t - after) / 0.3))
+        for k, line in enumerate(self.credits):  # dưới chữ "Giỏi quá!", trên các chữ cái đang nhảy múa
+            place(img, line, (W / 2, 150 + 24 * k), alpha=clamp01((t - after) / 0.3))
+
+    # ── nhân vật dẫn chuyện (Thỏ Bông, Sách Vui): chỉ ở mở đầu và kết thúc ──
+    def _draw_characters(self, img: Image.Image, t: float, seg: Segment) -> None:
+        """Đứng hai góc dưới: người đọc nhún theo giọng, bạn kia nhún theo phách; rời đi cuối phần mở đầu."""
+        talk = self.env_at(self.voice_env, t)
+        phase = self.timeline.beat_phase(t)
+        beat_hop = (16 if seg.kind == "outro" else 6) * math.sin(math.pi * phase) ** 2
+        for i, c in enumerate(self.lesson.characters):
+            if seg.kind == "intro":
+                appear = ease_out_back((t - self.appear_at[c.name]) / 0.5) * (
+                    1 - ease_in_out((t - (seg.end - 0.9)) / 0.5)
+                )
+            else:
+                appear = ease_out_back((t - seg.start - 0.4 - 0.25 * i) / 0.5)
+            if appear <= 0.02:
+                continue
+            sprite = self.sprites[c.name]
+            frame = sprite.at(t + 1.3 * i)  # lệch pha: hai nhân vật không cử động giống hệt nhau
+            h = sprite.size[1]
+            cx = CHAR_X[c.side]
+            if c.speaks:
+                hop_, scale, angle = beat_hop * 0.5, 1 + 0.05 * talk, 3 * talk * math.sin(t * 15)
+                shine = 0.3 + 0.45 * talk
+            else:
+                hop_, scale, angle, shine = beat_hop, 1.0, 0.0, 0.3
+            place(img, self.glows[c.name], (cx, CHAR_FOOT - h / 2), scale=appear, alpha=shine)
+            place(img, frame, (cx, CHAR_FOOT - h / 2 - hop_), scale=scale * appear, angle=angle)
+            place(img, self.tags[c.name], (cx, CHAR_FOOT + 22), scale=appear)
 
     def _draw_subtitle(self, img: Image.Image, draw: ImageDraw.ImageDraw, t: float, seg: Segment) -> None:
         line = self.lines.get(seg.cue_id)

@@ -9,6 +9,8 @@ from typing import Any
 
 import yaml
 
+from chu_cai_video import sfx
+
 # Năm dấu thanh (huyền, sắc, ngã, hỏi, nặng). Dấu tạo chữ (ă, â, ê, ô, ơ, ư) và đ được giữ lại.
 TONE_MARKS = {"̀", "́", "̃", "̉", "̣"}
 
@@ -38,6 +40,8 @@ class Letter:
     image: Path | None = None
     say: str = ""  # câu giọng đọc sẽ đọc
     speed: float | None = None  # tốc độ đọc riêng của câu này (None: theo voice.speed)
+    call: str = ""  # tiếng con vật sau câu đọc (tên trong sfx: bo, ga, meo…), rỗng nếu không có
+    call_text: str = ""  # chữ trong bong bóng lời của con vật ("Ụm bò!")
 
     @property
     def id(self) -> str:
@@ -156,7 +160,11 @@ def parse(data: dict[str, Any], base: Path) -> Lesson:
             raise LessonError(f"{where} ({fields['letter']}): không có file ảnh {image}")
         say = nfc(item.get("say") or line.format(**fields))
         speed = float(item["speed"]) if item.get("speed") else None
-        letter = Letter(index=i, emoji=item.get("emoji", ""), image=image, say=say, speed=speed, **fields)
+        call = str(item.get("call") or "")
+        if call and call not in sfx.ANIMALS:
+            raise LessonError(f"{where} ({fields['letter']}): không có tiếng '{call}' (có: {', '.join(sfx.ANIMALS)})")
+        extra = {"call": call, "call_text": nfc(str(item.get("call_text") or ""))}
+        letter = Letter(index=i, emoji=item.get("emoji", ""), image=image, say=say, speed=speed, **fields, **extra)
         letter.highlight()  # báo lỗi sớm nếu chữ cái không có trong từ ví dụ
         letters.append(letter)
     seen = [x.letter for x in letters]

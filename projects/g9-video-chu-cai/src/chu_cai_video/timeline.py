@@ -68,8 +68,8 @@ def build(lesson: Lesson) -> Timeline:
     t = end
     for letter in lesson.letters:
         end = t + lesson.letter_bars * bar
-        # Thẻ chữ hiện ngay phách đầu; giọng vào sau nửa phách để mắt kịp nhìn chữ.
-        segments.append(Segment("letter", t, end, voice_at=t + beat / 2, letter=letter))
+        # Phách đầu: thẻ chữ hiện, chữ cái nhảy từ hàng trên cùng xuống sân khấu; giọng vào ở phách thứ hai.
+        segments.append(Segment("letter", t, end, voice_at=t + beat, letter=letter))
         t = end
     segments.append(Segment("outro", t, t + lesson.outro_bars * bar, voice_at=t + beat))
     return Timeline(bpm=lesson.bpm, segments=tuple(segments))

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from chu_cai_video import audio, character, cli, config, lesson, qa, render, sprites, timeline, voice
+from chu_cai_video import audio, character, cli, config, lesson, qa, render, sfx, sprites, timeline, voice
 
 
 def test_silent_voice_fits_and_recordings_override(make_script, tmp_path):
@@ -74,13 +74,33 @@ def test_frames_render_offline(make_script):
     for t in (0.5, seg.voice_at + 1.5, p.timeline.segments[-1].start + 2.0, p.timeline.duration - 0.01):
         img = r.frame(t)
         assert img.size == (config.WIDTH, config.HEIGHT) and img.mode == "RGB"
-    frame = r.frame(seg.end - 0.5)
+    frame = r.frame(seg.voice_at + 1.5)
     card = np.asarray(frame.crop((render.CARD_X + 40, 130, render.CARD_X + render.CARD_W - 40, 330)), dtype=float)
-    assert card.mean() > 180  # thẻ chữ trắng ở giữa đã hiện
-    for side in ("left", "right"):  # hai nhân vật đứng hai góc dưới: có nhiều điểm sáng (lông thỏ, trang sách)
-        x = render.CHAR_X[side]
-        corner = np.asarray(frame.crop((x - 100, render.CHAR_FOOT - 200, x + 100, render.CHAR_FOOT - 40)), dtype=float)
-        assert (corner.mean(axis=2) > 180).mean() > 0.15, side
+    assert card.mean() > 180  # thẻ chữ trắng bên phải đã hiện
+    x, y = render.STAGE
+    stage = np.asarray(frame.crop((x - 80, y - 260, x + 80, y - 40)), dtype=float)
+    red = (stage[..., 0] > 180) & (stage[..., 1] < 120)  # chữ A màu đỏ đứng trên sân khấu
+    assert red.mean() > 0.15
+    # Nhân vật dẫn chuyện chỉ có ở mở đầu và kết thúc: góc dưới trái lúc dạy chữ giống hệt bản không có họ.
+    q = cli.prepare(make_script(2, characters=[]), "silent")
+    plain = render.Renderer(q.lesson, q.timeline, q.spoken, q.music, q.voice, render.Fonts({}), {"A": None, "Ă": None})
+    box = (0, 470, 110, 640)
+    assert np.array_equal(np.asarray(frame.crop(box)), np.asarray(plain.frame(seg.voice_at + 1.5).crop(box)))
+    assert not np.array_equal(np.asarray(r.frame(5.0).crop(box)), np.asarray(plain.frame(5.0).crop(box)))
+
+
+def test_letter_hops_down_from_its_chip_and_back(make_script):
+    p = cli.prepare(make_script(2), "silent")
+    r = render.Renderer(p.lesson, p.timeline, p.spoken, p.music, p.voice, render.Fonts({}), {"A": None, "Ă": None})
+    seg = p.timeline.segments[2]  # chữ Ă
+    chip = r.chip_center(seg.letter)
+    start = render.hop(seg.start, seg.start, render.HOP_DOWN, chip, render.STAGE, r.chip_scale, 1.0, 100)
+    end = render.hop(seg.start + render.HOP_DOWN, seg.start, render.HOP_DOWN, chip, render.STAGE, r.chip_scale, 1, 100)
+    assert start.pos == pytest.approx(chip) and start.scale == pytest.approx(r.chip_scale)
+    assert end.pos == pytest.approx(render.STAGE) and end.scale == pytest.approx(1.0)
+    middle = render.hop(seg.start + 0.2, seg.start, render.HOP_DOWN, chip, render.STAGE, r.chip_scale, 1.0, 100)
+    assert middle.squash < 0  # đang bay thì giãn người
+    assert render.landing(0.0) > 0.4 and abs(render.landing(0.6)) == 0  # vừa tiếp đất thì bẹp, sau đó hết
 
 
 def test_read_along_cue_fills_the_gap_after_the_line(make_script):
@@ -156,3 +176,25 @@ def test_render_command_writes_a_playable_mp4(make_script, tmp_path):
         check=True,
     )
     assert float(probe.stdout) == pytest.approx(1.0, abs=0.1)
+
+
+def test_animal_call_follows_the_line_and_pops_out_of_the_card(make_script):
+    letters = [
+        {"letter": "B", "sound": "bờ", "phrase": "con bò", "word": "bò", "emoji": "🐄", "call": "bo",
+         "call_text": "Ụm bò!"},
+        {"letter": "C", "sound": "cờ", "phrase": "con cá", "word": "cá", "emoji": "🐟"},
+    ]  # fmt: skip
+    p = cli.prepare(make_script(0, letters=letters), "silent")
+    calls = [e for e in p.events if e.cue]
+    assert [(e.name, e.cue) for e in calls] == [("bo", "chu-01")]
+    line = p.spoken[1]
+    assert calls[0].at == pytest.approx(line.end + sfx.CALL_GAP)  # kêu sau câu đọc, không chồng lên lời
+    assert sum(e.name == "boing" for e in p.events) == 2  # mỗi chữ một tiếng tiếp đất
+    r = render.Renderer(p.lesson, p.timeline, p.spoken, p.music, p.voice, render.Fonts({}), {}, p.events)
+    seg_b, seg_c = p.timeline.segments[1], p.timeline.segments[2]
+    assert r.call_out(calls[0].at - 0.5, seg_b) == 0 and r.call_out(calls[0].at + 0.5, seg_b) == pytest.approx(1)
+    assert r.repeat_window(seg_b) is None and r.repeat_window(seg_c) is not None  # có con vật kêu thì thôi đọc theo
+    assert r.frame(calls[0].at + 0.5).size == (config.WIDTH, config.HEIGHT)
+    effects = sfx.render(p.events, p.timeline.duration, config.SAMPLE_RATE)
+    i = int(calls[0].at * config.SAMPLE_RATE)
+    assert np.abs(effects[i : i + config.SAMPLE_RATE]).max() > 0.05 and np.abs(effects).max() <= 1.0
