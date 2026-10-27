@@ -777,6 +777,25 @@ done
 docker exec rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --label gpt-5.4-mini --out /tmp/mt_api.json
 ```
 
+- **Lỗi của bản script dọn trước đây (đã sửa):** script từng xoá `whisper/blobs` và `whisper/CACHEDIR.TAG`.
+  - **Nguyên nhân:** huggingface_hub bản mới để dữ liệu thật của mọi model trong kho dùng chung
+    `models/whisper/blobs/<2 ký tự>/<mã băm>`. Thư mục `models--…` chỉ chứa liên kết tới kho đó. Script cũ coi `blobs/`
+    là model thừa, nên xoá mất dữ liệu của large-v3-turbo (1,6 GB).
+  - **Ảnh hưởng:** container đang chạy vẫn nhận dạng bình thường vì model đã nạp vào GPU. Lần khởi động sau, model
+    không còn trên đĩa.
+  - **Bản mới:** trong `whisper/` chỉ xoá thư mục `models--*`. Sau đó xoá trong `blobs/` những file không còn liên kết
+    nào trỏ tới (dữ liệu của model vừa xoá). Không đụng `blobs/` nếu thư mục này không có dấu của huggingface_hub.
+  - **Nếu đã gặp,** tải lại turbo; server vẫn chạy trong lúc tải:
+
+```bash
+find models/whisper -xtype l | head -3     # có dòng nào là liên kết hỏng: cần tải lại
+docker exec rvt_ai rm -rf /models/whisper/models--mobiuslabsgmbh--faster-whisper-large-v3-turbo
+docker exec rvt_ai uv run python -c \
+    "from faster_whisper.utils import download_model as d; print(d('large-v3-turbo', cache_dir='/models/whisper'))"
+find models/whisper -xtype l | wc -l       # 0
+du -sh models/whisper                      # khoảng 1,6 GB
+```
+
 - **Trên web** (`https://<IP máy GPU>:8443`): chọn "📺 Video & Họp", Nói: 日本語 (hoặc "Tự động" khi cuộc họp có cả người
   Việt), Dịch sang: Tiếng Việt, nguồn "Tab/Video" khi dịch video đang phát trên máy, "Mic" khi nghe họp qua loa.
 - **Phim Naruto:** thêm `RVT_GLOSSARIES=default,naruto` vào `.env` để dùng glossary tên riêng và cách xưng hô.
@@ -791,7 +810,13 @@ docker exec rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --label 
   - một server giả lập deployment Azure: server RVT profile `api-mt`, phiên Video & Họp gửi audio qua WebSocket.
     Kết quả: Azure giả nhận đúng `api-key`, deployment, `api-version`; body chỉ có `messages`, `reasoning_effort`,
     `stream`; bản dịch chỉ còn dòng đầu; ép `minimal` thì engine tự chuyển sang `none`.
+  - script dọn model trên một cache do chính huggingface_hub 1.33 tạo (kho dùng chung, hai model chung một file,
+    một model đã xoá tay). Bản cũ liệt kê đúng `whisper/blobs` và `CACHEDIR.TAG` như ảnh chụp. Bản mới:
+    - giữ nguyên large-v3-turbo, đọc lại đủ file;
+    - giải phóng đúng phần mà lệnh xoá của huggingface_hub giải phóng, cộng phần dữ liệu không model nào dùng;
+    - đúng cả khi cache kiểu cũ, `blobs/` không có dấu, thư mục `models/` là liên kết.
 - **Chưa kiểm:**
+  - Tải lại large-v3-turbo thật: sandbox không ra được Hugging Face.
   - Azure thật: chưa có khoá, và sandbox không ra được Azure.
   - Độ trễ, chi phí và chất lượng dịch thật của GPT-5 mini so với Qwen.
   - VRAM thật của hai model nghe.
