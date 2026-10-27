@@ -707,7 +707,84 @@ docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --la
 
 So chất lượng với Qwen bằng `eval/mt_compare.py` (doc 09 §5.6).
 
-### 13.6 Đã kiểm, chưa kiểm
+### 13.6 Phần nghe tiếng Nhật: có cần đổi model không
+
+Khi tập trung dịch Nhật → Việt, phần nghe quan trọng nhất là tiếng Nhật.
+
+- **Hiện tại:** profile `api-mt` nghe tiếng Nhật bằng large-v3-turbo, như stack cũ, cộng mọi chỉnh ở doc 07–09 (cắt
+  đoạn, lọc câu bịa, prompt ngữ cảnh, bước dò VAD khi thu âm tab). Trên golden_1 với Whisper giả lập: 141/141 câu, CER
+  0,114 (doc 09 §4.1). Dùng được ngay.
+- **Chưa phải tối ưu nhất.** Bỏ Qwen thì GPU dư khoảng 6 GB, đủ cho một model tiếng Nhật lớn hơn:
+
+| Model | Cách đặt | Ghi chú |
+|---|---|---|
+| large-v3-turbo | mặc định | 4 lớp giải mã, nhanh |
+| large-v3 | `ja=large-v3` | 32 lớp giải mã, chậm hơn turbo nhiều lần; với tiếng Nhật chưa rõ hơn hay kém turbo, phải đo |
+| kotoba-whisper v2.0 | `ja=kotoba-tech/kotoba-whisper-v2.0-faster` | Chưng cất từ large-v3, huấn luyện trên ReazonSpeech (truyền hình Nhật). Theo số tự công bố: CER 11,6 so với 14,9 của large-v3 trên ReazonSpeech, nhưng kém hơn trên Common Voice (9,2 so với 8,5) và JSUT (8,4 so với 7,1). Tên repo bản faster-whisper chưa kiểm |
+
+- **Đổi model:**
+  - Thêm `RVT_ASR_MODELS=ja=<model>` vào `.env` rồi chạy lại `./start.sh --api-mt`. Model chỉ dùng khi nửa nói khoá
+    "日本語"; chế độ "Tự động" vẫn dùng large-v3-turbo.
+  - Tên sai hoặc tải không được thì tiếng Nhật quay về large-v3-turbo, có lỗi trong log; server vẫn chạy.
+- **Đo trước khi đổi:** golden_1 là phim tiếng Nhật có phụ đề. `golden_session.py` nay báo `cer` cho tiếng Nhật, và có
+  `--asr-models` để thử từng model trên cùng audio. Chọn model có `cer` thấp nhất mà `hallucinations_on_screen` không
+  tăng (lệnh ở mục 13.7, bước 6).
+- **Mốc để so:** bản hiện tại (large-v3-turbo, Whisper giả lập bằng bản ONNX int8 trên CPU) đạt `cer` 0,125, 141/141
+  câu, 2 câu bịa trên màn hình. `cer` này chuẩn hoá NFKC và bỏ dấu câu, nên khác con số 0,114 của doc 09 (cách tính
+  cũ). Số đo trên GPU thật sẽ lệch một chút so với bản giả lập; so các model với nhau trên cùng máy.
+
+### 13.7 Toàn bộ lệnh: chuyển từ stack cũ, kiểm, dọn dẹp
+
+Đang chạy stack cũ: `rvt_ai`, `rvt_mt` (llama.cpp + Qwen), `rvt_web`. Chạy trong thư mục dự án trên máy GPU.
+
+```bash
+# 1. Lấy code mới, dừng stack cũ
+git pull origin main
+./start.sh --down
+
+# 2. Cấu hình dịch qua Azure trong .env (git bỏ qua file này); khoá chỉ đặt ở đây, không commit
+cat >> .env <<'EOF'
+RVT_MT_API_URL="https://<resource>.cognitiveservices.azure.com/openai/deployments/gpt-5.4-mini/chat/completions?api-version=2024-12-01-preview"
+RVT_MT_API_KEY=<khoá>
+EOF
+chmod 600 .env
+
+# 3. Khởi động stack mới: ai + web, không có container Qwen (--build để web lấy code mới)
+./start.sh --api-mt --build
+
+# 4. Kiểm
+./start.sh --status                                   # chỉ còn rvt_ai, rvt_web
+curl -sk https://localhost:8443/api/health/ready      # "profile":"api-mt", "mt":"api"
+docker logs rvt_ai 2>&1 | grep -E "MT via|ASR model"  # MT via azure API: model=gpt-5.4-mini, reasoning_effort=none
+curl -sk -X POST https://localhost:8443/api/v1/translate -H 'Content-Type: application/json' \
+    -d '{"text":"本日の会議を始めます。","source":"ja"}'   # gọi Azure thật, trả bản dịch en và vi
+nvidia-smi                                            # không còn llama-server; chỉ phần nghe
+
+# 5. Dọn dẹp: model, image không còn dùng
+./scripts/remove_unused_models.sh                     # xem trước: file Qwen .gguf, cache Whisper cũ
+./scripts/remove_unused_models.sh --yes
+docker image rm ghcr.io/ggml-org/llama.cpp:server-cuda
+docker image prune -f                                 # image cũ của ai, web sau khi build lại
+
+# 6. (Tuỳ chọn) So model nghe tiếng Nhật trên golden_1, chọn cer thấp nhất (mục 13.6)
+for m in large-v3-turbo large-v3 kotoba-tech/kotoba-whisper-v2.0-faster; do
+  docker exec rvt_ai uv run python eval/golden_session.py --golden eval/golden_1 --skip-lines 12-25,180- \
+      --profile packs/profiles/api-mt.yaml --asr-models "ja=$m" | grep -E '"cer"|dialogue_lines|hallucinations_on'
+done
+# Chọn xong: thêm RVT_ASR_MODELS=ja=<model> vào .env, rồi ./start.sh --api-mt
+
+# 7. (Tuỳ chọn) Đo độ trễ, chất lượng dịch của gpt-5.4-mini
+docker exec rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --label gpt-5.4-mini --out /tmp/mt_api.json
+```
+
+- **Trên web** (`https://<IP máy GPU>:8443`): chọn "📺 Video & Họp", Nói: 日本語 (hoặc "Tự động" khi cuộc họp có cả người
+  Việt), Dịch sang: Tiếng Việt, nguồn "Tab/Video" khi dịch video đang phát trên máy, "Mic" khi nghe họp qua loa.
+- **Phim Naruto:** thêm `RVT_GLOSSARIES=default,naruto` vào `.env` để dùng glossary tên riêng và cách xưng hô.
+- **Quay lại stack cũ:** `./start.sh --down && ./start.sh --gpu`. Nếu đã xoá file Qwen, `start.sh` sẽ hỏi tải lại
+  (5,44 GB).
+- **Không dùng** `docker system prune -a`: lệnh này xoá cả image, volume của dự án khác trên máy.
+
+### 13.8 Đã kiểm, chưa kiểm
 
 - **Đã kiểm trong sandbox:**
   - test cho URL, header, tham số, tự đổi tham số, chỉ lấy dòng đầu, sửa nhãn ngôn ngữ;

@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     GLOSSARIES: str = "default"
     # Khi thu âm tab: nhận dạng thêm vùng audio to mà VAD bỏ sót (docs 09 §4.1). Tắt bằng RVT_VAD_PROBE=false
     VAD_PROBE: bool = True
+    # Đổi model nhận dạng theo ngôn ngữ mà không sửa profile, ví dụ "ja=large-v3" hoặc
+    # "ja=kotoba-tech/kotoba-whisper-v2.0-faster,vi=phowhisper-large-ct2" (docs 10 §13.6)
+    ASR_MODELS: str = ""
     # beam_size cho lượt nhận dạng chốt câu; chữ tạm luôn dùng 1 (docs 10 §10.4). 1 = như trước
     ASR_FINAL_BEAM_SIZE: int = 1
 

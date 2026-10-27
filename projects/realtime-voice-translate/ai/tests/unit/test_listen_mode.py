@@ -98,3 +98,22 @@ async def test_session_without_translation_only_emits_transcripts(monkeypatch):
     assert len(finals) == 1 and finals[0].lang == "vi"
     assert not [e for e in events if isinstance(e, MtDelta | MtFinal)]
     assert any(c.get("beam_size") == 5 for c in calls)  # câu chốt dùng beam theo RVT_ASR_FINAL_BEAM_SIZE
+
+
+def test_asr_model_overrides_and_failed_load_falls_back(tmp_path):
+    from rvt_ai.engines.registry import parse_asr_models
+
+    assert parse_asr_models("ja=large-v3, vi=phowhisper-large-ct2,bad,=x") == {
+        "ja": "large-v3",
+        "vi": "phowhisper-large-ct2",
+    }
+
+    def factory(name):
+        if name == "missing/repo":
+            raise RuntimeError("Repository not found")
+        return _NamedAsr(name, [])
+
+    # Model tiếng Nhật tải lỗi: tiếng Nhật dùng model mặc định, server không rơi về engine giả
+    engine = LanguageRoutedAsrEngine("large-v3-turbo", {"ja": "missing/repo"}, factory, str(tmp_path))
+    assert engine.transcribe(b"", "ja")[0] == "large-v3-turbo"
+    assert engine.model_for("ja") == "large-v3-turbo"

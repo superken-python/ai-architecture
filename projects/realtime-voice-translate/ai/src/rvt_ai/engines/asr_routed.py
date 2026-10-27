@@ -58,8 +58,14 @@ class LanguageRoutedAsrEngine:
                 self.names[lang] = default_model
                 continue
             logger.info(f"Loading ASR model for '{lang}': {resolved}")
-            self.engines[lang] = factory(resolved)
-            self.names[lang] = model
+            try:
+                self.engines[lang] = factory(resolved)
+                self.names[lang] = model
+            except Exception as e:
+                # Tên model sai, tải không được, hết VRAM: ngôn ngữ đó dùng model mặc định, server vẫn chạy thật
+                logger.error(f"Cannot load ASR model for '{lang}' ({model}): {e}. Using {default_model} instead.")
+                self.engines[lang] = self.default
+                self.names[lang] = default_model
 
     def model_for(self, language: Lang | None) -> str:
         return self.names.get(language or "", self.default_name)

@@ -9,16 +9,35 @@ from rvt_ai.engines.vad_silero import SileroVadEngine
 from rvt_ai.packs.loader import AsrConfig, ProfileConfig
 
 
-def build_asr_engine(asr: AsrConfig, device: str | None = None, compute_type: str | None = None) -> AsrEngine:
-    """faster-whisper theo profile. Có `asr.models` thì mỗi ngôn ngữ một model (docs 10 §10.3)."""
+def parse_asr_models(spec: str) -> dict[str, str]:
+    """ "ja=large-v3,vi=phowhisper-large-ct2" → {"ja": "large-v3", "vi": "phowhisper-large-ct2"}."""
+    out: dict[str, str] = {}
+    for item in spec.split(","):
+        lang, sep, model = item.partition("=")
+        if sep and lang.strip() and model.strip():
+            out[lang.strip()] = model.strip()
+    return out
+
+
+def build_asr_engine(
+    asr: AsrConfig,
+    device: str | None = None,
+    compute_type: str | None = None,
+    overrides: str | None = None,
+) -> AsrEngine:
+    """faster-whisper theo profile. Có `asr.models` thì mỗi ngôn ngữ một model (docs 10 §10.3).
+
+    `overrides` (mặc định RVT_ASR_MODELS) thay model của từng ngôn ngữ mà không phải sửa profile.
+    """
     device = device or asr.device
     compute_type = compute_type or asr.compute_type
+    models = {**asr.models, **parse_asr_models(settings.ASR_MODELS if overrides is None else overrides)}
 
     def factory(model: str) -> AsrEngine:
         return FasterWhisperEngine(model_size=model, device=device, compute_type=compute_type)
 
-    if asr.models:
-        return LanguageRoutedAsrEngine(asr.model, asr.models, factory)
+    if models:
+        return LanguageRoutedAsrEngine(asr.model, models, factory)
     return factory(asr.model)
 
 

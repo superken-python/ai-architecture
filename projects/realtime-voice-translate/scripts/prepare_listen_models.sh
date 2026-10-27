@@ -11,7 +11,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 MODELS_DIR="${PROJECT_ROOT}/models"
 PHOWHISPER_REPO="${RVT_PHOWHISPER_REPO:-vinai/PhoWhisper-large}"
 PHOWHISPER_DIR="${MODELS_DIR}/phowhisper-large-ct2"
-EN_REPO="${RVT_EN_ASR_REPO:-Systran/faster-whisper-large-v3-turbo}"
+# Repo mà faster-whisper dùng cho tên "large-v3-turbo" (faster_whisper.utils._MODELS)
+EN_REPO="${RVT_EN_ASR_REPO:-mobiuslabsgmbh/faster-whisper-large-v3-turbo}"
 mkdir -p "${MODELS_DIR}"
 
 echo "== 1/3 Silero VAD"

@@ -49,3 +49,9 @@ chữ viết.
 hôm nay chúng ta nói về chữ viết.
 """
     assert fetch.vtt_to_lines(vtt) == ["Xin chào các bạn,", "hôm nay chúng ta nói về chữ viết."]
+
+
+def test_cer_for_japanese_ignores_punctuation_and_width():
+    assert wer_mod.cer("今日は、いい天気ですね。", "今日はいい天気ですね") == 0
+    assert wer_mod.cer("ＡＢＣ１２３です", "ABC123です") == 0  # toàn khổ và nửa khổ là một
+    assert wer_mod.cer("里の長", "里の蝶") == pytest.approx(1 / 3)

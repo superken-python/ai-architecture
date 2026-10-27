@@ -26,6 +26,8 @@ services:
       - RVT_GLOSSARIES=${RVT_GLOSSARIES:-default}
       - RVT_VAD_PROBE=${RVT_VAD_PROBE:-true}
       - RVT_ASR_FINAL_BEAM_SIZE=${RVT_ASR_FINAL_BEAM_SIZE:-1}
+      # Đổi model nhận dạng theo ngôn ngữ, ví dụ "ja=large-v3" (docs 10 §13.6)
+      - RVT_ASR_MODELS=${RVT_ASR_MODELS:-}
     volumes:
       - ../models:/models
       - ../config:/app/config:ro

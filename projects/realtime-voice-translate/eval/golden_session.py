@@ -264,6 +264,11 @@ def main() -> None:
     )
     parser.add_argument("--mt-url", default="", help="dịch các câu đã đưa đi dịch bằng llama.cpp ở URL này, chấm chrF")
     parser.add_argument("--glossary", default="default,naruto", help="glossary dùng khi dịch (--mt-url)")
+    parser.add_argument(
+        "--asr-models",
+        default=None,
+        help='đổi model nhận dạng theo ngôn ngữ, ví dụ "ja=large-v3" (mặc định: RVT_ASR_MODELS); docs 10 §13.6',
+    )
     parser.add_argument("--out", default="", help="ghi báo cáo JSON (kèm mọi thẻ trên màn hình)")
     args = parser.parse_args()
 
@@ -277,9 +282,9 @@ def main() -> None:
     compute_type = args.compute_type or profile.asr.compute_type
     if device == "cpu" and compute_type == "int8_float16":
         compute_type = "int8"
-    if profile.asr.models:
-        # Mỗi ngôn ngữ một model, như profile listen (docs 10 §10.3)
-        asr = build_asr_engine(profile.asr, device=device, compute_type=compute_type)
+    if profile.asr.models or args.asr_models or os.environ.get("RVT_ASR_MODELS"):
+        # Mỗi ngôn ngữ một model, như profile listen (docs 10 §10.3); --asr-models để so model (docs 10 §13.6)
+        asr = build_asr_engine(profile.asr, device=device, compute_type=compute_type, overrides=args.asr_models)
     else:
         asr = FasterWhisperEngine(model_size=profile.asr.model, device=device, compute_type=compute_type)
     print(f"Audio {len(pcm) / 16000:.0f} s · profile {profile.name} · ASR {device}/{compute_type}", flush=True)
@@ -315,10 +320,14 @@ def main() -> None:
     ref_lines = Path(ref_path).read_text(encoding="utf-8").splitlines()
     result = score(ref_lines, parse_ranges(args.skip_lines), text)
     summary.update({k: v for k, v in result.items() if k != "missed_lines"})
+    spaced = " ".join(c["text"] for c in screen["finals"])
+    text_scores = score_text(ref_lines, parse_ranges(args.skip_lines), spaced)
     if args.side_lang in ("vi", "en"):
         # Tiếng Việt, tiếng Anh: WER theo từ, giữ dấu thanh (docs 10 §10.2)
-        spaced = " ".join(c["text"] for c in screen["finals"])
-        summary.update(score_text(ref_lines, parse_ranges(args.skip_lines), spaced))
+        summary.update(text_scores)
+    else:
+        # Tiếng Nhật không có khoảng trắng giữa từ: chỉ CER (docs 10 §13.6)
+        summary["cer"] = text_scores["cer"]
     if args.mt_url:
         summary.update(translate_requests(mt_requests, args.golden, args.mt_url, args.glossary, args.target))
     if args.max_seconds:

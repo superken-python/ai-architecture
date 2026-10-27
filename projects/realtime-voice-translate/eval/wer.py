@@ -1,6 +1,7 @@
 """WER và CER cho tiếng Việt, tiếng Anh (docs 10 §10.2).
 
-Chuẩn hoá trước khi so: NFC, chữ thường, bỏ dấu câu và nhãn [nhạc], **giữ dấu thanh** tiếng Việt ("ma" khác "mà").
+Chuẩn hoá trước khi so: NFKC (chữ, số toàn khổ của tiếng Nhật thành nửa khổ), chữ thường, bỏ dấu câu và nhãn [nhạc],
+**giữ dấu thanh** tiếng Việt ("ma" khác "mà").
 WER tính theo từ (tách bằng khoảng trắng); CER tính theo ký tự sau khi bỏ khoảng trắng.
 """
 
@@ -13,7 +14,7 @@ _NOT_WORD = re.compile(r"[^\w\s']|_")
 
 
 def normalize(text: str) -> str:
-    text = unicodedata.normalize("NFC", text).lower()
+    text = unicodedata.normalize("NFKC", text).lower()
     text = _TAGS.sub(" ", text)
     text = _NOT_WORD.sub(" ", text)
     text = re.sub(r"(?<!\w)'|'(?!\w)", " ", text)  # bỏ dấu nháy đứng riêng
