@@ -174,8 +174,8 @@ def main() -> None:
 
     asr_device = args.device or profile.asr.device
     asr_compute_type = args.compute_type or profile.asr.compute_type
-    if asr_device == "cpu" and asr_compute_type == "int8_float16":
-        asr_compute_type = "int8"
+    if asr_device == "cpu" and asr_compute_type in ("int8_float16", "float16"):
+        asr_compute_type = "int8"  # CPU không có kiểu float16
 
     try:
         engine = FasterWhisperEngine(model_size=profile.asr.model, device=asr_device, compute_type=asr_compute_type)

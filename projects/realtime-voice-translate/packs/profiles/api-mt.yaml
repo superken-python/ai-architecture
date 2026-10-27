@@ -21,7 +21,9 @@ asr:
     vi: "phowhisper-large-ct2"
     en: "large-v3-turbo"
   device: "cuda"
-  compute_type: "int8_float16"
+  # float16: độ chính xác gốc của Whisper, không lượng tử hoá trọng số. GPU chỉ chạy phần nghe nên đủ chỗ
+  # (docs 10 §13.1). Profile còn chạy Qwen trên cùng GPU (balanced, quality) giữ int8_float16.
+  compute_type: "float16"
 mt:
   engine: "api"
   model: "gpt-5.4-mini"

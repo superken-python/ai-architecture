@@ -280,8 +280,8 @@ def main() -> None:
         pcm = pcm[: int(args.max_seconds * 16000)]
     device = args.device or profile.asr.device
     compute_type = args.compute_type or profile.asr.compute_type
-    if device == "cpu" and compute_type == "int8_float16":
-        compute_type = "int8"
+    if device == "cpu" and compute_type in ("int8_float16", "float16"):
+        compute_type = "int8"  # CPU không có kiểu float16
     if profile.asr.models or args.asr_models or os.environ.get("RVT_ASR_MODELS"):
         # Mỗi ngôn ngữ một model, như profile listen (docs 10 §10.3); --asr-models để so model (docs 10 §13.6)
         asr = build_asr_engine(profile.asr, device=device, compute_type=compute_type, overrides=args.asr_models)

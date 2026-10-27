@@ -364,7 +364,7 @@ Giữ nguyên kiến trúc hiện tại: web thu âm → WebSocket → Silero VA
 **Cập nhật 2026-10-15: đã làm bước B, C và phần chấm WER của bước A**, có test. Chưa chạy trên GPU thật, chưa có số.
 
 - **Profile `listen`** ([`packs/profiles/listen.yaml`](../packs/profiles/listen.yaml)): `mt.engine: none`, tiếng Việt
-  dùng `phowhisper-large-ct2`, tiếng Anh dùng `large-v3-turbo`, `int8_float16`.
+  dùng `phowhisper-large-ct2`, tiếng Anh dùng `large-v3-turbo`, `int8_float16` (từ 2026-10-27 là `float16`, §13.1).
   - Server không tạo bộ dịch; session chỉ gửi chữ nhận dạng. API `/v1/translate` trả 503.
   - [`LanguageRoutedAsrEngine`](../ai/src/rvt_ai/engines/asr_routed.py) nạp mọi model lúc khởi động và chọn model theo
     ngôn ngữ khoá của phiên. Thiếu thư mục PhoWhisper thì tiếng Việt tạm dùng large-v3-turbo, có cảnh báo trong log.
@@ -459,7 +459,7 @@ Ghi chú:
 
   ```bash
   ct2-transformers-converter --model vinai/PhoWhisper-large --output_dir models/phowhisper-large-ct2 \
-      --quantization int8_float16
+      --quantization float16
   ```
 
   Chưa chạy thử ở đây. Phải kiểm: file tokenizer có đủ không, VRAM, tốc độ mỗi lượt nhận dạng (PhoWhisper-large không
@@ -508,7 +508,7 @@ Giả định: chế độ chỉ nghe, không chạy model dịch, cả GPU dàn
 | Tiếng Việt | **Parakeet-CTC-0.6B Vietnamese** (NVIDIA) | Huấn luyện trên hơn 4 000 giờ tiếng Việt, có dấu câu và thời gian từng từ, kèm n-gram LM (KenLM). Trên Vietnamese Open ASR Leaderboard, phần bảng xem được: O-WER trung bình 13,39, thấp nhất trong các dòng hiển thị (PhoWhisper-medium 17,98, Qwen3-ASR-1.7B 20,45). Chạy bằng NeMo, cần thêm engine mới. Giấy phép NVIDIA Community Model License |
 | Tiếng Việt | **PhoWhisper-large** qua CTranslate2 | Dùng được engine hiện có (mục 10.3) |
 | Tiếng Việt | ChunkFormer-CTC-Large-Vie | Dự phòng; cần engine CTC |
-| Tiếng Anh | Whisper large-v3 hoặc large-v3-turbo (int8_float16) | Đang dùng turbo |
+| Tiếng Anh | Whisper large-v3 hoặc large-v3-turbo (float16) | Đang dùng turbo |
 | Tiếng Anh | Parakeet-TDT-0.6B (NVIDIA) | Nhanh; một nguồn năm 2026 xếp nó đứng đầu trung bình WER, các nguồn khác xếp sau Cohere, IBM |
 
 Cách chạy: như app hiện tại (VAD cắt đoạn, chữ tạm 800 ms – 1,2 s, câu chốt), cộng các phép thử ở mục 10.4. Khoá ngôn
@@ -607,8 +607,17 @@ deployment GPT-5 mini (ví dụ `gpt-5.4-mini`) trên Azure. Profile mới: `api
 - **VRAM:** không còn container `mt`. Qwen2.5-7B Q5_K_M nặng 5,44 GB, cộng KV cache khoảng 0,47 GB với `-c 8192` và
   phần CUDA của llama.cpp (chưa đo). Tổng cộng giải phóng khoảng 6 GB.
 - GPU 8 GB khi đó chỉ chạy phần nghe như profile `listen`: PhoWhisper-large cho nửa khoá tiếng Việt, large-v3-turbo
-  cho tiếng Nhật, tiếng Anh và chế độ "Tự động". Hai model này ở `int8_float16` ước tính vừa 8 GB; đo lại bằng
-  `nvidia-smi`.
+  cho tiếng Nhật, tiếng Anh và chế độ "Tự động".
+- **Độ chính xác số (cập nhật 2026-10-27):** profile `api-mt` và `listen` nạp model ở `float16`, độ chính xác gốc của
+  Whisper, thay cho `int8_float16` (trọng số lượng tử hoá 8 bit). Profile còn chạy Qwen trên cùng GPU (`balanced`,
+  `quality`) giữ `int8_float16` để vừa VRAM.
+  - **Đã đo** trên RTX 3070: `int8_float16`, chỉ có turbo (chưa có PhoWhisper), lúc rảnh: 1,1 GB.
+  - **Ước tính** `float16`: turbo khoảng 1,9 GB (809 triệu tham số × 2 byte, cộng phần CUDA). Thêm PhoWhisper-large thì
+    thêm khoảng 3,1 GB. Vẫn còn trên 2 GB cho bộ nhớ làm việc.
+  - Lợi về độ chính xác thường nhỏ. Đo trên golden_1: chạy `golden_session.py` hai lần, lần hai thêm
+    `--compute-type int8_float16`, so `cer` và độ trễ.
+  - **Áp dụng trên máy GPU:** `git pull`, rồi `docker restart rvt_ai`. Profile được đọc lúc khởi động, không cần build
+    lại. Log có `Loading faster-whisper model 'large-v3-turbo' on cuda (float16)`.
 - Cũng xoá được file Qwen: `./scripts/remove_unused_models.sh --yes`.
 
 **Đổi lại:**
@@ -819,7 +828,7 @@ du -sh models/whisper                      # khoảng 1,6 GB
   - Tải lại large-v3-turbo thật: sandbox không ra được Hugging Face.
   - Azure thật: chưa có khoá, và sandbox không ra được Azure.
   - Độ trễ, chi phí và chất lượng dịch thật của GPT-5 mini so với Qwen.
-  - VRAM thật của hai model nghe.
+  - VRAM và độ trễ ở `float16`; VRAM khi có cả PhoWhisper (đã đo `int8_float16`, chỉ turbo: 1,1 GB, §13.1).
 
 ## 14. Nguồn
 
