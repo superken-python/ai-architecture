@@ -1,4 +1,5 @@
 cwe_id,related_cwe_id,nature,view_id,ordinal,cwe_version
+20,707,ChildOf,1000,Primary,4.14
 22,668,ChildOf,1000,,4.14
 22,706,ChildOf,1000,Primary,4.14
 74,707,ChildOf,1000,Primary,4.14
@@ -6,6 +7,7 @@ cwe_id,related_cwe_id,nature,view_id,ordinal,cwe_version
 78,77,ChildOf,1000,Primary,4.14
 79,74,ChildOf,1000,Primary,4.14
 89,943,ChildOf,1000,Primary,4.14
+90,943,ChildOf,1000,Primary,4.14
 93,74,ChildOf,1000,Primary,4.14
 94,74,ChildOf,1000,Primary,4.14
 94,913,ChildOf,1000,,4.14
@@ -14,6 +16,10 @@ cwe_id,related_cwe_id,nature,view_id,ordinal,cwe_version
 113,436,ChildOf,1000,,4.14
 118,664,ChildOf,1000,Primary,4.14
 119,118,ChildOf,1000,Primary,4.14
+120,119,ChildOf,1000,Primary,4.14
+125,119,ChildOf,1000,Primary,4.14
+134,668,ChildOf,1000,Primary,4.14
+200,668,ChildOf,1000,Primary,4.14
 221,664,ChildOf,1000,Primary,4.14
 285,284,ChildOf,1000,Primary,4.14
 287,284,ChildOf,1000,Primary,4.14
@@ -31,6 +37,8 @@ cwe_id,related_cwe_id,nature,view_id,ordinal,cwe_version
 451,221,ChildOf,1000,,4.14
 451,684,ChildOf,1000,Primary,4.14
 489,710,ChildOf,1000,Primary,4.14
+538,200,ChildOf,1000,Primary,4.14
+540,538,ChildOf,1000,Primary,4.14
 601,610,ChildOf,1000,Primary,4.14
 610,664,ChildOf,1000,Primary,4.14
 613,672,ChildOf,1000,Primary,4.14
@@ -45,6 +53,7 @@ cwe_id,related_cwe_id,nature,view_id,ordinal,cwe_version
 706,664,ChildOf,1000,Primary,4.14
 732,285,ChildOf,1000,Primary,4.14
 732,668,ChildOf,1000,,4.14
+787,119,ChildOf,1000,Primary,4.14
 798,344,ChildOf,1000,,4.14
 798,671,ChildOf,1000,,4.14
 798,1391,ChildOf,1000,Primary,4.14
@@ -52,9 +61,12 @@ cwe_id,related_cwe_id,nature,view_id,ordinal,cwe_version
 863,285,ChildOf,1000,Primary,4.14
 913,664,ChildOf,1000,Primary,4.14
 915,913,ChildOf,1000,Primary,4.14
+918,441,ChildOf,1000,Primary,4.14
+923,284,ChildOf,1000,Primary,4.14
 943,74,ChildOf,1000,Primary,4.14
 1004,732,ChildOf,1000,Primary,4.14
 1021,441,ChildOf,1000,Primary,4.14
 1021,451,ChildOf,1000,,4.14
+1275,923,ChildOf,1000,Primary,4.14
 1390,287,ChildOf,1000,Primary,4.14
 1391,1390,ChildOf,1000,Primary,4.14

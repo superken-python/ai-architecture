@@ -5,3 +5,8 @@ ipa_cwe_overview_en,IPA,web_page,https://www.ipa.go.jp/en/security/vulnerabiliti
 mitre_cwe_catalog,MITRE,xml_zip,https://cwe.mitre.org/data/xml/cwec_latest.xml.zip,http_head_etag,4.14,,,,2026-10-27,,bundled_only,Mới có bản 4.14 đi kèm gói PyPI cwe2; chưa tải bản mới nhất
 mitre_cwe_version_api,MITRE,rest_api,https://cwe-api.mitre.org/api/v1/cwe/version,api_json_field,,,,,,,not_fetched,Endpoint ghi theo tài liệu CWE REST API; chưa gọi thử
 semgrep_rules,Semgrep,git_repo,https://github.com/semgrep/semgrep-rules,git_ls_remote,16b9e6d45f10649f6a531ec4838ed9924372c3bc,,,2026-10-21,2026-10-27,2026-10-27,ok,1.644 rule category=security
+zap_extensions,ZAP (Checkmarx),git_repo,https://github.com/zaproxy/zap-extensions,git_ls_remote,51e41553d4b38e22950b0a4d3354e3eed8934123,,,2026-10-26,2026-10-27,2026-10-27,ok,Nguồn của các scan rule (getCweId); Apache-2.0
+zaproxy,ZAP (Checkmarx),git_repo,https://github.com/zaproxy/zaproxy,git_ls_remote,d5da218e5ee3480f67a4af3e9651b7d3a3caca36,,,2026-10-27,2026-10-27,2026-10-27,ok,Lõi ZAP và các script docker zap-baseline/full/api; Apache-2.0
+trivy,Aqua Security,git_repo,https://github.com/aquasecurity/trivy,git_ls_remote,201dda06333414b44147f9b4a867d46d30590084,,,2026-10-27,2026-10-27,2026-10-27,ok,Schema output; Apache-2.0
+trivy_checks,Aqua Security,git_repo,https://github.com/aquasecurity/trivy-checks,git_ls_remote,f9099b793990fd8f932bad691fb6fe4b1c39e5d3,,,2026-10-26,2026-10-27,2026-10-27,ok,Check misconfig dạng rego; MIT; không có CWE
+trivy_db,Aqua Security,oci_artifact,ghcr.io/aquasecurity/trivy-db,registry_manifest_digest,,,,,,,not_fetched,Nguồn của CweIDs; chưa tải được trong phiên (chưa thử xác thực registry)

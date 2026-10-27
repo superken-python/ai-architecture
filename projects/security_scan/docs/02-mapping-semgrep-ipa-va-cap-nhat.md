@@ -1,48 +1,155 @@
-# 02 · Mapping kết quả Semgrep ↔ IPA, export IPA knowledge base và cập nhật liên tục
+# 02 · Mapping kết quả Semgrep, ZAP, Trivy ↔ IPA, export IPA knowledge base và cập nhật liên tục
 
-Ngày: 2026-10-27 · Đọc trước: [01 · Nghiên cứu IPA, CWE, Semgrep](01-nghien-cuu-ipa-cwe-semgrep.md) (có giải thích nhãn **[đã kiểm chứng]** / **[tìm kiếm web]** / **[chưa xác minh]** và lý do một số trang IPA/MITRE/Semgrep chưa đọc trực tiếp được).
+Ngày: 2026-10-27 (cập nhật lần 2: thêm Trivy và ZAP) · Đọc trước: [01 · Nghiên cứu IPA, CWE, Semgrep](01-nghien-cuu-ipa-cwe-semgrep.md) (có giải thích nhãn **[đã kiểm chứng]** / **[tìm kiếm web]** / **[chưa xác minh]** và lý do một số trang IPA/MITRE/Semgrep chưa đọc trực tiếp được).
 
 ## 1 · Tóm tắt
 
-1. **Cầu nối là CWE.** Mỗi rule Semgrep gắn sẵn mã CWE trong metadata; IPA phân loại lỗ hổng theo CWE. Chuỗi mapping: `finding → rule → CWE → mục IPA → đối sách IPA`.
-2. **Bảng IPA↔CWE phải tự biên soạn rồi kiểm duyệt.** Mình chưa thấy nguồn nào xuất sẵn bảng này dưới dạng dữ liệu (mới chỉ tìm kiếm web, chưa đọc được trang IPA). Bản seed trong `templates/` ghi theo trí nhớ, mọi dòng đều gắn `seed_unverified`.
-3. **11 mục IPA chỉ phủ khoảng 1/4 những gì Semgrep gắn CWE.** Đo trên 1.662 cặp rule–CWE: 22,6% khớp trực tiếp, 2,2% khớp qua cây CWE, **75,2% không thuộc mục nào** (hard-code credential, mật mã, SSRF, deserialization, XXE...). Vì vậy bắt buộc có trạng thái `OUT_OF_IPA_SCOPE`, không được bỏ những finding này.
-4. **Tag CWE của Semgrep có chỗ sai** (ví dụ 2 biến thể `tainted-sql-string` của Python bị gắn CWE-915/704 thay vì CWE-89) → cần bảng `semgrep_cwe_override` có người duyệt.
-5. **Cập nhật liên tục** = job định kỳ phát hiện thay đổi ở từng nguồn → chạy ETL → sinh diff → **mở PR cho người duyệt** → merge → dựng lại DB. Nội dung lấy từ IPA không bao giờ tự động merge.
-6. **Đã chạy thử thật** (SQLite, dữ liệu mẫu trong repo, scan thật): xem mục 5. Các đoạn code ở mục 8 đã được chạy trước khi đưa vào đây.
+1. **Cầu nối là CWE, với cả ba công cụ, nhưng không đồng đều.** Semgrep (SAST) gắn CWE vào *rule*; ZAP (DAST) gắn `cweid` vào mỗi *alert*; Trivy chỉ gắn `CweIDs` cho *lỗ hổng của thư viện/gói* (CVE). Cấu hình sai (misconfig), secret và license của Trivy **không có CWE**. Chuỗi mapping chung: `finding → CWE → mục IPA → đối sách IPA`.
+2. **Trivy và ZAP đều là mã nguồn mở** **[đã kiểm chứng file LICENSE]**: Trivy Apache-2.0, ZAP và `zap-extensions` Apache-2.0, `trivy-checks` MIT (chi tiết ở mục 2).
+3. **Bảng IPA↔CWE phải tự biên soạn rồi kiểm duyệt.** Mình chưa thấy nguồn nào xuất sẵn bảng này dưới dạng dữ liệu (mới chỉ tìm kiếm web, chưa đọc được trang IPA). Bản seed trong `templates/` ghi theo trí nhớ, mọi dòng đều gắn `seed_unverified`.
+4. **11 mục IPA chỉ phủ khoảng 1/4 những gì công cụ gắn CWE.** Semgrep: 22,6% khớp trực tiếp, 2,2% khớp qua cây CWE, **75,2% không thuộc mục nào**. ZAP: 19,5% + 2,7%, **77,9% không thuộc mục nào**. Vì vậy bắt buộc có trạng thái `OUT_OF_IPA_SCOPE`, không được bỏ những finding này.
+5. **ZAP bổ sung đúng chỗ Semgrep yếu:** 10/11 mục IPA có ít nhất một scan rule ZAP (kiểm tra header chống clickjacking CWE-1021, cờ cookie, token CSRF...); chỉ mục 1.8 (mail header injection) không có.
+6. **Trivy chủ yếu nằm ngoài tầm IPA:** CVE của thư viện có thể được phân loại theo CWE rồi theo mục IPA, nhưng đối sách của IPA dành cho người viết website, không phải cách vá thư viện (cách vá là nâng phiên bản). Misconfig/secret ra `NO_CWE`.
+7. **Tag CWE của Semgrep có chỗ sai** (2 biến thể `tainted-sql-string` của Python bị gắn CWE-915/704 thay vì CWE-89) → cần bảng `semgrep_cwe_override` có người duyệt.
+8. **Cập nhật liên tục** = job định kỳ phát hiện thay đổi ở từng nguồn → chạy ETL → sinh diff → **mở PR cho người duyệt** → merge → dựng lại DB. Nội dung lấy từ IPA không bao giờ tự động merge.
+9. **Đã chạy thật tới đâu:** Semgrep scan thật; Trivy chỉ chạy bộ chuyển đổi trên 5 file output mẫu của chính dự án Trivy (chưa chạy Trivy); ZAP chỉ kiểm thử bộ chuyển đổi trên fixture và trích CWE từ mã nguồn rule (chưa chạy ZAP). Xem mục 11 về lý do.
 
 ---
 
-## 2 · Mô hình liên hệ
+## 2 · Trivy và ZAP: mã nguồn mở không, output có CWE không
 
-```
- Semgrep scan (JSON/SARIF)        Semgrep rule catalog            CWE catalog (MITRE)         IPA knowledge base
- ─────────────────────────        ───────────────────────         ───────────────────         ──────────────────────────
- finding                          semgrep_rule_cwe                cwe_catalog                 ipa_item  (11 mục)
-  check_id ────(hậu tố)────────►   (rule_file, rule_id)             cwe_id  ◄── cwe_relation    ipa_countermeasure
-  path, line, severity            cwe_id ──────────────────────►  (cha–con, view 1000)        (gốc rễ / bảo hiểm)
-                                   ▲                                   ▲                            ▲
-                                   │ semgrep_cwe_override              └────── ipa_cwe_map ─────────┘
-                                   │ (replace / add / ignore,           (relation, confidence,
-                                   │  có người duyệt)                    verification_status)
+### 2.1 Trả lời nhanh
+
+| | Semgrep | ZAP | Trivy |
+|---|---|---|---|
+| Loại | **SAST**: đọc mã nguồn | **DAST**: tấn công/dò website đang chạy | **SCA + container + IaC + secret + license + SBOM**: quét thành phần, cấu hình, bí mật; **không** tìm lỗi logic trong mã bạn tự viết |
+| Mã nguồn mở? | Engine mở (**[chưa xác minh]** giấy phép); bộ rule theo *Semgrep Rules License v1.0* | **Có**, Apache-2.0 (repo `zaproxy`, `zap-extensions`) | **Có**, Apache-2.0 (repo `trivy`); check misconfig `trivy-checks` MIT |
+| Ai duy trì | Semgrep | README ghi "ZAP by Checkmarx" | Aqua Security (ghi trong LICENSE của `trivy-checks`) |
+| CWE nằm ở | metadata của rule | `cweid` của mỗi alert | `Vulnerabilities[].CweIDs` |
+| Dạng | `"CWE-89: tên"`, chuỗi hoặc list | chuỗi số `"89"` | list `["CWE-79"]`, bỏ trống nếu không có |
+| Không có CWE khi | rule không phải `security` | alert thông tin; giá trị `-1`/`0` | misconfig, secret, license (luôn); CVE chưa có CWE |
+| Format khác | SARIF: trong `tags` | XML (lõi): `<cweid>` chỉ khi > 0; SARIF: `relationships` chỉ khi > 0 | CycloneDX: `cwes` (số nguyên); **SARIF của Trivy không có CWE** |
+
+Tất cả ô của ZAP và Trivy lấy từ mã nguồn và dữ liệu mẫu của chính dự án **[đã kiểm chứng]**, trừ ô giấy phép engine Semgrep. Giấy phép *dữ liệu lỗ hổng* mà Trivy tải về (từ NVD, advisory của các distro...) là điều khoản riêng của từng nguồn, mình chưa đọc **[chưa xác minh]**.
+
+### 2.2 ZAP
+
+**Quét thế nào.** Script đóng gói sẵn trong `zaproxy/docker/` **[đã kiểm chứng]**:
+
+| Script | Làm gì |
+|---|---|
+| `zap-baseline.py` | Spider mục tiêu (mặc định 1 phút) rồi chỉ chạy **passive scan**; không tấn công chủ động |
+| `zap-full-scan.py` | Spider không giới hạn rồi **active scan**; có thể rất lâu |
+| `zap-api-scan.py` | Quét API khai báo bằng OpenAPI/Swagger, SOAP, GraphQL |
+
+Cả ba nhận `-J file.json` (JSON), `-x` (XML), `-r` (HTML), `-w` (Markdown). Add-on *reports* có thêm template `traditional-json`, `traditional-json-plus`, `traditional-xml`, `sarif-json`...
+
+> **Chỉ quét hệ thống bạn sở hữu hoặc được cấp phép bằng văn bản.** Active scan gửi payload tấn công thật (SQLi, XSS, command injection...) và có thể làm hỏng dữ liệu hoặc gây gián đoạn.
+
+**Cấu trúc JSON** (từ template `traditional-json/report.json` và fixture kiểm thử):
+
+```json
+{"@programName": "ZAP", "@version": "...", "site": [{
+  "@name": "http://target", "@host": "...", "@port": "...", "@ssl": "false",
+  "alerts": [{
+    "pluginid": "40018", "alertRef": "40018", "alert": "SQL Injection", "name": "SQL Injection",
+    "riskcode": "3", "confidence": "2", "riskdesc": "High (Medium)",
+    "instances": [{"uri": "http://target/a?x=1", "method": "GET", "param": "x", "attack": "...", "evidence": "..."}],
+    "count": "1", "solution": "...", "reference": "...",
+    "cweid": "89", "wascid": "19", "sourceid": "1"}]}]}
 ```
 
-Kết quả cuối: mỗi dòng báo cáo = `(file, dòng, mục IPA, số rule báo, CWE, kiểu khớp)` kèm danh sách đối sách IPA; phần còn lại xuất ra `OUT_OF_IPA_SCOPE` hoặc `NO_CWE`.
+Giá trị ví dụ ở trên chỉ minh họa cấu trúc; tên trường lấy từ template thật. `riskcode` 0–3 (Info → High). `pluginid` là mã scan rule, `alertRef` phân biệt các alert của cùng rule.
+
+**Lấy CWE.** Mỗi scan rule khai báo trong mã Java (`getCweId()`, `getWascId()`, `getId()`); mặc định trong lõi là `cweId = -1`. Script ở mục 9.3 trích toàn bộ từ `zap-extensions` **[đã chạy]**:
+
+| Chỉ số | Giá trị |
+|---|---|
+| File Java khai báo CWE | 164 (12 file không trích được số CWE) |
+| Lớp scan rule (active + passive) | 148 (80 + 71 dòng rule–CWE) |
+| Cặp rule–CWE có CWE > 0 | 149 |
+| CWE khác nhau | 78 (3 mục là Category đã Obsolete trong CWE 4.14: 16, 264, 933) |
+| Độ phủ trích | `ascanrules` 44/48 file, `pscanrules` 54/55; phần còn lại là rule thông tin không gắn CWE |
+
+CWE phổ biến nhất trong ZAP: 20 (9 rule), 89 (8), 497 (7), 79 (6), 693 (5), 78 (4), 311 (4), 541 (4), 319 (4). Trong đó chỉ 89, 79, 78 thuộc 11 mục IPA; 20, 497, 693... là CWE quá chung hoặc về lộ thông tin nên ra `OUT_OF_IPA_SCOPE`.
+
+**Bẫy khi dùng output ZAP:**
+
+1. `cweid` là **chuỗi**; không có CWE thì là `-1` (mặc định trong mã) hoặc `0`. Bộ chuyển đổi coi mọi giá trị ≤ 0 hoặc rỗng là *không có CWE*. Mình chưa thấy output ZAP thật để biết giá trị chính xác khi không có CWE.
+2. Vị trí là **URL + tham số**, không phải file:dòng. Muốn đối chiếu với phát hiện của Semgrep ở cùng điểm yếu cần ánh xạ endpoint ↔ mã, nằm ngoài phạm vi này. Đối chiếu chéo công cụ hiện chỉ làm được ở mức *mục IPA / CWE*, không phải vị trí.
+3. Một alert có nhiều `instances`; báo cáo gộp theo (URL, mục IPA) nên 1 điểm yếu trên 1 URL chỉ 1 dòng.
+4. Baseline = passive: **không có alert ≠ an toàn** (SQLi, command injection... cần active scan).
+5. Không dùng được cho giai đoạn viết mã; phải có website chạy được.
+
+### 2.3 Trivy
+
+**Quét gì.** Các scanner khai báo trong mã **[đã kiểm chứng]**: `vuln`, `misconfig`, `secret`, `license`, `sbom`, `rbac`, `crypto`; đối tượng: image, filesystem, repo, rootfs, Kubernetes, VM, SBOM. Format xuất: `table`, `json`, `template`, `sarif`, `cyclonedx`, `spdx`, `spdx-json`, `github`, `cosign-vuln`.
+
+**CWE đến từ đâu.** Struct `Vulnerability` trong `trivy-db` có `CweIDs []string` (`omitempty`, ví dụ `CWE-78`). Hai điểm đọc từ mã nguồn `trivy-db`:
+
+- Với nguồn NVD, chỉ giữ giá trị **bắt đầu bằng `CWE`**, nên `NVD-CWE-Other` và `NVD-CWE-noinfo` bị loại.
+- Khi nhiều nguồn cùng mô tả một CVE, `getCweIDs` lấy **nguồn đầu tiên (theo thứ tự ưu tiên) có CWE khác rỗng**.
+
+Ví dụ một mục trong output JSON (dữ liệu thật từ golden file của Trivy):
+
+```json
+{"VulnerabilityID": "CVE-2019-11358", "PkgName": "jquery", "InstalledVersion": "3.3.9",
+ "Severity": "MEDIUM", "CweIDs": ["CWE-79"]}
+```
+
+**Không có CWE.** `DetectedMisconfiguration` có `ID` (ví dụ `KSV-0001`), `Title`, `Severity`, `Resolution`... nhưng **không có trường CWE**. Metadata các check trong `trivy-checks` có `id`, `severity`, `frameworks` (CIS...), `recommended_action`; tìm "cwe" (không phân biệt hoa thường) trong toàn repo, nơi có khoảng 1.150 file rego, chỉ khớp ngẫu nhiên trong `go.sum`. Rule secret có `ID`, `Category`, `Title`, `Severity`, `Regex`; cũng không có CWE. Một công cụ bên thứ ba tìm được qua web search có gán CWE cho misconfig bằng bảng tra của riêng họ **[tìm kiếm web]**; đó không phải output của Trivy.
+
+**Bẫy khi dùng output Trivy:**
+
+1. **`CweIDs` có thể vắng** (`omitempty`) ngay cả với CVE: trong 81 golden file, 105/126 mục lỗ hổng có `CweIDs` (khoảng 83%); đây là dữ liệu kiểm thử của Trivy, **không** đại diện cho thực tế.
+2. Một CVE có thể có **nhiều CWE**; cùng một CVE xuất hiện cho nhiều gói (ví dụ `libssl` và `libcrypto`) → gộp theo (target, gói, CVE).
+3. **Kết quả đổi theo ngày** vì DB lỗ hổng cập nhật; báo cáo phải ghi phiên bản/ngày DB.
+4. Phân loại CVE thư viện theo IPA chỉ là **phân loại**: ví dụ CVE `musl` CWE-787 → qua cây CWE (con của CWE-119) → IPA-WEB-10 (buffer overflow), nhưng đối sách "viết mã C an toàn" của IPA không phải cách xử lý; cách xử lý là cập nhật gói (`FixedVersion`). Báo cáo nên tách riêng nhóm này khỏi lỗi trong mã tự viết.
+5. Misconfig/secret: nếu muốn đưa vào IPA phải có **bảng tra do người biên soạn** (ví dụ secret → CWE-798), đánh dấu `source_type = curated`, không coi là output của Trivy. Mặc định giữ `NO_CWE`.
+6. DB mặc định tải từ `ghcr.io/aquasecurity/trivy-db` (dự phòng `mirror.gcr.io/aquasec/trivy-db`) **[đã kiểm chứng trong mã nguồn]**; môi trường quét phải truy cập được các host này.
+
+### 2.4 Hệ quả cho thiết kế mapping
+
+- Chuẩn hóa CWE từ ba kiểu về một kiểu: `"CWE-89: tên"` (Semgrep), `"89"` (ZAP), `"CWE-79"` (Trivy) → số nguyên `89`; bỏ `-1`, `0`, rỗng, `NVD-CWE-*`.
+- Semgrep tra CWE từ catalog rule (để áp override); ZAP và Trivy lấy CWE từ chính finding.
+- Một bảng `scan_finding` chung có cột `tool`; ba loại vị trí khác nhau (file:dòng, URL, `target :: gói@phiên bản`) đều đưa vào cột `path` (+ `start_line` nếu có).
+- Báo cáo luôn có ba nhóm: *khớp mục IPA*, `OUT_OF_IPA_SCOPE`, `NO_CWE`, và hiển thị theo công cụ.
 
 ---
 
-## 3 · Quy tắc mapping
+## 3 · Mô hình liên hệ
 
-### 3.1 Các bước
+```
+ Output công cụ                    Catalog rule (nếu có)            CWE (MITRE)                 IPA knowledge base
+ ───────────────                   ─────────────────────            ───────────                 ──────────────────────────
+ Semgrep: finding ──(hậu tố)────►  semgrep_rule_cwe ─┐
+   check_id, path, line            + semgrep_cwe_override (duyệt)│                              ipa_item  (11 mục)
+ ZAP: alert/instance ── cweid ───────────────────────┼────────►  cwe_catalog  ◄── cwe_relation  ipa_countermeasure
+   pluginid, uri                  (zap_rule_cwe: chỉ   │           (cha–con, view 1000)            ▲
+ Trivy: CVE/gói ─── CweIDs ──────  để đo độ phủ)        │                  ▲                       │
+   VulnerabilityID, pkg@ver                             └──────────────────┴──── ipa_cwe_map ─────┘
+ Trivy misconfig / secret ─────── (không có CWE) ──────────────────────────────► NO_CWE            (relation, confidence,
+                                                                                                    verification_status)
+```
 
-1. **Chuẩn hóa finding.** Lấy `check_id`, `path`, `start.line`, `extra.severity` từ JSON. *Không* dựa vào `extra.metadata.cwe` của finding làm nguồn sự thật cuối: tra lại từ catalog rule để áp override (xem 3.4).
-2. **Khớp finding → rule** bằng hậu tố: `check_id` kết thúc bằng `.<check_id_suffix>` (với `--config <thư mục>`, `check_id` = tiền tố đường dẫn config + thư mục chấm + rule id). Khóa duy nhất là `(rule_file, rule_id)`, vì `rule_id` đơn lẻ trùng ở 64 chỗ.
-3. **Rule → CWE hiệu lực** = CWE của rule, thay bằng/bổ sung theo `semgrep_cwe_override` đã `approved`.
+Kết quả cuối: mỗi dòng báo cáo = `(công cụ, vị trí, mục IPA, số check báo, CWE, kiểu khớp)` kèm danh sách đối sách IPA; phần còn lại xuất ra `OUT_OF_IPA_SCOPE` hoặc `NO_CWE`.
+
+---
+
+## 4 · Quy tắc mapping
+
+### 4.1 Các bước
+
+1. **Chuẩn hóa finding** về `scan_finding(tool, check_id, path, start_line, severity)` theo bảng ở mục 9.4.
+2. **Lấy CWE.**
+   - *Semgrep:* khớp finding → rule bằng hậu tố: `check_id` kết thúc bằng `.<check_id_suffix>` (với `--config <thư mục>`, `check_id` = tiền tố đường dẫn config + thư mục chấm + rule id). Khóa duy nhất là `(rule_file, rule_id)`, vì `rule_id` đơn lẻ trùng ở 64 chỗ. *Không* dựa vào `extra.metadata.cwe` của finding làm nguồn sự thật cuối; tra lại catalog để áp override.
+   - *ZAP / Trivy:* lấy từ chính finding (`cweid` / `CweIDs`), chuẩn hóa về số nguyên, bỏ giá trị không hợp lệ.
+3. **CWE hiệu lực của rule Semgrep** = CWE của rule, thay bằng/bổ sung theo `semgrep_cwe_override` đã `approved`.
 4. **CWE → mục IPA** qua `ipa_cwe_map` (khớp trực tiếp). Nếu CWE không có trong bảng, thử đi lên cây `ChildOf` (view 1000, tối đa 4 cấp) và gặp CWE `exact` của một mục IPA thì ghi là `ancestor` (ứng viên).
-5. **Gộp trùng** theo `(file, dòng, mục IPA)`: nhiều rule cùng báo một lỗi (ví dụ 4 rule cho OS command injection ở một dòng) thành một dòng báo cáo, giữ `n_rules` để biết mức đồng thuận.
+5. **Gộp trùng** theo `(công cụ, vị trí, mục IPA)`: nhiều rule Semgrep cùng báo một lỗi (ví dụ 4 rule cho OS command injection ở một dòng), nhiều instance ZAP của cùng một URL, hoặc nhiều CVE cùng một gói thành một dòng báo cáo; giữ `n_checks` để biết mức đồng thuận.
 6. **Giữ phần không map được**: có CWE nhưng không thuộc mục IPA → `OUT_OF_IPA_SCOPE`; không có CWE → `NO_CWE`.
 
-### 3.2 Kiểu khớp và cách dùng
+### 4.2 Kiểu khớp và cách dùng
 
 | `match_kind` | Ý nghĩa | Độ tin cậy | Dùng làm |
 |---|---|---|---|
@@ -50,17 +157,18 @@ Kết quả cuối: mỗi dòng báo cáo = `(file, dòng, mục IPA, số rule 
 | `narrower` | CWE cụ thể hơn CWE chính của mục IPA (ví dụ 862 dưới 285) | Cao–trung bình | Kết luận |
 | `broader` | CWE tổng quát hơn (ví dụ 77 trên 78) | Trung bình | Ứng viên, người xem mã |
 | `related` | Liên quan gián tiếp (ví dụ cookie thiếu `Secure` với quản lý phiên) | Thấp | Gợi ý, **không** đếm vào KPI |
-| `ancestor` | CWE là hậu duệ ≤ 4 cấp của CWE `exact`, suy ra từ cây | Thấp–trung bình | Ứng viên chờ duyệt |
+| `ancestor` | CWE là hậu duệ ≤ 4 cấp của CWE `exact`, suy ra từ cây (ví dụ 787/120 dưới 119) | Thấp–trung bình | Ứng viên chờ duyệt |
 
 Khớp theo cây thuần túy dễ ra kết quả sai nghĩa (lần thử đầu, khi cho phép đi lên mọi tổ tiên, CWE-1004 "thiếu HttpOnly" bị xếp vào nhóm access control). Vì thế `ancestor` luôn là **ứng viên**, và danh sách `related` do người chọn trong `ipa_cwe_map`.
 
-### 3.3 Điểm cần đặc biệt chú ý
+### 4.3 Điểm cần đặc biệt chú ý
 
 - Tránh đếm trùng: 1 lỗi thật có thể sinh 4+ finding. Báo cáo cho quản lý dùng số dòng đã gộp, không dùng số finding thô.
-- `NO_CWE` thường là rule `best-practice`/`correctness` (không có CWE), ví dụ `use-timeout`; không nên coi là lỗ hổng.
-- Không có finding ≠ không có lỗ hổng: ví dụ ở mục 5 có 3 lỗi cố ý không bị báo (chi tiết ở tài liệu 01, mục 3.4). Độ phủ IPA phải đo bằng bộ mã có lỗi cố ý, không suy ra từ việc scan "sạch".
+- `NO_CWE` của Semgrep thường là rule `best-practice`/`correctness` (ví dụ `use-timeout`), không phải lỗ hổng. `NO_CWE` của Trivy là misconfig/secret/CVE chưa có CWE: *có thể* là rủi ro thật, chỉ là không đi qua cầu CWE.
+- Không có finding ≠ không có lỗ hổng: ví dụ ở mục 6.1 có 3 lỗi cố ý không bị Semgrep báo (chi tiết ở tài liệu 01, mục 3.4); baseline của ZAP chỉ passive. Độ phủ IPA phải đo bằng bộ mã/ứng dụng có lỗi cố ý, không suy ra từ việc scan "sạch".
+- Không cộng gộp finding của ba công cụ thành "số lỗi thật": chúng khác tầng (mã, ứng dụng đang chạy, thành phần) và khác đơn vị (dòng, URL, gói). Chỉ so sánh ở mức mục IPA.
 
-### 3.4 Override CWE (`semgrep_cwe_override.csv`)
+### 4.4 Override CWE (`semgrep_cwe_override.csv`)
 
 | Hành động | Tác dụng | Ví dụ thật trong bản mẫu |
 |---|---|---|
@@ -70,11 +178,13 @@ Khớp theo cây thuần túy dễ ra kết quả sai nghĩa (lần thử đầu
 
 Chỉ áp override có `verification_status = 'approved'`. Hai dòng đầu là bằng chứng mạnh (so sánh với biến thể cùng tên), dòng thứ ba là nhận định cần reviewer xác nhận nên đang để `proposed`.
 
-### 3.5 Cổng chất lượng trước khi một dòng được `verified`
+**Giới hạn hiện tại:** bảng override chỉ dành cho Semgrep. ZAP và Trivy mang CWE theo từng finding nên nếu CWE của một ZAP rule hay một CVE bị coi là sai thì chưa có chỗ sửa. Hướng mở rộng: thêm cột `tool` và khóa `(tool, check_id)` (ZAP: `pluginid`; Trivy: `VulnerabilityID`). Chưa làm vì chưa có bằng chứng về một CWE sai cụ thể ở hai công cụ này.
+
+### 4.5 Cổng chất lượng trước khi một dòng được `verified`
 
 | # | Kiểm tra | Bản seed hiện tại |
 |---|---|---|
-| Q1 | Mọi khóa ngoại tồn tại (ipa_id, cwe_id, rule) | Đạt |
+| Q1 | Mọi khóa ngoại tồn tại (ipa_id, cwe_id, rule) | Đạt (kể cả `zap_rule_cwe`) |
 | Q2 | Mỗi `ipa_item` có ≥ 1 CWE `exact` | **Chưa đạt:** IPA-WEB-04 (quản lý phiên) chỉ có `related`, cần đối chiếu bản gốc |
 | Q3 | Mỗi `ipa_item` có ≥ 1 đối sách `root_cause` | **Chưa đạt:** mẫu mới có 4 dòng cho SQL injection |
 | Q4 | Không CWE nào trong `ipa_cwe_map` ở trạng thái Deprecated/Obsolete trong bản CWE hiện hành | Chưa chạy (cần bản CWE mới nhất) |
@@ -84,28 +194,51 @@ Q1–Q3 đã chạy bằng script tạm lúc dựng mẫu; Q2–Q3 không đạt
 
 ---
 
-## 4 · Đo thử độ phủ
+## 5 · Đo thử độ phủ
 
-Dữ liệu: `semgrep-rules` commit `16b9e6d` (2026-10-21), 1.649 rule `security`, 1.662 cặp rule–CWE, 164 CWE; cây CWE 4.14; bảng `ipa_cwe_map` bản seed **chưa xác minh**.
+Dữ liệu: `semgrep-rules` commit `16b9e6d` (2026-10-21); `zap-extensions` commit `51e4155` (2026-10-26); cây CWE 4.14; bảng `ipa_cwe_map` bản seed **chưa xác minh**. Đơn vị đếm là **cặp (rule, CWE)**.
 
-| Loại | Số CWE | Số cặp rule–CWE | Tỉ lệ |
-|---|---|---|---|
-| Khớp trực tiếp (CWE có trong `ipa_cwe_map`, mọi `relation`) | 16 | 376 | 22,6% |
-| Khớp qua cây (hậu duệ ≤ 4 cấp của CWE `exact`/`narrower`) | 14 | 37 | 2,2% |
-| **Không thuộc mục nào** | **134** | **1.249** | **75,2%** |
+| Công cụ | Cặp rule–CWE | CWE khác nhau | Khớp trực tiếp (CWE có trong `ipa_cwe_map`) | Khớp qua cây (hậu duệ ≤ 4 cấp của CWE `exact`/`narrower`) | **Không thuộc mục nào** |
+|---|---|---|---|---|---|
+| Semgrep (1.649 rule `security`) | 1.662 | 164 | 376 (22,6%) · 16 CWE | 37 (2,2%) · 14 CWE | **1.249 (75,2%)** · 134 CWE |
+| ZAP (148 lớp scan rule) | 149 | 78 | 29 (19,5%) · 11 CWE | 4 (2,7%) · 4 CWE | **116 (77,9%)** · 63 CWE |
+| Trivy | không có catalog rule: CWE đi theo từng CVE trong DB | – | chưa đo được (không tải được DB); xem minh họa dưới | | |
+
+**Từng mục IPA có bao nhiêu rule** (khớp trực tiếp hoặc qua cây):
+
+| Mục IPA | ZAP | Semgrep |
+|---|---|---|
+| 1.1 SQL Injection | 8 | 79 |
+| 1.2 OS Command Injection | 4 | 80 |
+| 1.3 Path Traversal | 1 | 28 |
+| 1.4 Quản lý phiên | 3 | 25 |
+| 1.5 XSS | 6 | 130 |
+| 1.6 CSRF | 3 | 21 |
+| 1.7 HTTP Header Injection | 1 | 2 |
+| 1.8 Mail Header Injection | **0** | 2 |
+| 1.9 Clickjacking | 1 | 1 |
+| 1.10 Buffer Overflow | 3 | 6 |
+| 1.11 Thiếu kiểm soát truy cập | 3 | 39 |
+
+Số rule không so sánh được về "độ mạnh": một rule ZAP active thử nhiều payload trên nhiều tham số, trong khi nhiều rule Semgrep là biến thể theo ngôn ngữ/framework. Cái đáng nói là ZAP có mặt ở hầu hết mục, kể cả những mục kiểu cấu hình runtime (clickjacking, cookie, CSRF) mà đọc mã khó thấy.
+
+**Minh họa cho Trivy** (không phải thống kê thực tế): trong 81 golden file của Trivy có 43 CVE khác nhau; 10 không có `CweIDs`; trong 33 CVE còn lại, 2 khớp trực tiếp, 11 khớp qua cây (chủ yếu CWE-787/125 → IPA-WEB-10), 20 không thuộc mục nào. Đây là dữ liệu chọn cho kiểm thử của Trivy, không đại diện cho phân bố CWE ngoài đời.
 
 Cách đọc đúng:
 
-- Đây là đếm **rule**, không phải finding trên mã thật. Một codebase web điển hình dồn vào SQLi/XSS/command injection nhiều hơn, nên tỉ lệ phủ trên finding thực tế có thể cao hơn. Cần đo lại trên mã thật.
+- Đây là đếm **rule**, không phải finding trên mã thật. Một codebase web điển hình dồn vào SQLi/XSS/command injection nhiều hơn, nên tỉ lệ phủ trên finding thực tế có thể cao hơn. Cần đo lại trên mã/ứng dụng thật.
 - Con số phụ thuộc bản seed; nếu IPA dùng thêm CWE khác cho mỗi mục thì phần "trực tiếp" tăng lên.
-- Nhóm không phủ lớn nhất: CWE-798 (hard-coded credentials, 265 rule), 1220 (108), 327 (58), 320 (51), 94 (49), 326 (49), 918 SSRF (42), 502 deserialization (42), 319 (39), 95 (31), 611 XXE (29).
+- Semgrep, nhóm không phủ lớn nhất: CWE-798 (hard-coded credentials, 265 rule), 1220 (108), 327 (58), 320 (51), 94 (49), 326 (49), 918 SSRF (42), 502 deserialization (42), 319 (39), 95 (31), 611 XXE (29).
+- ZAP, nhóm không phủ lớn nhất: CWE-20 (9 rule), 497 (7), 693 (5), 311 (4), 541 (4), 319 (4), 94 (3), 215 (3), 359 (3), 598 (3), 642 (3).
 - **Hệ quả thiết kế:** nếu mục tiêu là báo cáo "tuân thủ IPA", cần mở rộng `ipa_item` bằng các tài liệu IPA khác (cột `source_doc_id` đã hỗ trợ nhiều tài liệu) hoặc thêm một phân loại dự phòng cho phần ngoài 11 mục.
 
 ---
 
-## 5 · Ví dụ end-to-end (chạy thật)
+## 6 · Ví dụ end-to-end (chạy thật)
 
-Đầu vào: file Flask mẫu có chủ ý chứa lỗi, quét bằng `semgrep-rules/python` (371 rule), cho **20 finding**. Nạp đúng các CSV trong `templates/` vào SQLite và chạy SQL ở mục 8.
+### 6.1 Semgrep
+
+Đầu vào: file Flask mẫu có chủ ý chứa lỗi, quét bằng `semgrep-rules/python` (371 rule), cho **20 finding**. Nạp đúng các CSV trong `templates/` vào SQLite và chạy SQL ở mục 9.4.
 
 **Báo cáo theo IPA** (4 dòng, từ 9 finding thô khớp được; sau khi áp override còn 11 finding thô nhưng vẫn 4 dòng):
 
@@ -132,18 +265,42 @@ Cách đọc đúng:
 
 Kết quả: **4 trên 10 vị trí có cảnh báo thuộc 11 mục IPA**. Open redirect (CWE-601) là ứng viên hợp lý để bổ sung sau khi đối chiếu IPA; `render_template_string` (CWE-96, nhóm injection vào template) cần người đánh giá xem có thuộc XSS (IPA-WEB-05) không.
 
+### 6.2 Chạy chung Semgrep + Trivy + ZAP
+
+Chạy `load_and_map.py` (mục 9.4) với CSV mẫu trong repo. Hồi quy: kết quả Semgrep giống hệt mục 6.1.
+
+| Công cụ | Đầu vào | Tính chất |
+|---|---|---|
+| Semgrep | scan thật ở mục 6.1 | Output thật |
+| Trivy | 5 golden file của dự án Trivy: `npm-with-dev` (jquery), `alpine-39` (gói OS), `gomod`, `helm` (misconfig), `secrets` | **Output thật của Trivy** do dự án lưu cho kiểm thử, với DB tại thời điểm tạo file; chưa chạy Trivy trong phiên này |
+| ZAP | fixture `basic-traditional-json.json` của add-on *reports* (1 alert giả: XSS, CWE-123) + một file JSON 4 alert tự viết để thử `cweid` = `89`, `1021`, `-1`, `0` | **Không phải output ZAP thật**; chỉ kiểm tra bộ chuyển đổi |
+
+Kết quả: **58 finding thô → 30 có CWE → 16 vào mục IPA → 9 dòng báo cáo**; 14 `OUT_OF_IPA_SCOPE`, 28 `NO_CWE`.
+
+| Công cụ | Dòng báo cáo IPA | Ghi chú |
+|---|---|---|
+| Semgrep | 4 | như mục 6.1 |
+| Trivy | 3 | `jquery@3.3.9` (CWE-79 → IPA-WEB-05, `exact`); `musl` và `musl-utils` (CVE-2019-14697, CWE-787 → IPA-WEB-10, `ancestor` qua CWE-119) |
+| ZAP | 2 | CWE-89 → IPA-WEB-01; CWE-1021 → IPA-WEB-09 (cả hai `exact`) |
+
+Phần còn lại của Trivy (32 finding): **24 `NO_CWE`** gồm 18 misconfig Helm (`KSV-*`), 2 secret, 4 CVE không có `CweIDs` (`GMS-2022-20` ×3, `CVE-2021-38561`); **5 `OUT_OF_IPA_SCOPE`** (CWE-330, 200, 682). Của ZAP: 2 `OUT_OF_IPA_SCOPE` (alert giả CWE-123, 2 instance) và 2 `NO_CWE` (`cweid` `-1` và `0`).
+
+Lưu ý: bản mẫu `cwe_catalog.csv`/`cwe_relation.csv` chỉ có 69 mục CWE (các CWE xuất hiện trong mẫu cùng tổ tiên của chúng). Khi chạy với catalog CWE đầy đủ (mục 9.2) sẽ có thêm các khớp `ancestor`. CWE-787 và 125 đã được thêm vào bản mẫu để minh họa nhánh này; nếu không có hàng quan hệ của một CWE trong `cwe_relation`, CWE đó không thể đi lên cây và ra `OUT_OF_IPA_SCOPE`.
+
 ---
 
-## 6 · Export IPA knowledge base
+## 7 · Export IPA knowledge base
 
 Không có thao tác "export" một chạm: phần cốt lõi của IPA là tài liệu văn bản. Đề xuất ba lớp, mỗi lớp một cách lấy:
 
 | Lớp | Nội dung | Nguồn | Cách lấy | Máy đọc được? | Ai duyệt |
 |---|---|---|---|---|---|
 | **L1 · IPA curated** | 11 mục, đối sách gốc rễ/bảo hiểm, mã CWE mà IPA nêu | PDF/HTML "安全なウェブサイトの作り方" | Tải bản hiện hành → trích văn bản → người điền `ipa_item`, `ipa_countermeasure`, `ipa_cwe_map` | Không (chưa thấy bản dữ liệu) **[chưa xác minh]** | Chuyên gia bảo mật + người đọc được tiếng Nhật |
-| **L2 · CWE catalog** | Weakness, Category, quan hệ cha–con | MITRE: XML, CSV theo view, REST API | Script `cwe_xml_to_csv.py` (mục 8.1) | Có | Tự động, kiểm tra diff |
+| **L2 · CWE catalog** | Weakness, Category, quan hệ cha–con | MITRE: XML, CSV theo view, REST API | Script `cwe_xml_to_csv.py` (mục 9.2) | Có | Tự động, kiểm tra diff |
 | **L2b · Tên CWE tiếng Nhật** | Cột `name_ja` | Trang CWE tiếng Nhật của IPA / JVN iPedia | Chưa xác định định dạng. Nếu không có file: để trống, hoặc dịch và gắn nhãn rõ là dịch | Chưa rõ | Người đọc tiếng Nhật |
 | **L3 · JVN iPedia (tùy chọn)** | Tần suất CWE trong lỗ hổng thực tế ở Nhật | MyJVN API / feed | Dùng để xếp hạng ưu tiên cho phần `OUT_OF_IPA_SCOPE`: CWE nào IPA/JVN thấy nhiều thì nên có mục | Có **[chưa xác minh]** | Tự động |
+
+Trivy và ZAP không cần bước export riêng: CWE đã nằm trong output. Catalog rule ZAP (`zap_rule_cwe`) chỉ phục vụ đo độ phủ và, sau này, override.
 
 Quy trình dựng L1 (làm một lần, rồi chỉ cập nhật khi IPA ra bản mới):
 
@@ -151,26 +308,29 @@ Quy trình dựng L1 (làm một lần, rồi chỉ cập nhật khi IPA ra bả
 2. Chốt danh sách mục: tên tiếng Nhật, số mục, bản số mấy (cột `edition`, `section_no`) vào `ipa_item.csv`.
 3. Mỗi đối sách có đánh số trong tài liệu thành một dòng `ipa_countermeasure.csv`: `text_ja` nguyên văn, `measure_type` = `root_cause` (根本的解決) hoặc `defense_in_depth` (保険的対策).
 4. Mã CWE do chính IPA nêu → `ipa_cwe_map` với `source_type = ipa_official`. CWE do mình thêm → `curated`, mức tin cậy thấp hơn.
-5. Chạy cổng Q1–Q5 (mục 3.5), đổi `verification_status` sang `verified` kèm `verified_by`, `verified_at`.
+5. Chạy cổng Q1–Q5 (mục 4.5), đổi `verification_status` sang `verified` kèm `verified_by`, `verified_at`.
 
 ---
 
-## 7 · Template CSV để import
+## 8 · Template CSV để import
 
-Tám file trong [`../templates/`](../templates/), đã có dữ liệu mẫu và đã nạp thử thành công vào SQLite (tên bảng = tên file). Cột `verification_status` có mặt ở các bảng chứa tri thức do người biên soạn.
+Chín file trong [`../templates/`](../templates/), đã có dữ liệu mẫu và đã nạp thử thành công vào SQLite (tên bảng = tên file). Cột `verification_status` có mặt ở các bảng chứa tri thức do người biên soạn.
 
 | File | Mục đích | Khóa chính | Khóa ngoại | Nguồn dữ liệu | Dòng mẫu |
 |---|---|---|---|---|---|
 | [`ipa_item.csv`](../templates/ipa_item.csv) | Các mục IPA (hiện 11 mục web) | `ipa_id` | | IPA, nhập tay | 11 (seed) |
 | [`ipa_countermeasure.csv`](../templates/ipa_countermeasure.csv) | Đối sách gốc rễ / bảo hiểm của từng mục | `measure_id` | `ipa_id` → `ipa_item` | IPA, nhập tay | 4 (SQLi) |
-| [`cwe_catalog.csv`](../templates/cwe_catalog.csv) | Danh mục CWE | `cwe_id` | | MITRE XML, tự động | 57 (mẫu) |
-| [`cwe_relation.csv`](../templates/cwe_relation.csv) | Quan hệ cha–con CWE | (`cwe_id`, `related_cwe_id`, `nature`, `view_id`) | cả hai cột → `cwe_catalog` | MITRE XML, tự động | 59 (mẫu) |
+| [`cwe_catalog.csv`](../templates/cwe_catalog.csv) | Danh mục CWE | `cwe_id` | | MITRE XML, tự động | 69 (mẫu) |
+| [`cwe_relation.csv`](../templates/cwe_relation.csv) | Quan hệ cha–con CWE | (`cwe_id`, `related_cwe_id`, `nature`, `view_id`) | cả hai cột → `cwe_catalog` | MITRE XML, tự động | 71 (mẫu) |
 | [`ipa_cwe_map.csv`](../templates/ipa_cwe_map.csv) | **Mapping IPA ↔ CWE** | `map_id` | `ipa_id`, `cwe_id` | Biên soạn + kiểm duyệt | 18 (seed) |
 | [`semgrep_rule_cwe.csv`](../templates/semgrep_rule_cwe.csv) | Catalog rule Semgrep và CWE của chúng | (`rule_file`, `rule_id`, `cwe_id`) | `cwe_id` → `cwe_catalog` | `semgrep-rules`, tự động | 18 (mẫu); bản đủ 1.662 |
-| [`semgrep_cwe_override.csv`](../templates/semgrep_cwe_override.csv) | Sửa CWE sai/thiếu của rule | `override_id` | (`rule_file`, `rule_id`) → `semgrep_rule_cwe` | Biên soạn + duyệt | 3 (đề xuất) |
-| [`source_version.csv`](../templates/source_version.csv) | Phiên bản/hash từng nguồn, phục vụ phát hiện thay đổi | `source_id` | | Tự động | 6 |
+| [`zap_rule_cwe.csv`](../templates/zap_rule_cwe.csv) | Catalog scan rule ZAP và CWE của chúng | (`addon`, `rule_class`, `cwe_id`) | `cwe_id` → `cwe_catalog` | `zap-extensions`, tự động | 17 (mẫu); bản đủ 168 dòng (151 dòng scan rule) |
+| [`semgrep_cwe_override.csv`](../templates/semgrep_cwe_override.csv) | Sửa CWE sai/thiếu của rule Semgrep | `override_id` | (`rule_file`, `rule_id`) → `semgrep_rule_cwe` | Biên soạn + duyệt | 3 (đề xuất) |
+| [`source_version.csv`](../templates/source_version.csv) | Phiên bản/hash từng nguồn, phục vụ phát hiện thay đổi | `source_id` | | Tự động | 11 |
 
-Thứ tự nạp: `cwe_catalog` → `cwe_relation` → `ipa_item` → `ipa_countermeasure` → `ipa_cwe_map` → `semgrep_rule_cwe` → `semgrep_cwe_override` → `source_version`.
+Thứ tự nạp: `cwe_catalog` → `cwe_relation` → `ipa_item` → `ipa_countermeasure` → `ipa_cwe_map` → `semgrep_rule_cwe` → `zap_rule_cwe` → `semgrep_cwe_override` → `source_version`.
+
+Kết quả scan **không** nằm trong CSV mẫu: loader (mục 9.4) tạo bảng `scan_finding` và `scan_finding_cwe` từ file JSON mỗi lần chạy.
 
 ### Quy ước định dạng (để import không bị lỗi vặt)
 
@@ -180,7 +340,7 @@ Thứ tự nạp: `cwe_catalog` → `cwe_relation` → `ipa_item` → `ipa_count
 | Dấu phân cách | Dấu phẩy. Ô có dấu phẩy, nháy kép hoặc xuống dòng phải bọc trong `"..."` (lỗi quote từng xảy ra khi dựng mẫu: một ô tiếng Anh có dấu phẩy làm lệch cột) |
 | Ô rỗng | NULL |
 | Danh sách trong một ô | Ngăn bằng `|` (ví dụ `owasp_tags`, `technology`) |
-| `cwe_id` | Số nguyên, **không** tiền tố `CWE-` (khớp định dạng CSV của MITRE) |
+| `cwe_id` | Số nguyên, **không** tiền tố `CWE-` (khớp định dạng CSV của MITRE và `cweid` của ZAP) |
 | Ngày | ISO 8601 (`2026-10-27`) |
 | Tiếng Nhật | Giữ nguyên, không chuyển sang romaji. Mở bằng Excel thì dùng Data → From Text/CSV, chọn UTF-8 |
 
@@ -194,23 +354,24 @@ Thứ tự nạp: `cwe_catalog` → `cwe_relation` → `ipa_item` → `ipa_count
 | `source_type` | `ipa_official`, `curated`, `curated_seed`, `mitre_hierarchy`, `inferred` |
 | `measure_type` | `root_cause`, `defense_in_depth` |
 | `action` (trong override) | `replace`, `add`, `ignore` |
+| `rule_type` (trong `zap_rule_cwe`) | `active`, `passive`, `other` |
 | `status` (trong `source_version`) | `ok`, `changed`, `not_fetched`, `bundled_only`, `error` |
 
 ### Lưu ý riêng về bản mẫu
 
 - `ipa_item.csv`, `ipa_countermeasure.csv`, `ipa_cwe_map.csv` là **seed theo trí nhớ, chưa xác minh**. Không dùng cho báo cáo chính thức trước khi đối chiếu bản gốc.
-- `cwe_catalog.csv` và `cwe_relation.csv` mẫu lấy từ **CWE 4.14** (gói `cwe2`), chỉ gồm các CWE seed cùng tổ tiên.
-- `semgrep_rule_cwe.csv` mẫu chỉ gồm các rule bắn trong lần scan mẫu; bản đầy đủ do script ở mục 8.1 sinh ra.
-- `source_version.csv`: các nguồn IPA/MITRE đang `not_fetched` vì host bị chặn trong phiên này.
+- `cwe_catalog.csv` và `cwe_relation.csv` mẫu lấy từ **CWE 4.14** (gói `cwe2`), chỉ gồm các CWE seed, CWE xuất hiện trong mẫu Semgrep/ZAP/Trivy và tổ tiên của chúng.
+- `semgrep_rule_cwe.csv` và `zap_rule_cwe.csv` mẫu chỉ là một phần nhỏ; bản đầy đủ do các script ở mục 9 sinh ra. Với ZAP, một số dòng không có `plugin_id` là lớp trừu tượng hoặc rule khai báo ID theo cách khác, cần xem tay.
+- `source_version.csv`: các nguồn IPA/MITRE và `trivy_db` đang `not_fetched` vì host bị chặn hoặc chưa thử trong phiên này.
 - `name_ja` của CWE để trống chờ nguồn tiếng Nhật; `text_ja` của đối sách để trống chờ nguyên văn từ PDF.
 
 ---
 
-## 8 · Import và chạy mapping (code đã chạy thử)
+## 9 · Import và chạy mapping (code đã chạy thử)
 
-Tất cả chạy với Python 3.13, `pyyaml`, `sqlite3` có sẵn của Python. Dữ liệu sinh ra từ các script này (1.662 dòng `semgrep_rule_cwe`, 1.372 dòng `cwe_catalog`) là bản đầy đủ; các CSV trong `templates/` chỉ là mẫu.
+Tất cả chạy với Python 3.13, `pyyaml`, `sqlite3` có sẵn của Python. Dữ liệu sinh ra từ các script này (1.662 dòng `semgrep_rule_cwe`, 168 dòng `zap_rule_cwe` trong đó 151 dòng là scan rule active/passive, 1.372 dòng `cwe_catalog`) là bản đầy đủ; các CSV trong `templates/` chỉ là mẫu.
 
-### 8.1 Sinh `semgrep_rule_cwe.csv` từ repo `semgrep-rules`
+### 9.1 Sinh `semgrep_rule_cwe.csv` từ repo `semgrep-rules`
 
 <details>
 <summary><code>extract_semgrep_rules.py</code> — chạy: <code>python extract_semgrep_rules.py semgrep-rules out/semgrep_rule_cwe.csv</code></summary>
@@ -259,7 +420,7 @@ with open(out_csv, "w", newline="", encoding="utf-8") as out:
 Kết quả khi chạy trên commit `16b9e6d`: 1.662 dòng, 1.649 rule, 164 CWE.
 </details>
 
-### 8.2 Sinh `cwe_catalog.csv` và `cwe_relation.csv` từ XML của MITRE
+### 9.2 Sinh `cwe_catalog.csv` và `cwe_relation.csv` từ XML của MITRE
 
 <details>
 <summary><code>cwe_xml_to_csv.py</code> — chạy: <code>python cwe_xml_to_csv.py cwec_v4.14.xml out/</code></summary>
@@ -293,39 +454,157 @@ with open(f"{out_dir}/cwe_catalog.csv", "w", newline="", encoding="utf-8") as fc
 Kết quả trên CWE 4.14: 963 Weakness + 409 Category (1.372 dòng), 1.076 quan hệ `ChildOf`. Khi dùng bản CWE mới hơn, kiểm tra lại namespace (`cwe-7`) trong thẻ gốc vì MITRE có thể nâng schema.
 </details>
 
-### 8.3 Nạp CSV vào SQLite và tạo báo cáo
+### 9.3 Sinh `zap_rule_cwe.csv` từ repo `zap-extensions`
 
 <details>
-<summary><code>load_and_map.py</code> — chạy: <code>python load_and_map.py templates scan.json mapping.sql</code></summary>
+<summary><code>extract_zap_rules.py</code> — chạy: <code>python extract_zap_rules.py zap-extensions out/zap_rule_cwe.csv</code></summary>
 
 ```python
-import csv, json, sqlite3, pathlib, sys
+"""Quét zap-extensions -> zap_rule_cwe.csv (1 dòng / cặp scan rule - CWE)."""
+import csv, datetime, pathlib, re, subprocess, sys
 
-tpl_dir, scan_json, sql_file = map(pathlib.Path, sys.argv[1:4])
-approve = len(sys.argv) > 4 and sys.argv[4] == "approve"
+repo, out_csv = pathlib.Path(sys.argv[1]), sys.argv[2]
+commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+today = datetime.date.today().isoformat()
+ACTIVE = re.compile(r"extends\s+(AbstractAppPlugin|AbstractAppParamPlugin|AbstractHostPlugin|AbstractPlugin|\w*ActiveScanRule|\w*ScanRule)\b|extends\s+Abstract\w*Plugin")
+PASSIVE = re.compile(r"PluginPassiveScanner|PassiveScanRule|PassiveScanner")
+CONST = re.compile(r"(?:static\s+final|final\s+static)\s+int\s+(\w+)\s*=\s*(-?\d+)\s*;")
+
+def body(text, name):
+    """Thân hàm `name()` đầu tiên (đến dấu } khớp)."""
+    m = re.search(r"\b" + name + r"\s*\(\s*\)\s*\{", text)
+    if not m:
+        return ""
+    depth, i = 1, m.end()
+    while i < len(text) and depth:
+        depth += {"{": 1, "}": -1}.get(text[i], 0)
+        i += 1
+    return text[m.end():i]
+
+def ints(text, fn):
+    consts = dict(CONST.findall(text))
+    found = []
+    for v in re.findall(r"return\s+([\w.]+)\s*;", body(text, fn)):
+        v = consts.get(v.split(".")[-1], v)
+        if re.fullmatch(r"-?\d+", v):
+            found.append(int(v))
+    return found
+
+COLS = "addon,rule_class,rule_type,plugin_id,cwe_id,wasc_id,java_file,zap_extensions_commit,extracted_at".split(",")
+n_files = n_nocwe = 0
+with open(out_csv, "w", newline="", encoding="utf-8") as out:
+    w = csv.writer(out, lineterminator="\n")
+    w.writerow(COLS)
+    for p in sorted(repo.glob("addOns/*/src/main/java/**/*.java")):
+        t = p.read_text(encoding="utf-8", errors="ignore")
+        if "getCweId" not in t and "setCweId" not in t:
+            continue
+        cls = re.search(r"^(?:public\s+)?(?:final\s+)?(?:abstract\s+)?class\s+(\w+)", t, re.M)
+        if not cls:
+            continue
+        n_files += 1
+        rtype = "passive" if PASSIVE.search(t) else "active" if ACTIVE.search(t) else "other"
+        cwes = ints(t, "getCweId") or [int(x) for x in re.findall(r"setCweId\(\s*(-?\d+)\s*\)", t)]
+        pid = (ints(t, "getId") or ints(t, "getPluginId") or [""])[0]
+        wasc = (ints(t, "getWascId") or [""])[0]
+        if not cwes:
+            n_nocwe += 1
+            cwes = [""]
+        for c in dict.fromkeys(cwes):
+            w.writerow([p.parts[len(repo.parts) + 1], cls[1], rtype, pid, c, wasc,
+                        str(p.relative_to(repo)), commit, today])
+print(f"{n_files} file có getCweId/setCweId, {n_nocwe} file không trích được số CWE", file=sys.stderr)
+```
+
+Script chỉ **đọc văn bản** các file Java, không biên dịch hay chạy mã của ZAP. Kết quả trên commit `51e4155`: 164 file → 168 dòng (151 dòng là scan rule active/passive, 17 dòng thuộc lớp khác như add-on kiểm soát truy cập), 12 file không trích được số CWE. Đã đối chiếu độ phủ: `ascanrules` 44/48 file `*ScanRule.java`, `pscanrules` 54/55. Những rule còn thiếu CWE là rule thông tin (ví dụ `UserAgentScanRule`, `ModernAppDetectionScanRule`). Hạn chế: nhận diện active/passive bằng regex trên tên lớp cha; rule khai báo CWE bằng cách khác (không qua `getCweId`/`setCweId` với số cố định) sẽ bị bỏ sót.
+</details>
+
+### 9.4 Nạp CSV và output của ba công cụ vào SQLite, tạo báo cáo
+
+**Ánh xạ output → `scan_finding`:**
+
+| Công cụ | Đường dẫn trong output | `check_id` | `path` | `start_line` | `severity` | CWE |
+|---|---|---|---|---|---|---|
+| Semgrep | `results[]` | `check_id` | `path` | `start.line` | `extra.severity` | tra từ `semgrep_rule_cwe` (+ override) |
+| ZAP | `site[].alerts[].instances[]` | `pluginid` | `uri` | 0 | `riskcode` → HIGH/MEDIUM/LOW/INFO | `cweid` |
+| Trivy `Vulnerabilities` | `Results[].Vulnerabilities[]` | `VulnerabilityID` | `Target :: PkgName@InstalledVersion` | 0 | `Severity` | `CweIDs` |
+| Trivy `Misconfigurations` | `Results[].Misconfigurations[]` | `ID` | `Target` | `CauseMetadata.StartLine` | `Severity` | (không có) |
+| Trivy `Secrets` | `Results[].Secrets[]` | `RuleID` | `Target` | `StartLine` | `Severity` | (không có) |
+
+<details>
+<summary><code>load_and_map.py</code> — chạy: <code>python load_and_map.py templates mapping.sql approve semgrep=scan.json trivy=trivy.json zap=zap.json</code></summary>
+
+```python
+"""Nạp CSV + kết quả scan của Semgrep / Trivy / ZAP vào SQLite rồi chạy mapping.sql.
+
+python load_and_map.py <thư mục templates> mapping.sql [approve] semgrep=scan.json trivy=trivy.json zap=zap.json
+(mỗi công cụ có thể truyền nhiều file, lặp lại tool=đường_dẫn)
+"""
+import csv, json, pathlib, sqlite3, sys
+
+tpl_dir, sql_file = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+approve = "approve" in sys.argv[3:]                 # chỉ để demo: coi override đề xuất là đã duyệt
+inputs = [a.split("=", 1) for a in sys.argv[3:] if "=" in a]
+
 db = sqlite3.connect(":memory:")
-for f in sorted(tpl_dir.glob("*.csv")):          # mỗi CSV -> một bảng cùng tên, mọi cột TEXT
+for f in sorted(tpl_dir.glob("*.csv")):             # mỗi CSV -> một bảng cùng tên, mọi cột TEXT
     with open(f, newline="", encoding="utf-8-sig") as fh:
         rd = csv.reader(fh)
         cols = next(rd)
         db.execute(f"CREATE TABLE {f.stem} ({', '.join(c + ' TEXT' for c in cols)})")
         db.executemany(f"INSERT INTO {f.stem} VALUES ({','.join('?' * len(cols))})", rd)
-db.execute("CREATE TABLE scan_finding (check_id TEXT, path TEXT, start_line INTEGER, severity TEXT)")
-scan = json.load(open(scan_json, encoding="utf-8"))
-db.executemany("INSERT INTO scan_finding VALUES (?,?,?,?)",
-               [(r["check_id"], r["path"], r["start"]["line"], r["extra"]["severity"]) for r in scan["results"]])
-if approve:                                        # chỉ để demo: coi override đề xuất là đã duyệt
+db.execute("CREATE TABLE scan_finding (finding_id INTEGER PRIMARY KEY, tool TEXT, check_id TEXT, path TEXT,"
+           " start_line INTEGER, severity TEXT)")
+db.execute("CREATE TABLE scan_finding_cwe (finding_id INTEGER, cwe_id TEXT)")
+
+def cwe_number(v):
+    """'CWE-79' / '79' / 79 -> '79'; '-1', '0', '', 'NVD-CWE-Other' -> None."""
+    s = str(v).strip().lower().removeprefix("cwe-")
+    return s if s.isdigit() and int(s) > 0 else None
+
+def add(tool, check_id, path, line, severity, cwes=()):
+    cur = db.execute("INSERT INTO scan_finding (tool, check_id, path, start_line, severity) VALUES (?,?,?,?,?)",
+                     (tool, check_id, path, line, severity))
+    for c in {cwe_number(c) for c in cwes} - {None}:
+        db.execute("INSERT INTO scan_finding_cwe VALUES (?,?)", (cur.lastrowid, c))
+
+ZAP_RISK = {"3": "HIGH", "2": "MEDIUM", "1": "LOW", "0": "INFO"}
+for tool, path in inputs:
+    d = json.load(open(path, encoding="utf-8"))
+    if tool == "semgrep":                           # CWE tra từ catalog rule, không lấy từ finding
+        for r in d["results"]:
+            add(tool, r["check_id"], r["path"], r["start"]["line"], r["extra"]["severity"])
+    elif tool == "trivy":                           # Results[] -> Vulnerabilities / Misconfigurations / Secrets
+        for res in d.get("Results", []):
+            for v in res.get("Vulnerabilities") or []:
+                add(tool, v["VulnerabilityID"], f'{res["Target"]} :: {v["PkgName"]}@{v.get("InstalledVersion", "")}',
+                    0, v.get("Severity"), v.get("CweIDs") or [])
+            for m in res.get("Misconfigurations") or []:      # Trivy không gắn CWE cho misconfig
+                add(tool, m["ID"], res["Target"], (m.get("CauseMetadata") or {}).get("StartLine", 0), m.get("Severity"))
+            for s in res.get("Secrets") or []:                # ... và cũng không gắn cho secret
+                add(tool, s["RuleID"], res["Target"], s.get("StartLine", 0), s.get("Severity"))
+    elif tool == "zap":                             # site[].alerts[].instances[]; cweid là chuỗi, "-1"/"0" = không có
+        for site in d.get("site", []):
+            for a in site.get("alerts", []):
+                for inst in a.get("instances") or [{}]:
+                    add(tool, a["pluginid"], inst.get("uri", site.get("@name", "")), 0,
+                        ZAP_RISK.get(str(a.get("riskcode")), "INFO"), [a.get("cweid")])
+    else:
+        sys.exit(f"công cụ không hỗ trợ: {tool}")
+
+if approve:
     db.execute("UPDATE semgrep_cwe_override SET verification_status = 'approved'")
 db.executescript(sql_file.read_text(encoding="utf-8"))
 for view in ("report_ipa", "report_unmapped"):
-    cur = db.execute(f"SELECT * FROM {view} ORDER BY start_line")
+    cur = db.execute(f"SELECT * FROM {view} ORDER BY tool, path, start_line")
     print(f"== {view}")
     print(" | ".join(d[0] for d in cur.description))
     for row in cur:
         print(" | ".join(str(x) for x in row))
 print("findings:", db.execute("select count(*) from scan_finding").fetchone()[0],
-      "| raw (finding,ipa) rows:", db.execute("select count(*) from finding_ipa").fetchone()[0],
-      "| report rows:", db.execute("select count(*) from report_ipa").fetchone()[0])
+      "| có CWE:", db.execute("select count(distinct finding_id) from finding_cwe").fetchone()[0],
+      "| vào IPA:", db.execute("select count(distinct finding_id) from finding_ipa").fetchone()[0],
+      "| dòng báo cáo IPA:", db.execute("select count(*) from report_ipa").fetchone()[0])
 ```
 </details>
 
@@ -333,7 +612,7 @@ print("findings:", db.execute("select count(*) from scan_finding").fetchone()[0]
 <summary><code>mapping.sql</code> — sáu view: rule_cwe_effective, finding_cwe, cwe_ancestor, finding_ipa, report_ipa, report_unmapped</summary>
 
 ```sql
--- 1) CWE hiệu lực của rule sau khi áp override đã duyệt
+-- 1) CWE hiệu lực của rule Semgrep sau khi áp override đã duyệt
 CREATE VIEW rule_cwe_effective AS
 SELECT rule_file, rule_id, check_id_suffix, cwe_id, 'rule' AS cwe_source
 FROM semgrep_rule_cwe r
@@ -347,13 +626,19 @@ FROM semgrep_cwe_override o
 JOIN semgrep_rule_cwe r ON r.rule_file = o.rule_file AND r.rule_id = o.rule_id
 WHERE o.action IN ('replace', 'add') AND o.verification_status = 'approved';
 
--- 2) finding -> CWE (check_id của Semgrep = <tiền tố đường dẫn config>.<check_id_suffix>)
+-- 2) finding -> CWE
+--    Semgrep: tra từ catalog rule (check_id = <tiền tố đường dẫn config>.<check_id_suffix>), có áp override.
+--    ZAP / Trivy: CWE đi kèm chính finding (bảng scan_finding_cwe do bộ chuyển đổi điền).
 CREATE VIEW finding_cwe AS
-SELECT f.path, f.start_line, f.check_id, f.severity, e.cwe_id, e.cwe_source
+SELECT f.finding_id, f.tool, f.check_id, f.path, f.start_line, f.severity, e.cwe_id, e.cwe_source
 FROM scan_finding f
 JOIN rule_cwe_effective e
-  ON f.check_id = e.check_id_suffix
-  OR substr(f.check_id, -length(e.check_id_suffix) - 1) = '.' || e.check_id_suffix;
+  ON f.tool = 'semgrep'
+ AND (f.check_id = e.check_id_suffix
+      OR substr(f.check_id, -length(e.check_id_suffix) - 1) = '.' || e.check_id_suffix)
+UNION ALL
+SELECT f.finding_id, f.tool, f.check_id, f.path, f.start_line, f.severity, c.cwe_id, 'finding'
+FROM scan_finding f JOIN scan_finding_cwe c ON c.finding_id = f.finding_id;
 
 -- 3) tổ tiên của CWE (ChildOf, view 1000), giới hạn 4 cấp để tránh khớp quá xa
 CREATE VIEW cwe_ancestor AS
@@ -376,38 +661,38 @@ JOIN cwe_ancestor a ON a.cwe_id = fc.cwe_id
 JOIN ipa_cwe_map m ON m.cwe_id = a.ancestor_id AND m.relation = 'exact'
 WHERE NOT EXISTS (SELECT 1 FROM ipa_cwe_map d WHERE d.cwe_id = fc.cwe_id);
 
--- 5) báo cáo: gộp theo (file, dòng, mục IPA); best_match = kiểu khớp mạnh nhất
+-- 5) báo cáo: gộp theo (công cụ, vị trí, mục IPA); best_match = kiểu khớp mạnh nhất
 CREATE VIEW report_ipa AS
-SELECT fi.path, fi.start_line, fi.ipa_id, i.name_en AS ipa_name,
-       COUNT(DISTINCT fi.check_id) AS n_rules,
+SELECT fi.tool, fi.path, fi.start_line, fi.ipa_id, i.name_en AS ipa_name,
+       COUNT(DISTINCT fi.check_id) AS n_checks,
        GROUP_CONCAT(DISTINCT fi.cwe_id) AS cwe_ids,
        CASE MAX(CASE fi.match_kind WHEN 'exact' THEN 5 WHEN 'narrower' THEN 4 WHEN 'broader' THEN 3
                                    WHEN 'ancestor' THEN 2 ELSE 1 END)
             WHEN 5 THEN 'exact' WHEN 4 THEN 'narrower' WHEN 3 THEN 'broader'
             WHEN 2 THEN 'ancestor' ELSE 'related' END AS best_match
 FROM finding_ipa fi JOIN ipa_item i ON i.ipa_id = fi.ipa_id
-GROUP BY fi.path, fi.start_line, fi.ipa_id;
+GROUP BY fi.tool, fi.path, fi.start_line, fi.ipa_id;
 
 -- 6) phần IPA không phủ: có CWE nhưng không có mục IPA / không có CWE
 CREATE VIEW report_unmapped AS
-SELECT path, start_line, check_id, GROUP_CONCAT(cwe_id) AS cwe_ids, 'OUT_OF_IPA_SCOPE' AS status
+SELECT fc.tool, fc.path, fc.start_line, fc.check_id, GROUP_CONCAT(fc.cwe_id) AS cwe_ids, 'OUT_OF_IPA_SCOPE' AS status
 FROM finding_cwe fc
-WHERE NOT EXISTS (SELECT 1 FROM finding_ipa x WHERE x.check_id = fc.check_id AND x.start_line = fc.start_line)
-GROUP BY path, start_line, check_id
+WHERE NOT EXISTS (SELECT 1 FROM finding_ipa x WHERE x.finding_id = fc.finding_id)
+GROUP BY fc.finding_id
 UNION ALL
-SELECT path, start_line, check_id, '', 'NO_CWE'
+SELECT f.tool, f.path, f.start_line, f.check_id, '', 'NO_CWE'
 FROM scan_finding f
-WHERE NOT EXISTS (SELECT 1 FROM finding_cwe c WHERE c.check_id = f.check_id AND c.start_line = f.start_line);
+WHERE NOT EXISTS (SELECT 1 FROM finding_cwe c WHERE c.finding_id = f.finding_id);
 ```
 </details>
 
-**Khi chuyển sang PostgreSQL:** đổi cột số sang `INTEGER` (`cwe_id`, `related_cwe_id`, `start_line`), thêm khóa chính/ngoại như bảng ở mục 7, thay `substr(..., -n)` bằng `right(f.check_id, length(...) + 1)`, đổi `GROUP_CONCAT` thành `string_agg`. Vì dữ liệu nhỏ (khoảng 1.400 dòng CWE, 1.700 dòng rule), cách đơn giản nhất là **nạp lại toàn bộ trong một transaction** mỗi lần cập nhật, không cần UPSERT từng dòng; git giữ lịch sử.
+**Khi chuyển sang PostgreSQL:** đổi cột số sang `INTEGER` (`cwe_id`, `related_cwe_id`, `start_line`), thêm khóa chính/ngoại như bảng ở mục 8, thay `substr(..., -n)` bằng `right(f.check_id, length(...) + 1)`, đổi `GROUP_CONCAT` thành `string_agg`. Vì dữ liệu nhỏ (khoảng 1.400 dòng CWE, 1.800 dòng rule), cách đơn giản nhất là **nạp lại toàn bộ trong một transaction** mỗi lần cập nhật, không cần UPSERT từng dòng; git giữ lịch sử.
 
 ---
 
-## 9 · Cập nhật liên tục khi IPA (và các nguồn khác) thay đổi
+## 10 · Cập nhật liên tục khi IPA (và các nguồn khác) thay đổi
 
-### 9.1 Từng nguồn: phát hiện thay đổi thế nào
+### 10.1 Từng nguồn: phát hiện thay đổi thế nào
 
 | Nguồn | Phát hiện thay đổi | Tần suất đề xuất | Khi có thay đổi |
 |---|---|---|---|
@@ -415,9 +700,12 @@ WHERE NOT EXISTS (SELECT 1 FROM finding_cwe c WHERE c.check_id = f.check_id AND 
 | IPA trang CWE (JA, EN) | Như trên | Hằng tuần | Cảnh báo, người xem có đổi cách IPA dùng CWE không |
 | MITRE CWE | So `version` từ REST API (hoặc `ETag` của `cwec_latest.xml.zip`) với `source_version.current_version` **[chưa xác minh endpoint]** | Hằng tuần | Tải XML → `cwe_xml_to_csv.py` → diff → chạy Q4 (CWE trong `ipa_cwe_map` còn tồn tại và không Deprecated) → PR |
 | `semgrep-rules` | `git ls-remote <repo> HEAD` so với `ruleset_commit` | Hằng ngày/tuần | `git pull` → `extract_semgrep_rules.py` → diff: rule mới chưa được map, rule đổi CWE, override không còn khớp → PR |
+| `zap-extensions` (scan rule) | `git ls-remote` so với commit đã lưu | Hằng tuần | `extract_zap_rules.py` → diff: rule mới, rule đổi/bỏ CWE → PR. Thêm bước kiểm tra số file `*ScanRule.java` có khai báo CWE không tụt (phát hiện rule đổi cách khai báo làm script bỏ sót) |
+| Trivy: `trivy-db` (nguồn của `CweIDs`) | Digest/phiên bản của artifact `ghcr.io/aquasecurity/trivy-db` (cập nhật thường xuyên) | Mỗi lần quét | **Ghi phiên bản DB vào báo cáo** để tái hiện; không cần commit dữ liệu DB |
+| Trivy: schema output và `trivy-checks` | `git ls-remote`; chạy `grep -ril cwe` trên `trivy-checks` và kiểm tra `CweIDs` còn trong struct output | Hằng tháng | Nếu Trivy bắt đầu gắn CWE cho misconfig, cập nhật bộ chuyển đổi (mục 9.4) và bỏ bảng tra tự biên soạn |
 | JVN iPedia (tùy chọn) | Feed/API **[chưa xác minh]** | Hằng quý | Cập nhật thống kê CWE phổ biến |
 
-### 9.2 Luồng
+### 10.2 Luồng
 
 ```
  lịch (cron) ─► phát hiện thay đổi ─► tải nguồn ─► ETL ra CSV ─► kiểm tra Q1–Q5 ─► báo cáo diff
@@ -431,13 +719,13 @@ WHERE NOT EXISTS (SELECT 1 FROM finding_cwe c WHERE c.check_id = f.check_id AND 
 
 Nguyên tắc:
 
-- **Không tự merge** thay đổi từ IPA: đổi bản, đổi số mục, đổi câu chữ cần người đọc tiếng Nhật duyệt. Với bảng thuần trích xuất (`semgrep_rule_cwe`, `cwe_catalog`, `cwe_relation`) có thể cân nhắc tự merge khi mọi cổng chất lượng đạt.
+- **Không tự merge** thay đổi từ IPA: đổi bản, đổi số mục, đổi câu chữ cần người đọc tiếng Nhật duyệt. Với bảng thuần trích xuất (`semgrep_rule_cwe`, `zap_rule_cwe`, `cwe_catalog`, `cwe_relation`) có thể cân nhắc tự merge khi mọi cổng chất lượng đạt.
 - **Hash đổi chưa chắc nội dung đổi**: trang web hay đổi menu/chân trang. Hash chỉ phần nội dung chính, và vẫn để người xem diff.
 - **Mapping sai âm thầm là rủi ro lớn nhất.** Mỗi lần CWE đổi (deprecate, đổi tên, đổi cha), cổng Q4 phải chặn PR nếu `ipa_cwe_map` còn trỏ vào CWE không hợp lệ.
-- **Phiên bản dữ liệu:** commit `source_version.csv` cùng dữ liệu; gắn tag dạng `kb-YYYY.MM.DD`. Báo cáo scan ghi tag này để tái hiện kết quả sau này.
+- **Phiên bản dữ liệu:** commit `source_version.csv` cùng dữ liệu; gắn tag dạng `kb-YYYY.MM.DD`. Báo cáo scan ghi tag này (cùng commit rule Semgrep, commit rule ZAP, phiên bản DB Trivy) để tái hiện kết quả sau này.
 - **Giữ nguồn ngoài đường găng:** nếu IPA/MITRE tạm không truy cập được, job báo `error` cho nguồn đó và dùng bản dữ liệu đã commit, không làm hỏng pipeline scan.
 
-### 9.3 Bản phác thảo GitHub Actions (**chưa chạy thử**)
+### 10.3 Bản phác thảo GitHub Actions (**chưa chạy thử**)
 
 Repo đã có thư mục `.github/workflows/`. Dưới đây chỉ là khung; `scripts/security_kb/refresh.py` **chưa tồn tại**, và phiên bản các action cần kiểm tra lại khi triển khai.
 
@@ -456,16 +744,16 @@ jobs:
       - uses: peter-evans/create-pull-request@v6
         with:
           branch: bot/security-kb-refresh
-          title: "security_scan: cập nhật nguồn IPA / CWE / Semgrep"
+          title: "security_scan: cập nhật nguồn IPA / CWE / Semgrep / ZAP / Trivy"
           body-path: projects/security_scan/reports/kb_diff.md
           labels: needs-human-review
 ```
 
-Runner GitHub có Internet mở; môi trường chạy trong sandbox/cloud nội bộ thì phải mở các host: `www.ipa.go.jp`, `cwe.mitre.org`, `cwe-api.mitre.org`, `jvndb.jvn.jp`, `github.com`, `raw.githubusercontent.com`, `pypi.org`. IPA có thể giới hạn truy cập từ một số vùng/bot; thử sớm.
+Runner GitHub có Internet mở; môi trường chạy trong sandbox/cloud nội bộ thì phải mở các host: `www.ipa.go.jp`, `cwe.mitre.org`, `cwe-api.mitre.org`, `jvndb.jvn.jp`, `github.com`, `raw.githubusercontent.com`, `pypi.org`, và cho Trivy `ghcr.io` (DB lỗ hổng). IPA có thể giới hạn truy cập từ một số vùng/bot; thử sớm.
 
 ---
 
-## 10 · Rủi ro, việc cần người, bước tiếp theo
+## 11 · Rủi ro, việc cần người, bước tiếp theo
 
 **Rủi ro**
 
@@ -473,32 +761,42 @@ Runner GitHub có Internet mở; môi trường chạy trong sandbox/cloud nội
 |---|---|---|
 | Bản seed IPA↔CWE sai/lệch so với IPA | Cao | Không dùng chính thức trước khi đối chiếu PDF; mọi dòng `seed_unverified`; cổng Q2/Q5 |
 | 11 mục IPA chỉ phủ ~1/4 rule | Cao với mục tiêu "tuân thủ IPA" | Giữ `OUT_OF_IPA_SCOPE`; mở rộng nguồn IPA; dùng JVN iPedia xếp hạng ưu tiên |
-| Tag CWE của Semgrep sai | Trung bình | Bảng override có duyệt; so sánh với biến thể cùng tên |
-| Rule thay đổi theo commit khiến kết quả không tái hiện | Trung bình | Ghi `ruleset_commit`, ghim commit khi chạy báo cáo chính thức |
-| Giấy phép/điều khoản | Cần kiểm tra | **Semgrep Rules License v1.0** (đọc trước khi nhúng/phân phối lại rule); điều khoản sử dụng của **CWE** (file `cwe-tou` trong gói); điều khoản của **IPA** khi sao chép nguyên văn (**[chưa xác minh]**). Nếu chưa rõ, `text_ja` để trống, chỉ lưu số mục + URL + diễn giải tiếng Việt |
+| **Trivy và ZAP chưa được chạy thật trong phiên này** | Trung bình | Các kết luận về schema đọc từ mã nguồn và dữ liệu mẫu của dự án; cần chạy thử trên mục tiêu hợp lệ để xác nhận (đặc biệt giá trị `cweid` khi không có CWE, và tỉ lệ `CweIDs` rỗng trên DB thật) |
+| Trivy: phần lớn finding ngoài tầm IPA (misconfig, secret, CVE thư viện) | Trung bình | Báo cáo tách nhóm; chỉ dùng IPA để *phân loại* CVE, không dùng đối sách IPA để vá thư viện |
+| ZAP active scan gây hại cho mục tiêu | Cao nếu dùng sai | Chỉ quét hệ thống được cấp phép; dùng môi trường staging; bắt đầu bằng baseline (passive) |
+| Tag CWE của Semgrep (và có thể của ZAP/Trivy) sai | Trung bình | Bảng override có duyệt (hiện mới cho Semgrep, xem mục 4.4); so sánh với biến thể cùng tên |
+| Rule/DB thay đổi theo thời gian khiến kết quả không tái hiện | Trung bình | Ghi `ruleset_commit`, commit rule ZAP, phiên bản DB Trivy; ghim khi chạy báo cáo chính thức |
+| Giấy phép/điều khoản | Cần kiểm tra | **Semgrep Rules License v1.0** (đọc trước khi nhúng/phân phối lại rule); điều khoản sử dụng của **CWE** (file `cwe-tou` trong gói); điều khoản của **IPA** khi sao chép nguyên văn (**[chưa xác minh]**); điều khoản của các nguồn dữ liệu lỗ hổng mà Trivy tải về. Nếu chưa rõ, `text_ja` để trống, chỉ lưu số mục + URL + diễn giải tiếng Việt |
 | Bản CWE dùng thử (4.14) cũ | Thấp–trung bình | Chỉ dùng cho dựng pipeline; tải bản mới nhất trước khi dùng thật |
 
 **Việc cần người**
 
-1. Cho phép host `www.ipa.go.jp`, `cwe.mitre.org`, `cwe-api.mitre.org`, `semgrep.dev`, `jvndb.jvn.jp` (hoặc gửi PDF/HTML đã tải) để đối chiếu 4 URL bạn nêu.
+1. Cho phép host `www.ipa.go.jp`, `cwe.mitre.org`, `cwe-api.mitre.org`, `semgrep.dev`, `jvndb.jvn.jp` (hoặc gửi PDF/HTML đã tải) để đối chiếu 4 URL ban đầu; thêm `ghcr.io` nếu muốn tải DB của Trivy trong môi trường này.
 2. Người đọc được tiếng Nhật đối chiếu: tên 11 mục, số bản (đang giả định "改訂第7版"), mã CWE IPA thật sự dùng, nguyên văn đối sách.
 3. Quyết định phạm vi: chỉ 11 mục web, hay mở rộng sang tài liệu IPA khác cho phần `OUT_OF_IPA_SCOPE`.
 4. Duyệt ba override đề xuất (đặc biệt OV-0003 là nhận định, chưa phải bằng chứng).
+5. Chạy thử Trivy và ZAP thật trên ứng dụng/ảnh container của bạn (hoặc ứng dụng thử nghiệm có lỗi cố ý), rồi đưa file JSON vào loader để xác nhận số liệu. Trong phiên này, việc build Trivy từ mã nguồn bên ngoài để chạy bị hệ thống phân quyền chặn nên mình không làm; muốn mình chạy lại thì cần bạn cấp quyền rõ ràng, hoặc chạy ở máy của bạn.
 
 **Bước tiếp theo đề xuất**
 
 1. Sau khi có quyền truy cập: điền `source_version.csv`, nâng `ipa_item`/`ipa_cwe_map` lên `verified`, điền `text_ja`.
 2. Tải CWE mới nhất, chạy `cwe_xml_to_csv.py`, chạy cổng Q4.
-3. Chạy `extract_semgrep_rules.py` để có bản đầy đủ; quét một codebase thật có lỗi cố ý để đo độ phủ trên finding (không chỉ trên rule).
-4. Viết `scripts/security_kb/refresh.py` và workflow; chạy thử không `--merge` trong 2–3 tuần để xem tần suất thay đổi thực tế.
+3. Chạy `extract_semgrep_rules.py` và `extract_zap_rules.py` để có bản đầy đủ; quét một ứng dụng thật có lỗi cố ý bằng cả ba công cụ để đo độ phủ trên finding (không chỉ trên rule).
+4. Nếu thấy CWE sai ở ZAP/Trivy: mở rộng bảng override thêm cột `tool`.
+5. Viết `scripts/security_kb/refresh.py` và workflow; chạy thử không `--merge` trong 2–3 tuần để xem tần suất thay đổi thực tế.
 
 ---
 
-## 11 · Nguồn
+## 12 · Nguồn
 
 Đã đọc trực tiếp / chạy thật trong phiên:
 - Semgrep 1.182.1 (PyPI) và repo [`semgrep/semgrep-rules`](https://github.com/semgrep/semgrep-rules) commit `16b9e6d` (file `metadata-schema.yaml.schm`, `LICENSE`, các rule YAML).
 - Gói PyPI `cwe2` 3.0.0: dữ liệu CWE 4.14 (`cwec_v4.14.xml`, CSV mapping, `cwe.ABOUT`, giấy phép `cwe-tou`).
+- [`aquasecurity/trivy`](https://github.com/aquasecurity/trivy) commit `201dda0` (2026-10-27): `LICENSE`, `pkg/types`, `pkg/sbom/cyclonedx/marshal.go`, `pkg/db/db.go`, `integration/testdata/*.json.golden`.
+- [`aquasecurity/trivy-checks`](https://github.com/aquasecurity/trivy-checks) commit `f9099b7` (2026-10-26): `LICENSE` (MIT), metadata rego.
+- Module Go `github.com/aquasecurity/trivy-db` (qua proxy.golang.org, phiên bản ghim trong `go.mod` của Trivy): `pkg/types/types.go`, `pkg/vulnsrc/nvd/nvd.go`, `pkg/vulnsrc/vulnerability/vulnerability.go`.
+- [`zaproxy/zaproxy`](https://github.com/zaproxy/zaproxy) commit `d5da218` (2026-10-27): `LICENSE`, `README.md`, `Alert.java`, `docker/zap-*.py`.
+- [`zaproxy/zap-extensions`](https://github.com/zaproxy/zap-extensions) commit `51e4155` (2026-10-26): `LICENSE`, scan rule Java, template và fixture của add-on *reports*.
 
 Chỉ qua kết quả WebSearch (chưa đọc trang gốc):
 - IPA, trang CWE tiếng Nhật: <https://www.ipa.go.jp/security/vuln/CWE.html>
@@ -507,5 +805,8 @@ Chỉ qua kết quả WebSearch (chưa đọc trang gốc):
 - Báo cáo JVN iPedia theo quý của IPA, ví dụ: <https://www.ipa.go.jp/en/security/vulnerabilities/jvn/ipedia2023q2_en.html>
 - Tài liệu Semgrep về trường JSON/SARIF: <https://semgrep.dev/docs/semgrep-appsec-platform/json-and-sarif>
 - Tài liệu mua sắm thành phố Yokohama (bên thứ ba, có gắn CWE-601, CWE-434): <https://en.city.yokohama.lg.jp/business/nyusatsu/kakukukyoku/2019/itaku/kankyo/enekaru2019.files/0011_20190319.pdf>
+- Tài liệu ZAP về báo cáo JSON truyền thống (có `cweid`, `wascid`): <https://www.zaproxy.org/docs/desktop/addons/report-generation/report-traditional-json/>
+- Ghi chú phát hành Trivy v0.10.0 (thêm CWE-ID vào JSON): <https://github.com/aquasecurity/trivy/releases/tag/v0.10.0>
+- Tài liệu báo cáo của Trivy: <https://trivy.dev/docs/v0.59/guide/configuration/reporting/>
 
 URL bạn cung cấp nhưng chưa đọc được (host bị chặn): <https://www.ipa.go.jp/>, <https://www.ipa.go.jp/security/vuln/websecurity/about.html>, <https://cwe.mitre.org/about/new_to_cwe.html>, <https://semgrep.dev/>.

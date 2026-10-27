@@ -228,7 +228,7 @@ CWE xuất hiện nhiều nhất (theo số cặp rule–CWE):
 
 ### 3.6 Lần scan mẫu **[đã kiểm chứng]**
 
-Một file Flask giả (`vuln_app.py`, ~60 dòng, có SQLi, OS command, XSS, open redirect, MD5, `verify=False`, `debug=True`...) quét bằng `semgrep-rules/python` (371 rule) cho **20 finding**. Chi tiết gộp theo IPA ở [tài liệu 02, mục 5](02-mapping-semgrep-ipa-va-cap-nhat.md#5--ví-dụ-end-to-end-chạy-thật).
+Một file Flask giả (`vuln_app.py`, ~60 dòng, có SQLi, OS command, XSS, open redirect, MD5, `verify=False`, `debug=True`...) quét bằng `semgrep-rules/python` (371 rule) cho **20 finding**. Chi tiết gộp theo IPA ở [tài liệu 02, mục 6](02-mapping-semgrep-ipa-va-cap-nhat.md#6--ví-dụ-end-to-end-chạy-thật).
 
 ---
 
@@ -238,3 +238,4 @@ Một file Flask giả (`vuln_app.py`, ~60 dòng, có SQLi, OS command, XSS, ope
 2. **11 mục của "安全なウェブサイトの作り方" chỉ phủ khoảng một phần tư** những gì Semgrep tag (đo ở tài liệu 02). Hard-code credential, mật mã, SSRF, deserialization, XXE... không có mục tương ứng → mapping phải có trạng thái "ngoài phạm vi IPA" và nên mở rộng sang tài liệu IPA khác.
 3. **Không có nguồn xuất sẵn (export) cho bảng IPA↔CWE** mà mình xác nhận được. Phải biên soạn một lần, có người kiểm duyệt đối chiếu bản PDF, rồi quản lý như dữ liệu có phiên bản.
 4. Trước khi dùng cho báo cáo chính thức: mở trang IPA, đối chiếu tên 11 mục, số thứ tự, mã CWE IPA thật sự dùng, và nguyên văn đối sách (cột `text_ja`).
+5. Tài liệu này chỉ nói về Semgrep. **Trivy và ZAP** (cũng mã nguồn mở; ZAP gắn `cweid` cho mỗi alert, Trivy chỉ gắn `CweIDs` cho lỗ hổng thư viện) được nghiên cứu ở [tài liệu 02, mục 2](02-mapping-semgrep-ipa-va-cap-nhat.md#2--trivy-và-zap-mã-nguồn-mở-không-output-có-cwe-không).
