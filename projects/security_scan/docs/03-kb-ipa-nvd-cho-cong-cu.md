@@ -22,7 +22,7 @@ Dữ liệu rule của công cụ (catalog rule, override CWE sai của rule) ch
 
 1. **KB gồm hai file theo hai khóa**: [`kb/kb_cwe.csv`](../kb/kb_cwe.csv) (khóa CWE, cho Semgrep, ZAP và Trivy) và `kb_cve.csv` (khóa CVE, cho Trivy). Mỗi công cụ chỉ cần tra một file. Không gộp làm một vì NVD có hơn 415.000 CVE cập nhật mỗi ngày, còn phần CWE + IPA nhỏ và đổi chậm.
 2. **Đã dựng thật**: `kb_cwe.csv` đầy đủ (1.375 khóa: 963 weakness, 409 category, 3 mã giả của NVD/JVN) và [`kb/kb_cve.sample.csv`](../kb/kb_cve.sample.csv) (23 CVE thật, ghép NVD với JVN iPedia). Bản `kb_cve` đầy đủ sinh bằng script ở mục 6. Chạy cho cả năm 2025 (45.429 CVE) mất khoảng 11 giây.
-3. **Một CVE có thể mang CWE khác nhau tùy nguồn**, nên KB lưu CWE của **từng nguồn** rồi mới chọn. Ví dụ thật: `CVE-2019-11358` (jquery) có NVD = CWE-1321 nhưng dữ liệu của Trivy = CWE-79; Log4Shell có JVN = 20, CNA = 20/400/502, NVD = 917.
+3. **Một CVE có thể mang CWE khác nhau tùy nguồn và tùy thời điểm**, nên KB lưu CWE của **từng nguồn** rồi mới chọn. Ví dụ thật: Log4Shell có JVN = 20, CNA = 20/400/502, NVD = 917. Với jquery `CVE-2019-11358`, NVD hiện ghi CWE-1321, GHSA ghi cả 1321 lẫn 79, còn DB kiểm thử của Trivy (chụp dữ liệu NVD năm 2021) ghi CWE-79: cùng nguồn NVD nhưng khác thời điểm (xem [tài liệu 04](04-thuat-ngu-so-sanh-va-cach-map.md)).
 4. **JVN iPedia (của IPA) gắn CWE cho cả bản ghi JVNDB**, có thể chứa nhiều CVE. Lấy CWE của JVN làm mặc định sẽ làm phình mapping, nên mặc định ưu tiên NVD rồi CNA/ADP, và JVN để lấp chỗ trống (`--prefer jvn` để đảo thứ tự).
 5. **NVD tự gắn CWE cho rất ít CVE mới**: năm 2025 chỉ 12,5% CWE do chính NVD gắn, 83,6% do CNA/ADP. KB nào chỉ lấy CWE `nvd@nist.gov` sẽ mất phần lớn dữ liệu.
 6. **Độ phủ của 11 mục IPA trên CVE thật cao hơn nhiều so với trên rule công cụ**: năm 2025 có **58,8%** CVE (không tính Rejected) rơi vào một mục IPA. Trên rule của Semgrep/ZAP con số này chỉ khoảng 25% (tài liệu 02). Phần ngoài IPA lớn nhất: CWE-284, 476, **434 (upload file)**, **98 (PHP file inclusion)**, 200, 502.
@@ -188,9 +188,9 @@ Tùy chọn trước khi tra: sửa CWE sai của rule Semgrep bằng [`tool_sid
 | ZAP (6, gồm 2 alert của fixture) | 4 | 0 | 2 |
 | Trivy (32) | 3 | 6 | 23 (18 misconfig, 2 secret, 3 mã `GMS-2022-20` không phải CVE) |
 
-KB làm thay đổi kết quả so với khi chỉ dùng CWE mà Trivy tự kèm:
+KB làm thay đổi kết quả so với khi chỉ dùng CWE có sẵn trong output mẫu của Trivy. Lưu ý: các output mẫu này sinh từ **DB kiểm thử** của dự án Trivy, chứa dữ liệu NVD cũ (`LastModifiedDate` 2021). Trivy chọn CWE theo thứ tự nguồn NVD → Red Hat → các distro → GHSA → … (`AllSourceIDs` trong trivy-db), nên khi dùng DB thật cập nhật, Trivy cũng sẽ ghi CWE hiện tại của NVD. Hai dòng đầu dưới đây là khác biệt do **thời điểm dữ liệu**, không phải do nguồn:
 
-| Gói | CVE | CWE của Trivy | CWE trong KB (nguồn) | Kết quả |
+| Gói | CVE | CWE trong output mẫu của Trivy | CWE trong KB (nguồn) | Kết quả |
 |---|---|---|---|---|
 | `jquery@3.3.9` | CVE-2019-11358 | CWE-79 | CWE-1321 (NVD) | Theo Trivy là IPA-WEB-05 (XSS); theo KB là **ngoài IPA** (prototype pollution). Bộ tra cứu ghi chú "CWE của Trivy khác KB" |
 | `libssl`/`libcrypto` | CVE-2019-1551 | CWE-200 | CWE-190 (NVD) | Đều ngoài IPA; vẫn được ghi chú khác |
