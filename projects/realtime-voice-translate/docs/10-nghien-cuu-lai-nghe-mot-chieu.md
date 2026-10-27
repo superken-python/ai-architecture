@@ -16,7 +16,7 @@ Tài liệu này so các cách làm từ tốt nhất tới đơn giản nhất,
 
 **Lưu ý về nguồn.** Phần lớn số liệu về độ trễ, độ chính xác, ngôn ngữ hỗ trợ là do chính nhà cung cấp công bố, hoặc
 từ các trang so sánh không độc lập. Không có bộ đo chung nào cho tiếng Việt nói tự nhiên, nhiều người, có nhạc nền. Vì
-vậy kết luận ở đây là **danh sách ứng viên để đo**, không phải bảng xếp hạng cuối. Nguồn ở mục 13.
+vậy kết luận ở đây là **danh sách ứng viên để đo**, không phải bảng xếp hạng cuối. Nguồn ở mục 14.
 
 ## 1. Kết luận
 
@@ -40,6 +40,8 @@ vậy kết luận ở đây là **danh sách ứng viên để đo**, không ph
 8. **Theo hạ tầng (mục 11):** 8 GB đủ cho model chuyên tiếng Việt cỡ 0,6–1,5B; 24–32 GB cho phép chạy nhiều model,
    model top bảng xếp hạng tiếng Anh và sửa lỗi bằng LLM; 48–80 GB cho fine-tune trên dữ liệu riêng. Muốn gần mức online
    thì cần dữ liệu và bộ đo của mình, không phải AI agent (mục 12).
+9. **Dịch video/họp (mục 13):** giữ chế độ dịch, nhưng dịch bằng GPT-5 mini (hoặc gpt-5.4-mini) qua Azure thay cho
+   Qwen trên GPU. GPU 8 GB khi đó chỉ còn phần nghe, như chế độ chỉ nghe.
 
 ## 2. Bài toán và tiêu chí chọn
 
@@ -200,7 +202,7 @@ PhoWhisper + Sortformer) để biết khoảng cách nếu cần chạy hoàn to
 ## 9. Chi tiết phương án tự host mạnh nhất (Mức 2)
 
 Mục này nói rõ Mức 2 chạy thế nào, cấu hình ra sao, tốn bao nhiêu. Các con số độ trễ, VRAM, DER lấy từ tài liệu của
-dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 13.
+dự án gốc hoặc bài báo, đo trên dữ liệu tiếng Anh; **chưa có số nào cho tiếng Việt**. Nguồn ở mục 14.
 
 ### 9.1 Các thành phần
 
@@ -595,7 +597,129 @@ lớn audio không nhãn. Đây là đánh giá, phải kiểm bằng bộ đo.
 **Nhân lực tối thiểu:** một người làm ML/speech (đo, phục vụ model, fine-tune), một người backend/web, ngân sách gán
 nhãn dữ liệu.
 
-## 13. Nguồn
+## 13. Dịch video/họp: nghe trên GPU 8 GB, dịch bằng GPT-5 mini qua Azure
+
+**Cập nhật 2026-10-27.** Chế độ "Video & Họp" vẫn cần dịch. Thay vì chạy Qwen2.5-7B trên cùng GPU, bản dịch gọi một
+deployment GPT-5 mini (ví dụ `gpt-5.4-mini`) trên Azure. Profile mới: `api-mt`.
+
+### 13.1 Tiết kiệm được gì
+
+- **VRAM:** không còn container `mt`. Qwen2.5-7B Q5_K_M nặng 5,44 GB, cộng KV cache khoảng 0,47 GB với `-c 8192` và
+  phần CUDA của llama.cpp (chưa đo). Tổng cộng giải phóng khoảng 6 GB.
+- GPU 8 GB khi đó chỉ chạy phần nghe như profile `listen`: PhoWhisper-large cho nửa khoá tiếng Việt, large-v3-turbo
+  cho tiếng Nhật, tiếng Anh và chế độ "Tự động". Hai model này ở `int8_float16` ước tính vừa 8 GB; đo lại bằng
+  `nvidia-smi`.
+- Cũng xoá được file Qwen: `./scripts/remove_unused_models.sh --yes`.
+
+**Đổi lại:**
+- **Mạng:** mỗi câu một lượt gọi API qua Internet.
+- **Chi phí:** tính theo token.
+- **Dữ liệu ra ngoài:** chữ của cuộc họp đi tới Azure. Audio vẫn ở trong máy.
+- **Lọc nội dung:** Azure có thể chặn một số câu (phim có cảnh bạo lực…), khi đó thẻ hiện "[Lỗi dịch vi]".
+
+### 13.2 Cách chạy
+
+```bash
+# .env ở thư mục dự án (git bỏ qua file này). Dán nguyên "Target URI" của deployment, trong ngoặc kép vì có dấu "?"
+RVT_MT_API_URL="https://<resource>.cognitiveservices.azure.com/openai/deployments/gpt-5.4-mini/chat/completions?api-version=2024-12-01-preview"
+RVT_MT_API_KEY=<khoá, chỉ đặt khi chạy>
+```
+
+```bash
+./scripts/prepare_listen_models.sh     # PhoWhisper-large, large-v3-turbo, Silero VAD (nếu chưa có)
+./start.sh --api-mt --build            # container ai + web, không có container Qwen
+./scripts/remove_unused_models.sh      # xem trước; thêm --yes để xoá Qwen và model Whisper cũ
+```
+
+- **OpenAI trực tiếp:** `RVT_MT_API_URL=https://api.openai.com/v1` và `RVT_MT_MODEL=gpt-5-mini`.
+- **Azure kiểu v1:** `RVT_MT_API_URL=https://<resource>.openai.azure.com/openai/v1` và `RVT_MT_MODEL=<tên deployment>`.
+- `start.sh` đọc `.env` ở thư mục dự án và cảnh báo nếu thiếu URL hoặc khoá.
+- Log của container `ai` có dòng `MT via azure API: model=…, reasoning_effort=…` để kiểm.
+
+### 13.3 Engine gọi API thế nào
+
+[`mt_llama.py`](../ai/src/rvt_ai/engines/mt_llama.py) dùng chung prompt, glossary, ngữ cảnh 2 câu trước, bộ kiểm và
+bước dịch lại như khi dùng Qwen.
+
+- **URL và khoá:**
+  - URL có `/chat/completions` (Target URI của Azure) được dùng nguyên, kể cả `api-version`.
+  - Tên deployment lấy từ đường dẫn; khoá gửi qua header `api-key`.
+  - Với OpenAI, khoá đi qua `Authorization: Bearer`.
+- **Chỉ gửi tham số model GPT-5 nhận:** không gửi `temperature`, `top_p`, `max_tokens`, `stop`. Có
+  `max_completion_tokens` (giới hạn tính cả token suy luận) và `reasoning_effort`.
+- **Mức suy luận** (`RVT_MT_REASONING_EFFORT=auto`) đoán theo tên model:
+  - `gpt-5.4-mini` và các bản 5.1 trở đi dùng `none`. Đây là giá trị thấp nhất, cũng là mặc định của các bản này; có một
+    báo cáo cho rằng `max_completion_tokens` làm `none` bị bỏ qua, nên khi dùng `none` thì không gửi giới hạn.
+  - `gpt-5-mini` dùng `minimal`; mặc định của bản này là `medium`, chậm.
+  - Model khác: không gửi.
+  - Đặt tên deployment khác kiểu này thì ghi rõ giá trị trong `RVT_MT_REASONING_EFFORT`.
+- **Tự sửa khi bị từ chối:** API trả lỗi 400 chỉ đúng một tham số không nhận thì engine bỏ tham số đó, hoặc đổi
+  `reasoning_effort` sang giá trị mà thông báo lỗi liệt kê, rồi gửi lại. Các lượt sau không gửi sai nữa. Lỗi khác (sai
+  khoá, lọc nội dung) không gửi lại.
+- **Chỉ lấy dòng đầu:** không có chuỗi dừng, nên engine thôi đọc ở cuối dòng đầu tiên. Ghi chú thừa của model không hiện
+  ra, và câu chốt không phải chờ model viết hết.
+- **Thời gian chờ:** 20 s (`RVT_MT_TIMEOUT_SEC`), thay vì 5 s như với llama.cpp trong máy.
+
+### 13.4 Sửa hai lỗi thấy trong ảnh chụp
+
+Ảnh chụp chế độ Video & Họp ngày 2026-10-27: nửa nói khoá "日本語", nhưng người nói tiếng Việt.
+
+1. **Nhãn sai, dịch tiếng Việt sang tiếng Việt.** Whisper bị ép tiếng Nhật vẫn chép ra tiếng Việt ("Vì cái đó nó tiểu
+   như so với phần mềm…"). Thẻ ghi "JA 100%", và bộ dịch viết lại câu ("tiểu như" → "nhỏ hơn").
+   - Nay chữ nhận dạng mâu thuẫn hẳn với ngôn ngữ đã khoá thì tin vào chữ
+     ([`correct_language`](../ai/src/rvt_ai/pipeline/lid_policy.py)):
+     - có chữ Nhật thì là tiếng Nhật;
+     - có dấu tiếng Việt thì là tiếng Việt;
+     - chữ Latin không dấu thì là tiếng Anh, nhưng nếu nửa đó khoá tiếng Việt thì giữ nguyên.
+   - Câu tiếng Việt khi đó được ghi "VI" và không đem dịch sang tiếng Việt nữa.
+2. **Câu không có chữ cũng đem dịch.** "2" thành "Được rồi.". Nay câu không có chữ cái thì không dịch, thẻ hiện nguyên
+   câu.
+
+Với cuộc họp có cả người Nhật lẫn người Việt, nên đặt **Nói: Tự động, Dịch sang: Tiếng Việt**. Câu tiếng Nhật sẽ được
+dịch, câu tiếng Việt hiện nguyên văn. Để "日本語" thì nay vẫn đúng nhờ bước 1, nhưng tiếng Việt khi đó do large-v3-turbo
+nghe, không phải PhoWhisper.
+
+### 13.5 Chi phí và độ trễ (ước tính, chưa đo)
+
+**Giả định:**
+
+- Mỗi câu gửi khoảng 600–900 token: hướng dẫn, ví dụ, glossary, 2 câu trước kèm bản dịch. Một câu họp mẫu khoảng
+  1 700 ký tự.
+- Bản dịch khoảng 30 token.
+- Video dày thoại như golden_1 có khoảng 900 câu mỗi giờ; cuộc họp thường ít hơn.
+
+**Chi phí mỗi giờ, cho một ngôn ngữ đích:**
+
+| Model | Giá (USD / 1 triệu token, vào / ra) | Chi phí mỗi giờ |
+|---|---|---|
+| gpt-5-mini | 0,25 / 2,00 (trang tổng hợp, theo bảng giá OpenAI) | khoảng 0,2–0,3 USD |
+| gpt-5.4-mini | 0,75 / 4,50 (trang tổng hợp) | khoảng 0,5–0,7 USD |
+
+Giá Azure có thể khác theo vùng và kiểu deployment; kiểm trên bảng giá Azure.
+
+**Độ trễ:** chưa có số; phụ thuộc vùng Azure và tải của deployment. Đo bằng bộ đo dịch, xem `latency_p50_s` và
+`latency_p95_s`. Container `ai` đã có sẵn URL và khoá, nên không cần truyền lại:
+
+```bash
+docker exec -it rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --label gpt-5.4-mini \
+    --out /tmp/mt_api.json
+```
+
+So chất lượng với Qwen bằng `eval/mt_compare.py` (doc 09 §5.6).
+
+### 13.6 Đã kiểm, chưa kiểm
+
+- **Đã kiểm trong sandbox:**
+  - test cho URL, header, tham số, tự đổi tham số, chỉ lấy dòng đầu, sửa nhãn ngôn ngữ;
+  - một server giả lập deployment Azure: server RVT profile `api-mt`, phiên Video & Họp gửi audio qua WebSocket.
+    Kết quả: Azure giả nhận đúng `api-key`, deployment, `api-version`; body chỉ có `messages`, `reasoning_effort`,
+    `stream`; bản dịch chỉ còn dòng đầu; ép `minimal` thì engine tự chuyển sang `none`.
+- **Chưa kiểm:**
+  - Azure thật: chưa có khoá, và sandbox không ra được Azure.
+  - Độ trễ, chi phí và chất lượng dịch thật của GPT-5 mini so với Qwen.
+  - VRAM thật của hai model nghe.
+
+## 14. Nguồn
 
 Dịch vụ online:
 
@@ -687,3 +811,16 @@ Nguồn audio để đo, giấy phép PhoWhisper (mục 10):
 - [VietMed](https://arxiv.org/html/2404.05659);
   [danh sách dữ liệu tiếng Việt](https://github.com/lienlt10/awesome-vietnamese-speech-datasets).
 - [YouTube Creative Commons](https://support.google.com/youtube/answer/2797468?hl=en-GB).
+
+Dịch qua API (mục 13):
+
+- Tham số GPT-5: [GPT-5.4 mini](https://developers.openai.com/docs/models/gpt-5.4-mini),
+  [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning.md),
+  [stop với gpt-5.1](https://community.openai.com/t/stop-sequence-doesnt-work-with-gpt-5-1-chat-latest/1366918),
+  [none và max_completion_tokens](https://community.openai.com/t/gpt-5-4-ignores-reasoning-effort-none-when-max-completion-tokens-is-used/1378362),
+  [temperature với GPT-5](https://github.com/getzep/graphiti/issues/878).
+- Azure: [v1 API](https://learn.microsoft.com/en-us/azure/foundry/openai/api-version-lifecycle),
+  [chat completions](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/chatgpt),
+  [header api-key](https://devopscube.com/setup-azure-openai/).
+- Giá: [gpt-5-mini](https://futureagi.com/llm-cost-calculator/openai/gpt-5-mini),
+  [gpt-5.4-mini](https://pricepertoken.com/pricing-page/model/openai-gpt-5.4-mini).

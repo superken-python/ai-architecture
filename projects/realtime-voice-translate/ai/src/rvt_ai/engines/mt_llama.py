@@ -111,31 +111,156 @@ def build_messages(
     ]
 
 
-def hosted_payload(payload: dict, model: str) -> dict:
-    """Đổi payload của llama.cpp sang dạng API lưu trữ kiểu OpenAI (docs 09 §5.6, để so model).
+# API kiểu OpenAI chạy trên cloud (docs 10 §13). "llama-cpp" là server llama.cpp cục bộ.
+HOSTED_PROVIDERS = ("openai", "azure")
+# Tham số không bao giờ bỏ khi API báo lỗi: thiếu chúng thì không còn là một lượt dịch
+_REQUIRED_PARAMS = ("messages", "model", "stream")
+_DEPLOYMENT_IN_URL = re.compile(r"/deployments/([^/?]+)")
 
-    API đó nhận tối đa 4 chuỗi dừng, không nhận top_p, và model mới có thể từ chối temperature khác mặc định hoặc dùng
-    max_completion_tokens thay max_tokens. Model suy luận còn tính token suy nghĩ vào giới hạn, nên giới hạn được nâng.
-    Bỏ các chuỗi dừng còn lại không sao: mt_validator và _is_babble vẫn bắt phần giải thích.
+
+def deployment_from_url(url: str) -> str:
+    """Tên deployment trong "Target URI" của Azure: …/openai/deployments/gpt-5.4-mini/chat/completions?api-version=…"""
+    found = _DEPLOYMENT_IN_URL.search(url)
+    return found.group(1) if found else ""
+
+
+def default_reasoning_effort(model: str) -> str:
+    """Mức suy luận thấp nhất theo họ model, để dịch nhanh.
+
+    gpt-5.1 trở đi (gpt-5.4-mini…): "none", cũng là mặc định của các bản này. gpt-5, gpt-5-mini, gpt-5-nano:
+    "minimal" (mặc định là "medium", chậm). Model khác: không gửi. Đoán theo tên model hoặc deployment; đặt tên
+    deployment khác thì ghi rõ bằng RVT_MT_REASONING_EFFORT.
+    """
+    name = model.lower()
+    if re.search(r"gpt-5\.\d", name):
+        return "none"
+    if re.search(r"gpt-5(?![.\d])", name):
+        return "minimal"
+    return ""
+
+
+def hosted_payload(
+    payload: dict,
+    model: str,
+    reasoning_effort: str = "",
+    max_completion_tokens: int = 1024,
+    include_model: bool = True,
+) -> dict:
+    """Đổi payload của llama.cpp sang dạng API kiểu OpenAI (OpenAI, Azure OpenAI; docs 09 §5.6, docs 10 §13).
+
+    Model GPT-5 không nhận temperature, top_p, max_tokens; các bản mới còn không nhận stop. Nên chỉ gửi những gì cần:
+    giới hạn token (gồm cả token suy luận, nên đặt rộng), mức suy luận, tên model. Không có chuỗi dừng: engine tự dừng ở
+    cuối dòng đầu tiên.
     """
     out = {k: v for k, v in payload.items() if k not in ("top_p", "temperature", "stop", "max_tokens")}
-    out["max_completion_tokens"] = max(1024, payload["max_tokens"])
-    out["stop"] = ["\n"]
-    if model:
+    if max_completion_tokens:
+        out["max_completion_tokens"] = max(max_completion_tokens, payload["max_tokens"])
+    if reasoning_effort:
+        out["reasoning_effort"] = reasoning_effort
+    if model and include_model:
         out["model"] = model
     return out
 
 
 class LlamaCppMtEngine(MtEngine):
+    """Dịch qua /chat/completions: server llama.cpp cục bộ, hoặc API kiểu OpenAI trên cloud (OpenAI, Azure OpenAI).
+
+    `api_url` là URL gốc (http://mt:8080/v1, https://api.openai.com/v1, https://<resource>.openai.azure.com/openai/v1)
+    hoặc URL đầy đủ tới /chat/completions, như "Target URI" của một deployment Azure:
+    https://<resource>.cognitiveservices.azure.com/openai/deployments/<deployment>/chat/completions?api-version=…
+    Azure nhận khoá qua header `api-key`; OpenAI qua `Authorization: Bearer`.
+    """
+
     def __init__(
-        self, api_url: str = "http://mt:8080/v1", timeout_sec: float = 5.0, api_key: str = "", model: str = ""
+        self,
+        api_url: str = "http://mt:8080/v1",
+        timeout_sec: float = 5.0,
+        api_key: str = "",
+        model: str = "",
+        provider: str = "",
+        reasoning_effort: str = "",
+        max_completion_tokens: int = 1024,
     ):
-        self.api_url = api_url.rstrip("/")
+        self.api_url = api_url.strip().rstrip("/")
         self.timeout_sec = timeout_sec
-        # api_key khác rỗng: đang gọi API lưu trữ, không phải llama.cpp cục bộ (chỉ dùng cho so sánh model)
         self.api_key = api_key
-        self.model = model
+        # URL của deployment Azure đã có tên deployment: không gửi "model" trong body
+        self.deployment = deployment_from_url(self.api_url)
+        self.model = model or self.deployment
+        # Không ghi provider: đoán theo URL và khoá (có khoá mà không phải Azure thì là API kiểu OpenAI)
+        self.provider = provider or ("azure" if ".azure.com" in self.api_url else "openai" if api_key else "llama-cpp")
+        self.reasoning_effort = default_reasoning_effort(self.model) if reasoning_effort == "auto" else reasoning_effort
+        # Có báo cáo gpt-5.4 vẫn suy luận khi có max_completion_tokens dù đặt "none": khi đó không gửi giới hạn. Engine
+        # vẫn thôi đọc ở cuối dòng đầu, nên bản dịch không dài ra được.
+        self.max_completion_tokens = 0 if self.reasoning_effort == "none" else max_completion_tokens
+        # Tham số model đã từ chối (lỗi 400): không gửi lại ở các lượt sau
+        self.dropped_params: set[str] = set()
         self.prompt_loader = get_prompt_loader()
+
+    @property
+    def hosted(self) -> bool:
+        return self.provider in HOSTED_PROVIDERS
+
+    @property
+    def endpoint(self) -> str:
+        # URL đầy đủ (Target URI của Azure, có api-version) dùng nguyên; URL gốc thì thêm /chat/completions
+        return self.api_url if "/chat/completions" in self.api_url else f"{self.api_url}/chat/completions"
+
+    def request(self, payload: dict) -> tuple[str, dict[str, str], dict]:
+        """URL, header và body của một lượt dịch."""
+        if not self.hosted:
+            return self.endpoint, {}, payload
+        body = hosted_payload(
+            payload,
+            self.model,
+            self.reasoning_effort,
+            self.max_completion_tokens,
+            include_model=not self.deployment,
+        )
+        for param in self.dropped_params:
+            body.pop(param, None)
+        azure = self.provider == "azure"
+        headers = {"api-key": self.api_key} if azure else {"Authorization": f"Bearer {self.api_key}"}
+        return self.endpoint, headers, body
+
+    def adapt_to_error(self, error_body: str, sent: dict) -> bool:
+        """Lỗi 400 vì model không nhận một tham số: đổi hoặc bỏ tham số đó cho mọi lượt sau. True nếu nên gửi lại.
+
+        Mỗi bản GPT-5 nhận một bộ tham số khác nhau: gpt-5-mini nhận reasoning_effort "minimal", gpt-5.4-mini thì không
+        (thấp nhất là "none"); api-version cũ của Azure có thể chỉ nhận "low"; các bản mới không nhận stop. Thông báo
+        lỗi nói tham số nào sai, và với reasoning_effort còn liệt kê các giá trị được nhận.
+        """
+        try:
+            error = json.loads(error_body).get("error") or {}
+        except (json.JSONDecodeError, AttributeError):
+            error = {}
+        message = str(error.get("message") or error_body)
+        param = str(error.get("param") or "")
+        if not param:
+            found = re.search(r"(?:parameter|value|argument)[^']*'([a-z_]+)'", message)
+            param = found.group(1) if found else ""
+
+        if param == "reasoning_effort" or "reasoning_effort" in message:
+            current = sent.get("reasoning_effort")
+            # Muốn không suy luận ("none") mà không được: bỏ hẳn tham số, vì "none" là mặc định của các bản đó
+            candidates = ("minimal",) if current == "none" else ("none", "minimal", "low")
+            for value in candidates:
+                if value != current and f"'{value}'" in message:
+                    logger.warning(f"MT model does not accept reasoning_effort={current!r}; using {value!r}")
+                    self.reasoning_effort = value
+                    if value == "none":
+                        self.max_completion_tokens = 0  # như lúc khởi tạo với "none"
+                    return True
+            if "reasoning_effort" in sent:
+                logger.warning("MT model does not accept reasoning_effort; no longer sending it")
+                self.dropped_params.add("reasoning_effort")
+                return True
+            return False
+        if param and param in sent and param not in _REQUIRED_PARAMS:
+            logger.warning(f"MT model does not accept {param!r}; no longer sending it")
+            self.dropped_params.add(param)
+            return True
+        return False
 
     @staticmethod
     def _is_repeating(text: str) -> bool:
@@ -296,40 +421,52 @@ class LlamaCppMtEngine(MtEngine):
             ],
         }
 
-        headers: dict[str, str] = {}
-        if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
-            payload = hosted_payload(payload, self.model)
-
         accumulated = ""
         async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
             try:
-                async with client.stream(
-                    "POST", f"{self.api_url}/chat/completions", json=payload, headers=headers
-                ) as response:
-                    response.raise_for_status()
-                    async for line in response.aiter_lines():
-                        if line.startswith("data: "):
+                # Gửi lại tối đa 2 lần khi API từ chối một tham số (adapt_to_error)
+                for attempt in range(3):
+                    url, headers, body = self.request(payload)
+                    async with client.stream("POST", url, json=body, headers=headers) as response:
+                        if response.status_code >= 400:
+                            # Đọc lỗi khi kết nối còn mở; đọc sau khi đóng thì mất nội dung lỗi
+                            error_body = (await response.aread()).decode("utf-8", errors="ignore")
+                            retry = response.status_code == 400 and self.hosted and attempt < 2
+                            if retry and self.adapt_to_error(error_body, body):
+                                continue
+                            logger.error(f"MT request error to {url}: HTTP {response.status_code} - {error_body[:500]}")
+                            response.raise_for_status()
+                        async for line in response.aiter_lines():
+                            if not line.startswith("data: "):
+                                continue
                             data_str = line[6:].strip()
                             if data_str == "[DONE]":
                                 break
                             try:
                                 data = json.loads(data_str)
-                                choices = data.get("choices", [])
-                                if choices:
-                                    delta = choices[0].get("delta", {}).get("content", "")
-                                    if delta:
-                                        accumulated += delta
-                                        if self._is_repeating(accumulated) or self._is_babble(accumulated, target_lang):
-                                            break
-                                        yield delta
                             except json.JSONDecodeError:
-                                pass
-            except httpx.HTTPStatusError as e:
-                err_body = await e.response.aread()
-                err_str = err_body.decode("utf-8", errors="ignore")
-                logger.error(f"MT request error to {self.api_url}: HTTP {e.response.status_code} - {err_str}")
-                raise
+                                continue
+                            choices = data.get("choices", [])
+                            delta = choices[0].get("delta", {}).get("content", "") if choices else ""
+                            if not delta:
+                                continue
+                            line_done = False
+                            if self.hosted and "\n" in delta:
+                                # API trên cloud không có chuỗi dừng: chỉ lấy dòng đầu rồi thôi đọc, để câu chốt sớm
+                                piece = delta if accumulated.strip() else delta.lstrip()
+                                if "\n" in piece:
+                                    piece, line_done = piece.split("\n", 1)[0], True
+                                delta = piece
+                            if delta:
+                                accumulated += delta
+                                if self._is_repeating(accumulated) or self._is_babble(accumulated, target_lang):
+                                    break
+                                yield delta
+                            if line_done:
+                                break
+                    return
+            except httpx.HTTPStatusError:
+                raise  # đã ghi log ở trên, kèm nội dung lỗi
             except httpx.HTTPError as e:
                 logger.error(f"MT request error to {self.api_url}: {e}")
                 raise

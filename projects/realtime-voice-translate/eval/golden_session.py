@@ -217,7 +217,15 @@ def translate_requests(mt_requests: list[dict], golden: str, api_url: str, gloss
     if target != "vi":
         raise SystemExit("--mt-url: bản dịch tham chiếu hiện chỉ có tiếng Việt")
     names = [n for n in glossary.split(",") if n.strip()]
-    translator = AppLikeTranslator(LlamaCppMtEngine(api_url=api_url), load_glossary(names, packs_dir=PACKS))
+    # API trên cloud (docs 10 §13): khoá và tên model đọc từ RVT_MT_API_KEY, RVT_MT_MODEL như server
+    engine = LlamaCppMtEngine(
+        api_url=api_url,
+        timeout_sec=30.0,
+        api_key=os.environ.get("RVT_MT_API_KEY", ""),
+        model=os.environ.get("RVT_MT_MODEL", ""),
+        reasoning_effort=os.environ.get("RVT_MT_REASONING_EFFORT", "auto"),
+    )
+    translator = AppLikeTranslator(engine, load_glossary(names, packs_dir=PACKS))
     outs, secs = asyncio.run(translate_all([r["text"] for r in mt_requests], translator))
     for r, o in zip(mt_requests, outs, strict=True):
         r["mt"] = o

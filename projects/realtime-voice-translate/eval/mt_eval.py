@@ -131,8 +131,14 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument(
         "--model",
-        default="",
-        help="tên model khi gọi API lưu trữ (ví dụ một model OpenAI); để trống với llama.cpp cục bộ",
+        default=os.environ.get("RVT_MT_MODEL", ""),
+        help="tên model khi gọi API trên cloud; URL deployment của Azure đã có tên deployment thì để trống",
+    )
+    parser.add_argument("--provider", default=os.environ.get("RVT_MT_PROVIDER", ""), help="azure | openai; trống: đoán")
+    parser.add_argument(
+        "--reasoning-effort",
+        default=os.environ.get("RVT_MT_REASONING_EFFORT", "auto"),
+        help='auto: thấp nhất theo tên model (gpt-5.4-mini: none, gpt-5-mini: minimal); "" để không gửi',
     )
     parser.add_argument(
         "--api-key",
@@ -147,7 +153,14 @@ def main() -> None:
     if args.limit:
         refs = refs[: args.limit]
     glossary = load_glossary([n for n in args.glossary.split(",") if n.strip()], packs_dir=PACKS)
-    engine = LlamaCppMtEngine(api_url=args.api_url, timeout_sec=args.timeout, api_key=args.api_key, model=args.model)
+    engine = LlamaCppMtEngine(
+        api_url=args.api_url,
+        timeout_sec=args.timeout,
+        api_key=args.api_key,
+        model=args.model,
+        provider=args.provider,
+        reasoning_effort=args.reasoning_effort,
+    )
     translator = AppLikeTranslator(engine, glossary, use_context=not args.no_context, pivot_en=args.pivot_en)
     outs, secs = asyncio.run(translate_all([r["ja"] for r in refs], translator))
 

@@ -1,4 +1,4 @@
-.PHONY: help setup test test-e2e eval bench smoke clean tls models up down pdf up-listen models-listen clean-models
+.PHONY: help setup test test-e2e eval bench smoke clean tls models up down pdf up-listen up-api-mt models-listen clean-models
 
 help:
 	@echo "Available commands:"
@@ -13,6 +13,7 @@ help:
 	@echo "  make pdf       - Convert Technical Design markdown to PDF with Mermaid diagrams"
 	@echo "  make up        - Start all services (AI + Web) via docker compose"
 	@echo "  make up-listen - Start listen-only stack (speech to text, no translation, 8 GB GPU)"
+	@echo "  make up-api-mt - Speech to text on the GPU, translation through a cloud API (set RVT_MT_* in .env)"
 	@echo "  make models-listen - Prepare listen-only models (Silero VAD, PhoWhisper-large CT2, large-v3-turbo)"
 	@echo "  make clean-models  - List models the listen-only stack does not use (add YES=1 to delete)"
 	@echo "  make down      - Stop all services"
@@ -59,6 +60,9 @@ up-gpu:
 
 up-listen:
 	./start.sh --listen
+
+up-api-mt:
+	./start.sh --api-mt
 
 models-listen:
 	./scripts/prepare_listen_models.sh

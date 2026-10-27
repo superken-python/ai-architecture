@@ -35,15 +35,16 @@ def test_golden_1_references_are_complete():
 
 
 def test_hosted_payload_fits_api_limits():
-    # API lưu trữ nhận tối đa 4 chuỗi dừng và không nhận top_p (docs 09 §5.6)
+    # GPT-5 không nhận temperature, top_p, max_tokens; bản mới không nhận stop (docs 09 §5.6, docs 10 §13)
     from rvt_ai.engines.mt_llama import hosted_payload
 
     local = {"messages": [], "stream": True, "max_tokens": 64, "temperature": 0.1, "top_p": 0.7, "stop": ["\n"] * 25}
-    out = hosted_payload(local, "some-model")
-    assert out["model"] == "some-model" and out["stop"] == ["\n"]
-    assert "top_p" not in out and "temperature" not in out and "max_tokens" not in out
+    out = hosted_payload(local, "some-model", reasoning_effort="minimal")
+    assert out["model"] == "some-model" and out["reasoning_effort"] == "minimal"
+    assert not {"stop", "top_p", "temperature", "max_tokens"} & set(out)
     assert out["max_completion_tokens"] == 1024
     assert "model" not in hosted_payload(local, "")
+    assert "max_completion_tokens" not in hosted_payload(local, "m", max_completion_tokens=0)
 
 
 def test_compare_script_rejects_different_sentence_sets(tmp_path):

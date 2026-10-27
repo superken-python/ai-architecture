@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ProfileType = Literal["fake", "cpu-dev", "fast", "balanced", "quality", "listen"]
+ProfileType = Literal["fake", "cpu-dev", "fast", "balanced", "quality", "listen", "api-mt"]
 
 
 class Settings(BaseSettings):
@@ -38,6 +38,16 @@ class Settings(BaseSettings):
     # External services
     MT_API_URL: str = "http://localhost:8080/v1"
     MT_TIMEOUT_SEC: float = 5.0
+    # Dịch qua API trên cloud (profile api-mt, docs 10 §13). MT_API_URL là URL gốc hoặc nguyên "Target URI" của
+    # deployment Azure (…/openai/deployments/<tên>/chat/completions?api-version=…). Khoá chỉ đặt qua biến môi trường.
+    MT_API_KEY: str = ""
+    # azure | openai; để trống thì đoán theo URL
+    MT_PROVIDER: str = ""
+    # Tên model (OpenAI, Azure v1). URL deployment của Azure đã có tên deployment thì để trống
+    MT_MODEL: str = ""
+    # auto: mức suy luận thấp nhất theo tên model (gpt-5.4-mini: none, gpt-5-mini: minimal); "" để không gửi
+    MT_REASONING_EFFORT: str = "auto"
+    MT_MAX_COMPLETION_TOKENS: int = 1024
 
     # LAN / Deployment
     LAN_IP: str = "127.0.0.1"

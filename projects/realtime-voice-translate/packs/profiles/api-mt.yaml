@@ -1,0 +1,27 @@
+name: "api-mt"
+description: "Nghe trên GPU 8 GB, dịch qua API trên cloud (Azure OpenAI / OpenAI, ví dụ gpt-5.4-mini) — docs 10 §13"
+# Không có container Qwen: cả GPU dành cho phần nghe, như profile listen. Bản dịch gọi API qua mạng.
+# Cấu hình bằng biến môi trường: RVT_MT_API_URL, RVT_MT_API_KEY (và RVT_MT_MODEL nếu URL không có tên deployment).
+vad:
+  engine: "silero"
+  threshold: 0.4
+  neg_threshold: 0.25
+  min_speech_ms: 200
+  min_silence_ms: 500
+  speech_pad_ms: 200
+  preroll_ms: 400
+  max_ms: 4000
+  hard_max_ms: 6000
+  partial_interval_ms: 800
+asr:
+  engine: "faster-whisper"
+  model: "large-v3-turbo"
+  models:
+    # Khi nửa đó khoá Tiếng Việt; "Tự động" và tiếng Nhật dùng large-v3-turbo
+    vi: "phowhisper-large-ct2"
+    en: "large-v3-turbo"
+  device: "cuda"
+  compute_type: "int8_float16"
+mt:
+  engine: "api"
+  model: "gpt-5.4-mini"

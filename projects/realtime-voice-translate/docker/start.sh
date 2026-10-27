@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Default parameters
-MODE="auto" # "auto", "gpu", "cpu", "listen"
+MODE="auto" # "auto", "gpu", "cpu", "listen", "api-mt"
 REBUILD=""
 ACTION="up"
 
@@ -32,6 +32,7 @@ usage() {
     echo "  --gpu          Force GPU mode (requires NVIDIA Docker runtime & CUDA)"
     echo "  --cpu          Force CPU/dev mode (no GPU required, uses fake/CPU engine)"
     echo "  --listen       Listen-only on an 8 GB GPU: speech to text, no translation container (docs 10 §10)"
+    echo "  --api-mt       Speech to text on the GPU, translation through a cloud API (Azure OpenAI / OpenAI, docs 10 §13)"
     echo "  --build        Rebuild Docker images before starting"
     echo "  --down, stop   Stop all running containers"
     echo "  --restart      Restart all containers"
@@ -43,6 +44,7 @@ usage() {
     echo "  ./start.sh                # Auto-detect hardware & start in background"
     echo "  ./start.sh --cpu          # Start in CPU/fake mode"
     echo "  ./start.sh --listen       # Listen-only (Vietnamese/English speech to text)"
+    echo "  ./start.sh --api-mt       # Translate with a cloud API; set RVT_MT_API_URL, RVT_MT_API_KEY in .env"
     echo "  ./start.sh --build        # Rebuild images & start"
     echo "  ./start.sh --down         # Stop all services"
     exit 0
@@ -61,6 +63,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --listen)
             MODE="listen"
+            shift
+            ;;
+        --api-mt)
+            MODE="api-mt"
             shift
             ;;
         --build)
@@ -95,7 +101,8 @@ done
 
 # Action handlers: status, logs, down
 if [[ "${ACTION}" == "status" ]]; then
-    for f in docker/docker-compose.yml docker/docker-compose.listen.yml docker/docker-compose.cpu.yml; do
+    for f in docker/docker-compose.yml docker/docker-compose.listen.yml docker/docker-compose.api-mt.yml \
+        docker/docker-compose.cpu.yml; do
         docker compose -f "${f}" ps 2>/dev/null || true
     done
     exit 0
@@ -110,6 +117,7 @@ if [[ "${ACTION}" == "down" ]]; then
     echo -e "${YELLOW}Stopping all RVT services...${NC}"
     docker compose -f docker/docker-compose.yml down --remove-orphans 2>/dev/null || true
     docker compose -f docker/docker-compose.listen.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f docker/docker-compose.api-mt.yml down --remove-orphans 2>/dev/null || true
     docker compose -f docker/docker-compose.cpu.yml down --remove-orphans 2>/dev/null || true
     echo -e "${GREEN}✓ All services stopped.${NC}"
     exit 0
@@ -181,12 +189,36 @@ if [[ "${ACTION}" == "restart" ]]; then
     echo -e "${YELLOW}Restarting services...${NC}"
     docker compose -f docker/docker-compose.yml down --remove-orphans 2>/dev/null || true
     docker compose -f docker/docker-compose.listen.yml down --remove-orphans 2>/dev/null || true
+    docker compose -f docker/docker-compose.api-mt.yml down --remove-orphans 2>/dev/null || true
     docker compose -f docker/docker-compose.cpu.yml down --remove-orphans 2>/dev/null || true
 fi
 
-if [[ "${MODE}" == "listen" ]]; then
-    COMPOSE_FILE="docker/docker-compose.listen.yml"
-    echo -e "${BLUE}Starting listen-only stack with ${COMPOSE_FILE} (no translation)...${NC}"
+# Biến môi trường trong .env ở thư mục dự án (RVT_MT_API_URL, RVT_MT_API_KEY…). Không có thì compose đọc docker/.env.
+ENV_FILE_ARGS=()
+if [[ -f "${PROJECT_ROOT}/.env" ]]; then
+    ENV_FILE_ARGS=(--env-file "${PROJECT_ROOT}/.env")
+fi
+
+env_is_set() {
+    # Biến có giá trị trên shell hoặc trong file .env đang dùng
+    local name="$1" file="${PROJECT_ROOT}/.env"
+    [[ -f "${file}" ]] || file="${PROJECT_ROOT}/docker/.env"
+    [[ -n "${!name:-}" ]] || grep -qsE "^${name}=['\"]?[^'\"[:space:]]" "${file}"
+}
+
+if [[ "${MODE}" == "listen" || "${MODE}" == "api-mt" ]]; then
+    if [[ "${MODE}" == "listen" ]]; then
+        COMPOSE_FILE="docker/docker-compose.listen.yml"
+        echo -e "${BLUE}Starting listen-only stack with ${COMPOSE_FILE} (no translation)...${NC}"
+    else
+        COMPOSE_FILE="docker/docker-compose.api-mt.yml"
+        echo -e "${BLUE}Starting stack with ${COMPOSE_FILE} (translation through a cloud API)...${NC}"
+        for var in RVT_MT_API_URL RVT_MT_API_KEY; do
+            if ! env_is_set "${var}"; then
+                echo -e "${YELLOW}! Chưa đặt ${var} (trong .env hoặc trên shell): mọi câu dịch sẽ lỗi.${NC}"
+            fi
+        done
+    fi
     if [[ ! -f "${PROJECT_ROOT}/models/phowhisper-large-ct2/model.bin" ]]; then
         echo -e "${YELLOW}! Chưa có models/phowhisper-large-ct2: tiếng Việt sẽ tạm dùng large-v3-turbo.${NC}"
         echo -e "${YELLOW}  Chuẩn bị model: ${GREEN}./scripts/prepare_listen_models.sh${NC}"
@@ -255,7 +287,8 @@ fi
 
 # Execute Compose up
 echo -e "${CYAN}Deploying containers (mode: ${MODE})...${NC}"
-docker compose -f "${COMPOSE_FILE}" up -d ${REBUILD}
+# ${arr[@]+...}: mảng rỗng cùng set -u vẫn chạy được trên bash 3.2 (macOS)
+docker compose ${ENV_FILE_ARGS[@]+"${ENV_FILE_ARGS[@]}"} -f "${COMPOSE_FILE}" up -d ${REBUILD}
 
 # Step 5: Wait for health check & print status
 echo -e "${CYAN}Waiting for services to become healthy...${NC}"

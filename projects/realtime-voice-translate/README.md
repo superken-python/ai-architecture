@@ -59,6 +59,9 @@ Nền tảng cấu trúc: [best practice dự án Python AI](../python-ai-projec
 - Chỉ nghe (tiếng Việt, tiếng Anh, GPU 8 GB, không dịch): `make models-listen` rồi `make up-listen`; xoá model không dùng
   bằng `make clean-models` (xem trước) và `make clean-models YES=1` (xoá). Xem
   [docs/10](docs/10-nghien-cuu-lai-nghe-mot-chieu.md) §10.
+- Dịch video/họp với GPU 8 GB: nghe trên GPU, dịch qua API trên cloud (Azure OpenAI, ví dụ gpt-5.4-mini). Đặt
+  `RVT_MT_API_URL` (nguyên Target URI của deployment) và `RVT_MT_API_KEY` trong `.env`, rồi `make up-api-mt`. Xem
+  [docs/10](docs/10-nghien-cuu-lai-nghe-mot-chieu.md) §13.
 - Giới hạn và rủi ro: xem mục 14 của kế hoạch
 
 ## Kỹ năng sẽ luyện

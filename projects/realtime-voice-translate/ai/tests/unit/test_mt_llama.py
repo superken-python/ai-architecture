@@ -7,8 +7,13 @@ from rvt_ai.engines.mt_llama import LlamaCppMtEngine
 
 
 class _FakeResponse:
+    status_code = 200
+
     def __init__(self, deltas: list[str]):
         self.deltas = deltas
+
+    async def aread(self) -> bytes:
+        return b""
 
     def raise_for_status(self) -> None:
         pass
@@ -81,5 +86,5 @@ async def test_api_key_is_sent_and_payload_is_hosted(monkeypatch):
     engine = LlamaCppMtEngine(api_url="https://api.example/v1", api_key="k-test", model="m-test")
     [_ async for _ in engine.translate_stream("ありがとう", "ja", "vi")]
     assert seen["headers"] == {"Authorization": "Bearer k-test"}
-    assert seen["json"]["model"] == "m-test" and len(seen["json"]["stop"]) <= 4
+    assert seen["json"]["model"] == "m-test" and "stop" not in seen["json"]
     assert "top_p" not in seen["json"]

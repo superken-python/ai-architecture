@@ -12,7 +12,7 @@ from rvt_ai.core.logging import logger
 from rvt_ai.engines.mt_llama import EXPLANATION_AFTER_SENTENCE
 from rvt_ai.engines.ports import AsrEngine, MtEngine, MtHints, VadEngine
 from rvt_ai.packs.glossary import Glossary, fix_leftovers, get_glossary, get_phrasebook
-from rvt_ai.pipeline.lid_policy import pick_language, update_side_prior
+from rvt_ai.pipeline.lid_policy import correct_language, pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
@@ -530,6 +530,13 @@ class RVTSession:
                     audio, force_lang=final_lang, is_final=True, session_id=self.session_id
                 )
 
+        # Chữ nhận dạng là ngôn ngữ khác hẳn ngôn ngữ đã khoá: tin vào chữ, để nhãn đúng và không "dịch" tiếng Việt
+        # sang tiếng Việt (docs 10 §13)
+        corrected = correct_language(text, final_lang)
+        if corrected != final_lang:
+            logger.info(f"[{self.session_id}] Text is {corrected}, not {final_lang} as locked/detected: '{text}'")
+            final_lang = corrected
+
         # Update prior if confident
         if not uncertain:
             self.sides_prior[side] = update_side_prior(self.sides_prior[side], final_lang)
@@ -599,6 +606,9 @@ class RVTSession:
 
         # 4. Trigger MT for targets. Không có bộ dịch: chế độ chỉ nghe (docs 10 §10.3)
         if self.mt is None:
+            return
+        # Câu không có chữ ("2", "…"): không có gì để dịch, model dịch chỉ bịa thêm ("2" → "Được rồi.")
+        if not any(ch.isalpha() for ch in text):
             return
         if self.targets:
             targets = [tgt for tgt in self.targets if tgt != lang]
