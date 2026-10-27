@@ -1,17 +1,19 @@
-# 02 · Mapping kết quả Semgrep, ZAP, Trivy ↔ IPA, export IPA knowledge base và cập nhật liên tục
+# 02 · Phía công cụ: CWE trong output của Semgrep, ZAP, Trivy và cách đối chiếu với IPA
 
 Ngày: 2026-10-27 (cập nhật lần 2: thêm Trivy và ZAP) · Đọc trước: [01 · Nghiên cứu IPA, CWE, Semgrep](01-nghien-cuu-ipa-cwe-semgrep.md) (có giải thích nhãn **[đã kiểm chứng]** / **[tìm kiếm web]** / **[chưa xác minh]** và lý do một số trang IPA/MITRE/Semgrep chưa đọc trực tiếp được).
+
+> **Đính chính (cập nhật lần 3).** Lần trước mình xuất `exports/ipa_map_all_tools.csv` bằng cách lấy rule của Semgrep/ZAP đổ vào template. Hướng đó **sai**: IPA và NVD mới là cơ sở tri thức (KB) để các công cụ tra cứu vào, còn công cụ chỉ đưa ra khóa CWE/CVE. File đó đã bị gỡ. KB IPA + NVD, không phụ thuộc công cụ, nằm ở [tài liệu 03](03-kb-ipa-nvd-cho-cong-cu.md) và thư mục [`kb/`](../kb/). Tài liệu này giờ chỉ mô tả **phía công cụ**: CWE nằm ở đâu trong output, chuẩn hóa thế nào, đo độ phủ theo rule, sửa CWE sai của rule (thư mục [`tool_side/`](../tool_side/)).
 
 ## 1 · Tóm tắt
 
 1. **Cầu nối là CWE, với cả ba công cụ, nhưng không đồng đều.** Semgrep (SAST) gắn CWE vào *rule*; ZAP (DAST) gắn `cweid` vào mỗi *alert*; Trivy chỉ gắn `CweIDs` cho *lỗ hổng của thư viện/gói* (CVE). Cấu hình sai (misconfig), secret và license của Trivy **không có CWE**. Chuỗi mapping chung: `finding → CWE → mục IPA → đối sách IPA`.
 2. **Trivy và ZAP đều là mã nguồn mở** **[đã kiểm chứng file LICENSE]**: Trivy Apache-2.0, ZAP và `zap-extensions` Apache-2.0, `trivy-checks` MIT (chi tiết ở mục 2).
-3. **Có một file import duy nhất cho cả ba công cụ:** [`exports/ipa_map_all_tools.csv`](../exports/ipa_map_all_tools.csv) (553 dòng), mỗi dòng nối *mục IPA ↔ CWE ↔ công cụ ↔ rule/check*. Làm được vì mapping đi qua CWE nên bảng IPA↔CWE vốn không phụ thuộc công cụ. File này **sinh ra** từ các bảng nguồn, không sửa tay (mục 8).
+3. **KB để tra cứu là IPA + NVD, không phải dữ liệu rule của công cụ** (xem đính chính ở đầu và [tài liệu 03](03-kb-ipa-nvd-cho-cong-cu.md)). Các mục dưới đây mô tả phía công cụ.
 4. **Bảng IPA↔CWE phải tự biên soạn rồi kiểm duyệt.** Mình chưa thấy nguồn nào xuất sẵn bảng này dưới dạng dữ liệu (mới chỉ tìm kiếm web, chưa đọc được trang IPA). Bản seed trong `templates/` ghi theo trí nhớ, mọi dòng đều gắn `seed_unverified`.
 5. **11 mục IPA chỉ phủ khoảng 1/4 những gì công cụ gắn CWE.** Semgrep: 22,6% khớp trực tiếp, 2,2% khớp qua cây CWE, **75,2% không thuộc mục nào**. ZAP: 19,5% + 2,7%, **77,9% không thuộc mục nào**. Vì vậy bắt buộc có trạng thái `OUT_OF_IPA_SCOPE`, không được bỏ những finding này.
 6. **ZAP bổ sung đúng chỗ Semgrep yếu:** 10/11 mục IPA có ít nhất một scan rule ZAP (kiểm tra header chống clickjacking CWE-1021, cờ cookie, token CSRF...); chỉ mục 1.8 (mail header injection) không có. Mục 1.9 (clickjacking) là ví dụ rõ: rule Semgrep duy nhất gắn CWE-1021 thực ra là rule về route của Rails (xem 4.4), còn ZAP có rule kiểm tra header đúng nghĩa.
 7. **Trivy chủ yếu nằm ngoài tầm IPA:** CVE của thư viện có thể được phân loại theo CWE rồi theo mục IPA, nhưng đối sách của IPA dành cho người viết website, không phải cách vá thư viện (cách vá là nâng phiên bản). Misconfig/secret ra `NO_CWE`.
-8. **Tag CWE của Semgrep có chỗ sai** (hai kiểu đã gặp: 2 biến thể `tainted-sql-string` của Python bị gắn CWE-915/704 thay vì CWE-89; rule `filter-skipping` của Rails bị gắn CWE-1021 clickjacking) → cần bảng `semgrep_cwe_override` có người duyệt; file export đánh cờ các dòng bị ảnh hưởng.
+8. **Tag CWE của Semgrep có chỗ sai** (hai kiểu đã gặp: 2 biến thể `tainted-sql-string` của Python bị gắn CWE-915/704 thay vì CWE-89; rule `filter-skipping` của Rails bị gắn CWE-1021 clickjacking) → cần bảng `semgrep_cwe_override` có người duyệt.
 9. **Cập nhật liên tục** = job định kỳ phát hiện thay đổi ở từng nguồn → chạy ETL → sinh diff → **mở PR cho người duyệt** → merge → dựng lại DB. Nội dung lấy từ IPA không bao giờ tự động merge.
 10. **Đã chạy thật tới đâu:** Semgrep scan thật; Trivy chỉ chạy bộ chuyển đổi trên 5 file output mẫu của chính dự án Trivy (chưa chạy Trivy); ZAP chỉ kiểm thử bộ chuyển đổi trên fixture và trích CWE từ mã nguồn rule (chưa chạy ZAP). Xem mục 11 về lý do.
 ---
@@ -176,7 +178,7 @@ Khớp theo cây thuần túy dễ ra kết quả sai nghĩa (lần thử đầu
 | `add` | Giữ CWE cũ, thêm CWE mới | `hardcoded-config.yaml` (rule `avoid_hardcoded_config_SECRET_KEY`): giữ 489, thêm 798 |
 | `ignore` | Bỏ CWE này khỏi mapping | `ruby/lang/security/filter-skipping.yaml`: bỏ CWE-1021. Message và tham chiếu (Brakeman) của rule nói về route Rails có thể render view tùy ý, không liên quan clickjacking; đây cũng là rule Semgrep **duy nhất** gắn CWE-1021 nên IPA-WEB-09 trông như đã có phủ |
 
-Chỉ áp override có `verification_status = 'approved'`. Hai dòng `replace` là bằng chứng mạnh (so sánh với biến thể cùng tên); dòng `ignore` (OV-0004) dựa trên việc đọc nội dung rule; dòng `add` (OV-0003) chỉ là nhận định. Cả bốn đang để `proposed`, tức **chưa có hiệu lực**; file export (mục 8) đánh cờ các dòng bị ảnh hưởng.
+Chỉ áp override có `verification_status = 'approved'`. Hai dòng `replace` là bằng chứng mạnh (so sánh với biến thể cùng tên); dòng `ignore` (OV-0004) dựa trên việc đọc nội dung rule; dòng `add` (OV-0003) chỉ là nhận định. Cả bốn đang để `proposed`, tức **chưa có hiệu lực**.
 
 **Giới hạn hiện tại:** bảng override chỉ dành cho Semgrep. ZAP và Trivy mang CWE theo từng finding nên nếu CWE của một ZAP rule hay một CVE bị coi là sai thì chưa có chỗ sửa. Hướng mở rộng: thêm cột `tool` và khóa `(tool, check_id)` (ZAP: `pluginid`; Trivy: `VulnerabilityID`). Chưa làm vì chưa có bằng chứng về một CWE sai cụ thể ở hai công cụ này.
 
@@ -204,7 +206,7 @@ Dữ liệu: `semgrep-rules` commit `16b9e6d` (2026-10-21); `zap-extensions` com
 | ZAP (148 lớp scan rule) | 149 | 78 | 29 (19,5%) · 11 CWE | 4 (2,7%) · 4 CWE | **116 (77,9%)** · 63 CWE |
 | Trivy | không có catalog rule: CWE đi theo từng CVE trong DB | – | chưa đo được (không tải được DB); xem minh họa dưới | | |
 
-**Từng mục IPA có bao nhiêu rule/CWE** (khớp trực tiếp hoặc qua cây; lấy từ file export ở mục 8, bỏ các dòng `pending_override` chưa có hiệu lực):
+**Từng mục IPA có bao nhiêu rule/CWE** (khớp trực tiếp hoặc qua cây; tính từ catalog rule trong `tool_side/` ghép với bảng IPA↔CWE, chưa áp override nào):
 
 | Mục IPA | ZAP (rule) | Semgrep (rule) | Trivy (số CWE khớp) |
 |---|---|---|---|
@@ -293,6 +295,8 @@ Lưu ý: bản mẫu `cwe_catalog.csv`/`cwe_relation.csv` chỉ có 69 mục CWE
 
 ## 7 · Export IPA knowledge base
 
+> Đây là phác thảo ban đầu. Thiết kế đầy đủ KB **IPA + NVD** (thêm JVN iPedia của IPA, NVD, chính sách chọn CWE, file export và cách cập nhật) ở [tài liệu 03](03-kb-ipa-nvd-cho-cong-cu.md).
+
 Không có thao tác "export" một chạm: phần cốt lõi của IPA là tài liệu văn bản. Đề xuất ba lớp, mỗi lớp một cách lấy:
 
 | Lớp | Nội dung | Nguồn | Cách lấy | Máy đọc được? | Ai duyệt |
@@ -314,9 +318,9 @@ Quy trình dựng L1 (làm một lần, rồi chỉ cập nhật khi IPA ra bả
 
 ---
 
-## 8 · Template CSV để import
+## 8 · Template CSV: nguồn IPA/CWE và phía công cụ
 
-Chín file trong [`../templates/`](../templates/), đã có dữ liệu mẫu và đã nạp thử thành công vào SQLite (tên bảng = tên file). Cột `verification_status` có mặt ở các bảng chứa tri thức do người biên soạn.
+Sáu file nguồn IPA/CWE trong [`../templates/`](../templates/) và ba file phía công cụ trong [`../tool_side/`](../tool_side/), đã có dữ liệu mẫu và đã nạp thử thành công vào SQLite (tên bảng = tên file). Bản export KB để công cụ tra cứu nằm ở [`../kb/`](../kb/), xem [tài liệu 03](03-kb-ipa-nvd-cho-cong-cu.md). Cột `verification_status` có mặt ở các bảng chứa tri thức do người biên soạn.
 
 | File | Mục đích | Khóa chính | Khóa ngoại | Nguồn dữ liệu | Dòng mẫu |
 |---|---|---|---|---|---|
@@ -325,53 +329,18 @@ Chín file trong [`../templates/`](../templates/), đã có dữ liệu mẫu v�
 | [`cwe_catalog.csv`](../templates/cwe_catalog.csv) | Danh mục CWE | `cwe_id` | | MITRE XML, tự động | 69 (mẫu) |
 | [`cwe_relation.csv`](../templates/cwe_relation.csv) | Quan hệ cha–con CWE | (`cwe_id`, `related_cwe_id`, `nature`, `view_id`) | cả hai cột → `cwe_catalog` | MITRE XML, tự động | 71 (mẫu) |
 | [`ipa_cwe_map.csv`](../templates/ipa_cwe_map.csv) | **Mapping IPA ↔ CWE** | `map_id` | `ipa_id`, `cwe_id` | Biên soạn + kiểm duyệt | 18 (seed) |
-| [`semgrep_rule_cwe.csv`](../templates/semgrep_rule_cwe.csv) | Catalog rule Semgrep và CWE của chúng | (`rule_file`, `rule_id`, `cwe_id`) | `cwe_id` → `cwe_catalog` | `semgrep-rules`, tự động | 19 (mẫu); bản đủ 1.662 |
-| [`zap_rule_cwe.csv`](../templates/zap_rule_cwe.csv) | Catalog scan rule ZAP và CWE của chúng | (`addon`, `rule_class`, `cwe_id`) | `cwe_id` → `cwe_catalog` | `zap-extensions`, tự động | 17 (mẫu); bản đủ 168 dòng (151 dòng scan rule) |
-| [`semgrep_cwe_override.csv`](../templates/semgrep_cwe_override.csv) | Sửa CWE sai/thiếu của rule Semgrep | `override_id` | (`rule_file`, `rule_id`) → `semgrep_rule_cwe` | Biên soạn + duyệt | 4 (đề xuất) |
-| [`source_version.csv`](../templates/source_version.csv) | Phiên bản/hash từng nguồn, phục vụ phát hiện thay đổi | `source_id` | | Tự động | 11 |
+| [`semgrep_rule_cwe.csv`](../tool_side/semgrep_rule_cwe.csv) | Catalog rule Semgrep và CWE của chúng | (`rule_file`, `rule_id`, `cwe_id`) | `cwe_id` → `cwe_catalog` | `semgrep-rules`, tự động | 19 (mẫu); bản đủ 1.662 |
+| [`zap_rule_cwe.csv`](../tool_side/zap_rule_cwe.csv) | Catalog scan rule ZAP và CWE của chúng | (`addon`, `rule_class`, `cwe_id`) | `cwe_id` → `cwe_catalog` | `zap-extensions`, tự động | 17 (mẫu); bản đủ 168 dòng (151 dòng scan rule) |
+| [`semgrep_cwe_override.csv`](../tool_side/semgrep_cwe_override.csv) | Sửa CWE sai/thiếu của rule Semgrep | `override_id` | (`rule_file`, `rule_id`) → `semgrep_rule_cwe` | Biên soạn + duyệt | 4 (đề xuất) |
+| [`source_version.csv`](../templates/source_version.csv) | Phiên bản/hash từng nguồn, phục vụ phát hiện thay đổi | `source_id` | | Tự động | 15 |
 
 Thứ tự nạp: `cwe_catalog` → `cwe_relation` → `ipa_item` → `ipa_countermeasure` → `ipa_cwe_map` → `semgrep_rule_cwe` → `zap_rule_cwe` → `semgrep_cwe_override` → `source_version`.
 
 Kết quả scan **không** nằm trong CSV mẫu: loader (mục 9.4) tạo bảng `scan_finding` và `scan_finding_cwe` từ file JSON mỗi lần chạy.
 
-### Một file import duy nhất cho cả ba công cụ
+### Đính chính: không còn file import ghép từ rule của công cụ
 
-[`../exports/ipa_map_all_tools.csv`](../exports/ipa_map_all_tools.csv) gộp mapping cho Semgrep, ZAP và Trivy vào **một file phẳng** để import một lần (Excel, DB, BI). Bảng IPA↔CWE vốn không phụ thuộc công cụ, nên mỗi dòng chỉ cần thêm cột `tool` cùng rule/check tương ứng.
-
-- Đây là file **dẫn xuất**: sinh từ các bảng nguồn bằng view `export_ipa_map_all_tools` (mục 9.4). Không sửa tay; muốn đổi nội dung thì sửa `ipa_cwe_map.csv`, `semgrep_cwe_override.csv`... rồi sinh lại. File không chứa ngày giờ, nên sinh lại cho cùng dữ liệu cho ra đúng từng byte và diff trong PR chỉ có dòng thật sự đổi.
-- Bản trong repo: **553 dòng, 19 cột**, sinh từ `semgrep-rules` `16b9e6d`, `zap-extensions` `51e4155`, CWE 4.14 và bảng seed IPA↔CWE **chưa xác minh** (mọi dòng `verification_status = seed_unverified`).
-- Số dòng: Semgrep 417, Trivy 103, ZAP 33. Kiểm chéo với mục 5: số cặp (rule, CWE) khác nhau là 413 (Semgrep) và 33 (ZAP). Semgrep nhiều hơn 4 dòng vì 2 dòng do CWE-93 thuộc hai mục IPA và 2 dòng `pending_override`.
-- Trivy không có catalog rule nên mỗi dòng ở mức CWE (102 CWE khác nhau): "mọi CVE có `CweIDs` chứa CWE này thì thuộc mục IPA này".
-
-| Cột | Ý nghĩa |
-|---|---|
-| `ipa_id`, `ipa_section_no`, `ipa_name_ja`, `ipa_name_en`, `ipa_name_vi` | Mục IPA |
-| `cwe_id`, `cwe_name_en` | CWE (số nguyên, tên theo CWE 4.14) |
-| `match_kind` | `exact`, `narrower`, `broader`, `related`, `ancestor` (mục 4.2) |
-| `via_cwe_id` | Chỉ với `ancestor`: CWE tổ tiên đã khớp (ví dụ 120 khớp qua 119) |
-| `confidence` | `high`/`medium`/`low` của dòng `ipa_cwe_map` làm cơ sở |
-| `tool` | `semgrep`, `zap`, `trivy` |
-| `check_kind` | `rule` (Semgrep, ZAP) hoặc `cwe_field` (Trivy) |
-| `check_id` | Semgrep: `check_id_suffix`; ZAP: `pluginid` (thiếu thì tên lớp); Trivy: `CWE-n` |
-| `check_name`, `check_location` | Tên rule và file chứa rule (YAML của Semgrep, Java của ZAP); Trivy: mô tả trường và nguồn DB |
-| `tool_source_version` | Commit `semgrep-rules` / `zap-extensions`; Trivy: "phiên bản DB tại thời điểm quét" |
-| `verification_status`, `cwe_version` | Trạng thái dòng `ipa_cwe_map` làm cơ sở; phiên bản CWE |
-| `review_flag` | Chỉ Semgrep. Rỗng = không có override nào liên quan; `override_proposed:ID` = dòng đang bị đề xuất bỏ/sửa CWE; `pending_override:ID` = dòng **chưa có hiệu lực**, chỉ xuất hiện nếu override ID được duyệt |
-
-**Cách nối với output của từng công cụ:**
-
-| Công cụ | Điều kiện nối |
-|---|---|
-| Semgrep | `finding.check_id` kết thúc bằng `'.' || check_id` |
-| ZAP | `alert.pluginid = check_id` |
-| Trivy | `CweIDs` chứa `check_id` (ví dụ `CWE-79`), hoặc nối theo `cwe_id` |
-
-**Cách dùng an toàn:**
-
-- Lọc `review_flag = ''` để có phần không bị đề xuất sửa (550 dòng trong bản hiện tại). Hiện có 3 dòng gắn cờ: `OV-0001`/`OV-0002` (hai rule `tainted-sql-string` chờ vào IPA-WEB-01) và `OV-0004` (rule Rails gắn nhầm clickjacking).
-- Dòng `match_kind = 'related'` (32 dòng) chỉ là gợi ý, không đưa vào KPI; `ancestor` là ứng viên chờ người duyệt.
-- Khi đếm số rule hay số finding, đếm khác nhau theo `(tool, check_id)`, vì một rule có thể xuất hiện ở hai mục IPA.
-- Duyệt override rồi sinh lại thì: 2 dòng `pending_override` thành dòng thường, dòng clickjacking sai biến mất (đã thử với giả định duyệt hết: 552 dòng, mọi dòng không cờ vẫn còn).
+Bản trước có `exports/ipa_map_all_tools.csv` ghép rule của Semgrep/ZAP với mục IPA. Đó là đi ngược chiều nên đã gỡ. File để import và để công cụ tra cứu bây giờ là KB IPA + NVD: [`../kb/kb_cwe.csv`](../kb/kb_cwe.csv) (khóa CWE) và [`../kb/kb_cve.sample.csv`](../kb/kb_cve.sample.csv) (khóa CVE), mô tả ở [tài liệu 03](03-kb-ipa-nvd-cho-cong-cu.md).
 
 ### Quy ước định dạng (để import không bị lỗi vặt)
 
@@ -560,7 +529,7 @@ print(f"{n_files} file có getCweId/setCweId, {n_nocwe} file không trích đư�
 Script chỉ **đọc văn bản** các file Java, không biên dịch hay chạy mã của ZAP. Kết quả trên commit `51e4155`: 164 file → 168 dòng (151 dòng là scan rule active/passive, 17 dòng thuộc lớp khác như add-on kiểm soát truy cập), 12 file không trích được số CWE. Đã đối chiếu độ phủ: `ascanrules` 44/48 file `*ScanRule.java`, `pscanrules` 54/55. Những rule còn thiếu CWE là rule thông tin (ví dụ `UserAgentScanRule`, `ModernAppDetectionScanRule`). Hạn chế: nhận diện active/passive bằng regex trên tên lớp cha; rule khai báo CWE bằng cách khác (không qua `getCweId`/`setCweId` với số cố định) sẽ bị bỏ sót.
 </details>
 
-### 9.4 Nạp CSV và output của ba công cụ vào SQLite, tạo báo cáo và file import duy nhất
+### 9.4 Nạp CSV và output của ba công cụ vào SQLite, tạo báo cáo
 
 **Ánh xạ output → `scan_finding`:**
 
@@ -573,24 +542,22 @@ Script chỉ **đọc văn bản** các file Java, không biên dịch hay chạ
 | Trivy `Secrets` | `Results[].Secrets[]` | `RuleID` | `Target` | `StartLine` | `Severity` | (không có) |
 
 <details>
-<summary><code>load_and_map.py</code> — chạy: <code>python load_and_map.py templates mapping.sql approve semgrep=scan.json trivy=trivy.json zap=zap.json export=ipa_map_all_tools.csv</code></summary>
+<summary><code>load_and_map.py</code> — chạy: <code>python load_and_map.py templates,tool_side mapping.sql approve semgrep=scan.json trivy=trivy.json zap=zap.json</code></summary>
 
 ```python
 """Nạp CSV + kết quả scan của Semgrep / Trivy / ZAP vào SQLite rồi chạy mapping.sql.
 
-python load_and_map.py <thư mục csv> mapping.sql [approve] [semgrep=scan.json trivy=trivy.json zap=zap.json] [export=ipa_map_all_tools.csv]
-(mỗi công cụ có thể truyền nhiều file, lặp lại tool=đường_dẫn; không truyền scan thì chỉ xuất file export)
+python load_and_map.py templates,tool_side mapping.sql [approve] semgrep=scan.json trivy=trivy.json zap=zap.json
+(các thư mục CSV ngăn bằng dấu phẩy; mỗi công cụ có thể truyền nhiều file, lặp lại tool=đường_dẫn)
 """
 import csv, json, pathlib, sqlite3, sys
 
-tpl_dir, sql_file = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+csv_dirs, sql_file = [pathlib.Path(p) for p in sys.argv[1].split(",")], pathlib.Path(sys.argv[2])
 approve = "approve" in sys.argv[3:]                 # chỉ để demo: coi override đề xuất là đã duyệt
-args = [a.split("=", 1) for a in sys.argv[3:] if "=" in a]
-inputs = [(k, v) for k, v in args if k != "export"]
-export_path = next((v for k, v in args if k == "export"), None)
+inputs = [a.split("=", 1) for a in sys.argv[3:] if "=" in a]
 
 db = sqlite3.connect(":memory:")
-for f in sorted(tpl_dir.glob("*.csv")):             # mỗi CSV -> một bảng cùng tên, mọi cột TEXT
+for f in sorted(p for d in csv_dirs for p in d.glob("*.csv")):   # mỗi CSV -> một bảng cùng tên, mọi cột TEXT
     with open(f, newline="", encoding="utf-8-sig") as fh:
         rd = csv.reader(fh)
         cols = next(rd)
@@ -638,31 +605,21 @@ for tool, path in inputs:
 if approve:
     db.execute("UPDATE semgrep_cwe_override SET verification_status = 'approved'")
 db.executescript(sql_file.read_text(encoding="utf-8"))
-if inputs:
-    for view in ("report_ipa", "report_unmapped"):
-        cur = db.execute(f"SELECT * FROM {view} ORDER BY tool, path, start_line")
-        print(f"== {view}")
-        print(" | ".join(d[0] for d in cur.description))
-        for row in cur:
-            print(" | ".join(str(x) for x in row))
-    print("findings:", db.execute("select count(*) from scan_finding").fetchone()[0],
-          "| có CWE:", db.execute("select count(distinct finding_id) from finding_cwe").fetchone()[0],
-          "| vào IPA:", db.execute("select count(distinct finding_id) from finding_ipa").fetchone()[0],
-          "| dòng báo cáo IPA:", db.execute("select count(*) from report_ipa").fetchone()[0])
-if export_path:                                     # MỘT file import cho cả ba công cụ
-    cur = db.execute("SELECT * FROM export_ipa_map_all_tools"
-                     " ORDER BY ipa_id, CAST(cwe_id AS INTEGER), tool, check_id, check_location, review_flag")
-    with open(export_path, "w", newline="", encoding="utf-8") as out:
-        w = csv.writer(out, lineterminator="\n")
-        w.writerow([d[0] for d in cur.description])
-        w.writerows(cur)
-    n = db.execute("SELECT tool, COUNT(*) FROM export_ipa_map_all_tools GROUP BY tool").fetchall()
-    print("đã ghi", export_path, "| số dòng theo công cụ:", dict(n))
+for view in ("report_ipa", "report_unmapped"):
+    cur = db.execute(f"SELECT * FROM {view} ORDER BY tool, path, start_line")
+    print(f"== {view}")
+    print(" | ".join(d[0] for d in cur.description))
+    for row in cur:
+        print(" | ".join(str(x) for x in row))
+print("findings:", db.execute("select count(*) from scan_finding").fetchone()[0],
+      "| có CWE:", db.execute("select count(distinct finding_id) from finding_cwe").fetchone()[0],
+      "| vào IPA:", db.execute("select count(distinct finding_id) from finding_ipa").fetchone()[0],
+      "| dòng báo cáo IPA:", db.execute("select count(*) from report_ipa").fetchone()[0])
 ```
 </details>
 
 <details>
-<summary><code>mapping.sql</code> — tám view: rule_cwe_effective, finding_cwe, cwe_ancestor, finding_ipa, report_ipa, report_unmapped, cwe_to_ipa, export_ipa_map_all_tools</summary>
+<summary><code>mapping.sql</code> — sáu view: rule_cwe_effective, finding_cwe, cwe_ancestor, finding_ipa, report_ipa, report_unmapped</summary>
 
 ```sql
 -- 1) CWE hiệu lực của rule Semgrep sau khi áp override đã duyệt
@@ -736,66 +693,6 @@ UNION ALL
 SELECT f.tool, f.path, f.start_line, f.check_id, '', 'NO_CWE'
 FROM scan_finding f
 WHERE NOT EXISTS (SELECT 1 FROM finding_cwe c WHERE c.finding_id = f.finding_id);
-
--- 7) CWE -> mục IPA, không phụ thuộc công cụ: khớp trực tiếp; nếu CWE chưa có trong ipa_cwe_map thì đi qua tổ tiên
-CREATE VIEW cwe_to_ipa AS
-SELECT m.cwe_id, m.ipa_id, m.relation AS match_kind, m.confidence, '' AS via_cwe_id,
-       m.verification_status AS map_status
-FROM ipa_cwe_map m
-UNION
-SELECT a.cwe_id, m.ipa_id, 'ancestor', m.confidence, a.ancestor_id, m.verification_status
-FROM cwe_ancestor a
-JOIN ipa_cwe_map m ON m.cwe_id = a.ancestor_id AND m.relation = 'exact'
-WHERE NOT EXISTS (SELECT 1 FROM ipa_cwe_map d WHERE d.cwe_id = a.cwe_id);
-
--- 8) MỘT FILE cho cả ba công cụ: mỗi dòng = (mục IPA, CWE, công cụ, check của công cụ đó)
---    Semgrep, ZAP: check là rule. Trivy không có catalog rule, CWE nằm ngay trong finding nên check là "CweIDs chứa CWE-n".
---    review_flag (chỉ Semgrep): '' = chắc chắn; 'override_proposed:ID' = dòng đang bị đề xuất sửa/bỏ CWE;
---    'pending_override:ID' = dòng CHƯA có hiệu lực, chỉ xuất hiện nếu override ID được duyệt.
-CREATE VIEW export_ipa_map_all_tools AS
-SELECT i.ipa_id, i.section_no AS ipa_section_no, i.name_ja AS ipa_name_ja, i.name_en AS ipa_name_en,
-       i.name_vi AS ipa_name_vi, c.cwe_id, w.name_en AS cwe_name_en, c.match_kind, c.via_cwe_id, c.confidence,
-       'semgrep' AS tool, 'rule' AS check_kind, e.check_id_suffix AS check_id, e.rule_id AS check_name,
-       e.rule_file AS check_location, v.ruleset_commit AS tool_source_version,
-       c.map_status AS verification_status, w.cwe_version,
-       CASE WHEN po.ids IS NULL THEN '' ELSE 'override_proposed:' || po.ids END AS review_flag
-FROM (SELECT DISTINCT rule_file, rule_id, check_id_suffix, cwe_id FROM rule_cwe_effective) e
-JOIN (SELECT DISTINCT rule_file, rule_id, ruleset_commit FROM semgrep_rule_cwe) v
-     ON v.rule_file = e.rule_file AND v.rule_id = e.rule_id
-JOIN cwe_to_ipa c ON c.cwe_id = e.cwe_id
-JOIN ipa_item i ON i.ipa_id = c.ipa_id
-LEFT JOIN cwe_catalog w ON w.cwe_id = c.cwe_id
-LEFT JOIN (SELECT rule_file, rule_id, cwe_id_from_rule, GROUP_CONCAT(override_id) AS ids
-           FROM semgrep_cwe_override WHERE verification_status = 'proposed'
-           GROUP BY rule_file, rule_id, cwe_id_from_rule) po
-       ON po.rule_file = e.rule_file AND po.rule_id = e.rule_id AND po.cwe_id_from_rule = e.cwe_id
-UNION ALL
-SELECT i.ipa_id, i.section_no, i.name_ja, i.name_en, i.name_vi, c.cwe_id, w.name_en, c.match_kind, c.via_cwe_id,
-       c.confidence, 'semgrep', 'rule', r.check_id_suffix, r.rule_id, r.rule_file, r.ruleset_commit,
-       c.map_status, w.cwe_version, 'pending_override:' || o.override_id
-FROM semgrep_cwe_override o
-JOIN (SELECT DISTINCT rule_file, rule_id, check_id_suffix, ruleset_commit FROM semgrep_rule_cwe) r
-     ON r.rule_file = o.rule_file AND r.rule_id = o.rule_id
-JOIN cwe_to_ipa c ON c.cwe_id = o.cwe_id_override
-JOIN ipa_item i ON i.ipa_id = c.ipa_id
-LEFT JOIN cwe_catalog w ON w.cwe_id = c.cwe_id
-WHERE o.verification_status = 'proposed' AND o.action IN ('replace', 'add') AND o.cwe_id_override <> ''
-UNION ALL
-SELECT i.ipa_id, i.section_no, i.name_ja, i.name_en, i.name_vi, c.cwe_id, w.name_en, c.match_kind, c.via_cwe_id,
-       c.confidence, 'zap', 'rule', COALESCE(NULLIF(z.plugin_id, ''), z.rule_class), z.rule_class, z.java_file,
-       z.zap_extensions_commit, c.map_status, w.cwe_version, ''
-FROM zap_rule_cwe z
-JOIN cwe_to_ipa c ON c.cwe_id = z.cwe_id
-JOIN ipa_item i ON i.ipa_id = c.ipa_id
-LEFT JOIN cwe_catalog w ON w.cwe_id = c.cwe_id
-WHERE z.rule_type IN ('active', 'passive') AND z.cwe_id <> ''
-UNION ALL
-SELECT i.ipa_id, i.section_no, i.name_ja, i.name_en, i.name_vi, c.cwe_id, w.name_en, c.match_kind, c.via_cwe_id,
-       c.confidence, 'trivy', 'cwe_field', 'CWE-' || c.cwe_id, 'Vulnerabilities[].CweIDs chứa CWE-' || c.cwe_id,
-       'trivy-db (NVD và nguồn khác)', 'phiên bản DB tại thời điểm quét', c.map_status, w.cwe_version, ''
-FROM cwe_to_ipa c
-JOIN ipa_item i ON i.ipa_id = c.ipa_id
-LEFT JOIN cwe_catalog w ON w.cwe_id = c.cwe_id;
 ```
 </details>
 
@@ -836,7 +733,7 @@ Nguyên tắc:
 - **Hash đổi chưa chắc nội dung đổi**: trang web hay đổi menu/chân trang. Hash chỉ phần nội dung chính, và vẫn để người xem diff.
 - **Mapping sai âm thầm là rủi ro lớn nhất.** Mỗi lần CWE đổi (deprecate, đổi tên, đổi cha), cổng Q4 phải chặn PR nếu `ipa_cwe_map` còn trỏ vào CWE không hợp lệ.
 - **Phiên bản dữ liệu:** commit `source_version.csv` cùng dữ liệu; gắn tag dạng `kb-YYYY.MM.DD`. Báo cáo scan ghi tag này (cùng commit rule Semgrep, commit rule ZAP, phiên bản DB Trivy) để tái hiện kết quả sau này.
-- **File export là đầu ra của pipeline:** mỗi PR cập nhật dữ liệu (IPA, CWE, Semgrep, ZAP) sinh lại `exports/ipa_map_all_tools.csv` trong cùng commit. Vì file xác định từng byte và không có ngày giờ, diff của nó cho người duyệt thấy đúng dòng nào thêm/bớt.
+- **KB IPA + NVD là đầu ra chính của pipeline** (thư mục `kb/`, [tài liệu 03](03-kb-ipa-nvd-cho-cong-cu.md) mục 7). Phần phía công cụ ở đây (catalog rule, override) chỉ cần cập nhật khi rule của công cụ đổi.
 - **Giữ nguồn ngoài đường găng:** nếu IPA/MITRE tạm không truy cập được, job báo `error` cho nguồn đó và dùng bản dữ liệu đã commit, không làm hỏng pipeline scan.
 
 ### 10.3 Bản phác thảo GitHub Actions (**chưa chạy thử**)
@@ -881,7 +778,7 @@ Runner GitHub có Internet mở; môi trường chạy trong sandbox/cloud nội
 | Tag CWE của Semgrep (và có thể của ZAP/Trivy) sai | Trung bình | Bảng override có duyệt (hiện mới cho Semgrep, xem mục 4.4); so sánh với biến thể cùng tên |
 | Rule/DB thay đổi theo thời gian khiến kết quả không tái hiện | Trung bình | Ghi `ruleset_commit`, commit rule ZAP, phiên bản DB Trivy; ghim khi chạy báo cáo chính thức |
 | Giấy phép/điều khoản | Cần kiểm tra | **Semgrep Rules License v1.0** (đọc trước khi nhúng/phân phối lại rule); điều khoản sử dụng của **CWE** (file `cwe-tou` trong gói); điều khoản của **IPA** khi sao chép nguyên văn (**[chưa xác minh]**); điều khoản của các nguồn dữ liệu lỗ hổng mà Trivy tải về. Nếu chưa rõ, `text_ja` để trống, chỉ lưu số mục + URL + diễn giải tiếng Việt |
-| File export bị coi là chân lý dù dựa trên seed chưa xác minh | Trung bình | Mọi dòng mang `verification_status` và `review_flag`; README và mục 8 ghi rõ đây là file dẫn xuất từ seed chưa xác minh |
+| KB (`kb/`) bị coi là chân lý dù mapping IPA dựa trên seed chưa xác minh | Trung bình | Mọi dòng mang `mapping_status`; tài liệu 03 và README ghi rõ |
 | Bản CWE dùng thử (4.14) cũ | Thấp–trung bình | Chỉ dùng cho dựng pipeline; tải bản mới nhất trước khi dùng thật |
 
 **Việc cần người**

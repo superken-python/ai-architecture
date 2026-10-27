@@ -1,0 +1,1377 @@
+cwe_id,cwe_number,cwe_kind,cwe_name_en,cwe_name_ja,jvn_cwe_url,cwe_abstraction,cwe_status,cwe_parent_ids,nvd_slice,nvd_slice_cwe_id,ipa_status,ipa_id,ipa_section_no,ipa_name_ja,ipa_name_en,ipa_name_vi,match_kind,via_cwe_id,confidence,mapping_status,ipa_measure_ids,cwe_version
+CWE-1,1,Category,DEPRECATED: Location,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-2,2,Category,7PK - Environment,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-3,3,Category,DEPRECATED: Technology-specific Environment Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-4,4,Category,DEPRECATED: J2EE Environment Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-5,5,Weakness,J2EE Misconfiguration: Data Transmission Without Encryption,,,Variant,Draft,CWE-319,N,CWE-319,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-6,6,Weakness,J2EE Misconfiguration: Insufficient Session-ID Length,,,Variant,Incomplete,CWE-334,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-7,7,Weakness,J2EE Misconfiguration: Missing Custom Error Page,,,Variant,Incomplete,CWE-756,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-8,8,Weakness,J2EE Misconfiguration: Entity Bean Declared Remote,,,Variant,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-9,9,Weakness,J2EE Misconfiguration: Weak Access Permissions for EJB Methods,,,Variant,Draft,CWE-266,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-10,10,Category,DEPRECATED: ASP.NET Environment Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-11,11,Weakness,ASP.NET Misconfiguration: Creating Debug Binary,,,Variant,Draft,CWE-489,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-12,12,Weakness,ASP.NET Misconfiguration: Missing Custom Error Page,,,Variant,Draft,CWE-756,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-13,13,Weakness,ASP.NET Misconfiguration: Password in Configuration File,,,Variant,Draft,CWE-260,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-14,14,Weakness,Compiler Removal of Code to Clear Buffers,,,Variant,Draft,CWE-733,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-15,15,Weakness,External Control of System or Configuration Setting,,,Base,Incomplete,CWE-610|CWE-642,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-16,16,Category,Configuration,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-17,17,Category,DEPRECATED: Code,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-18,18,Category,DEPRECATED: Source Code,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-19,19,Category,Data Processing Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-20,20,Weakness,Improper Input Validation,不適切な入力確認,https://jvndb.jvn.jp/ja/cwe/CWE-20.html,Class,Stable,CWE-707,Y,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-21,21,Category,DEPRECATED: Pathname Traversal and Equivalence Errors,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-22,22,Weakness,Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),,,Base,Stable,CWE-668|CWE-706,Y,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,exact,,high,seed_unverified,,4.14
+CWE-23,23,Weakness,Relative Path Traversal,,,Base,Draft,CWE-22,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-24,24,Weakness,Path Traversal: '../filedir',,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-25,25,Weakness,Path Traversal: '/../filedir',,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-26,26,Weakness,Path Traversal: '/dir/../filename',,,Variant,Draft,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-27,27,Weakness,Path Traversal: 'dir/../../filename',,,Variant,Draft,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-28,28,Weakness,Path Traversal: '..\filedir',,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-29,29,Weakness,Path Traversal: '\..\filename',,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-30,30,Weakness,Path Traversal: '\dir\..\filename',,,Variant,Draft,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-31,31,Weakness,Path Traversal: 'dir\..\..\filename',,,Variant,Draft,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-32,32,Weakness,Path Traversal: '...' (Triple Dot),,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-33,33,Weakness,Path Traversal: '....' (Multiple Dot),,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-34,34,Weakness,Path Traversal: '....//',,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-35,35,Weakness,Path Traversal: '.../...//',,,Variant,Incomplete,CWE-23,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-36,36,Weakness,Absolute Path Traversal,,,Base,Draft,CWE-22,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-37,37,Weakness,Path Traversal: '/absolute/pathname/here',,,Variant,Draft,CWE-36|CWE-160,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-38,38,Weakness,Path Traversal: '\absolute\pathname\here',,,Variant,Draft,CWE-36,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-39,39,Weakness,Path Traversal: 'C:dirname',,,Variant,Draft,CWE-36,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-40,40,Weakness,Path Traversal: '\\UNC\share\name\' (Windows UNC Share),,,Variant,Draft,CWE-36,N,CWE-22,MAPPED,IPA-WEB-03,1.3,パス名パラメータの未チェック／ディレクトリ・トラバーサル,Unchecked Pathname Parameter / Directory Traversal,Path Traversal,ancestor,CWE-22,high,seed_unverified,,4.14
+CWE-41,41,Weakness,Improper Resolution of Path Equivalence,,,Base,Incomplete,CWE-706,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-42,42,Weakness,Path Equivalence: 'filename.' (Trailing Dot),,,Variant,Incomplete,CWE-41|CWE-162,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-43,43,Weakness,Path Equivalence: 'filename....' (Multiple Trailing Dot),,,Variant,Incomplete,CWE-42|CWE-163,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-44,44,Weakness,Path Equivalence: 'file.name' (Internal Dot),,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-45,45,Weakness,Path Equivalence: 'file...name' (Multiple Internal Dot),,,Variant,Incomplete,CWE-44|CWE-165,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-46,46,Weakness,Path Equivalence: 'filename ' (Trailing Space),,,Variant,Incomplete,CWE-41|CWE-162,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-47,47,Weakness,Path Equivalence: ' filename' (Leading Space),,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-48,48,Weakness,Path Equivalence: 'file name' (Internal Whitespace),,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-49,49,Weakness,Path Equivalence: 'filename/' (Trailing Slash),,,Variant,Incomplete,CWE-41|CWE-162,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-50,50,Weakness,Path Equivalence: '//multiple/leading/slash',,,Variant,Incomplete,CWE-41|CWE-161,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-51,51,Weakness,Path Equivalence: '/multiple//internal/slash',,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-52,52,Weakness,Path Equivalence: '/multiple/trailing/slash//',,,Variant,Incomplete,CWE-41|CWE-163,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-53,53,Weakness,Path Equivalence: '\multiple\\internal\backslash',,,Variant,Incomplete,CWE-41|CWE-165,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-54,54,Weakness,Path Equivalence: 'filedir\' (Trailing Backslash),,,Variant,Incomplete,CWE-41|CWE-162,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-55,55,Weakness,Path Equivalence: '/./' (Single Dot Directory),,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-56,56,Weakness,Path Equivalence: 'filedir*' (Wildcard),,,Variant,Incomplete,CWE-41|CWE-155,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-57,57,Weakness,Path Equivalence: 'fakedir/../realdir/filename',,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-58,58,Weakness,Path Equivalence: Windows 8.3 Filename,,,Variant,Incomplete,CWE-41,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-59,59,Weakness,Improper Link Resolution Before File Access ('Link Following'),,,Base,Draft,CWE-706,Y,CWE-59,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-60,60,Category,DEPRECATED: UNIX Path Link Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-61,61,Weakness,UNIX Symbolic Link (Symlink) Following,,,Compound,Incomplete,CWE-59,N,CWE-59,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-62,62,Weakness,UNIX Hard Link,,,Variant,Incomplete,CWE-59,N,CWE-59,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-63,63,Category,DEPRECATED: Windows Path Link Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-64,64,Weakness,Windows Shortcut Following (.LNK),,,Variant,Incomplete,CWE-59,N,CWE-59,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-65,65,Weakness,Windows Hard Link,,,Variant,Incomplete,CWE-59,N,CWE-59,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-66,66,Weakness,Improper Handling of File Names that Identify Virtual Resources,,,Base,Draft,CWE-706,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-67,67,Weakness,Improper Handling of Windows Device Names,,,Variant,Incomplete,CWE-66,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-68,68,Category,DEPRECATED: Windows Virtual File Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-69,69,Weakness,Improper Handling of Windows ::DATA Alternate Data Stream,,,Variant,Incomplete,CWE-66,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-70,70,Category,DEPRECATED: Mac Virtual File Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-71,71,Weakness,DEPRECATED: Apple '.DS_Store',,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-72,72,Weakness,Improper Handling of Apple HFS+ Alternate Data Stream Path,,,Variant,Incomplete,CWE-66,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-73,73,Weakness,External Control of File Name or Path,,,Base,Draft,CWE-610|CWE-642,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-74,74,Weakness,Improper Neutralization of Special Elements in Output Used by a Downstream Component ('Injection'),,,Class,Incomplete,CWE-707,Y,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-75,75,Weakness,Failure to Sanitize Special Elements into a Different Plane (Special Element Injection),,,Class,Draft,CWE-74,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-76,76,Weakness,Improper Neutralization of Equivalent Special Elements,,,Base,Draft,CWE-75,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-77,77,Weakness,Improper Neutralization of Special Elements used in a Command ('Command Injection'),,,Class,Draft,CWE-74,Y,CWE-77,MAPPED,IPA-WEB-02,1.2,OSコマンド・インジェクション,OS Command Injection,OS Command Injection,broader,,medium,seed_unverified,,4.14
+CWE-78,78,Weakness,Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection'),,,Base,Stable,CWE-77,Y,CWE-78,MAPPED,IPA-WEB-02,1.2,OSコマンド・インジェクション,OS Command Injection,OS Command Injection,exact,,high,seed_unverified,,4.14
+CWE-79,79,Weakness,Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting'),クロスサイトスクリプティング,https://jvndb.jvn.jp/ja/cwe/CWE-79.html,Base,Stable,CWE-74,Y,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,exact,,high,seed_unverified,,4.14
+CWE-80,80,Weakness,Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS),,,Variant,Incomplete,CWE-79,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-81,81,Weakness,Improper Neutralization of Script in an Error Message Web Page,,,Variant,Incomplete,CWE-79,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-82,82,Weakness,Improper Neutralization of Script in Attributes of IMG Tags in a Web Page,,,Variant,Incomplete,CWE-83,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-83,83,Weakness,Improper Neutralization of Script in Attributes in a Web Page,,,Variant,Draft,CWE-79,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-84,84,Weakness,Improper Neutralization of Encoded URI Schemes in a Web Page,,,Variant,Draft,CWE-79,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-85,85,Weakness,Doubled Character XSS Manipulations,,,Variant,Draft,CWE-79,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-86,86,Weakness,Improper Neutralization of Invalid Characters in Identifiers in Web Pages,,,Variant,Draft,CWE-79|CWE-436,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-87,87,Weakness,Improper Neutralization of Alternate XSS Syntax,,,Variant,Draft,CWE-79,N,CWE-79,MAPPED,IPA-WEB-05,1.5,クロスサイト・スクリプティング,Cross-Site Scripting,XSS,ancestor,CWE-79,high,seed_unverified,,4.14
+CWE-88,88,Weakness,Improper Neutralization of Argument Delimiters in a Command ('Argument Injection'),,,Base,Draft,CWE-77,Y,CWE-88,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-89,89,Weakness,Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection'),SQLインジェクション,https://jvndb.jvn.jp/ja/cwe/CWE-89.html,Base,Stable,CWE-943,Y,CWE-89,MAPPED,IPA-WEB-01,1.1,SQLインジェクション,SQL Injection,SQL Injection,exact,,high,seed_unverified,IPA-WEB-01-M1|IPA-WEB-01-M2|IPA-WEB-01-M3|IPA-WEB-01-M4,4.14
+CWE-90,90,Weakness,Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection'),,,Base,Draft,CWE-943,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-91,91,Weakness,XML Injection (aka Blind XPath Injection),,,Base,Draft,CWE-74,Y,CWE-91,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-92,92,Weakness,DEPRECATED: Improper Sanitization of Custom Special Characters,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-93,93,Weakness,Improper Neutralization of CRLF Sequences ('CRLF Injection'),,,Base,Draft,CWE-74,N,CWE-74,MAPPED,IPA-WEB-07,1.7,HTTPヘッダ・インジェクション,HTTP Header Injection,HTTP Header Injection,broader,,medium,seed_unverified,,4.14
+CWE-93,93,Weakness,Improper Neutralization of CRLF Sequences ('CRLF Injection'),,,Base,Draft,CWE-74,N,CWE-74,MAPPED,IPA-WEB-08,1.8,メールヘッダ・インジェクション,Mail Header Injection,Mail Header Injection,exact,,medium,seed_unverified,,4.14
+CWE-94,94,Weakness,Improper Control of Generation of Code ('Code Injection'),コード・インジェクション,https://jvndb.jvn.jp/ja/cwe/CWE-94.html,Base,Draft,CWE-74|CWE-913,Y,CWE-94,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-95,95,Weakness,Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection'),,,Variant,Incomplete,CWE-94,N,CWE-94,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-96,96,Weakness,Improper Neutralization of Directives in Statically Saved Code ('Static Code Injection'),,,Base,Draft,CWE-94,N,CWE-94,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-97,97,Weakness,Improper Neutralization of Server-Side Includes (SSI) Within a Web Page,,,Variant,Draft,CWE-96,N,CWE-94,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-98,98,Weakness,Improper Control of Filename for Include/Require Statement in PHP Program ('PHP Remote File Inclusion'),,,Variant,Draft,CWE-706|CWE-829,N,CWE-829,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-99,99,Weakness,Improper Control of Resource Identifiers ('Resource Injection'),,,Class,Draft,CWE-74,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-100,100,Category,DEPRECATED: Technology-Specific Input Validation Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-101,101,Category,DEPRECATED: Struts Validation Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-102,102,Weakness,Struts: Duplicate Validation Forms,,,Variant,Incomplete,CWE-694|CWE-1173,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-103,103,Weakness,Struts: Incomplete validate() Method Definition,,,Variant,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-104,104,Weakness,Struts: Form Bean Does Not Extend Validation Class,,,Variant,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-105,105,Weakness,Struts: Form Field Without Validator,,,Variant,Draft,CWE-1173,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-106,106,Weakness,Struts: Plug-in Framework not in Use,,,Variant,Draft,CWE-1173,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-107,107,Weakness,Struts: Unused Validation Form,,,Variant,Draft,CWE-1164,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-108,108,Weakness,Struts: Unvalidated Action Form,,,Variant,Incomplete,CWE-1173,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-109,109,Weakness,Struts: Validator Turned Off,,,Variant,Draft,CWE-1173,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-110,110,Weakness,Struts: Validator Without Form Field,,,Variant,Draft,CWE-1164,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-111,111,Weakness,Direct Use of Unsafe JNI,,,Variant,Draft,CWE-695,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-112,112,Weakness,Missing XML Validation,,,Base,Draft,CWE-1286,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-113,113,Weakness,Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Request/Response Splitting'),,,Variant,Incomplete,CWE-93|CWE-436,N,CWE-74,MAPPED,IPA-WEB-07,1.7,HTTPヘッダ・インジェクション,HTTP Header Injection,HTTP Header Injection,exact,,high,seed_unverified,,4.14
+CWE-114,114,Weakness,Process Control,,,Class,Incomplete,CWE-73,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-115,115,Weakness,Misinterpretation of Input,,,Base,Incomplete,CWE-436,N,CWE-436,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-116,116,Weakness,Improper Encoding or Escaping of Output,,,Class,Draft,CWE-707,Y,CWE-116,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-117,117,Weakness,Improper Output Neutralization for Logs,,,Base,Draft,CWE-116,N,CWE-116,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-118,118,Weakness,Incorrect Access of Indexable Resource ('Range Error'),,,Class,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-119,119,Weakness,Improper Restriction of Operations within the Bounds of a Memory Buffer,,,Class,Stable,CWE-118,Y,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,exact,,high,seed_unverified,,4.14
+CWE-120,120,Weakness,Buffer Copy without Checking Size of Input ('Classic Buffer Overflow'),,,Base,Incomplete,CWE-119,Y,CWE-120,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-121,121,Weakness,Stack-based Buffer Overflow,,,Variant,Draft,CWE-787|CWE-788,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-122,122,Weakness,Heap-based Buffer Overflow,,,Variant,Draft,CWE-787|CWE-788,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-123,123,Weakness,Write-what-where Condition,,,Base,Draft,CWE-787,N,CWE-787,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-124,124,Weakness,Buffer Underwrite ('Buffer Underflow'),,,Base,Incomplete,CWE-786|CWE-787,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-125,125,Weakness,Out-of-bounds Read,,,Base,Draft,CWE-119,Y,CWE-125,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-126,126,Weakness,Buffer Over-read,,,Variant,Draft,CWE-125|CWE-788,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-127,127,Weakness,Buffer Under-read,,,Variant,Draft,CWE-125|CWE-786,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-128,128,Weakness,Wrap-around Error,,,Base,Incomplete,CWE-682,N,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-129,129,Weakness,Improper Validation of Array Index,,,Variant,Draft,CWE-1285,Y,CWE-129,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-130,130,Weakness,Improper Handling of Length Parameter Inconsistency,,,Base,Incomplete,CWE-240,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-131,131,Weakness,Incorrect Calculation of Buffer Size,,,Base,Draft,CWE-682,Y,CWE-131,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-132,132,Weakness,DEPRECATED: Miscalculated Null Termination,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-133,133,Category,String Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-134,134,Weakness,Use of Externally-Controlled Format String,,,Base,Draft,CWE-668,Y,CWE-134,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-135,135,Weakness,Incorrect Calculation of Multi-Byte String Length,,,Base,Draft,CWE-682,N,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-136,136,Category,Type Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-137,137,Category,Data Neutralization Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-138,138,Weakness,Improper Neutralization of Special Elements,,,Class,Draft,CWE-707,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-139,139,Category,DEPRECATED: General Special Element Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-140,140,Weakness,Improper Neutralization of Delimiters,,,Base,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-141,141,Weakness,Improper Neutralization of Parameter/Argument Delimiters,,,Variant,Draft,CWE-140,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-142,142,Weakness,Improper Neutralization of Value Delimiters,,,Variant,Draft,CWE-140,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-143,143,Weakness,Improper Neutralization of Record Delimiters,,,Variant,Draft,CWE-140,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-144,144,Weakness,Improper Neutralization of Line Delimiters,,,Variant,Draft,CWE-140,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-145,145,Weakness,Improper Neutralization of Section Delimiters,,,Variant,Incomplete,CWE-140,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-146,146,Weakness,Improper Neutralization of Expression/Command Delimiters,,,Variant,Incomplete,CWE-140,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-147,147,Weakness,Improper Neutralization of Input Terminators,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-148,148,Weakness,Improper Neutralization of Input Leaders,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-149,149,Weakness,Improper Neutralization of Quoting Syntax,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-150,150,Weakness,"Improper Neutralization of Escape, Meta, or Control Sequences",,,Variant,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-151,151,Weakness,Improper Neutralization of Comment Delimiters,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-152,152,Weakness,Improper Neutralization of Macro Symbols,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-153,153,Weakness,Improper Neutralization of Substitution Characters,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-154,154,Weakness,Improper Neutralization of Variable Name Delimiters,,,Variant,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-155,155,Weakness,Improper Neutralization of Wildcards or Matching Symbols,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-156,156,Weakness,Improper Neutralization of Whitespace,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-157,157,Weakness,Failure to Sanitize Paired Delimiters,,,Variant,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-158,158,Weakness,Improper Neutralization of Null Byte or NUL Character,,,Variant,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-159,159,Weakness,Improper Handling of Invalid Use of Special Elements,,,Class,Draft,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-160,160,Weakness,Improper Neutralization of Leading Special Elements,,,Variant,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-161,161,Weakness,Improper Neutralization of Multiple Leading Special Elements,,,Variant,Incomplete,CWE-160,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-162,162,Weakness,Improper Neutralization of Trailing Special Elements,,,Variant,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-163,163,Weakness,Improper Neutralization of Multiple Trailing Special Elements,,,Variant,Incomplete,CWE-162,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-164,164,Weakness,Improper Neutralization of Internal Special Elements,,,Variant,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-165,165,Weakness,Improper Neutralization of Multiple Internal Special Elements,,,Variant,Incomplete,CWE-164,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-166,166,Weakness,Improper Handling of Missing Special Element,,,Base,Draft,CWE-159|CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-167,167,Weakness,Improper Handling of Additional Special Element,,,Base,Draft,CWE-159|CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-168,168,Weakness,Improper Handling of Inconsistent Special Elements,,,Base,Draft,CWE-159|CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-169,169,Category,DEPRECATED: Technology-Specific Special Elements,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-170,170,Weakness,Improper Null Termination,,,Base,Incomplete,CWE-707,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-171,171,Category,"DEPRECATED: Cleansing, Canonicalization, and Comparison Errors",,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-172,172,Weakness,Encoding Error,,,Class,Draft,CWE-707,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-173,173,Weakness,Improper Handling of Alternate Encoding,,,Variant,Draft,CWE-172,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-174,174,Weakness,Double Decoding of the Same Data,,,Variant,Draft,CWE-172|CWE-675,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-175,175,Weakness,Improper Handling of Mixed Encoding,,,Variant,Draft,CWE-172,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-176,176,Weakness,Improper Handling of Unicode Encoding,,,Variant,Draft,CWE-172,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-177,177,Weakness,Improper Handling of URL Encoding (Hex Encoding),,,Variant,Draft,CWE-172,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-178,178,Weakness,Improper Handling of Case Sensitivity,,,Base,Incomplete,CWE-706,Y,CWE-178,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-179,179,Weakness,Incorrect Behavior Order: Early Validation,,,Base,Incomplete,CWE-20|CWE-696,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-180,180,Weakness,Incorrect Behavior Order: Validate Before Canonicalize,,,Variant,Draft,CWE-179,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-181,181,Weakness,Incorrect Behavior Order: Validate Before Filter,,,Variant,Draft,CWE-179,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-182,182,Weakness,Collapse of Data into Unsafe Value,,,Base,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-183,183,Weakness,Permissive List of Allowed Inputs,,,Base,Draft,CWE-697,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-184,184,Weakness,Incomplete List of Disallowed Inputs,,,Base,Draft,CWE-693|CWE-1023,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-185,185,Weakness,Incorrect Regular Expression,,,Class,Draft,CWE-697,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-186,186,Weakness,Overly Restrictive Regular Expression,,,Base,Draft,CWE-185,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-187,187,Weakness,Partial String Comparison,,,Variant,Incomplete,CWE-1023,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-188,188,Weakness,Reliance on Data/Memory Layout,,,Base,Draft,CWE-435|CWE-1105,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-189,189,Category,Numeric Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-190,190,Weakness,Integer Overflow or Wraparound,,,Base,Stable,CWE-682,Y,CWE-190,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-191,191,Weakness,Integer Underflow (Wrap or Wraparound),,,Base,Draft,CWE-682,Y,CWE-191,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-192,192,Weakness,Integer Coercion Error,,,Variant,Incomplete,CWE-681,N,CWE-681,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-193,193,Weakness,Off-by-one Error,,,Base,Draft,CWE-682,Y,CWE-193,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-194,194,Weakness,Unexpected Sign Extension,,,Variant,Incomplete,CWE-681,N,CWE-681,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-195,195,Weakness,Signed to Unsigned Conversion Error,,,Variant,Draft,CWE-681,N,CWE-681,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-196,196,Weakness,Unsigned to Signed Conversion Error,,,Variant,Draft,CWE-681,N,CWE-681,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-197,197,Weakness,Numeric Truncation Error,,,Base,Incomplete,CWE-681,N,CWE-681,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-198,198,Weakness,Use of Incorrect Byte Ordering,,,Variant,Draft,CWE-188,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-199,199,Category,Information Management Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-200,200,Weakness,Exposure of Sensitive Information to an Unauthorized Actor,,,Class,Draft,CWE-668,Y,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-201,201,Weakness,Insertion of Sensitive Information Into Sent Data,,,Base,Draft,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-202,202,Weakness,Exposure of Sensitive Information Through Data Queries,,,Base,Draft,CWE-1230,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-203,203,Weakness,Observable Discrepancy,,,Base,Incomplete,CWE-200,Y,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-204,204,Weakness,Observable Response Discrepancy,,,Base,Incomplete,CWE-203,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-205,205,Weakness,Observable Behavioral Discrepancy,,,Base,Incomplete,CWE-203,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-206,206,Weakness,Observable Internal Behavioral Discrepancy,,,Variant,Incomplete,CWE-205,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-207,207,Weakness,Observable Behavioral Discrepancy With Equivalent Products,,,Variant,Draft,CWE-205,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-208,208,Weakness,Observable Timing Discrepancy,,,Base,Incomplete,CWE-203,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-209,209,Weakness,Generation of Error Message Containing Sensitive Information,,,Base,Draft,CWE-200|CWE-755,Y,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-210,210,Weakness,Self-generated Error Message Containing Sensitive Information,,,Base,Draft,CWE-209,N,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-211,211,Weakness,Externally-Generated Error Message Containing Sensitive Information,,,Base,Incomplete,CWE-209,N,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-212,212,Weakness,Improper Removal of Sensitive Information Before Storage or Transfer,,,Base,Incomplete,CWE-669,Y,CWE-212,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-213,213,Weakness,Exposure of Sensitive Information Due to Incompatible Policies,,,Base,Draft,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-214,214,Weakness,Invocation of Process Using Visible Sensitive Information,,,Base,Incomplete,CWE-497,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-215,215,Weakness,Insertion of Sensitive Information Into Debugging Code,,,Base,Draft,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-216,216,Weakness,DEPRECATED: Containment Errors (Container Errors),,,Class,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-217,217,Weakness,DEPRECATED: Failure to Protect Stored Data from Modification,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-218,218,Weakness,DEPRECATED: Failure to provide confidentiality for stored data,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-219,219,Weakness,Storage of File with Sensitive Data Under Web Root,,,Variant,Draft,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-220,220,Weakness,Storage of File With Sensitive Data Under FTP Root,,,Variant,Draft,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-221,221,Weakness,Information Loss or Omission,,,Class,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-222,222,Weakness,Truncation of Security-relevant Information,,,Base,Draft,CWE-221,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-223,223,Weakness,Omission of Security-relevant Information,,,Base,Draft,CWE-221,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-224,224,Weakness,Obscured Security-relevant Information by Alternate Name,,,Base,Incomplete,CWE-221,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-225,225,Weakness,DEPRECATED: General Information Management Problems,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-226,226,Weakness,Sensitive Information in Resource Not Removed Before Reuse,,,Base,Draft,CWE-212|CWE-459,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-227,227,Category,7PK - API Abuse,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-228,228,Weakness,Improper Handling of Syntactically Invalid Structure,,,Class,Incomplete,CWE-703|CWE-707,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-229,229,Weakness,Improper Handling of Values,,,Base,Incomplete,CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-230,230,Weakness,Improper Handling of Missing Values,,,Variant,Draft,CWE-229,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-231,231,Weakness,Improper Handling of Extra Values,,,Variant,Draft,CWE-229,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-232,232,Weakness,Improper Handling of Undefined Values,,,Variant,Draft,CWE-229,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-233,233,Weakness,Improper Handling of Parameters,,,Base,Incomplete,CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-234,234,Weakness,Failure to Handle Missing Parameter,,,Variant,Incomplete,CWE-233,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-235,235,Weakness,Improper Handling of Extra Parameters,,,Variant,Draft,CWE-233,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-236,236,Weakness,Improper Handling of Undefined Parameters,,,Variant,Draft,CWE-233,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-237,237,Weakness,Improper Handling of Structural Elements,,,Base,Incomplete,CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-238,238,Weakness,Improper Handling of Incomplete Structural Elements,,,Variant,Draft,CWE-237,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-239,239,Weakness,Failure to Handle Incomplete Element,,,Variant,Draft,CWE-237,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-240,240,Weakness,Improper Handling of Inconsistent Structural Elements,,,Base,Draft,CWE-237|CWE-707,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-241,241,Weakness,Improper Handling of Unexpected Data Type,,,Base,Draft,CWE-228,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-242,242,Weakness,Use of Inherently Dangerous Function,,,Base,Draft,CWE-1177,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-243,243,Weakness,Creation of chroot Jail Without Changing Working Directory,,,Variant,Draft,CWE-573|CWE-669,N,CWE-669,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-244,244,Weakness,Improper Clearing of Heap Memory Before Release ('Heap Inspection'),,,Variant,Draft,CWE-226,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-245,245,Weakness,J2EE Bad Practices: Direct Management of Connections,,,Variant,Draft,CWE-695,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-246,246,Weakness,J2EE Bad Practices: Direct Use of Sockets,,,Variant,Draft,CWE-695,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-247,247,Weakness,DEPRECATED: Reliance on DNS Lookups in a Security Decision,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-248,248,Weakness,Uncaught Exception,,,Base,Draft,CWE-705|CWE-755,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-249,249,Weakness,DEPRECATED: Often Misused: Path Manipulation,,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-250,250,Weakness,Execution with Unnecessary Privileges,,,Base,Draft,CWE-269|CWE-657,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-251,251,Category,Often Misused: String Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-252,252,Weakness,Unchecked Return Value,,,Base,Draft,CWE-754,Y,CWE-252,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-253,253,Weakness,Incorrect Check of Function Return Value,,,Base,Incomplete,CWE-573|CWE-754,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-254,254,Category,7PK - Security Features,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-255,255,Category,Credentials Management Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-256,256,Weakness,Plaintext Storage of a Password,,,Base,Incomplete,CWE-522,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-257,257,Weakness,Storing Passwords in a Recoverable Format,,,Base,Incomplete,CWE-522,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-258,258,Weakness,Empty Password in Configuration File,,,Variant,Incomplete,CWE-260|CWE-521,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-259,259,Weakness,Use of Hard-coded Password,,,Variant,Draft,CWE-798,N,CWE-798,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-260,260,Weakness,Password in Configuration File,,,Base,Incomplete,CWE-522,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-261,261,Weakness,Weak Encoding for Password,,,Base,Incomplete,CWE-522,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-262,262,Weakness,Not Using Password Aging,,,Base,Draft,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-263,263,Weakness,Password Aging with Long Expiration,,,Base,Draft,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-264,264,Category,"Permissions, Privileges, and Access Controls",,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-265,265,Category,Privilege Issues,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-266,266,Weakness,Incorrect Privilege Assignment,,,Base,Draft,CWE-269,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-267,267,Weakness,Privilege Defined With Unsafe Actions,,,Base,Incomplete,CWE-269,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-268,268,Weakness,Privilege Chaining,,,Base,Draft,CWE-269,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-269,269,Weakness,Improper Privilege Management,,,Class,Draft,CWE-284,Y,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-270,270,Weakness,Privilege Context Switching Error,,,Base,Draft,CWE-269,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-271,271,Weakness,Privilege Dropping / Lowering Errors,,,Class,Incomplete,CWE-269,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-272,272,Weakness,Least Privilege Violation,,,Base,Incomplete,CWE-271,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-273,273,Weakness,Improper Check for Dropped Privileges,,,Base,Incomplete,CWE-271|CWE-754,Y,CWE-273,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-274,274,Weakness,Improper Handling of Insufficient Privileges,,,Base,Draft,CWE-269|CWE-755,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-275,275,Category,Permission Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-276,276,Weakness,Incorrect Default Permissions,,,Base,Draft,CWE-732,Y,CWE-276,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-277,277,Weakness,Insecure Inherited Permissions,,,Variant,Draft,CWE-732,N,CWE-732,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-278,278,Weakness,Insecure Preserved Inherited Permissions,,,Variant,Incomplete,CWE-732,N,CWE-732,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-279,279,Weakness,Incorrect Execution-Assigned Permissions,,,Variant,Draft,CWE-732,N,CWE-732,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-280,280,Weakness,Improper Handling of Insufficient Permissions or Privileges ,,,Base,Draft,CWE-755,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-281,281,Weakness,Improper Preservation of Permissions,,,Base,Draft,CWE-732,Y,CWE-281,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-282,282,Weakness,Improper Ownership Management,,,Class,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-283,283,Weakness,Unverified Ownership,,,Base,Draft,CWE-282,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-284,284,Weakness,Improper Access Control,,,Pillar,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-285,285,Weakness,Improper Authorization,,,Class,Draft,CWE-284,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,exact,,medium,seed_unverified,,4.14
+CWE-286,286,Weakness,Incorrect User Management,,,Class,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-287,287,Weakness,Improper Authentication,,,Class,Draft,CWE-284,Y,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-288,288,Weakness,Authentication Bypass Using an Alternate Path or Channel,,,Base,Incomplete,CWE-306,N,CWE-306,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-289,289,Weakness,Authentication Bypass by Alternate Name,,,Base,Incomplete,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-290,290,Weakness,Authentication Bypass by Spoofing,,,Base,Incomplete,CWE-1390,Y,CWE-290,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-291,291,Weakness,Reliance on IP Address for Authentication,,,Variant,Incomplete,CWE-290|CWE-471|CWE-923,N,CWE-290,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-292,292,Weakness,DEPRECATED: Trusting Self-reported DNS Name,,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-293,293,Weakness,Using Referer Field for Authentication,,,Variant,Draft,CWE-290,N,CWE-290,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-294,294,Weakness,Authentication Bypass by Capture-replay,,,Base,Incomplete,CWE-1390,Y,CWE-294,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-295,295,Weakness,Improper Certificate Validation,,,Base,Draft,CWE-287,Y,CWE-295,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-296,296,Weakness,Improper Following of a Certificate's Chain of Trust,,,Base,Draft,CWE-295|CWE-573,N,CWE-295,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-297,297,Weakness,Improper Validation of Certificate with Host Mismatch,,,Variant,Incomplete,CWE-295|CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-298,298,Weakness,Improper Validation of Certificate Expiration,,,Variant,Draft,CWE-295|CWE-672,N,CWE-295,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-299,299,Weakness,Improper Check for Certificate Revocation,,,Base,Draft,CWE-295|CWE-404,N,CWE-295,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-300,300,Weakness,Channel Accessible by Non-Endpoint,,,Class,Draft,CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-301,301,Weakness,Reflection Attack in an Authentication Protocol,,,Base,Draft,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-302,302,Weakness,Authentication Bypass by Assumed-Immutable Data,,,Base,Incomplete,CWE-807|CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-303,303,Weakness,Incorrect Implementation of Authentication Algorithm,,,Base,Draft,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-304,304,Weakness,Missing Critical Step in Authentication,,,Base,Draft,CWE-303|CWE-573,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-305,305,Weakness,Authentication Bypass by Primary Weakness,,,Base,Draft,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-306,306,Weakness,Missing Authentication for Critical Function,,,Base,Draft,CWE-287,Y,CWE-306,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-307,307,Weakness,Improper Restriction of Excessive Authentication Attempts,,,Base,Draft,CWE-799|CWE-1390,Y,CWE-307,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-308,308,Weakness,Use of Single-factor Authentication,,,Base,Draft,CWE-654|CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-309,309,Weakness,Use of Password System for Primary Authentication,,,Base,Draft,CWE-654|CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-310,310,Category,Cryptographic Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-311,311,Weakness,Missing Encryption of Sensitive Data,,,Class,Draft,CWE-693,Y,CWE-311,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-312,312,Weakness,Cleartext Storage of Sensitive Information,,,Base,Draft,CWE-311|CWE-922,Y,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-313,313,Weakness,Cleartext Storage in a File or on Disk,,,Variant,Draft,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-314,314,Weakness,Cleartext Storage in the Registry,,,Variant,Draft,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-315,315,Weakness,Cleartext Storage of Sensitive Information in a Cookie,,,Variant,Draft,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-316,316,Weakness,Cleartext Storage of Sensitive Information in Memory,,,Variant,Draft,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-317,317,Weakness,Cleartext Storage of Sensitive Information in GUI,,,Variant,Draft,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-318,318,Weakness,Cleartext Storage of Sensitive Information in Executable,,,Variant,Draft,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-319,319,Weakness,Cleartext Transmission of Sensitive Information,,,Base,Draft,CWE-311,Y,CWE-319,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-320,320,Category,Key Management Errors,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-321,321,Weakness,Use of Hard-coded Cryptographic Key,,,Variant,Draft,CWE-798,N,CWE-798,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-322,322,Weakness,Key Exchange without Entity Authentication,,,Base,Draft,CWE-306,N,CWE-306,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-323,323,Weakness,"Reusing a Nonce, Key Pair in Encryption",,,Base,Incomplete,CWE-344,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-324,324,Weakness,Use of a Key Past its Expiration Date,,,Base,Draft,CWE-672,N,CWE-672,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-325,325,Weakness,Missing Cryptographic Step,,,Base,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-326,326,Weakness,Inadequate Encryption Strength,,,Class,Draft,CWE-693,Y,CWE-326,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-327,327,Weakness,Use of a Broken or Risky Cryptographic Algorithm,,,Class,Draft,CWE-693,Y,CWE-327,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-328,328,Weakness,Use of Weak Hash,,,Base,Draft,CWE-326|CWE-327,N,CWE-327,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-329,329,Weakness,Generation of Predictable IV with CBC Mode,,,Variant,Draft,CWE-573|CWE-1204,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-330,330,Weakness,Use of Insufficiently Random Values,,,Class,Stable,CWE-693,Y,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-331,331,Weakness,Insufficient Entropy,,,Base,Draft,CWE-330,Y,CWE-331,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-332,332,Weakness,Insufficient Entropy in PRNG,,,Variant,Draft,CWE-331,N,CWE-331,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-333,333,Weakness,Improper Handling of Insufficient Entropy in TRNG,,,Variant,Draft,CWE-331|CWE-755,N,CWE-331,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-334,334,Weakness,Small Space of Random Values,,,Base,Draft,CWE-330,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-335,335,Weakness,Incorrect Usage of Seeds in Pseudo-Random Number Generator (PRNG),,,Base,Draft,CWE-330,Y,CWE-335,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-336,336,Weakness,Same Seed in Pseudo-Random Number Generator (PRNG),,,Variant,Draft,CWE-335,N,CWE-335,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-337,337,Weakness,Predictable Seed in Pseudo-Random Number Generator (PRNG),,,Variant,Draft,CWE-335,N,CWE-335,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-338,338,Weakness,Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG),,,Base,Draft,CWE-330,Y,CWE-338,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-339,339,Weakness,Small Seed Space in PRNG,,,Variant,Draft,CWE-335,N,CWE-335,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-340,340,Weakness,Generation of Predictable Numbers or Identifiers,,,Class,Incomplete,CWE-330,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-341,341,Weakness,Predictable from Observable State,,,Base,Draft,CWE-340,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-342,342,Weakness,Predictable Exact Value from Previous Values,,,Base,Draft,CWE-340,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-343,343,Weakness,Predictable Value Range from Previous Values,,,Base,Draft,CWE-340,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-344,344,Weakness,Use of Invariant Value in Dynamically Changing Context,,,Base,Draft,CWE-330,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-345,345,Weakness,Insufficient Verification of Data Authenticity,,,Class,Draft,CWE-693,Y,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-346,346,Weakness,Origin Validation Error,,,Class,Draft,CWE-284|CWE-345,Y,CWE-346,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-347,347,Weakness,Improper Verification of Cryptographic Signature,,,Base,Draft,CWE-345,Y,CWE-347,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-348,348,Weakness,Use of Less Trusted Source,,,Base,Draft,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-349,349,Weakness,Acceptance of Extraneous Untrusted Data With Trusted Data,,,Base,Draft,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-350,350,Weakness,Reliance on Reverse DNS Resolution for a Security-Critical Action,,,Variant,Draft,CWE-290|CWE-807,N,CWE-290,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-351,351,Weakness,Insufficient Type Distinction,,,Base,Draft,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-352,352,Weakness,Cross-Site Request Forgery (CSRF),クロスサイトリクエストフォージェリ,https://jvndb.jvn.jp/ja/cwe/CWE-352.html,Compound,Stable,CWE-345,Y,CWE-352,MAPPED,IPA-WEB-06,1.6,CSRF（クロスサイト・リクエスト・フォージェリ）,Cross-Site Request Forgery,CSRF,exact,,high,seed_unverified,,4.14
+CWE-353,353,Weakness,Missing Support for Integrity Check,,,Base,Draft,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-354,354,Weakness,Improper Validation of Integrity Check Value,,,Base,Draft,CWE-345|CWE-754,Y,CWE-354,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-355,355,Category,User Interface Security Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-356,356,Weakness,Product UI does not Warn User of Unsafe Actions,,,Base,Incomplete,CWE-221,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-357,357,Weakness,Insufficient UI Warning of Dangerous Operations,,,Base,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-358,358,Weakness,Improperly Implemented Security Check for Standard,,,Base,Draft,CWE-573|CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-359,359,Weakness,Exposure of Private Personal Information to an Unauthorized Actor,,,Base,Incomplete,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-360,360,Weakness,Trust of System Event Data,,,Base,Incomplete,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-361,361,Category,7PK - Time and State,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-362,362,Weakness,Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition'),,,Class,Draft,CWE-691,Y,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-363,363,Weakness,Race Condition Enabling Link Following,,,Base,Draft,CWE-367,N,CWE-367,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-364,364,Weakness,Signal Handler Race Condition,,,Base,Incomplete,CWE-362,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-365,365,Weakness,DEPRECATED: Race Condition in Switch,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-366,366,Weakness,Race Condition within a Thread,,,Base,Draft,CWE-362,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-367,367,Weakness,Time-of-check Time-of-use (TOCTOU) Race Condition,,,Base,Incomplete,CWE-362,Y,CWE-367,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-368,368,Weakness,Context Switching Race Condition,,,Base,Draft,CWE-362,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-369,369,Weakness,Divide By Zero,,,Base,Draft,CWE-682,Y,CWE-369,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-370,370,Weakness,Missing Check for Certificate Revocation after Initial Check,,,Variant,Draft,CWE-299,N,CWE-295,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-371,371,Category,State Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-372,372,Weakness,Incomplete Internal State Distinction,,,Base,Draft,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-373,373,Weakness,DEPRECATED: State Synchronization Error,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-374,374,Weakness,Passing Mutable Objects to an Untrusted Method,,,Base,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-375,375,Weakness,Returning a Mutable Object to an Untrusted Caller,,,Base,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-376,376,Category,DEPRECATED: Temporary File Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-377,377,Weakness,Insecure Temporary File,,,Class,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-378,378,Weakness,Creation of Temporary File With Insecure Permissions,,,Base,Draft,CWE-377,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-379,379,Weakness,Creation of Temporary File in Directory with Insecure Permissions,,,Base,Incomplete,CWE-377,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-380,380,Category,DEPRECATED: Technology-Specific Time and State Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-381,381,Category,DEPRECATED: J2EE Time and State Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-382,382,Weakness,J2EE Bad Practices: Use of System.exit(),,,Variant,Draft,CWE-705,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-383,383,Weakness,J2EE Bad Practices: Direct Use of Threads,,,Variant,Draft,CWE-695,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-384,384,Weakness,Session Fixation,,,Compound,Incomplete,CWE-610,Y,CWE-384,MAPPED,IPA-WEB-04,1.4,セッション管理の不備,Session Management Flaws,Lỗi quản lý phiên,related,,medium,seed_unverified,,4.14
+CWE-385,385,Weakness,Covert Timing Channel,,,Base,Incomplete,CWE-514,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-386,386,Weakness,Symbolic Name not Mapping to Correct Object,,,Base,Draft,CWE-706,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-387,387,Category,Signal Errors,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-388,388,Category,7PK - Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-389,389,Category,"Error Conditions, Return Values, Status Codes",,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-390,390,Weakness,Detection of Error Condition Without Action,,,Base,Draft,CWE-755,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-391,391,Weakness,Unchecked Error Condition,,,Base,Incomplete,CWE-754,N,CWE-754,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-392,392,Weakness,Missing Report of Error Condition,,,Base,Draft,CWE-684|CWE-755,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-393,393,Weakness,Return of Wrong Status Code,,,Base,Draft,CWE-684|CWE-703,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-394,394,Weakness,Unexpected Status Code or Return Value,,,Base,Draft,CWE-754,N,CWE-754,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-395,395,Weakness,Use of NullPointerException Catch to Detect NULL Pointer Dereference,,,Base,Draft,CWE-705|CWE-755,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-396,396,Weakness,Declaration of Catch for Generic Exception,,,Base,Draft,CWE-221|CWE-705|CWE-755,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-397,397,Weakness,Declaration of Throws for Generic Exception,,,Base,Draft,CWE-221|CWE-703|CWE-705,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-398,398,Category,7PK - Code Quality,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-399,399,Category,Resource Management Errors,リソース管理の問題,https://jvndb.jvn.jp/ja/cwe/CWE-399.html,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-400,400,Weakness,Uncontrolled Resource Consumption,,,Class,Draft,CWE-664,Y,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-401,401,Weakness,Missing Release of Memory after Effective Lifetime,,,Variant,Draft,CWE-772,Y,CWE-401,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-402,402,Weakness,Transmission of Private Resources into a New Sphere ('Resource Leak'),,,Class,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-403,403,Weakness,Exposure of File Descriptor to Unintended Control Sphere ('File Descriptor Leak'),,,Base,Draft,CWE-402,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-404,404,Weakness,Improper Resource Shutdown or Release,,,Class,Draft,CWE-664,Y,CWE-404,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-405,405,Weakness,Asymmetric Resource Consumption (Amplification),,,Class,Incomplete,CWE-400,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-406,406,Weakness,Insufficient Control of Network Message Volume (Network Amplification),,,Class,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-407,407,Weakness,Inefficient Algorithmic Complexity,,,Class,Incomplete,CWE-405,Y,CWE-407,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-408,408,Weakness,Incorrect Behavior Order: Early Amplification,,,Base,Draft,CWE-405|CWE-696,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-409,409,Weakness,Improper Handling of Highly Compressed Data (Data Amplification),,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-410,410,Weakness,Insufficient Resource Pool,,,Base,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-411,411,Category,Resource Locking Problems,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-412,412,Weakness,Unrestricted Externally Accessible Lock,,,Base,Incomplete,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-413,413,Weakness,Improper Resource Locking,,,Base,Draft,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-414,414,Weakness,Missing Lock Check,,,Base,Draft,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-415,415,Weakness,Double Free,,,Variant,Draft,CWE-666|CWE-825|CWE-1341,Y,CWE-415,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-416,416,Weakness,Use After Free,,,Variant,Stable,CWE-825,Y,CWE-416,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-417,417,Category,Communication Channel Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-418,418,Category,DEPRECATED: Channel Errors,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-419,419,Weakness,Unprotected Primary Channel,,,Base,Draft,CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-420,420,Weakness,Unprotected Alternate Channel,,,Base,Draft,CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-421,421,Weakness,Race Condition During Access to Alternate Channel,,,Base,Draft,CWE-362|CWE-420,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-422,422,Weakness,Unprotected Windows Messaging Channel ('Shatter'),,,Variant,Draft,CWE-360|CWE-420,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-423,423,Weakness,DEPRECATED: Proxied Trusted Channel,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-424,424,Weakness,Improper Protection of Alternate Path,,,Class,Draft,CWE-638|CWE-693,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-425,425,Weakness,Direct Request ('Forced Browsing'),,,Base,Incomplete,CWE-288|CWE-424|CWE-862,Y,CWE-425,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-426,426,Weakness,Untrusted Search Path,,,Base,Stable,CWE-642|CWE-673,Y,CWE-426,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-427,427,Weakness,Uncontrolled Search Path Element,,,Base,Draft,CWE-668,Y,CWE-427,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-428,428,Weakness,Unquoted Search Path or Element,,,Base,Draft,CWE-668,Y,CWE-428,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-429,429,Category,Handler Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-430,430,Weakness,Deployment of Wrong Handler,,,Base,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-431,431,Weakness,Missing Handler,,,Base,Draft,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-432,432,Weakness,Dangerous Signal Handler not Disabled During Sensitive Operations,,,Base,Draft,CWE-364,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-433,433,Weakness,Unparsed Raw Web Content Delivery,,,Variant,Incomplete,CWE-219,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-434,434,Weakness,Unrestricted Upload of File with Dangerous Type,,,Base,Draft,CWE-669,Y,CWE-434,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-435,435,Weakness,Improper Interaction Between Multiple Correctly-Behaving Entities,,,Pillar,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-436,436,Weakness,Interpretation Conflict,,,Class,Incomplete,CWE-435,Y,CWE-436,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-437,437,Weakness,Incomplete Model of Endpoint Features,,,Base,Incomplete,CWE-436,N,CWE-436,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-438,438,Category,Behavioral Problems,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-439,439,Weakness,Behavioral Change in New Version or Environment,,,Base,Draft,CWE-435,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-440,440,Weakness,Expected Behavior Violation,,,Base,Draft,CWE-684,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-441,441,Weakness,Unintended Proxy or Intermediary ('Confused Deputy'),,,Class,Draft,CWE-610,N,CWE-610,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-442,442,Category,DEPRECATED: Web Problems,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-443,443,Weakness,DEPRECATED: HTTP response splitting,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-444,444,Weakness,Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling'),,,Base,Incomplete,CWE-436,Y,CWE-444,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-445,445,Category,DEPRECATED: User Interface Errors,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-446,446,Weakness,UI Discrepancy for Security Feature,,,Class,Incomplete,CWE-684,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-447,447,Weakness,Unimplemented or Unsupported Feature in UI,,,Base,Draft,CWE-446|CWE-671,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-448,448,Weakness,Obsolete Feature in UI,,,Base,Draft,CWE-446,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-449,449,Weakness,The UI Performs the Wrong Action,,,Base,Incomplete,CWE-446,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-450,450,Weakness,Multiple Interpretations of UI Input,,,Base,Draft,CWE-357,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-451,451,Weakness,User Interface (UI) Misrepresentation of Critical Information,,,Class,Draft,CWE-221|CWE-684,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-452,452,Category,Initialization and Cleanup Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-453,453,Weakness,Insecure Default Variable Initialization,,,Variant,Draft,CWE-1188,N,CWE-1188,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-454,454,Weakness,External Initialization of Trusted Variables or Data Stores,,,Base,Draft,CWE-1419,N,CWE-665,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-455,455,Weakness,Non-exit on Failed Initialization,,,Base,Draft,CWE-636|CWE-665|CWE-705,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-456,456,Weakness,Missing Initialization of a Variable,,,Variant,Draft,CWE-909,N,CWE-909,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-457,457,Weakness,Use of Uninitialized Variable,,,Variant,Draft,CWE-908,N,CWE-908,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-458,458,Weakness,DEPRECATED: Incorrect Initialization,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-459,459,Weakness,Incomplete Cleanup,,,Base,Draft,CWE-404,Y,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-460,460,Weakness,Improper Cleanup on Thrown Exception,,,Base,Draft,CWE-459|CWE-755,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-461,461,Category,DEPRECATED: Data Structure Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-462,462,Weakness,Duplicate Key in Associative List (Alist),,,Variant,Incomplete,CWE-694,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-463,463,Weakness,Deletion of Data Structure Sentinel,,,Base,Incomplete,CWE-707,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-464,464,Weakness,Addition of Data Structure Sentinel,,,Base,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-465,465,Category,Pointer Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-466,466,Weakness,Return of Pointer Value Outside of Expected Range,,,Base,Draft,CWE-119,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-467,467,Weakness,Use of sizeof() on a Pointer Type,,,Variant,Draft,CWE-131,N,CWE-131,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-468,468,Weakness,Incorrect Pointer Scaling,,,Base,Incomplete,CWE-682,N,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-469,469,Weakness,Use of Pointer Subtraction to Determine Size,,,Base,Draft,CWE-682,N,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-470,470,Weakness,Use of Externally-Controlled Input to Select Classes or Code ('Unsafe Reflection'),,,Base,Draft,CWE-610|CWE-913,Y,CWE-470,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-471,471,Weakness,Modification of Assumed-Immutable Data (MAID),,,Base,Draft,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-472,472,Weakness,External Control of Assumed-Immutable Web Parameter,,,Base,Draft,CWE-471|CWE-642,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-473,473,Weakness,PHP External Variable Modification,,,Variant,Draft,CWE-471,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-474,474,Weakness,Use of Function with Inconsistent Implementations,,,Base,Draft,CWE-758,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-475,475,Weakness,Undefined Behavior for Input to API,,,Base,Incomplete,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-476,476,Weakness,NULL Pointer Dereference,NULL ポインタデリファレンス,,Base,Stable,CWE-710|CWE-754,Y,CWE-476,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-477,477,Weakness,Use of Obsolete Function,,,Base,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-478,478,Weakness,Missing Default Case in Multiple Condition Expression,,,Base,Draft,CWE-1023,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-479,479,Weakness,Signal Handler Use of a Non-reentrant Function,,,Variant,Draft,CWE-663|CWE-828,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-480,480,Weakness,Use of Incorrect Operator,,,Base,Draft,CWE-670,N,CWE-670,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-481,481,Weakness,Assigning instead of Comparing,,,Variant,Draft,CWE-480,N,CWE-670,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-482,482,Weakness,Comparing instead of Assigning,,,Variant,Draft,CWE-480,N,CWE-670,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-483,483,Weakness,Incorrect Block Delimitation,,,Base,Draft,CWE-670,N,CWE-670,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-484,484,Weakness,Omitted Break Statement in Switch,,,Base,Draft,CWE-670|CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-485,485,Category,7PK - Encapsulation,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-486,486,Weakness,Comparison of Classes by Name,,,Variant,Draft,CWE-1025,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-487,487,Weakness,Reliance on Package-level Scope,,,Base,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-488,488,Weakness,Exposure of Data Element to Wrong Session,,,Base,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-489,489,Weakness,Active Debug Code,,,Base,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-490,490,Category,DEPRECATED: Mobile Code Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-491,491,Weakness,Public cloneable() Method Without Final ('Object Hijack'),,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-492,492,Weakness,Use of Inner Class Containing Sensitive Data,,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-493,493,Weakness,Critical Public Variable Without Final Modifier,,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-494,494,Weakness,Download of Code Without Integrity Check,,,Base,Draft,CWE-345|CWE-669,Y,CWE-494,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-495,495,Weakness,Private Data Structure Returned From A Public Method,,,Variant,Draft,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-496,496,Weakness,Public Data Assigned to Private Array-Typed Field,,,Variant,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-497,497,Weakness,Exposure of Sensitive System Information to an Unauthorized Control Sphere,,,Base,Incomplete,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-498,498,Weakness,Cloneable Class Containing Sensitive Information,,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-499,499,Weakness,Serializable Class Containing Sensitive Data,,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-500,500,Weakness,Public Static Field Not Marked Final,,,Variant,Draft,CWE-493,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-501,501,Weakness,Trust Boundary Violation,,,Base,Draft,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-502,502,Weakness,Deserialization of Untrusted Data,,,Base,Draft,CWE-913,Y,CWE-502,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-503,503,Category,DEPRECATED: Byte/Object Code,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-504,504,Category,DEPRECATED: Motivation/Intent,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-505,505,Category,DEPRECATED: Intentionally Introduced Weakness,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-506,506,Weakness,Embedded Malicious Code,,,Class,Incomplete,CWE-912,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-507,507,Weakness,Trojan Horse,,,Base,Incomplete,CWE-506,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-508,508,Weakness,Non-Replicating Malicious Code,,,Base,Incomplete,CWE-507,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-509,509,Weakness,Replicating Malicious Code (Virus or Worm),,,Base,Incomplete,CWE-507,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-510,510,Weakness,Trapdoor,,,Base,Incomplete,CWE-506,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-511,511,Weakness,Logic/Time Bomb,,,Base,Incomplete,CWE-506,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-512,512,Weakness,Spyware,,,Base,Incomplete,CWE-506,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-513,513,Category,DEPRECATED: Intentionally Introduced Nonmalicious Weakness,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-514,514,Weakness,Covert Channel,,,Class,Incomplete,CWE-1229,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-515,515,Weakness,Covert Storage Channel,,,Base,Incomplete,CWE-514,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-516,516,Weakness,DEPRECATED: Covert Timing Channel,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-517,517,Category,"DEPRECATED: Other Intentional, Nonmalicious Weakness",,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-518,518,Category,DEPRECATED: Inadvertently Introduced Weakness,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-519,519,Category,DEPRECATED: .NET Environment Issues,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-520,520,Weakness,.NET Misconfiguration: Use of Impersonation,,,Variant,Incomplete,CWE-266,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-521,521,Weakness,Weak Password Requirements,,,Base,Draft,CWE-1391,Y,CWE-521,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-522,522,Weakness,Insufficiently Protected Credentials,,,Class,Incomplete,CWE-668|CWE-1390,Y,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-523,523,Weakness,Unprotected Transport of Credentials,,,Base,Incomplete,CWE-522,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-524,524,Weakness,Use of Cache Containing Sensitive Information,,,Base,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-525,525,Weakness,Use of Web Browser Cache Containing Sensitive Information,,,Variant,Incomplete,CWE-524,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-526,526,Weakness,Cleartext Storage of Sensitive Information in an Environment Variable,,,Variant,Incomplete,CWE-312,N,CWE-312,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-527,527,Weakness,Exposure of Version-Control Repository to an Unauthorized Control Sphere,,,Variant,Incomplete,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-528,528,Weakness,Exposure of Core Dump File to an Unauthorized Control Sphere,,,Variant,Draft,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-529,529,Weakness,Exposure of Access Control List Files to an Unauthorized Control Sphere,,,Variant,Incomplete,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-530,530,Weakness,Exposure of Backup File to an Unauthorized Control Sphere,,,Variant,Incomplete,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-531,531,Weakness,Inclusion of Sensitive Information in Test Code,,,Variant,Incomplete,CWE-540,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-532,532,Weakness,Insertion of Sensitive Information into Log File,,,Base,Incomplete,CWE-538,Y,CWE-532,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-533,533,Weakness,DEPRECATED: Information Exposure Through Server Log Files,,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-534,534,Weakness,DEPRECATED: Information Exposure Through Debug Log Files,,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-535,535,Weakness,Exposure of Information Through Shell Error Message,,,Variant,Incomplete,CWE-211,N,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-536,536,Weakness,Servlet Runtime Error Message Containing Sensitive Information,,,Variant,Incomplete,CWE-211,N,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-537,537,Weakness,Java Runtime Error Message Containing Sensitive Information,,,Variant,Incomplete,CWE-211,N,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-538,538,Weakness,Insertion of Sensitive Information into Externally-Accessible File or Directory,,,Base,Draft,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-539,539,Weakness,Use of Persistent Cookies Containing Sensitive Information,,,Variant,Incomplete,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-540,540,Weakness,Inclusion of Sensitive Information in Source Code,,,Base,Incomplete,CWE-538,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-541,541,Weakness,Inclusion of Sensitive Information in an Include File,,,Variant,Incomplete,CWE-540,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-542,542,Weakness,DEPRECATED: Information Exposure Through Cleanup Log Files,,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-543,543,Weakness,Use of Singleton Pattern Without Synchronization in a Multithreaded Context,,,Variant,Incomplete,CWE-820,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-544,544,Weakness,Missing Standardized Error Handling Mechanism,,,Base,Draft,CWE-755,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-545,545,Weakness,DEPRECATED: Use of Dynamic Class Loading,,,Variant,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-546,546,Weakness,Suspicious Comment,,,Variant,Draft,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-547,547,Weakness,"Use of Hard-coded, Security-relevant Constants",,,Base,Draft,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-548,548,Weakness,Exposure of Information Through Directory Listing,,,Variant,Draft,CWE-497,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-549,549,Weakness,Missing Password Field Masking,,,Base,Draft,CWE-522,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-550,550,Weakness,Server-generated Error Message Containing Sensitive Information,,,Variant,Incomplete,CWE-209,N,CWE-209,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-551,551,Weakness,Incorrect Behavior Order: Authorization Before Parsing and Canonicalization,,,Base,Incomplete,CWE-696|CWE-863,N,CWE-863,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-552,552,Weakness,Files or Directories Accessible to External Parties,,,Base,Draft,CWE-285|CWE-668,Y,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-553,553,Weakness,Command Shell in Externally Accessible Directory,,,Variant,Incomplete,CWE-552,N,CWE-552,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-554,554,Weakness,ASP.NET Misconfiguration: Not Using Input Validation Framework,,,Variant,Draft,CWE-1173,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-555,555,Weakness,J2EE Misconfiguration: Plaintext Password in Configuration File,,,Variant,Draft,CWE-260,N,CWE-522,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-556,556,Weakness,ASP.NET Misconfiguration: Use of Identity Impersonation,,,Variant,Incomplete,CWE-266,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-557,557,Category,Concurrency Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-558,558,Weakness,Use of getlogin() in Multithreaded Application,,,Variant,Draft,CWE-663,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-559,559,Category,DEPRECATED: Often Misused: Arguments and Parameters,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-560,560,Weakness,Use of umask() with chmod-style Argument,,,Variant,Draft,CWE-687,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-561,561,Weakness,Dead Code,,,Base,Draft,CWE-1164,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-562,562,Weakness,Return of Stack Variable Address,,,Base,Draft,CWE-758,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-563,563,Weakness,Assignment to Variable without Use,,,Base,Draft,CWE-1164,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-564,564,Weakness,SQL Injection: Hibernate,,,Variant,Incomplete,CWE-89,N,CWE-89,MAPPED,IPA-WEB-01,1.1,SQLインジェクション,SQL Injection,SQL Injection,ancestor,CWE-89,high,seed_unverified,IPA-WEB-01-M1|IPA-WEB-01-M2|IPA-WEB-01-M3|IPA-WEB-01-M4,4.14
+CWE-565,565,Weakness,Reliance on Cookies without Validation and Integrity Checking,,,Base,Incomplete,CWE-602|CWE-642,Y,CWE-565,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-566,566,Weakness,Authorization Bypass Through User-Controlled SQL Primary Key,,,Variant,Incomplete,CWE-639,N,CWE-639,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-567,567,Weakness,Unsynchronized Access to Shared Data in a Multithreaded Context,,,Base,Draft,CWE-820,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-568,568,Weakness,finalize() Method Without super.finalize(),,,Variant,Draft,CWE-459|CWE-573,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-569,569,Category,Expression Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-570,570,Weakness,Expression is Always False,,,Base,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-571,571,Weakness,Expression is Always True,,,Base,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-572,572,Weakness,Call to Thread run() instead of start(),,,Variant,Draft,CWE-821,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-573,573,Weakness,Improper Following of Specification by Caller,,,Class,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-574,574,Weakness,EJB Bad Practices: Use of Synchronization Primitives,,,Variant,Draft,CWE-695|CWE-821,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-575,575,Weakness,EJB Bad Practices: Use of AWT Swing,,,Variant,Draft,CWE-695,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-576,576,Weakness,EJB Bad Practices: Use of Java I/O,,,Variant,Draft,CWE-695,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-577,577,Weakness,EJB Bad Practices: Use of Sockets,,,Variant,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-578,578,Weakness,EJB Bad Practices: Use of Class Loader,,,Variant,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-579,579,Weakness,J2EE Bad Practices: Non-serializable Object Stored in Session,,,Variant,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-580,580,Weakness,clone() Method Without super.clone(),,,Variant,Draft,CWE-573|CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-581,581,Weakness,Object Model Violation: Just One of Equals and Hashcode Defined,,,Variant,Draft,CWE-573|CWE-697,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-582,582,Weakness,"Array Declared Public, Final, and Static",,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-583,583,Weakness,finalize() Method Declared Public,,,Variant,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-584,584,Weakness,Return Inside Finally Block,,,Base,Draft,CWE-705,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-585,585,Weakness,Empty Synchronized Block,,,Variant,Draft,CWE-1071,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-586,586,Weakness,Explicit Call to Finalize(),,,Base,Draft,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-587,587,Weakness,Assignment of a Fixed Address to a Pointer,,,Variant,Draft,CWE-344|CWE-758,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-588,588,Weakness,Attempt to Access Child of a Non-structure Pointer,,,Variant,Incomplete,CWE-704|CWE-758,N,CWE-704,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-589,589,Weakness,Call to Non-ubiquitous API,,,Variant,Incomplete,CWE-474,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-590,590,Weakness,Free of Memory not on the Heap,,,Variant,Incomplete,CWE-762,N,CWE-763,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-591,591,Weakness,Sensitive Data Storage in Improperly Locked Memory,,,Variant,Draft,CWE-413,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-592,592,Weakness,DEPRECATED: Authentication Bypass Issues,,,Class,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-593,593,Weakness,Authentication Bypass: OpenSSL CTX Object Modified after SSL Objects are Created,,,Variant,Draft,CWE-666|CWE-1390,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-594,594,Weakness,J2EE Framework: Saving Unserializable Objects to Disk,,,Variant,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-595,595,Weakness,Comparison of Object References Instead of Object Contents,,,Variant,Incomplete,CWE-1025,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-596,596,Weakness,DEPRECATED: Incorrect Semantic Object Comparison,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-597,597,Weakness,Use of Wrong Operator in String Comparison,,,Variant,Draft,CWE-480|CWE-595,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-598,598,Weakness,Use of GET Request Method With Sensitive Query Strings,,,Variant,Draft,CWE-201,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-599,599,Weakness,Missing Validation of OpenSSL Certificate,,,Variant,Incomplete,CWE-295,N,CWE-295,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-600,600,Weakness,Uncaught Exception in Servlet ,,,Variant,Draft,CWE-248,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-601,601,Weakness,URL Redirection to Untrusted Site ('Open Redirect'),,,Base,Draft,CWE-610,Y,CWE-601,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-602,602,Weakness,Client-Side Enforcement of Server-Side Security,,,Class,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-603,603,Weakness,Use of Client-Side Authentication,,,Base,Draft,CWE-602|CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-605,605,Weakness,Multiple Binds to the Same Port,,,Variant,Draft,CWE-666|CWE-675,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-606,606,Weakness,Unchecked Input for Loop Condition,,,Base,Draft,CWE-1284,N,CWE-1284,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-607,607,Weakness,Public Static Final Field References Mutable Object,,,Variant,Draft,CWE-471,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-608,608,Weakness,Struts: Non-private Field in ActionForm Class,,,Variant,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-609,609,Weakness,Double-Checked Locking,,,Base,Draft,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-610,610,Weakness,Externally Controlled Reference to a Resource in Another Sphere,,,Class,Draft,CWE-664,Y,CWE-610,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-611,611,Weakness,Improper Restriction of XML External Entity Reference,,,Base,Draft,CWE-610,Y,CWE-611,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-612,612,Weakness,Improper Authorization of Index Containing Sensitive Information,,,Base,Draft,CWE-1230,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-613,613,Weakness,Insufficient Session Expiration,,,Base,Incomplete,CWE-672,Y,CWE-613,MAPPED,IPA-WEB-04,1.4,セッション管理の不備,Session Management Flaws,Lỗi quản lý phiên,related,,medium,seed_unverified,,4.14
+CWE-614,614,Weakness,Sensitive Cookie in HTTPS Session Without 'Secure' Attribute,,,Variant,Draft,CWE-319,N,CWE-319,MAPPED,IPA-WEB-04,1.4,セッション管理の不備,Session Management Flaws,Lỗi quản lý phiên,related,,low,seed_unverified,,4.14
+CWE-615,615,Weakness,Inclusion of Sensitive Information in Source Code Comments,,,Variant,Incomplete,CWE-540,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-616,616,Weakness,Incomplete Identification of Uploaded File Variables (PHP),,,Variant,Incomplete,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-617,617,Weakness,Reachable Assertion,,,Base,Draft,CWE-670,Y,CWE-617,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-618,618,Weakness,Exposed Unsafe ActiveX Method,,,Variant,Incomplete,CWE-749,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-619,619,Weakness,Dangling Database Cursor ('Cursor Injection'),,,Base,Incomplete,CWE-402,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-620,620,Weakness,Unverified Password Change,,,Base,Draft,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-621,621,Weakness,Variable Extraction Error,,,Variant,Incomplete,CWE-914,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-622,622,Weakness,Improper Validation of Function Hook Arguments,,,Variant,Draft,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-623,623,Weakness,Unsafe ActiveX Control Marked Safe For Scripting,,,Variant,Draft,CWE-267,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-624,624,Weakness,Executable Regular Expression Error,,,Base,Incomplete,CWE-77,N,CWE-77,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-625,625,Weakness,Permissive Regular Expression,,,Base,Draft,CWE-185,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-626,626,Weakness,Null Byte Interaction Error (Poison Null Byte),,,Variant,Draft,CWE-147|CWE-436,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-627,627,Weakness,Dynamic Variable Evaluation,,,Variant,Incomplete,CWE-914,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-628,628,Weakness,Function Call with Incorrectly Specified Arguments,,,Base,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-632,632,Category,DEPRECATED: Weaknesses that Affect Files or Directories,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-633,633,Category,DEPRECATED: Weaknesses that Affect Memory,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-634,634,Category,DEPRECATED: Weaknesses that Affect System Processes,,,,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-636,636,Weakness,Not Failing Securely ('Failing Open'),,,Class,Draft,CWE-657|CWE-755,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-637,637,Weakness,Unnecessary Complexity in Protection Mechanism (Not Using 'Economy of Mechanism'),,,Class,Draft,CWE-657,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-638,638,Weakness,Not Using Complete Mediation,,,Class,Draft,CWE-657|CWE-862,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-639,639,Weakness,Authorization Bypass Through User-Controlled Key,,,Base,Incomplete,CWE-863,Y,CWE-639,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-640,640,Weakness,Weak Password Recovery Mechanism for Forgotten Password,パスワードを忘れた場合の脆弱なパスワードリカバリの仕組み,,Base,Incomplete,CWE-1390,Y,CWE-640,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-641,641,Weakness,Improper Restriction of Names for Files and Other Resources,,,Base,Incomplete,CWE-99,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-642,642,Weakness,External Control of Critical State Data,,,Class,Draft,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-643,643,Weakness,Improper Neutralization of Data within XPath Expressions ('XPath Injection'),,,Base,Incomplete,CWE-91|CWE-943,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-644,644,Weakness,Improper Neutralization of HTTP Headers for Scripting Syntax,,,Variant,Incomplete,CWE-116,N,CWE-116,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-645,645,Weakness,Overly Restrictive Account Lockout Mechanism,,,Base,Incomplete,CWE-287,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-646,646,Weakness,Reliance on File Name or Extension of Externally-Supplied File,,,Variant,Incomplete,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-647,647,Weakness,Use of Non-Canonical URL Paths for Authorization Decisions,,,Variant,Incomplete,CWE-863,N,CWE-863,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-648,648,Weakness,Incorrect Use of Privileged APIs,,,Base,Incomplete,CWE-269,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-649,649,Weakness,Reliance on Obfuscation or Encryption of Security-Relevant Inputs without Integrity Checking,,,Base,Incomplete,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-650,650,Weakness,Trusting HTTP Permission Methods on the Server Side,,,Variant,Incomplete,CWE-436,N,CWE-436,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-651,651,Weakness,Exposure of WSDL File Containing Sensitive Information,,,Variant,Incomplete,CWE-538,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-652,652,Weakness,Improper Neutralization of Data within XQuery Expressions ('XQuery Injection'),,,Base,Incomplete,CWE-91|CWE-943,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-653,653,Weakness,Improper Isolation or Compartmentalization,,,Class,Draft,CWE-657|CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-654,654,Weakness,Reliance on a Single Factor in a Security Decision,,,Base,Draft,CWE-657|CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-655,655,Weakness,Insufficient Psychological Acceptability,,,Class,Draft,CWE-657|CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-656,656,Weakness,Reliance on Security Through Obscurity,,,Class,Draft,CWE-657|CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-657,657,Weakness,Violation of Secure Design Principles,,,Class,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-662,662,Weakness,Improper Synchronization,,,Class,Draft,CWE-664|CWE-691,Y,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-663,663,Weakness,Use of a Non-reentrant Function in a Concurrent Context,,,Base,Draft,CWE-662,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-664,664,Weakness,Improper Control of a Resource Through its Lifetime,,,Pillar,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-665,665,Weakness,Improper Initialization,,,Class,Draft,CWE-664,Y,CWE-665,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-666,666,Weakness,Operation on Resource in Wrong Phase of Lifetime,,,Class,Draft,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-667,667,Weakness,Improper Locking,,,Class,Draft,CWE-662,Y,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-668,668,Weakness,Exposure of Resource to Wrong Sphere,,,Class,Draft,CWE-664,Y,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-669,669,Weakness,Incorrect Resource Transfer Between Spheres,,,Class,Draft,CWE-664,Y,CWE-669,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-670,670,Weakness,Always-Incorrect Control Flow Implementation,,,Class,Draft,CWE-691,Y,CWE-670,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-671,671,Weakness,Lack of Administrator Control over Security,,,Class,Draft,CWE-657,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-672,672,Weakness,Operation on a Resource after Expiration or Release,,,Class,Draft,CWE-666,Y,CWE-672,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-673,673,Weakness,External Influence of Sphere Definition,,,Class,Draft,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-674,674,Weakness,Uncontrolled Recursion,,,Class,Draft,CWE-834,Y,CWE-674,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-675,675,Weakness,Multiple Operations on Resource in Single-Operation Context,,,Class,Draft,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-676,676,Weakness,Use of Potentially Dangerous Function,,,Base,Draft,CWE-1177,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-680,680,Weakness,Integer Overflow to Buffer Overflow,,,Compound,Draft,CWE-190,N,CWE-190,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-681,681,Weakness,Incorrect Conversion between Numeric Types,,,Base,Draft,CWE-704,Y,CWE-681,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-682,682,Weakness,Incorrect Calculation,,,Pillar,Draft,,Y,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-683,683,Weakness,Function Call With Incorrect Order of Arguments,,,Variant,Draft,CWE-628,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-684,684,Weakness,Incorrect Provision of Specified Functionality,,,Class,Draft,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-685,685,Weakness,Function Call With Incorrect Number of Arguments,,,Variant,Draft,CWE-628,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-686,686,Weakness,Function Call With Incorrect Argument Type,,,Variant,Draft,CWE-628,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-687,687,Weakness,Function Call With Incorrectly Specified Argument Value,,,Variant,Draft,CWE-628,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-688,688,Weakness,Function Call With Incorrect Variable or Reference as Argument,,,Variant,Draft,CWE-628,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-689,689,Weakness,Permission Race Condition During Resource Copy,,,Compound,Draft,CWE-362,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-690,690,Weakness,Unchecked Return Value to NULL Pointer Dereference,,,Compound,Draft,CWE-252,N,CWE-252,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-691,691,Weakness,Insufficient Control Flow Management,,,Pillar,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-692,692,Weakness,Incomplete Denylist to Cross-Site Scripting,,,Compound,Draft,CWE-184,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-693,693,Weakness,Protection Mechanism Failure,,,Pillar,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-694,694,Weakness,Use of Multiple Resources with Duplicate Identifier,,,Base,Incomplete,CWE-99|CWE-573,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-695,695,Weakness,Use of Low-Level Functionality,,,Base,Incomplete,CWE-573,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-696,696,Weakness,Incorrect Behavior Order,,,Class,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-697,697,Weakness,Incorrect Comparison,,,Pillar,Incomplete,,Y,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-698,698,Weakness,Execution After Redirect (EAR),,,Base,Incomplete,CWE-670|CWE-705,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-703,703,Weakness,Improper Check or Handling of Exceptional Conditions,,,Pillar,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-704,704,Weakness,Incorrect Type Conversion or Cast,,,Class,Incomplete,CWE-664,Y,CWE-704,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-705,705,Weakness,Incorrect Control Flow Scoping,,,Class,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-706,706,Weakness,Use of Incorrectly-Resolved Name or Reference,,,Class,Incomplete,CWE-664,Y,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-707,707,Weakness,Improper Neutralization,,,Pillar,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-708,708,Weakness,Incorrect Ownership Assignment,,,Base,Incomplete,CWE-282,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-710,710,Weakness,Improper Adherence to Coding Standards,,,Pillar,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-712,712,Category,OWASP Top Ten 2007 Category A1 - Cross Site Scripting (XSS),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-713,713,Category,OWASP Top Ten 2007 Category A2 - Injection Flaws,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-714,714,Category,OWASP Top Ten 2007 Category A3 - Malicious File Execution,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-715,715,Category,OWASP Top Ten 2007 Category A4 - Insecure Direct Object Reference,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-716,716,Category,OWASP Top Ten 2007 Category A5 - Cross Site Request Forgery (CSRF),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-717,717,Category,OWASP Top Ten 2007 Category A6 - Information Leakage and Improper Error Handling,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-718,718,Category,OWASP Top Ten 2007 Category A7 - Broken Authentication and Session Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-719,719,Category,OWASP Top Ten 2007 Category A8 - Insecure Cryptographic Storage,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-720,720,Category,OWASP Top Ten 2007 Category A9 - Insecure Communications,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-721,721,Category,OWASP Top Ten 2007 Category A10 - Failure to Restrict URL Access,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-722,722,Category,OWASP Top Ten 2004 Category A1 - Unvalidated Input,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-723,723,Category,OWASP Top Ten 2004 Category A2 - Broken Access Control,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-724,724,Category,OWASP Top Ten 2004 Category A3 - Broken Authentication and Session Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-725,725,Category,OWASP Top Ten 2004 Category A4 - Cross-Site Scripting (XSS) Flaws,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-726,726,Category,OWASP Top Ten 2004 Category A5 - Buffer Overflows,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-727,727,Category,OWASP Top Ten 2004 Category A6 - Injection Flaws,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-728,728,Category,OWASP Top Ten 2004 Category A7 - Improper Error Handling,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-729,729,Category,OWASP Top Ten 2004 Category A8 - Insecure Storage,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-730,730,Category,OWASP Top Ten 2004 Category A9 - Denial of Service,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-731,731,Category,OWASP Top Ten 2004 Category A10 - Insecure Configuration Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-732,732,Weakness,Incorrect Permission Assignment for Critical Resource,,,Class,Draft,CWE-285|CWE-668,Y,CWE-732,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-733,733,Weakness,Compiler Optimization Removal or Modification of Security-critical Code,,,Base,Incomplete,CWE-1038,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-735,735,Category,CERT C Secure Coding Standard (2008) Chapter 2 - Preprocessor (PRE),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-736,736,Category,CERT C Secure Coding Standard (2008) Chapter 3 - Declarations and Initialization (DCL),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-737,737,Category,CERT C Secure Coding Standard (2008) Chapter 4 - Expressions (EXP),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-738,738,Category,CERT C Secure Coding Standard (2008) Chapter 5 - Integers (INT),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-739,739,Category,CERT C Secure Coding Standard (2008) Chapter 6 - Floating Point (FLP),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-740,740,Category,CERT C Secure Coding Standard (2008) Chapter 7 - Arrays (ARR),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-741,741,Category,CERT C Secure Coding Standard (2008) Chapter 8 - Characters and Strings (STR),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-742,742,Category,CERT C Secure Coding Standard (2008) Chapter 9 - Memory Management (MEM),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-743,743,Category,CERT C Secure Coding Standard (2008) Chapter 10 - Input Output (FIO),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-744,744,Category,CERT C Secure Coding Standard (2008) Chapter 11 - Environment (ENV),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-745,745,Category,CERT C Secure Coding Standard (2008) Chapter 12 - Signals (SIG),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-746,746,Category,CERT C Secure Coding Standard (2008) Chapter 13 - Error Handling (ERR),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-747,747,Category,CERT C Secure Coding Standard (2008) Chapter 14 - Miscellaneous (MSC),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-748,748,Category,CERT C Secure Coding Standard (2008) Appendix - POSIX (POS),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-749,749,Weakness,Exposed Dangerous Method or Function,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-751,751,Category,2009 Top 25 - Insecure Interaction Between Components,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-752,752,Category,2009 Top 25 - Risky Resource Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-753,753,Category,2009 Top 25 - Porous Defenses,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-754,754,Weakness,Improper Check for Unusual or Exceptional Conditions,,,Class,Incomplete,CWE-703,Y,CWE-754,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-755,755,Weakness,Improper Handling of Exceptional Conditions,,,Class,Incomplete,CWE-703,Y,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-756,756,Weakness,Missing Custom Error Page,,,Base,Incomplete,CWE-755,N,CWE-755,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-757,757,Weakness,Selection of Less-Secure Algorithm During Negotiation ('Algorithm Downgrade'),,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-758,758,Weakness,"Reliance on Undefined, Unspecified, or Implementation-Defined Behavior",,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-759,759,Weakness,Use of a One-Way Hash without a Salt,,,Variant,Incomplete,CWE-916,N,CWE-916,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-760,760,Weakness,Use of a One-Way Hash with a Predictable Salt,,,Variant,Incomplete,CWE-916,N,CWE-916,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-761,761,Weakness,Free of Pointer not at Start of Buffer,,,Variant,Incomplete,CWE-763,N,CWE-763,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-762,762,Weakness,Mismatched Memory Management Routines,,,Variant,Incomplete,CWE-763,N,CWE-763,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-763,763,Weakness,Release of Invalid Pointer or Reference,,,Base,Incomplete,CWE-404,Y,CWE-763,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-764,764,Weakness,Multiple Locks of a Critical Resource,,,Base,Incomplete,CWE-667|CWE-675,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-765,765,Weakness,Multiple Unlocks of a Critical Resource,,,Base,Incomplete,CWE-667|CWE-675,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-766,766,Weakness,Critical Data Element Declared Public,,,Base,Incomplete,CWE-732|CWE-1061,N,CWE-732,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-767,767,Weakness,Access to Critical Private Variable via Public Method,,,Base,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-768,768,Weakness,Incorrect Short Circuit Evaluation,,,Variant,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-769,769,Weakness,DEPRECATED: Uncontrolled File Descriptor Consumption,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-770,770,Weakness,Allocation of Resources Without Limits or Throttling,,,Base,Incomplete,CWE-400|CWE-665,Y,CWE-770,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-771,771,Weakness,Missing Reference to Active Allocated Resource,,,Base,Incomplete,CWE-400,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-772,772,Weakness,Missing Release of Resource after Effective Lifetime,,,Base,Draft,CWE-404,Y,CWE-772,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-773,773,Weakness,Missing Reference to Active File Descriptor or Handle,,,Variant,Incomplete,CWE-771,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-774,774,Weakness,Allocation of File Descriptors or Handles Without Limits or Throttling,,,Variant,Incomplete,CWE-770,N,CWE-770,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-775,775,Weakness,Missing Release of File Descriptor or Handle after Effective Lifetime,,,Variant,Incomplete,CWE-772,N,CWE-772,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-776,776,Weakness,Improper Restriction of Recursive Entity References in DTDs ('XML Entity Expansion'),,,Base,Draft,CWE-405|CWE-674,Y,CWE-776,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-777,777,Weakness,Regular Expression without Anchors,,,Variant,Incomplete,CWE-625,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-778,778,Weakness,Insufficient Logging,,,Base,Draft,CWE-223|CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-779,779,Weakness,Logging of Excessive Data,,,Base,Draft,CWE-400,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-780,780,Weakness,Use of RSA Algorithm without OAEP,,,Variant,Incomplete,CWE-327,N,CWE-327,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-781,781,Weakness,Improper Address Validation in IOCTL with METHOD_NEITHER I/O Control Code,,,Variant,Draft,CWE-1285,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-782,782,Weakness,Exposed IOCTL with Insufficient Access Control,,,Variant,Draft,CWE-749,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-783,783,Weakness,Operator Precedence Logic Error,,,Base,Draft,CWE-670,N,CWE-670,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-784,784,Weakness,Reliance on Cookies without Validation and Integrity Checking in a Security Decision,,,Variant,Draft,CWE-565|CWE-807,N,CWE-565,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-785,785,Weakness,Use of Path Manipulation Function without Maximum-sized Buffer,,,Variant,Incomplete,CWE-120|CWE-676,N,,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-786,786,Weakness,Access of Memory Location Before Start of Buffer,,,Base,Incomplete,CWE-119,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-787,787,Weakness,Out-of-bounds Write,,,Base,Draft,CWE-119,Y,CWE-787,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-788,788,Weakness,Access of Memory Location After End of Buffer,,,Base,Incomplete,CWE-119,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-789,789,Weakness,Memory Allocation with Excessive Size Value,,,Variant,Draft,CWE-770,N,CWE-770,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-790,790,Weakness,Improper Filtering of Special Elements,,,Class,Incomplete,CWE-138,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-791,791,Weakness,Incomplete Filtering of Special Elements,,,Base,Incomplete,CWE-790,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-792,792,Weakness,Incomplete Filtering of One or More Instances of Special Elements,,,Variant,Incomplete,CWE-791,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-793,793,Weakness,Only Filtering One Instance of a Special Element,,,Variant,Incomplete,CWE-792,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-794,794,Weakness,Incomplete Filtering of Multiple Instances of Special Elements,,,Variant,Incomplete,CWE-792,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-795,795,Weakness,Only Filtering Special Elements at a Specified Location,,,Base,Incomplete,CWE-791,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-796,796,Weakness,Only Filtering Special Elements Relative to a Marker,,,Variant,Incomplete,CWE-795,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-797,797,Weakness,Only Filtering Special Elements at an Absolute Position,,,Variant,Incomplete,CWE-795,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-798,798,Weakness,Use of Hard-coded Credentials,,,Base,Draft,CWE-344|CWE-671|CWE-1391,Y,CWE-798,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-799,799,Weakness,Improper Control of Interaction Frequency,,,Class,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-801,801,Category,2010 Top 25 - Insecure Interaction Between Components,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-802,802,Category,2010 Top 25 - Risky Resource Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-803,803,Category,2010 Top 25 - Porous Defenses,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-804,804,Weakness,Guessable CAPTCHA,,,Base,Incomplete,CWE-863|CWE-1390,N,CWE-863,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-805,805,Weakness,Buffer Access with Incorrect Length Value,,,Base,Incomplete,CWE-119,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-806,806,Weakness,Buffer Access Using Size of Source Buffer,,,Variant,Incomplete,CWE-805,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-807,807,Weakness,Reliance on Untrusted Inputs in a Security Decision,,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-808,808,Category,2010 Top 25 - Weaknesses On the Cusp,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-810,810,Category,OWASP Top Ten 2010 Category A1 - Injection,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-811,811,Category,OWASP Top Ten 2010 Category A2 - Cross-Site Scripting (XSS),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-812,812,Category,OWASP Top Ten 2010 Category A3 - Broken Authentication and Session Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-813,813,Category,OWASP Top Ten 2010 Category A4 - Insecure Direct Object References,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-814,814,Category,OWASP Top Ten 2010 Category A5 - Cross-Site Request Forgery(CSRF),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-815,815,Category,OWASP Top Ten 2010 Category A6 - Security Misconfiguration,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-816,816,Category,OWASP Top Ten 2010 Category A7 - Insecure Cryptographic Storage,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-817,817,Category,OWASP Top Ten 2010 Category A8 - Failure to Restrict URL Access,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-818,818,Category,OWASP Top Ten 2010 Category A9 - Insufficient Transport Layer Protection,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-819,819,Category,OWASP Top Ten 2010 Category A10 - Unvalidated Redirects and Forwards,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-820,820,Weakness,Missing Synchronization,,,Base,Incomplete,CWE-662,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-821,821,Weakness,Incorrect Synchronization,,,Base,Incomplete,CWE-662,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-822,822,Weakness,Untrusted Pointer Dereference,,,Base,Incomplete,CWE-119,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-823,823,Weakness,Use of Out-of-range Pointer Offset,,,Base,Incomplete,CWE-119,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-824,824,Weakness,Access of Uninitialized Pointer,,,Base,Incomplete,CWE-119,Y,CWE-824,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-825,825,Weakness,Expired Pointer Dereference,,,Base,Incomplete,CWE-119|CWE-672,N,CWE-119,MAPPED,IPA-WEB-10,1.10,バッファオーバーフロー,Buffer Overflow,Buffer Overflow,ancestor,CWE-119,high,seed_unverified,,4.14
+CWE-826,826,Weakness,Premature Release of Resource During Expected Lifetime,,,Base,Incomplete,CWE-666,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-827,827,Weakness,Improper Control of Document Type Definition,,,Variant,Incomplete,CWE-706|CWE-829,N,CWE-706,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-828,828,Weakness,Signal Handler with Functionality that is not Asynchronous-Safe,,,Variant,Incomplete,CWE-364,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-829,829,Weakness,Inclusion of Functionality from Untrusted Control Sphere,,,Base,Incomplete,CWE-669,Y,CWE-829,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-830,830,Weakness,Inclusion of Web Functionality from an Untrusted Source,,,Variant,Incomplete,CWE-829,N,CWE-829,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-831,831,Weakness,Signal Handler Function Associated with Multiple Signals,,,Variant,Incomplete,CWE-364,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-832,832,Weakness,Unlock of a Resource that is not Locked,,,Base,Incomplete,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-833,833,Weakness,Deadlock,,,Base,Incomplete,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-834,834,Weakness,Excessive Iteration,,,Class,Incomplete,CWE-691,Y,CWE-834,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-835,835,Weakness,Loop with Unreachable Exit Condition ('Infinite Loop'),,,Base,Incomplete,CWE-834,Y,CWE-835,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-836,836,Weakness,Use of Password Hash Instead of Password for Authentication,,,Base,Incomplete,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-837,837,Weakness,"Improper Enforcement of a Single, Unique Action",,,Base,Incomplete,CWE-799,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-838,838,Weakness,Inappropriate Encoding for Output Context,,,Base,Incomplete,CWE-116,Y,CWE-838,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-839,839,Weakness,Numeric Range Comparison Without Minimum Check,,,Base,Incomplete,CWE-1023,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-840,840,Category,Business Logic Errors,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-841,841,Weakness,Improper Enforcement of Behavioral Workflow,,,Base,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-842,842,Weakness,Placement of User into Incorrect Group,,,Base,Incomplete,CWE-286,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-843,843,Weakness,Access of Resource Using Incompatible Type ('Type Confusion'),,,Base,Incomplete,CWE-704,Y,CWE-843,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-845,845,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 2 - Input Validation and Data Sanitization (IDS),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-846,846,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 3 - Declarations and Initialization (DCL),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-847,847,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 4 - Expressions (EXP),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-848,848,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 5 - Numeric Types and Operations (NUM),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-849,849,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 6 - Object Orientation (OBJ),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-850,850,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 7 - Methods (MET),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-851,851,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 8 - Exceptional Behavior (ERR),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-852,852,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 9 - Visibility and Atomicity (VNA),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-853,853,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 10 - Locking (LCK),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-854,854,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 11 - Thread APIs (THI),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-855,855,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 12 - Thread Pools (TPS),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-856,856,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 13 - Thread-Safety Miscellaneous (TSM),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-857,857,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 14 - Input Output (FIO),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-858,858,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 15 - Serialization (SER),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-859,859,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 16 - Platform Security (SEC),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-860,860,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 17 - Runtime Environment (ENV),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-861,861,Category,The CERT Oracle Secure Coding Standard for Java (2011) Chapter 18 - Miscellaneous (MSC),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-862,862,Weakness,Missing Authorization,,,Class,Incomplete,CWE-285,Y,CWE-862,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,narrower,,medium,seed_unverified,,4.14
+CWE-863,863,Weakness,Incorrect Authorization,,,Class,Incomplete,CWE-285,Y,CWE-863,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,narrower,,medium,seed_unverified,,4.14
+CWE-864,864,Category,2011 Top 25 - Insecure Interaction Between Components,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-865,865,Category,2011 Top 25 - Risky Resource Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-866,866,Category,2011 Top 25 - Porous Defenses,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-867,867,Category,2011 Top 25 - Weaknesses On the Cusp,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-869,869,Category,CERT C++ Secure Coding Section 01 - Preprocessor (PRE),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-870,870,Category,CERT C++ Secure Coding Section 02 - Declarations and Initialization (DCL),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-871,871,Category,CERT C++ Secure Coding Section 03 - Expressions (EXP),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-872,872,Category,CERT C++ Secure Coding Section 04 - Integers (INT),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-873,873,Category,CERT C++ Secure Coding Section 05 - Floating Point Arithmetic (FLP),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-874,874,Category,CERT C++ Secure Coding Section 06 - Arrays and the STL (ARR),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-875,875,Category,CERT C++ Secure Coding Section 07 - Characters and Strings (STR),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-876,876,Category,CERT C++ Secure Coding Section 08 - Memory Management (MEM),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-877,877,Category,CERT C++ Secure Coding Section 09 - Input Output (FIO),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-878,878,Category,CERT C++ Secure Coding Section 10 - Environment (ENV),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-879,879,Category,CERT C++ Secure Coding Section 11 - Signals (SIG),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-880,880,Category,CERT C++ Secure Coding Section 12 - Exceptions and Error Handling (ERR),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-881,881,Category,CERT C++ Secure Coding Section 13 - Object Oriented Programming (OOP),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-882,882,Category,CERT C++ Secure Coding Section 14 - Concurrency (CON),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-883,883,Category,CERT C++ Secure Coding Section 49 - Miscellaneous (MSC),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-885,885,Category,SFP Primary Cluster: Risky Values,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-886,886,Category,SFP Primary Cluster: Unused entities,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-887,887,Category,SFP Primary Cluster: API,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-889,889,Category,SFP Primary Cluster: Exception Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-890,890,Category,SFP Primary Cluster: Memory Access,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-891,891,Category,SFP Primary Cluster: Memory Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-892,892,Category,SFP Primary Cluster: Resource Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-893,893,Category,SFP Primary Cluster: Path Resolution,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-894,894,Category,SFP Primary Cluster: Synchronization,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-895,895,Category,SFP Primary Cluster: Information Leak,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-896,896,Category,SFP Primary Cluster: Tainted Input,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-897,897,Category,SFP Primary Cluster: Entry Points,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-898,898,Category,SFP Primary Cluster: Authentication,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-899,899,Category,SFP Primary Cluster: Access Control,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-901,901,Category,SFP Primary Cluster: Privilege,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-902,902,Category,SFP Primary Cluster: Channel,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-903,903,Category,SFP Primary Cluster: Cryptography,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-904,904,Category,SFP Primary Cluster: Malware,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-905,905,Category,SFP Primary Cluster: Predictability,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-906,906,Category,SFP Primary Cluster: UI,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-907,907,Category,SFP Primary Cluster: Other,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-908,908,Weakness,Use of Uninitialized Resource,,,Base,Incomplete,CWE-665,Y,CWE-908,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-909,909,Weakness,Missing Initialization of Resource,,,Class,Incomplete,CWE-665,Y,CWE-909,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-910,910,Weakness,Use of Expired File Descriptor,,,Base,Incomplete,CWE-672,N,CWE-672,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-911,911,Weakness,Improper Update of Reference Count,,,Base,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-912,912,Weakness,Hidden Functionality,,,Class,Incomplete,CWE-684,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-913,913,Weakness,Improper Control of Dynamically-Managed Code Resources,,,Class,Incomplete,CWE-664,Y,CWE-913,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-914,914,Weakness,Improper Control of Dynamically-Identified Variables,,,Base,Incomplete,CWE-99|CWE-913,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-915,915,Weakness,Improperly Controlled Modification of Dynamically-Determined Object Attributes,,,Base,Incomplete,CWE-913,N,CWE-913,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-916,916,Weakness,Use of Password Hash With Insufficient Computational Effort,,,Base,Incomplete,CWE-328,Y,CWE-916,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-917,917,Weakness,Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection'),,,Base,Incomplete,CWE-77,Y,CWE-917,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-918,918,Weakness,Server-Side Request Forgery (SSRF),,,Base,Incomplete,CWE-441,Y,CWE-918,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-920,920,Weakness,Improper Restriction of Power Consumption,,,Base,Incomplete,CWE-400,Y,CWE-920,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-921,921,Weakness,Storage of Sensitive Data in a Mechanism without Access Control,,,Base,Incomplete,CWE-922,N,CWE-922,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-922,922,Weakness,Insecure Storage of Sensitive Information,,,Class,Incomplete,CWE-664,Y,CWE-922,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-923,923,Weakness,Improper Restriction of Communication Channel to Intended Endpoints,,,Class,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-924,924,Weakness,Improper Enforcement of Message Integrity During Transmission in a Communication Channel,,,Base,Incomplete,CWE-345,Y,CWE-924,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-925,925,Weakness,Improper Verification of Intent by Broadcast Receiver,,,Variant,Incomplete,CWE-940,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-926,926,Weakness,Improper Export of Android Application Components,,,Variant,Incomplete,CWE-285,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-927,927,Weakness,Use of Implicit Intent for Sensitive Communication,,,Variant,Incomplete,CWE-285|CWE-668,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-929,929,Category,OWASP Top Ten 2013 Category A1 - Injection,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-930,930,Category,OWASP Top Ten 2013 Category A2 - Broken Authentication and Session Management,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-931,931,Category,OWASP Top Ten 2013 Category A3 - Cross-Site Scripting (XSS),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-932,932,Category,OWASP Top Ten 2013 Category A4 - Insecure Direct Object References,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-933,933,Category,OWASP Top Ten 2013 Category A5 - Security Misconfiguration,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-934,934,Category,OWASP Top Ten 2013 Category A6 - Sensitive Data Exposure,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-935,935,Category,OWASP Top Ten 2013 Category A7 - Missing Function Level Access Control,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-936,936,Category,OWASP Top Ten 2013 Category A8 - Cross-Site Request Forgery (CSRF),,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-937,937,Category,OWASP Top Ten 2013 Category A9 - Using Components with Known Vulnerabilities,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-938,938,Category,OWASP Top Ten 2013 Category A10 - Unvalidated Redirects and Forwards,,,,Obsolete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-939,939,Weakness,Improper Authorization in Handler for Custom URL Scheme,,,Base,Incomplete,CWE-862,N,CWE-862,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-940,940,Weakness,Improper Verification of Source of a Communication Channel,,,Base,Incomplete,CWE-346|CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-941,941,Weakness,Incorrectly Specified Destination in a Communication Channel,,,Base,Incomplete,CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-942,942,Weakness,Permissive Cross-domain Policy with Untrusted Domains,,,Variant,Incomplete,CWE-183|CWE-863|CWE-923,N,CWE-863,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-943,943,Weakness,Improper Neutralization of Special Elements in Data Query Logic,,,Class,Incomplete,CWE-74,N,CWE-74,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-944,944,Category,SFP Secondary Cluster: Access Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-945,945,Category,SFP Secondary Cluster: Insecure Resource Access,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-946,946,Category,SFP Secondary Cluster: Insecure Resource Permissions,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-947,947,Category,SFP Secondary Cluster: Authentication Bypass,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-948,948,Category,SFP Secondary Cluster: Digital Certificate,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-949,949,Category,SFP Secondary Cluster: Faulty Endpoint Authentication,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-950,950,Category,SFP Secondary Cluster: Hardcoded Sensitive Data,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-951,951,Category,SFP Secondary Cluster: Insecure Authentication Policy,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-952,952,Category,SFP Secondary Cluster: Missing Authentication,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-953,953,Category,SFP Secondary Cluster: Missing Endpoint Authentication,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-954,954,Category,SFP Secondary Cluster: Multiple Binds to the Same Port,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-955,955,Category,SFP Secondary Cluster: Unrestricted Authentication,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-956,956,Category,SFP Secondary Cluster: Channel Attack,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-957,957,Category,SFP Secondary Cluster: Protocol Error,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-958,958,Category,SFP Secondary Cluster: Broken Cryptography,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-959,959,Category,SFP Secondary Cluster: Weak Cryptography,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-960,960,Category,SFP Secondary Cluster: Ambiguous Exception Type,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-961,961,Category,SFP Secondary Cluster: Incorrect Exception Behavior,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-962,962,Category,SFP Secondary Cluster: Unchecked Status Condition,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-963,963,Category,SFP Secondary Cluster: Exposed Data,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-964,964,Category,SFP Secondary Cluster: Exposure Temporary File,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-965,965,Category,SFP Secondary Cluster: Insecure Session Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-966,966,Category,SFP Secondary Cluster: Other Exposures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-967,967,Category,SFP Secondary Cluster: State Disclosure,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-968,968,Category,SFP Secondary Cluster: Covert Channel,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-969,969,Category,SFP Secondary Cluster: Faulty Memory Release,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-970,970,Category,SFP Secondary Cluster: Faulty Buffer Access,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-971,971,Category,SFP Secondary Cluster: Faulty Pointer Use,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-972,972,Category,SFP Secondary Cluster: Faulty String Expansion,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-973,973,Category,SFP Secondary Cluster: Improper NULL Termination,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-974,974,Category,SFP Secondary Cluster: Incorrect Buffer Length Computation,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-975,975,Category,SFP Secondary Cluster: Architecture,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-976,976,Category,SFP Secondary Cluster: Compiler,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-977,977,Category,SFP Secondary Cluster: Design,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-978,978,Category,SFP Secondary Cluster: Implementation,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-979,979,Category,SFP Secondary Cluster: Failed Chroot Jail,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-980,980,Category,SFP Secondary Cluster: Link in Resource Name Resolution,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-981,981,Category,SFP Secondary Cluster: Path Traversal,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-982,982,Category,SFP Secondary Cluster: Failure to Release Resource,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-983,983,Category,SFP Secondary Cluster: Faulty Resource Use,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-984,984,Category,SFP Secondary Cluster: Life Cycle,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-985,985,Category,SFP Secondary Cluster: Unrestricted Consumption,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-986,986,Category,SFP Secondary Cluster: Missing Lock,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-987,987,Category,SFP Secondary Cluster: Multiple Locks/Unlocks,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-988,988,Category,SFP Secondary Cluster: Race Condition Window,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-989,989,Category,SFP Secondary Cluster: Unrestricted Lock,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-990,990,Category,SFP Secondary Cluster: Tainted Input to Command,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-991,991,Category,SFP Secondary Cluster: Tainted Input to Environment,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-992,992,Category,SFP Secondary Cluster: Faulty Input Transformation,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-993,993,Category,SFP Secondary Cluster: Incorrect Input Handling,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-994,994,Category,SFP Secondary Cluster: Tainted Input to Variable,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-995,995,Category,SFP Secondary Cluster: Feature,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-996,996,Category,SFP Secondary Cluster: Security,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-997,997,Category,SFP Secondary Cluster: Information Loss,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-998,998,Category,SFP Secondary Cluster: Glitch in Computation,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1001,1001,Category,SFP Secondary Cluster: Use of an Improper API,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1002,1002,Category,SFP Secondary Cluster: Unexpected Entry Points,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1004,1004,Weakness,Sensitive Cookie Without 'HttpOnly' Flag,,,Variant,Incomplete,CWE-732,N,CWE-732,MAPPED,IPA-WEB-04,1.4,セッション管理の不備,Session Management Flaws,Lỗi quản lý phiên,related,,low,seed_unverified,,4.14
+CWE-1005,1005,Category,7PK - Input Validation and Representation,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1006,1006,Category,Bad Coding Practices,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1007,1007,Weakness,Insufficient Visual Distinction of Homoglyphs Presented to User,,,Base,Incomplete,CWE-451,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1009,1009,Category,Audit,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1010,1010,Category,Authenticate Actors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1011,1011,Category,Authorize Actors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1012,1012,Category,Cross Cutting,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1013,1013,Category,Encrypt Data,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1014,1014,Category,Identify Actors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1015,1015,Category,Limit Access,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1016,1016,Category,Limit Exposure,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1017,1017,Category,Lock Computer,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1018,1018,Category,Manage User Sessions,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1019,1019,Category,Validate Inputs,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1020,1020,Category,Verify Message Integrity,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1021,1021,Weakness,Improper Restriction of Rendered UI Layers or Frames,,,Base,Incomplete,CWE-441|CWE-451,Y,CWE-1021,MAPPED,IPA-WEB-09,1.9,クリックジャッキング,Clickjacking,Clickjacking,exact,,high,seed_unverified,,4.14
+CWE-1022,1022,Weakness,Use of Web Link to Untrusted Target with window.opener Access,,,Variant,Incomplete,CWE-266,N,CWE-269,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1023,1023,Weakness,Incomplete Comparison with Missing Factors,,,Class,Incomplete,CWE-697,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1024,1024,Weakness,Comparison of Incompatible Types,,,Base,Incomplete,CWE-697,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1025,1025,Weakness,Comparison Using Wrong Factors,,,Base,Incomplete,CWE-697,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1027,1027,Category,OWASP Top Ten 2017 Category A1 - Injection,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1028,1028,Category,OWASP Top Ten 2017 Category A2 - Broken Authentication,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1029,1029,Category,OWASP Top Ten 2017 Category A3 - Sensitive Data Exposure,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1030,1030,Category,OWASP Top Ten 2017 Category A4 - XML External Entities (XXE),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1031,1031,Category,OWASP Top Ten 2017 Category A5 - Broken Access Control,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1032,1032,Category,OWASP Top Ten 2017 Category A6 - Security Misconfiguration,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1033,1033,Category,OWASP Top Ten 2017 Category A7 - Cross-Site Scripting (XSS),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1034,1034,Category,OWASP Top Ten 2017 Category A8 - Insecure Deserialization,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1035,1035,Category,OWASP Top Ten 2017 Category A9 - Using Components with Known Vulnerabilities,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1036,1036,Category,OWASP Top Ten 2017 Category A10 - Insufficient Logging & Monitoring,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1037,1037,Weakness,Processor Optimization Removal or Modification of Security-critical Code,,,Base,Incomplete,CWE-1038,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1038,1038,Weakness,Insecure Automated Optimizations,,,Class,Draft,CWE-435|CWE-758,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1039,1039,Weakness,Automated Recognition Mechanism with Inadequate Detection or Handling of Adversarial Input Perturbations,,,Class,Incomplete,CWE-693|CWE-697,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1041,1041,Weakness,Use of Redundant Code,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1042,1042,Weakness,Static Member Data Element outside of a Singleton Class Element,,,Variant,Incomplete,CWE-1176,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1043,1043,Weakness,Data Element Aggregating an Excessively Large Number of Non-Primitive Elements,,,Base,Incomplete,CWE-1093,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1044,1044,Weakness,Architecture with Number of Horizontal Layers Outside of Expected Range,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1045,1045,Weakness,Parent Class with a Virtual Destructor and a Child Class without a Virtual Destructor,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1046,1046,Weakness,Creation of Immutable Text Using String Concatenation,,,Base,Incomplete,CWE-1176,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1047,1047,Weakness,Modules with Circular Dependencies,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1048,1048,Weakness,Invokable Control Element with Large Number of Outward Calls,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1049,1049,Weakness,Excessive Data Query Operations in a Large Data Table,,,Base,Incomplete,CWE-1176,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1050,1050,Weakness,Excessive Platform Resource Consumption within a Loop,,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1051,1051,Weakness,Initialization with Hard-Coded Network Resource Configuration Data,,,Base,Incomplete,CWE-1419,N,CWE-665,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1052,1052,Weakness,Excessive Use of Hard-Coded Literals in Initialization,,,Base,Incomplete,CWE-1419,N,CWE-665,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1053,1053,Weakness,Missing Documentation for Design,,,Base,Incomplete,CWE-1059,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1054,1054,Weakness,Invocation of a Control Element at an Unnecessarily Deep Horizontal Layer,,,Base,Incomplete,CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1055,1055,Weakness,Multiple Inheritance from Concrete Classes,,,Base,Incomplete,CWE-1093,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1056,1056,Weakness,Invokable Control Element with Variadic Parameters,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1057,1057,Weakness,Data Access Operations Outside of Expected Data Manager Component,,,Base,Incomplete,CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1058,1058,Weakness,Invokable Control Element in Multi-Thread Context with non-Final Static Storable or Member Element,,,Base,Incomplete,CWE-662,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1059,1059,Weakness,Insufficient Technical Documentation,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1060,1060,Weakness,Excessive Number of Inefficient Server-Side Data Accesses,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1061,1061,Weakness,Insufficient Encapsulation,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1062,1062,Weakness,Parent Class with References to Child Class,,,Base,Incomplete,CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1063,1063,Weakness,Creation of Class Instance within a Static Code Block,,,Base,Incomplete,CWE-1176,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1064,1064,Weakness,Invokable Control Element with Signature Containing an Excessive Number of Parameters,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1065,1065,Weakness,Runtime Resource Management Control Element in a Component Built to Run on Application Servers,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1066,1066,Weakness,Missing Serialization Control Element,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1067,1067,Weakness,Excessive Execution of Sequential Searches of Data Resource,,,Base,Incomplete,CWE-1176,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1068,1068,Weakness,Inconsistency Between Implementation and Documented Design,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1069,1069,Weakness,Empty Exception Block,,,Variant,Incomplete,CWE-1071,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1070,1070,Weakness,Serializable Data Element Containing non-Serializable Item Elements,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1071,1071,Weakness,Empty Code Block,,,Base,Incomplete,CWE-1164,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1072,1072,Weakness,Data Resource Access without Use of Connection Pooling,,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1073,1073,Weakness,Non-SQL Invokable Control Element with Excessive Number of Data Resource Accesses,,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1074,1074,Weakness,Class with Excessively Deep Inheritance,,,Base,Incomplete,CWE-1093,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1075,1075,Weakness,Unconditional Control Flow Transfer outside of Switch Block,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1076,1076,Weakness,Insufficient Adherence to Expected Conventions,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1077,1077,Weakness,Floating Point Comparison with Incorrect Operator,,,Variant,Incomplete,CWE-697,N,CWE-697,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1078,1078,Weakness,Inappropriate Source Code Style or Formatting,,,Class,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1079,1079,Weakness,Parent Class without Virtual Destructor Method,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1080,1080,Weakness,Source Code File with Excessive Number of Lines of Code,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1082,1082,Weakness,Class Instance Self Destruction Control Element,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1083,1083,Weakness,Data Access from Outside Expected Data Manager Component,,,Base,Incomplete,CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1084,1084,Weakness,Invokable Control Element with Excessive File or Data Access Operations,,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1085,1085,Weakness,Invokable Control Element with Excessive Volume of Commented-out Code,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1086,1086,Weakness,Class with Excessive Number of Child Classes,,,Base,Incomplete,CWE-1093,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1087,1087,Weakness,Class with Virtual Method without a Virtual Destructor,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1088,1088,Weakness,Synchronous Access of Remote Resource without Timeout,,,Base,Incomplete,CWE-821,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1089,1089,Weakness,Large Data Table with Excessive Number of Indices,,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1090,1090,Weakness,Method Containing Access of a Member Element from Another Class,,,Base,Incomplete,CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1091,1091,Weakness,Use of Object without Invoking Destructor Method,,,Base,Incomplete,CWE-772|CWE-1076,N,CWE-772,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1092,1092,Weakness,Use of Same Invokable Control Element in Multiple Architectural Layers,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1093,1093,Weakness,Excessively Complex Data Representation,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1094,1094,Weakness,Excessive Index Range Scan for a Data Resource,,,Base,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1095,1095,Weakness,Loop Condition Value Update within the Loop,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1096,1096,Weakness,Singleton Class Instance Creation without Proper Locking or Synchronization,,,Variant,Incomplete,CWE-820,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1097,1097,Weakness,Persistent Storable Data Element without Associated Comparison Control Element,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1098,1098,Weakness,Data Element containing Pointer Item without Proper Copy Control Element,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1099,1099,Weakness,Inconsistent Naming Conventions for Identifiers,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1100,1100,Weakness,Insufficient Isolation of System-Dependent Functions,,,Base,Incomplete,CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1101,1101,Weakness,Reliance on Runtime Component in Generated Code,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1102,1102,Weakness,Reliance on Machine-Dependent Data Representation,,,Base,Incomplete,CWE-758,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1103,1103,Weakness,Use of Platform-Dependent Third Party Components,,,Base,Incomplete,CWE-758,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1104,1104,Weakness,Use of Unmaintained Third Party Components,,,Base,Incomplete,CWE-1357,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1105,1105,Weakness,Insufficient Encapsulation of Machine-Dependent Functionality,,,Base,Incomplete,CWE-758|CWE-1061,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1106,1106,Weakness,Insufficient Use of Symbolic Constants,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1107,1107,Weakness,Insufficient Isolation of Symbolic Constant Definitions,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1108,1108,Weakness,Excessive Reliance on Global Variables,,,Base,Incomplete,CWE-1076,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1109,1109,Weakness,Use of Same Variable for Multiple Purposes,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1110,1110,Weakness,Incomplete Design Documentation,,,Base,Incomplete,CWE-1059,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1111,1111,Weakness,Incomplete I/O Documentation,,,Base,Incomplete,CWE-1059,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1112,1112,Weakness,Incomplete Documentation of Program Execution,,,Base,Incomplete,CWE-1059,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1113,1113,Weakness,Inappropriate Comment Style,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1114,1114,Weakness,Inappropriate Whitespace Style,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1115,1115,Weakness,Source Code Element without Standard Prologue,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1116,1116,Weakness,Inaccurate Comments,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1117,1117,Weakness,Callable with Insufficient Behavioral Summary,,,Base,Incomplete,CWE-1078,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1118,1118,Weakness,Insufficient Documentation of Error Handling Techniques,,,Base,Incomplete,CWE-1059,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1119,1119,Weakness,Excessive Use of Unconditional Branching,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1120,1120,Weakness,Excessive Code Complexity,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1121,1121,Weakness,Excessive McCabe Cyclomatic Complexity,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1122,1122,Weakness,Excessive Halstead Complexity,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1123,1123,Weakness,Excessive Use of Self-Modifying Code,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1124,1124,Weakness,Excessively Deep Nesting,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1125,1125,Weakness,Excessive Attack Surface,,,Base,Incomplete,CWE-1120,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1126,1126,Weakness,Declaration of Variable with Unnecessarily Wide Scope,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1127,1127,Weakness,Compilation with Insufficient Warnings or Errors,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1129,1129,Category,CISQ Quality Measures (2016) - Reliability,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1130,1130,Category,CISQ Quality Measures (2016) - Maintainability,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1131,1131,Category,CISQ Quality Measures (2016) - Security,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1132,1132,Category,CISQ Quality Measures (2016) - Performance Efficiency,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1134,1134,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 00. Input Validation and Data Sanitization (IDS),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1135,1135,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 01. Declarations and Initialization (DCL),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1136,1136,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 02. Expressions (EXP),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1137,1137,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 03. Numeric Types and Operations (NUM),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1138,1138,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 04. Characters and Strings (STR),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1139,1139,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 05. Object Orientation (OBJ),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1140,1140,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 06. Methods (MET),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1141,1141,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 07. Exceptional Behavior (ERR),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1142,1142,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 08. Visibility and Atomicity (VNA),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1143,1143,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 09. Locking (LCK),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1144,1144,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 10. Thread APIs (THI),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1145,1145,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 11. Thread Pools (TPS),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1146,1146,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 12. Thread-Safety Miscellaneous (TSM),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1147,1147,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 13. Input Output (FIO),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1148,1148,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 14. Serialization (SER),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1149,1149,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 15. Platform Security (SEC),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1150,1150,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 16. Runtime Environment (ENV),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1151,1151,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 17. Java Native Interface (JNI),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1152,1152,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 49. Miscellaneous (MSC),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1153,1153,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 50. Android (DRD),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1155,1155,Category,SEI CERT C Coding Standard - Guidelines 01. Preprocessor (PRE),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1156,1156,Category,SEI CERT C Coding Standard - Guidelines 02. Declarations and Initialization (DCL),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1157,1157,Category,SEI CERT C Coding Standard - Guidelines 03. Expressions (EXP),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1158,1158,Category,SEI CERT C Coding Standard - Guidelines 04. Integers (INT),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1159,1159,Category,SEI CERT C Coding Standard - Guidelines 05. Floating Point (FLP),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1160,1160,Category,SEI CERT C Coding Standard - Guidelines 06. Arrays (ARR),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1161,1161,Category,SEI CERT C Coding Standard - Guidelines 07. Characters and Strings (STR),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1162,1162,Category,SEI CERT C Coding Standard - Guidelines 08. Memory Management (MEM),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1163,1163,Category,SEI CERT C Coding Standard - Guidelines 09. Input Output (FIO),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1164,1164,Weakness,Irrelevant Code,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1165,1165,Category,SEI CERT C Coding Standard - Guidelines 10. Environment (ENV),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1166,1166,Category,SEI CERT C Coding Standard - Guidelines 11. Signals (SIG),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1167,1167,Category,SEI CERT C Coding Standard - Guidelines 12. Error Handling (ERR),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1168,1168,Category,SEI CERT C Coding Standard - Guidelines 13. Application Programming Interfaces (API),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1169,1169,Category,SEI CERT C Coding Standard - Guidelines 14. Concurrency (CON),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1170,1170,Category,SEI CERT C Coding Standard - Guidelines 48. Miscellaneous (MSC),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1171,1171,Category,SEI CERT C Coding Standard - Guidelines 50. POSIX (POS),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1172,1172,Category,SEI CERT C Coding Standard - Guidelines 51. Microsoft Windows (WIN) ,,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1173,1173,Weakness,Improper Use of Validation Framework,,,Base,Draft,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1174,1174,Weakness,ASP.NET Misconfiguration: Improper Model Validation,,,Variant,Draft,CWE-1173,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1175,1175,Category,SEI CERT Oracle Secure Coding Standard for Java - Guidelines 18. Concurrency (CON),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1176,1176,Weakness,Inefficient CPU Computation,,,Class,Incomplete,CWE-405,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1177,1177,Weakness,Use of Prohibited Code,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1179,1179,Category,SEI CERT Perl Coding Standard - Guidelines 01. Input Validation and Data Sanitization (IDS),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1180,1180,Category,SEI CERT Perl Coding Standard - Guidelines 02. Declarations and Initialization (DCL),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1181,1181,Category,SEI CERT Perl Coding Standard - Guidelines 03. Expressions (EXP),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1182,1182,Category,SEI CERT Perl Coding Standard - Guidelines 04. Integers (INT),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1183,1183,Category,SEI CERT Perl Coding Standard - Guidelines 05. Strings (STR),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1184,1184,Category,SEI CERT Perl Coding Standard - Guidelines 06. Object-Oriented Programming (OOP),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1185,1185,Category,SEI CERT Perl Coding Standard - Guidelines 07. File Input and Output (FIO),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1186,1186,Category,SEI CERT Perl Coding Standard - Guidelines 50. Miscellaneous (MSC),,,,Stable,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1187,1187,Weakness,DEPRECATED: Use of Uninitialized Resource,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1188,1188,Weakness,Initialization of a Resource with an Insecure Default,,,Base,Incomplete,CWE-1419,Y,CWE-1188,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1189,1189,Weakness,Improper Isolation of Shared Resources on System-on-a-Chip (SoC),,,Base,Stable,CWE-653|CWE-668,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1190,1190,Weakness,DMA Device Enabled Too Early in Boot Phase,,,Base,Draft,CWE-696,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1191,1191,Weakness,On-Chip Debug and Test Interface With Improper Access Control,,,Base,Stable,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1192,1192,Weakness,Improper Identifier for IP Block used in System-On-Chip (SOC),,,Base,Draft,CWE-657,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1193,1193,Weakness,Power-On of Untrusted Execution Core Before Enabling Fabric Access Control,,,Base,Draft,CWE-696,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1195,1195,Category,Manufacturing and Life Cycle Management Concerns,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1196,1196,Category,Security Flow Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1197,1197,Category,Integration Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1198,1198,Category,Privilege Separation and Access Control Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1199,1199,Category,General Circuit and Logic Design Concerns,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1201,1201,Category,Core and Compute Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1202,1202,Category,Memory and Storage Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1203,1203,Category,"Peripherals, On-chip Fabric, and Interface/IO Problems",,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1204,1204,Weakness,Generation of Weak Initialization Vector (IV),,,Base,Incomplete,CWE-330,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1205,1205,Category,Security Primitives and Cryptography Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1206,1206,Category,"Power, Clock, Thermal, and Reset Concerns",,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1207,1207,Category,Debug and Test Problems,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1208,1208,Category,Cross-Cutting Problems,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1209,1209,Weakness,Failure to Disable Reserved Bits,,,Base,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1210,1210,Category,Audit / Logging Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1211,1211,Category,Authentication Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1212,1212,Category,Authorization Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1213,1213,Category,Random Number Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1214,1214,Category,Data Integrity Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1215,1215,Category,Data Validation Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1216,1216,Category,Lockout Mechanism Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1217,1217,Category,User Session Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1218,1218,Category,Memory Buffer Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1219,1219,Category,File Handling Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1220,1220,Weakness,Insufficient Granularity of Access Control,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1221,1221,Weakness,Incorrect Register Defaults or Module Parameters,,,Base,Incomplete,CWE-1419,N,CWE-665,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1222,1222,Weakness,Insufficient Granularity of Address Regions Protected by Register Locks,,,Variant,Incomplete,CWE-1220,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1223,1223,Weakness,Race Condition for Write-Once Attributes,,,Base,Incomplete,CWE-362,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1224,1224,Weakness,Improper Restriction of Write-Once Bit Fields,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1225,1225,Category,Documentation Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1226,1226,Category,Complexity Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1227,1227,Category,Encapsulation Issues,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1228,1228,Category,API / Function Errors,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1229,1229,Weakness,Creation of Emergent Resource,,,Class,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1230,1230,Weakness,Exposure of Sensitive Information Through Metadata,,,Base,Incomplete,CWE-285,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-1231,1231,Weakness,Improper Prevention of Lock Bit Modification,,,Base,Stable,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1232,1232,Weakness,Improper Lock Behavior After Power State Transition,,,Base,Incomplete,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1233,1233,Weakness,Security-Sensitive Hardware Controls with Missing Lock Bit Protection,,,Base,Stable,CWE-284|CWE-667,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1234,1234,Weakness,Hardware Internal or Debug Modes Allow Override of Locks,,,Base,Incomplete,CWE-667,N,CWE-667,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1235,1235,Weakness,Incorrect Use of Autoboxing and Unboxing for Performance Critical Operations,,,Base,Incomplete,CWE-400,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1236,1236,Weakness,Improper Neutralization of Formula Elements in a CSV File,,,Base,Incomplete,CWE-74,Y,CWE-1236,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1237,1237,Category,SFP Primary Cluster: Faulty Resource Release,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1238,1238,Category,SFP Primary Cluster: Failure to Release Memory,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1239,1239,Weakness,Improper Zeroization of Hardware Register,,,Variant,Draft,CWE-226,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1240,1240,Weakness,Use of a Cryptographic Primitive with a Risky Implementation,,,Base,Draft,CWE-327,N,CWE-327,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1241,1241,Weakness,Use of Predictable Algorithm in Random Number Generator,,,Base,Draft,CWE-330,N,CWE-330,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1242,1242,Weakness,Inclusion of Undocumented Features or Chicken Bits,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1243,1243,Weakness,Sensitive Non-Volatile Information Not Protected During Debug,,,Base,Incomplete,CWE-1263,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1244,1244,Weakness,Internal Asset Exposed to Unsafe Debug Access Level or State,,,Base,Stable,CWE-863,N,CWE-863,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-1245,1245,Weakness,Improper Finite State Machines (FSMs) in Hardware Logic,,,Base,Incomplete,CWE-684,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1246,1246,Weakness,Improper Write Handling in Limited-write Non-Volatile Memories,,,Base,Incomplete,CWE-400,N,CWE-400,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1247,1247,Weakness,Improper Protection Against Voltage and Clock Glitches,,,Base,Stable,CWE-1384,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1248,1248,Weakness,Semiconductor Defects in Hardware Logic with Security-Sensitive Implications,,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1249,1249,Weakness,Application-Level Admin Tool with Inconsistent View of Underlying Operating System,,,Base,Incomplete,CWE-1250,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1250,1250,Weakness,Improper Preservation of Consistency Between Independent Representations of Shared State,,,Base,Incomplete,CWE-664,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1251,1251,Weakness,Mirrored Regions with Different Values,,,Base,Incomplete,CWE-1250,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1252,1252,Weakness,CPU Hardware Not Configured to Support Exclusivity of Write and Execute Operations,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1253,1253,Weakness,Incorrect Selection of Fuse Values,,,Base,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1254,1254,Weakness,Incorrect Comparison Logic Granularity,,,Base,Draft,CWE-208|CWE-697,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1255,1255,Weakness,Comparison Logic is Vulnerable to Power Side-Channel Attacks,,,Variant,Draft,CWE-1300,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1256,1256,Weakness,Improper Restriction of Software Interfaces to Hardware Features,,,Base,Stable,CWE-285,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-1257,1257,Weakness,Improper Access Control Applied to Mirrored or Aliased Memory Regions,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1258,1258,Weakness,Exposure of Sensitive System Information Due to Uncleared Debug Information,,,Base,Draft,CWE-200|CWE-212,N,CWE-212,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1259,1259,Weakness,Improper Restriction of Security Token Assignment,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1260,1260,Weakness,Improper Handling of Overlap Between Protected Memory Ranges,,,Base,Stable,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1261,1261,Weakness,Improper Handling of Single Event Upsets,,,Base,Draft,CWE-1384,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1262,1262,Weakness,Improper Access Control for Register Interface,,,Base,Stable,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1263,1263,Weakness,Improper Physical Access Control,,,Class,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1264,1264,Weakness,Hardware Logic with Insecure De-Synchronization between Control and Data Channels,,,Base,Incomplete,CWE-821,N,CWE-662,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1265,1265,Weakness,Unintended Reentrant Invocation of Non-reentrant Code Via Nested Calls,,,Base,Draft,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1266,1266,Weakness,Improper Scrubbing of Sensitive Data from Decommissioned Device,,,Base,Incomplete,CWE-404,N,CWE-404,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1267,1267,Weakness,Policy Uses Obsolete Encoding,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1268,1268,Weakness,Policy Privileges are not Assigned Consistently Between Control and Data Agents,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1269,1269,Weakness,Product Released in Non-Release Configuration,,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1270,1270,Weakness,Generation of Incorrect Security Tokens,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1271,1271,Weakness,Uninitialized Value on Reset for Registers Holding Security Settings,,,Base,Incomplete,CWE-909,N,CWE-909,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1272,1272,Weakness,Sensitive Information Uncleared Before Debug/Power State Transition,,,Base,Stable,CWE-226,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1273,1273,Weakness,Device Unlock Credential Sharing,,,Base,Incomplete,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1274,1274,Weakness,Improper Access Control for Volatile Memory Containing Boot Code,,,Base,Stable,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1275,1275,Weakness,Sensitive Cookie with Improper SameSite Attribute,,,Variant,Incomplete,CWE-923,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1276,1276,Weakness,Hardware Child Block Incorrectly Connected to Parent System,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1277,1277,Weakness,Firmware Not Updateable,,,Base,Draft,CWE-1329,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1278,1278,Weakness,Missing Protection Against Hardware Reverse Engineering Using Integrated Circuit (IC) Imaging Techniques,,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1279,1279,Weakness,Cryptographic Operations are run Before Supporting Units are Ready,,,Base,Incomplete,CWE-665|CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1280,1280,Weakness,Access Control Check Implemented After Asset is Accessed,,,Base,Incomplete,CWE-284|CWE-696,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1281,1281,Weakness,Sequence of Processor Instructions Leads to Unexpected Behavior,,,Base,Incomplete,CWE-691,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1282,1282,Weakness,Assumed-Immutable Data is Stored in Writable Memory,,,Base,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1283,1283,Weakness,Mutable Attestation or Measurement Reporting Data,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1284,1284,Weakness,Improper Validation of Specified Quantity in Input,,,Base,Incomplete,CWE-20,Y,CWE-1284,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1285,1285,Weakness,"Improper Validation of Specified Index, Position, or Offset in Input",,,Base,Incomplete,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1286,1286,Weakness,Improper Validation of Syntactic Correctness of Input,,,Base,Incomplete,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1287,1287,Weakness,Improper Validation of Specified Type of Input,,,Base,Incomplete,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1288,1288,Weakness,Improper Validation of Consistency within Input,,,Base,Incomplete,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1289,1289,Weakness,Improper Validation of Unsafe Equivalence in Input,,,Base,Incomplete,CWE-20,N,CWE-20,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1290,1290,Weakness,Incorrect Decoding of Security Identifiers ,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1291,1291,Weakness,Public Key Re-Use for Signing both Debug and Production Code,,,Base,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1292,1292,Weakness,Incorrect Conversion of Security Identifiers,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1293,1293,Weakness,Missing Source Correlation of Multiple Independent Data,,,Base,Draft,CWE-345,N,CWE-345,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1294,1294,Weakness,Insecure Security Identifier Mechanism,,,Class,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1295,1295,Weakness,Debug Messages Revealing Unnecessary Information,,,Base,Incomplete,CWE-200,N,CWE-200,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1296,1296,Weakness,Incorrect Chaining or Granularity of Debug Components,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1297,1297,Weakness,Unprotected Confidential Information on Device is Accessible by OSAT Vendors,,,Base,Incomplete,CWE-285,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-1298,1298,Weakness,Hardware Logic Contains Race Conditions,,,Base,Draft,CWE-362,N,CWE-362,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1299,1299,Weakness,Missing Protection Mechanism for Alternate Hardware Interface,,,Base,Draft,CWE-288|CWE-420,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1300,1300,Weakness,Improper Protection of Physical Side Channels,,,Base,Stable,CWE-203,N,CWE-203,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1301,1301,Weakness,Insufficient or Incomplete Data Removal within Hardware Component,,,Base,Incomplete,CWE-226,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1302,1302,Weakness,Missing Source Identifier in Entity Transactions on a System-On-Chip (SOC),,,Base,Incomplete,CWE-1294,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1303,1303,Weakness,Non-Transparent Sharing of Microarchitectural Resources,,,Base,Draft,CWE-203|CWE-1189,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1304,1304,Weakness,Improperly Preserved Integrity of Hardware Configuration State During a Power Save/Restore Operation,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1306,1306,Category,CISQ Quality Measures - Reliability,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1307,1307,Category,CISQ Quality Measures - Maintainability,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1308,1308,Category,CISQ Quality Measures - Security,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1309,1309,Category,CISQ Quality Measures - Efficiency,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1310,1310,Weakness,Missing Ability to Patch ROM Code,,,Base,Draft,CWE-1329,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1311,1311,Weakness,Improper Translation of Security Attributes by Fabric Bridge,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1312,1312,Weakness,Missing Protection for Mirrored Regions in On-Chip Fabric Firewall,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1313,1313,Weakness,Hardware Allows Activation of Test or Debug Logic at Runtime,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1314,1314,Weakness,Missing Write Protection for Parametric Data Values,,,Base,Draft,CWE-862,N,CWE-862,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-1315,1315,Weakness,Improper Setting of Bus Controlling Capability in Fabric End-point,,,Base,Incomplete,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1316,1316,Weakness,Fabric-Address Map Allows Programming of Unwarranted Overlaps of Protected and Unprotected Ranges,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1317,1317,Weakness,Improper Access Control in Fabric Bridge,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1318,1318,Weakness,Missing Support for Security Features in On-chip Fabrics or Buses,,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1319,1319,Weakness,Improper Protection against Electromagnetic Fault Injection (EM-FI),,,Base,Incomplete,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1320,1320,Weakness,Improper Protection for Outbound Error Messages and Alert Signals,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1321,1321,Weakness,Improperly Controlled Modification of Object Prototype Attributes ('Prototype Pollution'),,,Variant,Incomplete,CWE-915,Y,CWE-1321,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1322,1322,Weakness,"Use of Blocking Code in Single-threaded, Non-blocking Context",,,Base,Incomplete,CWE-834,N,CWE-834,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1323,1323,Weakness,Improper Management of Sensitive Trace Data,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1324,1324,Weakness,DEPRECATED: Sensitive Information Accessible by Physical Probing of JTAG Interface,,,Base,Deprecated,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1325,1325,Weakness,Improperly Controlled Sequential Memory Allocation,,,Base,Incomplete,CWE-770,N,CWE-770,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1326,1326,Weakness,Missing Immutable Root of Trust in Hardware,,,Base,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1327,1327,Weakness,Binding to an Unrestricted IP Address,,,Base,Incomplete,CWE-668,N,CWE-668,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1328,1328,Weakness,Security Version Number Mutable to Older Versions,,,Base,Draft,CWE-285,N,,MAPPED,IPA-WEB-11,1.11,アクセス制御や認可制御の欠落,Missing Access/Authorization Control,Thiếu kiểm soát truy cập/phân quyền,ancestor,CWE-285,medium,seed_unverified,,4.14
+CWE-1329,1329,Weakness,Reliance on Component That is Not Updateable,,,Base,Incomplete,CWE-664|CWE-1357,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1330,1330,Weakness,Remanent Data Readable after Memory Erase,,,Variant,Draft,CWE-1301,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1331,1331,Weakness,Improper Isolation of Shared Resources in Network On Chip (NoC),,,Base,Stable,CWE-653|CWE-668,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1332,1332,Weakness,Improper Handling of Faults that Lead to Instruction Skips,,,Base,Stable,CWE-1384,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1333,1333,Weakness,Inefficient Regular Expression Complexity,,,Base,Draft,CWE-407,Y,CWE-1333,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1334,1334,Weakness,Unauthorized Error Injection Can Degrade Hardware Redundancy,,,Base,Draft,CWE-284,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1335,1335,Weakness,Incorrect Bitwise Shift of Integer,,,Base,Draft,CWE-682,N,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1336,1336,Weakness,Improper Neutralization of Special Elements Used in a Template Engine,,,Base,Incomplete,CWE-94,N,CWE-94,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1338,1338,Weakness,Improper Protections Against Hardware Overheating,,,Base,Draft,CWE-693,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1339,1339,Weakness,Insufficient Precision or Accuracy of a Real Number,,,Base,Draft,CWE-682,N,CWE-682,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1341,1341,Weakness,Multiple Releases of Same Resource or Handle,,,Base,Incomplete,CWE-675,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1342,1342,Weakness,Information Exposure through Microarchitectural State after Transient Execution,,,Base,Incomplete,CWE-226,N,CWE-459,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1345,1345,Category,OWASP Top Ten 2021 Category A01:2021 - Broken Access Control,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1346,1346,Category,OWASP Top Ten 2021 Category A02:2021 - Cryptographic Failures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1347,1347,Category,OWASP Top Ten 2021 Category A03:2021 - Injection,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1348,1348,Category,OWASP Top Ten 2021 Category A04:2021 - Insecure Design,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1349,1349,Category,OWASP Top Ten 2021 Category A05:2021 - Security Misconfiguration,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1351,1351,Weakness,Improper Handling of Hardware Behavior in Exceptionally Cold Environments,,,Base,Incomplete,CWE-1384,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1352,1352,Category,OWASP Top Ten 2021 Category A06:2021 - Vulnerable and Outdated Components,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1353,1353,Category,OWASP Top Ten 2021 Category A07:2021 - Identification and Authentication Failures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1354,1354,Category,OWASP Top Ten 2021 Category A08:2021 - Software and Data Integrity Failures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1355,1355,Category,OWASP Top Ten 2021 Category A09:2021 - Security Logging and Monitoring Failures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1356,1356,Category,OWASP Top Ten 2021 Category A10:2021 - Server-Side Request Forgery (SSRF),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1357,1357,Weakness,Reliance on Insufficiently Trustworthy Component,,,Class,Incomplete,CWE-710,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1359,1359,Category,ICS Communications,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1360,1360,Category,ICS Dependencies (& Architecture),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1361,1361,Category,ICS Supply Chain,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1362,1362,Category,ICS Engineering (Constructions/Deployment),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1363,1363,Category,ICS Operations (& Maintenance),,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1364,1364,Category,ICS Communications: Zone Boundary Failures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1365,1365,Category,ICS Communications: Unreliability,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1366,1366,Category,ICS Communications: Frail Security in Protocols,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1367,1367,Category,ICS Dependencies (& Architecture): External Physical Systems,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1368,1368,Category,ICS Dependencies (& Architecture): External Digital Systems,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1369,1369,Category,ICS Supply Chain: IT/OT Convergence/Expansion,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1370,1370,Category,ICS Supply Chain: Common Mode Frailties,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1371,1371,Category,ICS Supply Chain: Poorly Documented or Undocumented Features,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1372,1372,Category,ICS Supply Chain: OT Counterfeit and Malicious Corruption,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1373,1373,Category,ICS Engineering (Construction/Deployment): Trust Model Problems,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1374,1374,Category,ICS Engineering (Construction/Deployment): Maker Breaker Blindness,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1375,1375,Category,ICS Engineering (Construction/Deployment): Gaps in Details/Data,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1376,1376,Category,ICS Engineering (Construction/Deployment): Security Gaps in Commissioning,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1377,1377,Category,ICS Engineering (Construction/Deployment): Inherent Predictability in Design,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1378,1378,Category,ICS Operations (& Maintenance): Gaps in obligations and training,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1379,1379,Category,ICS Operations (& Maintenance): Human factors in ICS environments,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1380,1380,Category,ICS Operations (& Maintenance): Post-analysis changes,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1381,1381,Category,ICS Operations (& Maintenance): Exploitable Standard Operational Procedures,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1382,1382,Category,ICS Operations (& Maintenance): Emerging Energy Technologies,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1383,1383,Category,ICS Operations (& Maintenance): Compliance/Conformance with Regulatory Requirements,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1384,1384,Weakness,Improper Handling of Physical or Environmental Conditions,,,Class,Incomplete,CWE-703,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1385,1385,Weakness,Missing Origin Validation in WebSockets,,,Variant,Incomplete,CWE-346,N,CWE-346,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1386,1386,Weakness,Insecure Operation on Windows Junction / Mount Point,,,Base,Incomplete,CWE-59,N,CWE-59,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1388,1388,Category,Physical Access Issues and Concerns,,,,Draft,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1389,1389,Weakness,Incorrect Parsing of Numbers with Different Radices,,,Base,Incomplete,CWE-704,N,CWE-704,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1390,1390,Weakness,Weak Authentication,,,Class,Incomplete,CWE-287,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1391,1391,Weakness,Use of Weak Credentials,,,Class,Incomplete,CWE-1390,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1392,1392,Weakness,Use of Default Credentials,,,Base,Incomplete,CWE-1391,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1393,1393,Weakness,Use of Default Password,,,Base,Incomplete,CWE-1392,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1394,1394,Weakness,Use of Default Cryptographic Key,,,Base,Incomplete,CWE-1392,N,CWE-287,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1395,1395,Weakness,Dependency on Vulnerable Third-Party Component,,,Class,Incomplete,CWE-657,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1396,1396,Category,Comprehensive Categorization: Access Control,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1397,1397,Category,Comprehensive Categorization: Comparison,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1398,1398,Category,Comprehensive Categorization: Component Interaction,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1399,1399,Category,Comprehensive Categorization: Memory Safety,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1401,1401,Category,Comprehensive Categorization: Concurrency,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1402,1402,Category,Comprehensive Categorization: Encryption,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1403,1403,Category,Comprehensive Categorization: Exposed Resource,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1404,1404,Category,Comprehensive Categorization: File Handling,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1405,1405,Category,Comprehensive Categorization: Improper Check or Handling of Exceptional Conditions,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1406,1406,Category,Comprehensive Categorization: Improper Input Validation,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1407,1407,Category,Comprehensive Categorization: Improper Neutralization,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1408,1408,Category,Comprehensive Categorization: Incorrect Calculation,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1409,1409,Category,Comprehensive Categorization: Injection,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1410,1410,Category,Comprehensive Categorization: Insufficient Control Flow Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1411,1411,Category,Comprehensive Categorization: Insufficient Verification of Data Authenticity,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1412,1412,Category,Comprehensive Categorization: Poor Coding Practices,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1413,1413,Category,Comprehensive Categorization: Protection Mechanism Failure,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1414,1414,Category,Comprehensive Categorization: Randomness,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1415,1415,Category,Comprehensive Categorization: Resource Control,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1416,1416,Category,Comprehensive Categorization: Resource Lifecycle Management,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1417,1417,Category,Comprehensive Categorization: Sensitive Information Exposure,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1418,1418,Category,Comprehensive Categorization: Violation of Secure Design Principles,,,,Incomplete,,N,,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1419,1419,Weakness,Incorrect Initialization of Resource,,,Class,Incomplete,CWE-665,N,CWE-665,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1420,1420,Weakness,Exposure of Sensitive Information during Transient Execution,,,Base,Incomplete,CWE-669,N,CWE-669,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1421,1421,Weakness,Exposure of Sensitive Information in Shared Microarchitectural Structures during Transient Execution,,,Base,Incomplete,CWE-1420,N,CWE-669,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1422,1422,Weakness,Exposure of Sensitive Information caused by Incorrect Data Forwarding during Transient Execution,,,Base,Incomplete,CWE-1420,N,CWE-669,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+CWE-1423,1423,Weakness,Exposure of Sensitive Information caused by Shared Microarchitectural Predictor State that Influences Transient Execution,,,Base,Incomplete,CWE-1420,N,CWE-669,OUT_OF_IPA_SCOPE,,,,,,,,,,,4.14
+NVD-CWE-Other,,Pseudo,NVD pseudo-CWE: weakness not covered by the CWE slice NVD uses,,,,,,N,,NO_CWE_INFO,,,,,,,,,,,4.14
+NVD-CWE-noinfo,,Pseudo,NVD pseudo-CWE: insufficient information,,,,,,N,,NO_CWE_INFO,,,,,,,,,,,4.14
+CWE-noinfo,,Pseudo,JVN iPedia pseudo-CWE: insufficient information,情報不足,,,,,N,,NO_CWE_INFO,,,,,,,,,,,4.14
