@@ -784,7 +784,20 @@ done
 
 # 7. (Tuỳ chọn) Đo độ trễ, chất lượng dịch của gpt-5.4-mini
 docker exec rvt_ai uv run python eval/mt_eval.py --golden eval/golden_1 --label gpt-5.4-mini --out /tmp/mt_api.json
+
+# 8. (Tuỳ chọn) PhoWhisper-large float16 cho nửa khoá "Tiếng Việt" (thay large-v3-turbo khi nói tiếng Việt)
+./scripts/prepare_listen_models.sh    # cần uv; tải model gốc 6,2 GB và torch; lúc chuyển cần ~10 GB trống
+docker restart rvt_ai
+docker logs --since 5m rvt_ai 2>&1 | grep -E "Loading|ASR model"   # có dòng nạp phowhisper-large-ct2 (float16)
+uv cache clean                        # torch, transformers chỉ cần lúc chuyển
 ```
+
+- **PhoWhisper-large (bước 8):**
+  - Chỉ dùng khi nửa nói khoá "Tiếng Việt". "Tự động", tiếng Nhật, tiếng Anh vẫn dùng large-v3-turbo.
+  - Script tải những file cần (cấu hình, tokenizer, `pytorch_model.bin`), đọc trọng số ở float16, lưu CTranslate2
+    float16 vào `models/phowhisper-large-ct2` (3,1 GB). Xong thì xoá bản tải. Container nạp ở `float16` theo profile.
+  - Ghim `ctranslate2==4.8.4`, `transformers==5.21.0` để lần chuyển nào cũng dùng cùng bản.
+  - Model lớn (32 lớp giải mã, không có bản turbo) nên mỗi câu chậm hơn turbo. Để ý độ trễ chữ tạm khi nói tiếng Việt.
 
 - **Lỗi của bản script dọn trước đây (đã sửa):** script từng xoá `whisper/blobs` và `whisper/CACHEDIR.TAG`.
   - **Nguyên nhân:** huggingface_hub bản mới để dữ liệu thật của mọi model trong kho dùng chung
@@ -825,6 +838,7 @@ du -sh models/whisper                      # khoảng 1,6 GB
     - giải phóng đúng phần mà lệnh xoá của huggingface_hub giải phóng, cộng phần dữ liệu không model nào dùng;
     - đúng cả khi cache kiểu cũ, `blobs/` không có dấu, thư mục `models/` là liên kết.
 - **Chưa kiểm:**
+  - Chuyển PhoWhisper-large thật và VRAM khi có cả hai model: sandbox không ra được Hugging Face.
   - Tải lại large-v3-turbo thật: sandbox không ra được Hugging Face.
   - Azure thật: chưa có khoá, và sandbox không ra được Azure.
   - Độ trễ, chi phí và chất lượng dịch thật của GPT-5 mini so với Qwen.
