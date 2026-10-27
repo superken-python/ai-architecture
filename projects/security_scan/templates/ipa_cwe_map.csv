@@ -1,0 +1,19 @@
+map_id,ipa_id,cwe_id,relation,confidence,source_type,evidence_url,verification_status,verified_by,verified_at,note
+M-0001,IPA-WEB-01,89,exact,high,curated_seed,,seed_unverified,,,SQL Injection
+M-0002,IPA-WEB-02,78,exact,high,curated_seed,,seed_unverified,,,OS Command Injection
+M-0003,IPA-WEB-02,77,broader,medium,curated_seed,,seed_unverified,,,CWE-77 là cha của CWE-78; rule gắn CWE-77 chỉ là ứng viên
+M-0004,IPA-WEB-03,22,exact,high,curated_seed,,seed_unverified,,,Path Traversal
+M-0005,IPA-WEB-04,384,related,medium,curated_seed,,seed_unverified,,,Session Fixation
+M-0006,IPA-WEB-04,613,related,medium,curated_seed,,seed_unverified,,,Insufficient Session Expiration
+M-0007,IPA-WEB-04,614,related,low,curated_seed,,seed_unverified,,,Cookie thiếu thuộc tính Secure; chỉ liên quan gián tiếp
+M-0008,IPA-WEB-04,1004,related,low,curated_seed,,seed_unverified,,,Cookie thiếu HttpOnly; có thể thuộc IPA-WEB-04 hoặc IPA-WEB-05 tùy diễn giải của IPA
+M-0009,IPA-WEB-05,79,exact,high,curated_seed,,seed_unverified,,,Cross-site Scripting
+M-0010,IPA-WEB-06,352,exact,high,curated_seed,,seed_unverified,,,CSRF
+M-0011,IPA-WEB-07,113,exact,high,curated_seed,,seed_unverified,,,HTTP Request/Response Splitting
+M-0012,IPA-WEB-07,93,broader,medium,curated_seed,,seed_unverified,,,CRLF Injection là cha của CWE-113
+M-0013,IPA-WEB-08,93,exact,medium,curated_seed,,seed_unverified,,,Chưa chắc IPA dùng CWE nào cho mục này; cần đối chiếu PDF
+M-0014,IPA-WEB-09,1021,exact,high,curated_seed,,seed_unverified,,,Improper Restriction of Rendered UI Layers or Frames
+M-0015,IPA-WEB-10,119,exact,high,curated_seed,,seed_unverified,,,Lớp cha; CWE-120/787/125 là con và suy ra bằng cây phân cấp
+M-0016,IPA-WEB-11,285,exact,medium,curated_seed,,seed_unverified,,,Improper Authorization
+M-0017,IPA-WEB-11,862,narrower,medium,curated_seed,,seed_unverified,,,Missing Authorization
+M-0018,IPA-WEB-11,863,narrower,medium,curated_seed,,seed_unverified,,,Incorrect Authorization

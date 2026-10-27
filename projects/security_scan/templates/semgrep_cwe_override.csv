@@ -1,0 +1,4 @@
+override_id,rule_file,rule_id,cwe_id_from_rule,action,cwe_id_override,reason,evidence,verification_status,decided_by,decided_at
+OV-0001,python/django/security/injection/tainted-sql-string.yaml,tainted-sql-string,915,replace,89,Rule phát hiện SQL injection nhưng metadata gắn CWE-915,11 biến thể cùng tên ở ngôn ngữ/framework khác đều gắn CWE-89 (semgrep-rules 16b9e6d),proposed,,
+OV-0002,python/flask/security/injection/tainted-sql-string.yaml,tainted-sql-string,704,replace,89,Rule phát hiện SQL injection nhưng metadata gắn CWE-704,11 biến thể cùng tên ở ngôn ngữ/framework khác đều gắn CWE-89 (semgrep-rules 16b9e6d),proposed,,
+OV-0003,python/flask/security/audit/hardcoded-config.yaml,avoid_hardcoded_config_SECRET_KEY,489,add,798,Hard-code SECRET_KEY là thông tin xác thực nhúng trong mã; CWE-489 (Active Debug Code) chưa mô tả đúng,Cần reviewer xác nhận trước khi dùng,proposed,,

@@ -1,0 +1,5 @@
+measure_id,ipa_id,measure_type,measure_no,text_ja,text_en,text_vi,source_url,verification_status,note
+IPA-WEB-01-M1,IPA-WEB-01,root_cause,1-(i),,Build SQL statements with bind variables (placeholders),Tạo câu SQL bằng cơ chế bind (placeholder),https://www.ipa.go.jp/security/vuln/websecurity/about.html,seed_unverified,text_ja phải copy nguyên văn từ PDF của IPA; text_en/text_vi là diễn giải
+IPA-WEB-01-M2,IPA-WEB-01,root_cause,1-(ii),,"If SQL is built in the application, escape variables in the statement",Nếu tự ghép SQL trong ứng dụng thì phải escape các biến,https://www.ipa.go.jp/security/vuln/websecurity/about.html,seed_unverified,
+IPA-WEB-01-M3,IPA-WEB-01,defense_in_depth,1-(iii),,Do not show raw error messages in the browser,Không hiển thị nguyên văn thông báo lỗi ra trình duyệt,https://www.ipa.go.jp/security/vuln/websecurity/about.html,seed_unverified,measure_type: root_cause (根本的解決) hoặc defense_in_depth (保険的対策)
+IPA-WEB-01-M4,IPA-WEB-01,defense_in_depth,1-(iv),,Grant the database account only the privileges it needs,Cấp cho tài khoản DB đúng quyền cần thiết,https://www.ipa.go.jp/security/vuln/websecurity/about.html,seed_unverified,

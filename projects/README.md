@@ -33,6 +33,7 @@ Chi tiết từng nhóm (metric, bẫy, kỹ năng cần): xem trang nhóm trong
 | [`realtime-voice-translate/`](realtime-voice-translate/README.md) | 6 · Giọng nói | Dịch hội thoại trực tiếp Nhật ⇄ Anh ⇄ Việt trên web điện thoại, model chạy tại chỗ trên GPU 8 GB — **kế hoạch triển khai** | Tự thu (golden set) + FLEURS |
 | [`gpt-excel-agent-chatbot/`](gpt-excel-agent-chatbot/README.md) | **7 · Agent** chính; 6 · LLM hỗ trợ | Chatbot trong Excel Office nối agent nội bộ, tìm theo cột và thêm bản ghi — **nghiên cứu khả thi, chưa code** | Workbook giả lập dự kiến; chưa tạo dữ liệu |
 | [`gemini-excel-ai-agent/`](gemini-excel-ai-agent/README.md) | Tổ hợp CMB-10 / 7 · Agent | Plugin AI Chatbot nhúng Excel Office, kết nối AI Agent nội bộ thao tác bảng tính hai chiều — **nghiên cứu khả thi & thiết kế kiến trúc** | Tự sinh & Dữ liệu doanh nghiệp mẫu |
+| [`security_scan/`](security_scan/README.md) | Ngoài các nhóm AI | Nối output Semgrep với phân loại lỗ hổng IPA (Nhật Bản) qua CWE; template CSV import và quy trình cập nhật — **nghiên cứu + thiết kế dữ liệu, chỉ tài liệu** | Semgrep rules, CWE 4.14; scan mẫu tự tạo |
 
 ## Cấu trúc một dự án
 

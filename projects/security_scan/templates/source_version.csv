@@ -1,0 +1,7 @@
+source_id,owner,kind,url,check_method,current_version,content_sha256,etag,last_modified,last_checked_at,last_changed_at,status,note
+ipa_secure_website,IPA,web_page,https://www.ipa.go.jp/security/vuln/websecurity/about.html,http_get_hash,,,,,,,not_fetched,Chưa tải được trong phiên nghiên cứu (host bị chặn); điền sau lần fetch đầu tiên
+ipa_cwe_overview_ja,IPA,web_page,https://www.ipa.go.jp/security/vuln/CWE.html,http_get_hash,,,,,,,not_fetched,Kết quả tìm kiếm cho thấy trang cập nhật 2025-07-03 (chưa tự xác minh)
+ipa_cwe_overview_en,IPA,web_page,https://www.ipa.go.jp/en/security/vulnerabilities/cwe.html,http_get_hash,,,,,,,not_fetched,
+mitre_cwe_catalog,MITRE,xml_zip,https://cwe.mitre.org/data/xml/cwec_latest.xml.zip,http_head_etag,4.14,,,,2026-10-27,,bundled_only,Mới có bản 4.14 đi kèm gói PyPI cwe2; chưa tải bản mới nhất
+mitre_cwe_version_api,MITRE,rest_api,https://cwe-api.mitre.org/api/v1/cwe/version,api_json_field,,,,,,,not_fetched,Endpoint ghi theo tài liệu CWE REST API; chưa gọi thử
+semgrep_rules,Semgrep,git_repo,https://github.com/semgrep/semgrep-rules,git_ls_remote,16b9e6d45f10649f6a531ec4838ed9924372c3bc,,,2026-10-21,2026-10-27,2026-10-27,ok,1.644 rule category=security
