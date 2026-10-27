@@ -796,7 +796,7 @@ uv cache clean                        # torch, transformers chỉ cần lúc chu
   - Chỉ dùng khi nửa nói khoá "Tiếng Việt". "Tự động", tiếng Nhật, tiếng Anh vẫn dùng large-v3-turbo.
   - Script tải những file cần (cấu hình, tokenizer, `pytorch_model.bin`), đọc trọng số ở float16, lưu CTranslate2
     float16 vào `models/phowhisper-large-ct2` (3,1 GB). Xong thì xoá bản tải. Container nạp ở `float16` theo profile.
-  - Ghim `ctranslate2==4.8.4`, `transformers==5.21.0` để lần chuyển nào cũng dùng cùng bản.
+  - Ghim `ctranslate2==4.8.4`, `transformers==5.21.0`, hai bản đã thử chuyển trong sandbox (mục 13.8).
   - Model lớn (32 lớp giải mã, không có bản turbo) nên mỗi câu chậm hơn turbo. Để ý độ trễ chữ tạm khi nói tiếng Việt.
 
 - **Lỗi của bản script dọn trước đây (đã sửa):** script từng xoá `whisper/blobs` và `whisper/CACHEDIR.TAG`.
@@ -837,6 +837,12 @@ du -sh models/whisper                      # khoảng 1,6 GB
     - giữ nguyên large-v3-turbo, đọc lại đủ file;
     - giải phóng đúng phần mà lệnh xoá của huggingface_hub giải phóng, cộng phần dữ liệu không model nào dùng;
     - đúng cả khi cache kiểu cũ, `blobs/` không có dấu, thư mục `models/` là liên kết.
+  - chuyển PhoWhisper (bước 8) với hai bản đã ghim, trên một model Whisper tí hon, trọng số ngẫu nhiên, cùng bố cục
+    với `vinai/PhoWhisper-large`: 80 kênh mel, 99 ngôn ngữ, `pytorch_model.bin`, tokenizer kiểu transformers 4.x, có
+    và không có `tokenizer.json`. Kết quả:
+    - ra đủ file faster-whisper cần, trọng số float16, 51 865 token, 99 ngôn ngữ;
+    - chỉ tải cấu hình, tokenizer và `.bin`, bỏ bản TensorFlow, Flax; lỗi giữa chừng thì giữ bản tải, xong thì xoá;
+    - app nạp được bằng ctranslate2 4.8.2, cũ hơn bản dùng để chuyển; phiên khoá tiếng Việt chạy qua model này.
 - **Chưa kiểm:**
   - Chuyển PhoWhisper-large thật và VRAM khi có cả hai model: sandbox không ra được Hugging Face.
   - Tải lại large-v3-turbo thật: sandbox không ra được Hugging Face.
