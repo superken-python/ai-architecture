@@ -1,5 +1,6 @@
 source_id,owner,kind,url,check_method,current_version,content_sha256,etag,last_modified,last_checked_at,last_changed_at,status,note
 ipa_secure_website,IPA,web_page,https://www.ipa.go.jp/security/vuln/websecurity/about.html,http_get_hash,,,,,,,not_fetched,Chưa tải được trong phiên nghiên cứu (host bị chặn); điền sau lần fetch đầu tiên
+ipa_secure_website_checklist,IPA,xlsx,https://www.ipa.go.jp/security/vuln/websecurity/ug65p900000196e2-att/000044403.xlsx,sha256,改訂第7版 checklist (file modified 2015-03-11),07df4d1718514d6b66cb96e7c3e7ce6270497516363278ecfd0868e8f3cb7a75,,,2026-10-28,,fetched,Provided by the user (downloaded from IPA). 11 vulnerability types and 47 countermeasures; no CWE numbers. Imported with import_ipa_checklist.py (doc 05)
 ipa_cwe_overview_ja,IPA,web_page,https://www.ipa.go.jp/security/vuln/CWE.html,http_get_hash,,,,,,,not_fetched,Kết quả tìm kiếm cho thấy trang cập nhật 2025-07-03 (chưa tự xác minh)
 ipa_cwe_overview_en,IPA,web_page,https://www.ipa.go.jp/en/security/vulnerabilities/cwe.html,http_get_hash,,,,,,,not_fetched,
 mitre_cwe_catalog,MITRE,xml_zip,https://cwe.mitre.org/data/xml/cwec_latest.xml.zip,http_head_etag,4.14,,,,2026-10-27,,bundled_only,Mới có bản 4.14 đi kèm gói PyPI cwe2; chưa tải bản mới nhất

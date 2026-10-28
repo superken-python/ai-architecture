@@ -1,6 +1,6 @@
 # 05 · Building the IPA + NVD knowledge base (CVE + CWE): what was done and how to rebuild it
 
-**Date:** 2026-10-28 · **Language:** English (documents 01–04 are in Vietnamese) · **Read with:** [03 · KB design and builder code](03-kb-ipa-nvd-cho-cong-cu.md), [04 · Glossary and mapping methods](04-thuat-ngu-so-sanh-va-cach-map.md)
+**Date:** 2026-10-28 (updated the same day: minimal KB columns, IPA's 改訂第7版 checklist) · **Language:** English (documents 01–04 are in Vietnamese) · **Read with:** [06 · KB field reference](06-kb-field-reference.md), [03 · KB design and builder code](03-kb-ipa-nvd-cho-cong-cu.md), [04 · Glossary and mapping methods](04-thuat-ngu-so-sanh-va-cach-map.md)
 
 This runbook records how the knowledge base (KB) in [`../kb/`](../kb/) was put together from MITRE CWE, IPA, JVN iPedia and NVD data, and lists the steps to rebuild it and keep it current yourself. Commands carry one of three labels:
 
@@ -8,7 +8,7 @@ This runbook records how the knowledge base (KB) in [`../kb/`](../kb/) was put t
 - **[tested offline]**: run on real files (project fixtures, or a local server that serves them) because the real host was blocked here.
 - **[not tested]**: written from documentation, source code or web search only.
 
-> **Before you use the KB in a real report:** the IPA part (11 IPA items, 18 IPA↔CWE rows and 4 countermeasures in [`../templates/`](../templates/)) is a seed written from memory and marked `seed_unverified`. [Step 4](#step-4--verify-and-curate-the-ipa-tables-by-hand) explains how to check it against IPA's own document.
+> **Before you use the KB in a real report:** the 11 IPA items and 47 countermeasures in [`../templates/`](../templates/) are now checked against IPA's own 改訂第7版 checklist workbook, but the 18 IPA↔CWE rows are still a seed written from memory (`seed_unverified`), because the checklist has no CWE numbers. [Step 4](#step-4--import-ipas-checklist-and-curate-the-ipa-tables) explains how to finish that check.
 
 ## Contents
 
@@ -26,21 +26,21 @@ This runbook records how the knowledge base (KB) in [`../kb/`](../kb/) was put t
 
 ## 1 · What you build
 
-Two CSV files, one per lookup key. Scanners only send a key (a CWE or a CVE); the mapping to IPA lives in the KB, not in the scanners.
+Two CSV files, one per lookup key. Scanners only send a key (a CWE or a CVE); the mapping to IPA lives in the KB, not in the scanners. Each fact is stored once: `kb_cve.csv` says which CWE a CVE has, `kb_cwe.csv` says which IPA item a CWE belongs to.
 
-| File | Key | One row per | Who looks it up | Built from |
-|---|---|---|---|---|
-| `kb_cwe.csv` (23 columns) | `cwe_id` | (CWE, IPA item) pair: 1,376 rows for CWE 4.14 | Semgrep and ZAP findings (they carry a CWE); Trivy when the CVE is not in `kb_cve` | MITRE CWE XML, the IPA tables in `templates/`, JVN iPedia (Japanese CWE names) |
-| `kb_cve.csv` (35 columns) | `cve_id` | CVE: 415,469 rows on 2026-10-28 | Trivy vulnerability findings (they carry a CVE) | NVD CVE data, JVN iPedia, `kb_cwe.csv` |
+| File | Key | Columns | One row per | Who looks it up | Built from |
+|---|---|---|---|---|---|
+| `kb_cwe.csv` | `cwe_id` | 6: `cwe_id`, `cwe_name_en`, `ipa_id`, `ipa_name_ja`, `match_kind`, `mapping_status` | (CWE, IPA item) pair: 1,376 rows for CWE 4.14 | Semgrep and ZAP findings (they carry a CWE); every CWE that `kb_cve` gives; Trivy's own CWE when the CVE is not in `kb_cve` | MITRE CWE XML and the IPA tables in `templates/` |
+| `kb_cve.csv` | `cve_id` | 3: `cve_id`, `cwe_selected`, `cwe_selected_from` | CVE: 415,469 rows on 2026-10-28 | Trivy vulnerability findings (they carry a CVE) | NVD CVE data and JVN iPedia |
 
-Column meanings are in doc 03 §3.2 (`kb_cwe`) and §3.3 (`kb_cve`). How one CWE is chosen for a CVE when sources disagree (default NVD → CNA/ADP → JVN; `--prefer jvn` puts JVN first) is in doc 03 §3.4. How each scanner looks things up is in doc 03 §4.
+Every column, the statuses you compute from them (`MAPPED`, `OUT_OF_IPA_SCOPE`, `NO_CWE_INFO`, `UNKNOWN_CWE`, `REJECTED`) and where the columns removed on 2026-10-28 can still be found: [06 · KB field reference](06-kb-field-reference.md). How one CWE is chosen for a CVE when sources disagree (default NVD → CNA/ADP → JVN; `--prefer jvn` puts JVN first): doc 03 §3.4.
 
 ```mermaid
 flowchart LR
   subgraph SRC["Sources"]
     direction TB
     CWE["MITRE CWE XML<br/>cwec_latest.xml.zip"]
-    IPA["IPA 安全なウェブサイトの作り方<br/>(PDF, read by a person)"]
+    IPA["IPA 安全なウェブサイトの作り方<br/>checklist .xlsx + PDF"]
     JVN["JVN iPedia<br/>checksum.txt + year feeds"]
     NVD["NVD CVE JSON 2.0<br/>feeds · API · fkie mirror"]
   end
@@ -56,12 +56,12 @@ flowchart LR
     KCVE["build/kb_cve.csv<br/>key: CVE"]
     CHK(["check_kb.py"])
   end
-  IPA -->|"Step 4: by hand"| TPL
+  IPA -->|"Step 4: import checklist,<br/>map CWE by hand"| TPL
   CWE -->|"Step 3: download"| DCWE
   JVN -->|"Step 5: sync_feeds.py jvn"| DJVN
   NVD -->|"Step 7: sync_feeds.py<br/>or fetch_nvd_api.py"| DNVD
-  DCWE & TPL & DJVN --> B1 -->|"Step 6"| KCWE
-  DNVD & DJVN & KCWE --> B2 -->|"Step 8"| KCVE
+  DCWE & TPL --> B1 -->|"Step 6"| KCWE
+  DNVD & DJVN --> B2 -->|"Step 8"| KCVE
   KCWE & KCVE --> CHK -->|"Step 9: checks pass"| PUB["kb/ published<br/>+ SQLite"]
   PUB -->|"Step 10: lookups"| SCAN["Semgrep · ZAP · Trivy findings<br/>→ IPA items"]
 ```
@@ -70,17 +70,17 @@ flowchart LR
 
 | Source | Owner | What the KB takes | Where | Format | How often it changes | How to detect a change |
 |---|---|---|---|---|---|---|
-| CWE list | MITRE | names; Weakness or Category; abstraction; parents in view 1000 (and which parent is Primary); the CWE subset NVD uses (view 1003) | `https://cwe.mitre.org/data/xml/cwec_latest.xml.zip` | XML, namespace `http://cwe.mitre.org/cwe-7` | a few releases a year | `Version` and `Date` attributes of the root element |
-| 安全なウェブサイトの作り方 ("How to Secure Your Website") | IPA | the 11 vulnerability types of chapter 1, their countermeasures, and the IPA→CWE judgement (made by a person) | PDF linked from `https://www.ipa.go.jp/security/vuln/websecurity/about.html` | PDF | new editions are rare | edition number; sha256 of the PDF |
-| JVN iPedia | IPA with JPCERT/CC | JVNDB id, Japanese title, the CWE that JVN gives each JVNDB record (with the Japanese CWE name), IPA's CVSS, link | `https://jvndb.jvn.jp/ja/feed/checksum.txt` lists every feed: `ja/rss/years/jvndb_YYYY.rdf` (from 1998), `ja/feed/detail/jvndb_detail_YYYY.rdf`, `ja/rss/jvndb.rdf` (recently changed), `ja/rss/jvndb_new.rdf` (new) | RDF/XML (RSS 1.0 with `sec:` elements; VULDEF for detail feeds) | often: `jvndb_new.rdf` and `jvndb.rdf` carry the latest changes; year files are regenerated (Step 5) | `checksum.txt`: `sha256`, `size`, `lastModified` per file |
-| NVD CVE data | NIST | CWE per source (NVD, the CNA, ADPs), `vulnStatus`, CVSS v3.x and v4.0, CISA KEV fields, English description | JSON 2.0 feeds `https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{YYYY,modified,recent}.json.gz` with `.meta`; or the API `https://services.nvd.nist.gov/rest/json/cves/2.0`; or the GitHub mirror `fkie-cad/nvd-json-data-feeds` | JSON in the API 2.0 schema | `modified`/`recent` feeds every 2 hours, year feeds daily (NVD page); mirror release daily at 00:00 UTC | `.meta` (`lastModifiedDate`, `size`, `sha256` of the uncompressed JSON); for the API, `lastModStartDate`/`lastModEndDate` |
+| CWE list | MITRE | names of Weaknesses and Categories, and their parents in view 1000 (to pass an IPA item down to child CWEs) | `https://cwe.mitre.org/data/xml/cwec_latest.xml.zip` | XML, namespace `http://cwe.mitre.org/cwe-7` | a few releases a year | `Version` and `Date` attributes of the root element |
+| 安全なウェブサイトの作り方 ("How to Secure Your Website"), 改訂第7版 | IPA | the 11 vulnerability types (No 1–11, Japanese names) and their 47 countermeasures from the **checklist workbook**; the IPA→CWE judgement is made by a person | checklist `https://www.ipa.go.jp/security/vuln/websecurity/ug65p900000196e2-att/000044403.xlsx`; guide (PDF) linked from `https://www.ipa.go.jp/security/vuln/websecurity/about.html` | Excel workbook (sheet チェックリスト); PDF | new editions are rare (the workbook was last modified 2015-03-11) | edition number; sha256 of the files |
+| JVN iPedia | IPA with JPCERT/CC | the CWE that JVN gives each JVNDB record, used for a CVE when NVD and the CNA/ADPs give no real CWE | `https://jvndb.jvn.jp/ja/feed/checksum.txt` lists every feed: `ja/rss/years/jvndb_YYYY.rdf` (from 1998), `ja/feed/detail/jvndb_detail_YYYY.rdf`, `ja/rss/jvndb.rdf` (recently changed), `ja/rss/jvndb_new.rdf` (new) | RDF/XML (RSS 1.0 with `sec:` elements; VULDEF for detail feeds) | often: `jvndb_new.rdf` and `jvndb.rdf` carry the latest changes; year files are regenerated (Step 5) | `checksum.txt`: `sha256`, `size`, `lastModified` per file |
+| NVD CVE data | NIST | the CWE of each source (NVD analysts, the CNA, ADPs) and `vulnStatus` (to mark `Rejected` CVEs) | JSON 2.0 feeds `https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{YYYY,modified,recent}.json.gz` with `.meta`; or the API `https://services.nvd.nist.gov/rest/json/cves/2.0`; or the GitHub mirror `fkie-cad/nvd-json-data-feeds` | JSON in the API 2.0 schema | `modified`/`recent` feeds every 2 hours, year feeds daily (NVD page); mirror release daily at 00:00 UTC | `.meta` (`lastModifiedDate`, `size`, `sha256` of the uncompressed JSON); for the API, `lastModStartDate`/`lastModEndDate` |
 
 ## 3 · What I did in this session
 
 ### 3.1 Constraints
 
 - The session ran in a cloud container. Its proxy blocked `www.ipa.go.jp`, `jvndb.jvn.jp`, `nvd.nist.gov`, `services.nvd.nist.gov` and `cwe.mitre.org`. GitHub, PyPI and GitLab were reachable.
-- So I learned the official formats from the source code and test fixtures of open-source tools that read them: [`vuls-data-update`](https://github.com/MaineK00n/vuls-data-update) (commit `969aa0a`, 2026-10-26), [`go-cve-dictionary`](https://github.com/vulsio/go-cve-dictionary) and `trivy-db`, plus web search for NVD's pages.
+- So I learned the official formats from the source code and test fixtures of open-source tools that read them: [`vuls-data-update`](https://github.com/MaineK00n/vuls-data-update) (commit `969aa0a`, 2026-10-26), [`go-cve-dictionary`](https://github.com/vulsio/go-cve-dictionary) and `trivy-db`, plus web search for NVD's pages. IPA's checklist workbook was provided by you.
 - Trivy and ZAP were not run as scanners; their output formats come from their source code and test data (doc 02).
 - My first design went the wrong way (scanner rules → IPA template). You corrected it: IPA and NVD are the reference data, and the scanners look things up in a KB built from them. Keep that direction.
 
@@ -90,30 +90,33 @@ flowchart LR
 |---|---|---|---|
 | 1 | Learn the source formats | read the NVD and JVN fetchers and fixtures of `vuls-data-update` (`pkg/fetch/nvd`, `pkg/fetch/jvn`) and `go-cve-dictionary` (`fetcher/jvn`, `db/rdb.go`); NVD documentation via web search | URLs, fields and limits in §2 and doc 03 §2 |
 | 2 | Get the CWE list | `cwec_v4.14.xml` (2024-02-29) bundled in the PyPI package `cwe2` 3.0.0 (`cwe2/database_v49/`), because `cwe.mitre.org` was blocked | 963 weaknesses, 409 categories |
-| 3 | Write the IPA tables | typed 11 items, 18 IPA↔CWE rows and 4 countermeasures from memory into `templates/`, all `seed_unverified` | still needs [Step 4](#step-4--verify-and-curate-the-ipa-tables-by-hand) |
-| 4 | Get JVN iPedia data | 13 real JVNDB records from the `vuls-data-update` fixtures (RSS and detail feeds, snapshot 2023-11-02) | Japanese names for CWE-20, 79, 89, 94, 352, 399, 476, 640 and `CWE-noinfo` |
+| 3 | Write the IPA tables | typed 11 items, 18 IPA↔CWE rows and 4 countermeasures from memory into `templates/`, all `seed_unverified` | replaced in step 12, except the IPA↔CWE rows |
+| 4 | Get JVN iPedia data | 13 real JVNDB records from the `vuls-data-update` fixtures (RSS and detail feeds, snapshot 2023-11-02) | JVN's CWE for those records |
 | 5 | Get NVD data | mirror `fkie-cad/nvd-json-data-feeds`: 23 single-CVE files, then `CVE-Recent` and `CVE-2025` (2026-10-27), then every year 1999–2026 plus `CVE-Modified` (2026-10-28); every file checked against the sha256 in its `.meta` | 415,469 CVE records |
-| 6 | Design the KB | two files with two keys; CWE kept per source plus a selection rule; IPA items spread down the CWE tree | doc 03 §3 |
+| 6 | Design the KB | two files with two keys; CWE read from every source plus a selection rule; IPA items spread down the CWE tree | doc 03 §3 |
 | 7 | Write the builders | `build_kb_cwe.py`, `build_kb_cve.py`, `map_findings_to_kb.py` (doc 03 §6) | [`kb/kb_cwe.csv`](../kb/kb_cwe.csv), [`kb/kb_cve.sample.csv`](../kb/kb_cve.sample.csv) |
 | 8 | Measure | the 2025 feed, then the whole history | [§7](#7--reference-numbers) |
 | 9 | Compare sources | CWE from NVD, the CNA/ADPs, JVN, GHSA/OSV on real CVEs | doc 04 §7 |
-| 10 | Make it repeatable (this document) | wrote `sync_feeds.py`, `fetch_nvd_api.py`, `check_kb.py`, `load_kb_sqlite.py`, `update_kb.sh` ([Appendix A](#appendix-a--scripts)); changed `build_kb_cve.py` to keep the newest copy of a CVE found in several files | the whole pipeline ran end to end |
+| 10 | Make it repeatable | wrote `sync_feeds.py`, `fetch_nvd_api.py`, `check_kb.py`, `load_kb_sqlite.py`, `update_kb.sh` ([Appendix A](#appendix-a--scripts)); `build_kb_cve.py` keeps the newest copy of a CVE found in several files | the whole pipeline ran end to end |
+| 11 | Cut the KB to the needed columns | `kb_cwe.csv` 23 → 6 columns, `kb_cve.csv` 35 → 3; the IPA item of a CVE is now looked up through `kb_cwe`; rejected CVEs are marked `rejected` | same IPA result as the wide files for all 415,469 CVEs (doc 06 §8); `kb_cve.csv` 271 MB → 12 MB |
+| 12 | Import IPA's 改訂第7版 checklist | `import_ipa_checklist.py` (standard library) read the workbook you provided; compared with `openpyxl` | 11 item names confirmed (`verified`); 47 countermeasures with IPA's text and our EN/VI translation |
 
 ### 3.3 What is tested and what is not
 
 | Script or command | Label | What was run |
 |---|---|---|
 | `build_kb_cwe.py` | [tested live] with CWE 4.14 | code extracted from doc 03 rebuilds `kb/kb_cwe.csv` byte for byte |
-| `build_kb_cve.py` | [tested live] | 23 samples (byte-identical to `kb/kb_cve.sample.csv`); the 2025 feed; the whole history (415,469 CVEs); a CVE present in two folders keeps the newer copy in either argument order |
-| `map_findings_to_kb.py` | [tested offline] | a real Semgrep scan; ZAP and Trivy outputs taken from those projects' test data |
+| `build_kb_cve.py` | [tested live] | 23 samples (byte-identical to `kb/kb_cve.sample.csv`); the 2025 feed; the whole history (415,469 CVEs, identical output on two runs); a CVE present in two folders keeps the newer copy in either argument order |
+| `map_findings_to_kb.py` | [tested offline] | a real Semgrep scan; ZAP and Trivy outputs taken from those projects' test data; same IPA results as before the column cut for all 58 findings |
+| `import_ipa_checklist.py` | [tested live] | IPA's workbook `000044403.xlsx` (provided by you): 11 types, 47 countermeasures, same codes, texts and types as `openpyxl`; a second import keeps the translations |
 | `sync_feeds.py fkie` | [tested live] | 29 files (1999–2026 and `Modified`), 3.3 GB, 59 s; a second run found all 29 unchanged in 12 s |
 | `sync_feeds.py nvd` | [tested offline] | local server with the real NVD 2.0 fixture files from `vuls-data-update`: upper-case sha256 accepted, a wrong sha256 rejected and no file kept |
 | `sync_feeds.py jvn` | [tested offline] | local server with the real JVN fixture files: wrong sha256 rejected, an entry pointing to another host refused, unchanged files skipped |
 | `fetch_nvd_api.py` | [tested offline] | local imitation of the API: a 429 with `Retry-After`, a short page, a record that changes while pages are read, windows split at 120 days, the `apiKey` header. **Never run against the real API.** |
 | `check_kb.py` | [tested live] | sample, 2025 and full builds; stops a broken build (examples in Step 9) |
-| `load_kb_sqlite.py` and the SQL in Step 10 | [tested live] | the full KB loaded in 14 s |
+| `load_kb_sqlite.py` and the SQL in Step 10 | [tested live] | the full KB loaded in about 1 s |
 | `update_kb.sh` | [tested offline] | three runs: NVD from the mirror (live), JVN from the local server; the run with a broken CWE file stopped and left `kb/` untouched |
-| Official URLs of IPA, JVN, NVD and CWE | [not tested] | blocked here; taken from source code, fixtures and web search |
+| Official URLs of IPA, JVN, NVD and CWE | [not tested] | blocked here; taken from source code, fixtures and web search (IPA's workbook URL comes from you) |
 
 ## 4 · Rebuild it yourself, step by step
 
@@ -121,8 +124,8 @@ flowchart LR
 
 - Python 3.9 or newer, standard library only (tested with 3.13). Bash for `update_kb.sh` (Linux or macOS).
 - Network access to `cwe.mitre.org`, `www.ipa.go.jp` and `jvndb.jvn.jp`, plus either `nvd.nist.gov` (feeds) or `services.nvd.nist.gov` (API). For the mirror instead: `github.com` and the host its release downloads redirect to (`release-assets.githubusercontent.com` on 2026-10-28).
-- Disk: 3.3 GB for the uncompressed NVD feeds, about 300 MB for `kb_cve.csv`, plus the JVN feeds (the 2022 RSS year file was 35 MB and the 2022 detail file 72 MB in the 2023 listing).
-- Memory: 4 GB free for the full build (peak measured: 3.0 GB).
+- Disk: 3.3 GB for the uncompressed NVD feeds, about 12 MB for `kb_cve.csv`, plus the JVN feeds (the 2022 RSS year file was 35 MB and the 2022 detail file 72 MB in the 2023 listing).
+- Memory: 4 GB free for the full build (peak measured: 2.6 GB).
 - Optional: a free NVD API key (https://nvd.nist.gov/developers/request-an-api-key) if you use the API.
 
 ### Step 1 · Get the scripts [tested live]
@@ -144,16 +147,17 @@ EOF
 chmod +x scripts/update_kb.sh
 ```
 
-You should get 8 files: `build_kb_cwe.py`, `build_kb_cve.py`, `map_findings_to_kb.py`, `sync_feeds.py`, `fetch_nvd_api.py`, `check_kb.py`, `load_kb_sqlite.py`, `update_kb.sh`.
+You should get 9 files: `build_kb_cwe.py`, `build_kb_cve.py`, `map_findings_to_kb.py`, `sync_feeds.py`, `fetch_nvd_api.py`, `check_kb.py`, `load_kb_sqlite.py`, `update_kb.sh`, `import_ipa_checklist.py`.
 
 ### Step 2 · Lay out a working folder
 
 ```
 kb-work/
-├── scripts/      the 8 scripts
-├── templates/    your copy of projects/security_scan/templates/ (the IPA tables you curate)
+├── scripts/      the 9 scripts
+├── templates/    your copy of projects/security_scan/templates/ (the IPA tables)
 ├── data/         downloads only; treat them as untrusted input
 │   ├── cwe/      cwec.xml
+│   ├── ipa/      IPA's checklist workbook (.xlsx) and the guide (PDF)
 │   ├── jvn/      jvndb_YYYY.rdf + checksum.txt
 │   ├── nvd/      year feeds + modified feed, each with its .meta
 │   └── nvd_api/  optional: API pages + state.json
@@ -164,7 +168,7 @@ kb-work/
 
 ```bash
 cp -r "$REPO/projects/security_scan/templates" templates
-mkdir -p data/cwe data/jvn data/nvd build kb logs
+mkdir -p data/cwe data/ipa data/jvn data/nvd build kb logs
 ```
 
 Run Python with `-I` (as all commands here do): Python then imports nothing from the current folder or the script's folder and ignores `PYTHON*` environment variables, so a stray `.py` file in a download folder cannot be imported by mistake.
@@ -178,33 +182,42 @@ mv data/cwe/cwec_v*.xml data/cwe/cwec.xml                 # the builder reads th
 head -c 300 data/cwe/cwec.xml                             # expect Version="…" and xmlns="http://cwe.mitre.org/cwe-7"
 ```
 
-Write the version and the file's sha256 into the `mitre_cwe_catalog` row of `templates/source_version.csv`. If MITRE ever moves to a new schema namespace (for example `cwe-8`), change `NS` at the top of `build_kb_cwe.py`. If you forget, the build yields only 3 CWE ids and `check_kb.py` stops the publish (tested with a file edited to `cwe-8`).
+Write the version and the file's sha256 into the `mitre_cwe_catalog` row of `templates/source_version.csv` (the KB itself no longer has a version column; `build_kb_cwe.py` prints the version). If MITRE ever moves to a new schema namespace (for example `cwe-8`), change `NS` at the top of `build_kb_cwe.py`. If you forget, the build yields only 3 CWE ids and `check_kb.py` stops the publish (tested with a file edited to `cwe-8`).
 
-### Step 4 · Verify and curate the IPA tables by hand
+### Step 4 · Import IPA's checklist and curate the IPA tables
 
-This is the one step no script can do, and the KB is only as right as these rows. Files in `templates/`:
+The KB is only as right as these tables. Files in `templates/`:
 
-| File | One row is | Key columns | What the builder does with it |
-|---|---|---|---|
-| `ipa_item.csv` | one IPA vulnerability type | `ipa_id` (`IPA-WEB-01`…), `edition`, `section_no`, `name_ja`, `name_en`, `name_vi` | every `ipa_id` used in the other files must exist here, or the build stops with `KeyError` |
-| `ipa_cwe_map.csv` | one judgement "IPA item ↔ CWE" | `ipa_id`; `cwe_id` as a **number** (`89`, not `CWE-89`); `relation` = `exact`, `narrower`, `broader` or `related`; `confidence`; `verification_status`; `evidence_url`; `verified_by`; `verified_at` | uses **every** row whatever its status (the status is copied to `mapping_status`), so delete a wrong row instead of marking it. Only `exact` rows spread to child CWEs, at most 4 levels down view 1000, and only to CWEs that have no row of their own |
-| `ipa_countermeasure.csv` | one countermeasure | `measure_id`, `ipa_id`, `measure_type` (`root_cause` or `defense_in_depth`; `root_cause` is listed first), `measure_no`, `text_ja` | ids listed in `kb_cwe.ipa_measure_ids` |
-| `source_version.csv` | one source | `current_version`, `content_sha256`, `last_checked_at`, `status` | not read by the builders; it is your record of what was used |
+| File | One row is | Key columns | Filled by | What the builder does with it |
+|---|---|---|---|---|
+| `ipa_item.csv` | one IPA vulnerability type | `ipa_id` (`IPA-WEB-01`…), `edition`, `section_no`, `name_ja`, `name_en`, `name_vi` | a person, checked against the checklist (done for 改訂第7版) | gives `ipa_name_ja`; every `ipa_id` used in `ipa_cwe_map.csv` must exist here, or the build stops with `KeyError` |
+| `ipa_countermeasure.csv` | one countermeasure | `measure_id`, `ipa_id`, `measure_type` (`root_cause` = 根本的解決, `defense_in_depth` = 保険的対策), `measure_no` (IPA's code, e.g. `1-(i)-a`), `text_ja`, `text_en`, `text_vi` | `import_ipa_checklist.py` (47 rows for 改訂第7版); translations by a person | not read by the builders; reports join it on `ipa_id` |
+| `ipa_cwe_map.csv` | one judgement "IPA item ↔ CWE" | `ipa_id`; `cwe_id` as a **number** (`89`, not `CWE-89`); `relation` = `exact`, `narrower`, `broader` or `related`; `confidence`; `verification_status`; `evidence_url`; `verified_by`; `verified_at` | a person (**still the seed**) | uses **every** row whatever its status (the status becomes `mapping_status`), so delete a wrong row instead of marking it. Only `exact` rows spread to child CWEs, at most 4 levels down view 1000, and only to CWEs that have no row of their own |
+| `source_version.csv` | one source | `current_version`, `content_sha256`, `last_checked_at`, `status` | a person or your job | not read by the builders; it is your record of what was used |
 
 The files are read as UTF-8 with or without a BOM, so saving from Excel as "CSV UTF-8" works.
 
-Procedure:
+**4a · Import the checklist workbook** [tested live on 改訂第7版]
 
-1. Download the current PDF of 安全なウェブサイトの作り方 from the IPA page in §2. Write its edition and sha256 in the `ipa_secure_website` row of `source_version.csv`.
-2. `ipa_item.csv`: for each vulnerability type in chapter 1, copy `section_no` and `name_ja` exactly as printed and set `edition`. Then set `verification_status=verified` and `last_verified_at`.
-3. `ipa_countermeasure.csv`: copy `text_ja` word for word from the PDF. IPA separates fundamental solutions (根本的解決) from safety-net measures (保険的対策); the template calls them `root_cause` and `defense_in_depth` (check the exact wording in the edition you have). `text_en` and `text_vi` are your own paraphrase.
-4. `ipa_cwe_map.csv`: decide which CWE(s) each item covers. Evidence, strongest first: (a) a CWE number printed by IPA itself; (b) the CWE that JVN iPedia gives to vulnerabilities of that type (JVN's CWE pages, for example `https://jvndb.jvn.jp/ja/cwe/CWE-79.html`); (c) MITRE's definition. Put the link in `evidence_url`, then fill `relation`, `confidence`, `verification_status=verified`, `verified_by`, `verified_at`.
-   - `exact`: the CWE is this IPA type (SQL injection ↔ CWE-89). Children inherit the item: CWE-564 (Hibernate SQL injection) gets `IPA-WEB-01` with `match_kind=ancestor`, `via_cwe_id=CWE-89`.
+```bash
+curl -fsSL -o data/ipa/000044403.xlsx https://www.ipa.go.jp/security/vuln/websecurity/ug65p900000196e2-att/000044403.xlsx
+sha256sum data/ipa/000044403.xlsx       # 改訂第7版 as provided on 2026-10-28: 07df4d1718514d6b66cb96e7c3e7ce6270497516363278ecfd0868e8f3cb7a75
+python3 -I scripts/import_ipa_checklist.py data/ipa/000044403.xlsx templates/ipa_countermeasure.csv
+```
+
+The script prints the 11 vulnerability types (`IPA-WEB-01  SQLインジェクション` …); compare them with `name_ja` in `ipa_item.csv`. It rewrites `ipa_countermeasure.csv` from the workbook and keeps `text_en`/`text_vi` of every item whose Japanese text did not change; new or changed items come out with empty translations to fill in. Record the file's sha256 in the `ipa_secure_website_checklist` row of `source_version.csv`. When IPA publishes a new edition, pass its workbook URL with `--url`.
+
+**4b · Map IPA items to CWE by hand** (the checklist has no CWE numbers)
+
+1. For each item, decide which CWE(s) it covers. Evidence, strongest first: (a) a CWE number printed by IPA itself (check the guide's PDF); (b) the CWE that JVN iPedia gives to vulnerabilities of that type (JVN's CWE pages, for example `https://jvndb.jvn.jp/ja/cwe/CWE-79.html`); (c) MITRE's definition. Put the link in `evidence_url`, then fill `relation`, `confidence`, `verification_status=verified`, `verified_by`, `verified_at`.
+   - `exact`: the CWE is this IPA type (SQL injection ↔ CWE-89). Children inherit the item: CWE-564 (Hibernate SQL injection) gets `IPA-WEB-01` with `match_kind=ancestor`.
    - `narrower` / `broader`: the CWE is a part of / larger than the IPA type. No inheritance.
    - `related`: same area, different flaw (CWE-384 session fixation for 1.4 session management). No inheritance.
-5. Rebuild `kb_cwe.csv` (Step 6) and read the diff before publishing (`diff` or `git diff --stat`, then the rows whose `ipa_id` changed). One new `exact` row on a broad Class CWE can pull dozens of child CWEs into an IPA item.
+2. Rebuild `kb_cwe.csv` (Step 6) and read the diff before publishing (`diff` or `git diff --stat`, then the rows whose `ipa_id` changed). One new `exact` row on a broad Class CWE can pull dozens of child CWEs into an IPA item. `check_kb.py` warns as long as any mapped row is not `verified`.
 
 ### Step 5 · Download the JVN iPedia feeds [tested offline]
+
+JVN is optional: the KB uses JVN's CWE only for CVEs where NVD and the CNA/ADPs give no real CWE. If you skip it, drop the JVN line and `--jvn data/jvn/*.rdf` from `update_kb.sh`.
 
 ```bash
 python3 -I scripts/sync_feeds.py jvn data/jvn                          # year RSS feeds jvndb_YYYY.rdf (default)
@@ -212,18 +225,17 @@ python3 -I scripts/sync_feeds.py jvn data/jvn 'jvndb_detail_*.rdf'     # optiona
 ```
 
 - The script reads `checksum.txt`, downloads only files whose sha256 changed, checks sha256 and size, and only then replaces the old copy. It refuses an entry whose URL points to a host other than the one serving `checksum.txt`. It keeps a copy of `checksum.txt` as a record of what was used.
-- Pass the year feeds only. `jvndb.rdf` and `jvndb_new.rdf` repeat records that are also in the year feeds, and `build_kb_cve.py` merges every copy of a JVNDB record it is given: if an old and a new version of a record disagree on the CWE, both CWEs end up in `cwe_jvn`. In the 2023-11-02 fixture listing, all year files carried a 2023-10-29 timestamp while `jvndb.rdf` carried 2023-11-02, which suggests the year files are regenerated about once a week (an inference from one listing, not confirmed).
+- Pass the year feeds only. `jvndb.rdf` and `jvndb_new.rdf` repeat records that are also in the year feeds, and `build_kb_cve.py` merges every copy of a JVNDB record it is given: if an old and a new version of a record disagree on the CWE, both CWEs are used. In the 2023-11-02 fixture listing, all year files carried a 2023-10-29 timestamp while `jvndb.rdf` carried 2023-11-02, which suggests the year files are regenerated about once a week (an inference from one listing, not confirmed).
 - `go-cve-dictionary` drops RSS items whose description contains `** 未確定 **`, `** サポート外 **` or `** 削除 **` (unconfirmed, unsupported, deleted). `build_kb_cve.py` does not; none appeared in the fixtures. Check your feeds with `grep -c '\*\* 削除 \*\*' data/jvn/*.rdf` and decide whether to filter.
-- Only CWEs that appear in the JVN records you pass get a Japanese name in `kb_cwe`. With the 13 fixture records that was 9 ids; with all year feeds you get every CWE that JVN has used.
 
 ### Step 6 · Build `kb_cwe.csv` [tested live with CWE 4.14]
 
 ```bash
-python3 -I scripts/build_kb_cwe.py --cwe-xml data/cwe/cwec.xml --ipa-dir templates \
-        --jvn data/jvn/*.rdf --out build/kb_cwe.csv
+python3 -I scripts/build_kb_cwe.py --cwe-xml data/cwe/cwec.xml --ipa-dir templates --out build/kb_cwe.csv
+# CWE 4.14 (2024-02-29): 1372 CWE + 3 pseudo ids -> build/kb_cwe.csv
 ```
 
-Expect 1,376 rows with CWE 4.14 (a newer CWE list gives more). JVN feeds only add `cwe_name_ja` and `jvn_cwe_url`; everything else comes from the XML and `templates/`.
+Expect 1,376 rows with CWE 4.14 (a newer CWE list gives more). Only the CWE XML and `templates/` are needed.
 
 ### Step 7 · Download NVD data: choose one option
 
@@ -243,12 +255,11 @@ Replace `2026` with the current year.
 ### Step 8 · Build `kb_cve.csv` [tested live]
 
 ```bash
-python3 -I scripts/build_kb_cve.py --nvd data/nvd --jvn data/jvn/*.rdf \
-        --kb-cwe build/kb_cwe.csv --out build/kb_cve.csv        # add data/nvd_api after data/nvd if you use option C
-                                                                 # add --prefer jvn to rank JVN's CWE first
+python3 -I scripts/build_kb_cve.py --nvd data/nvd --jvn data/jvn/*.rdf --out build/kb_cve.csv
+# add data/nvd_api after data/nvd if you use option C; add --prefer jvn to rank JVN's CWE first
 ```
 
-On the 2026-10-28 data: 415,469 rows, 271 MB, 85 s, peak memory 3.0 GB (4-core container). The output is sorted and carries no timestamps, so two runs on the same input give identical files and a `diff` shows only real changes.
+On the 2026-10-28 data it prints `415469 CVE -> build/kb_cve.csv; cwe_selected_from {'nvd': 176257, 'cna_adp': 158578, 'pseudo': 53516, 'rejected': 18671, 'none': 8446, …}; nguồn lệch nhau: 17897` (the last number counts CVEs whose sources disagree). The file is 12 MB; the build took 73 s with a warm disk cache (151 s cold), peak memory 2.6 GB, on a 4-core container. The output is sorted and carries no timestamps, so two runs on the same input give identical files and a `diff` shows only real changes. `kb_cve.csv` does not depend on `kb_cwe.csv`: the IPA item is looked up at use time.
 
 ### Step 9 · Check before publishing [tested live]
 
@@ -260,41 +271,43 @@ On the very first build there is no previous build: leave out the last argument.
 
 | Level | Check | Usual cause |
 |---|---|---|
+| FAIL | the columns are not the 6 + 3 expected | files from the old wide builder, or a broken build |
 | FAIL | `kb_cwe` has fewer than 1,000 CWE ids | the CWE XML namespace changed, or the wrong file |
 | FAIL | pseudo ids missing, or no CWE mapped to an IPA item | wrong `templates/` folder |
-| FAIL | duplicate or malformed `cve_id`; unknown `ipa_status`; `MAPPED` without `ipa_ids` | broken input or builder |
-| FAIL | a CVE of the previous build is gone | a year feed failed to download or was cut short |
+| FAIL | a `kb_cwe` row with `ipa_id` but no `ipa_name_ja`, `match_kind` or `mapping_status` (or the reverse) | broken templates or builder |
+| FAIL | duplicate or malformed `cve_id`; `cwe_selected` does not fit `cwe_selected_from` | broken input or builder |
+| FAIL | a CVE of the previous build is gone | a year feed failed to download or was cut short (rejected CVEs stay, marked `rejected`) |
+| WARN | IPA mappings not `verified` yet | expected until Step 4b is done (103 rows today) |
 | WARN | a CVE uses a CWE id that `kb_cwe` lacks | the CWE list is newer than your XML, or a CNA used a View id (on 2026-10-28: CWE-701 nine times, CWE-702 and CWE-1026 once each) |
-| WARN | the `MAPPED` share moved by more than 2 percentage points | an IPA mapping change, or a source problem |
-| WARN | new `cwe_conflict=Y` rows | sources now disagree; look at a few |
-| WARN | `kb_cwe` mixes CWE versions | files from two CWE releases |
+| WARN | the share of non-rejected CVEs in an IPA item moved by more than 2 percentage points | an IPA mapping change, or a source problem |
 
-The exit code is 1 on any FAIL (with `--strict`, also on WARN). Two real examples from this session: a build from the 8-day `CVE-Recent` feed checked against the 2025 build gave `FAIL: 45378 CVE disappeared since the previous build`; a build with a CWE file edited to namespace `cwe-8` gave `FAIL: kb_cwe has only 3 CWE ids`. Both stopped the publish. The full check takes about 16 s.
+The exit code is 1 on any FAIL (with `--strict`, also on WARN; until the IPA mappings are verified, `--strict` therefore always stops). Two real examples from this session: a build from the 8-day `CVE-Recent` feed checked against the 2025 build gave `FAIL: 45378 CVE disappeared since the previous build`; a build with a CWE file edited to namespace `cwe-8` gave `FAIL: kb_cwe has only 3 CWE ids`. Both stopped the publish. The full check takes about 11 s.
 
 ### Step 10 · Publish and use [tested live]
 
-Publishing means copying the two files to `kb/` (or to your storage). To query them, load them into SQLite (415,469 rows in 14 s, a 316 MB file):
+Publishing means copying the two files to `kb/` (or to your storage). To query them, load them into SQLite (415,469 rows in about 1 s, a 25 MB file):
 
 ```bash
 cp build/kb_cwe.csv build/kb_cve.csv kb/
 python3 -I scripts/load_kb_sqlite.py kb.db kb/kb_cwe.csv kb/kb_cve.csv
 ```
 
-The two lookups the scanners need:
+The two lookups the scanners need (more in doc 06 §4):
 
 ```sql
--- Trivy: by CVE first
-SELECT cve_id, cwe_selected, cwe_selected_from, ipa_status, ipa_ids, cvss_v3_score, kev_date_added
-FROM kb_cve WHERE cve_id = 'CVE-2021-44228';
--- CVE-2021-44228 | CWE-917 | nvd | OUT_OF_IPA_SCOPE | (empty) | 10.0 | 2021-12-10
+-- Trivy: CVE -> CWE -> IPA item (a LEFT JOIN keeps CVEs whose CWE is outside IPA)
+SELECT v.cve_id, v.cwe_selected, v.cwe_selected_from, w.ipa_id, w.ipa_name_ja, w.match_kind, w.mapping_status
+FROM kb_cve v
+LEFT JOIN kb_cwe w ON instr('|' || v.cwe_selected || '|', '|' || w.cwe_id || '|') > 0
+WHERE v.cve_id = 'CVE-2021-44228';
+-- CVE-2021-44228 | CWE-917 | nvd | (empty: CWE-917 is outside the 11 IPA items)
 
 -- Semgrep, ZAP, and Trivy when the CVE is missing: by CWE
-SELECT cwe_id, ipa_status, ipa_id, ipa_name_ja, match_kind, via_cwe_id
-FROM kb_cwe WHERE cwe_id = 'CWE-564';
--- CWE-564 | MAPPED | IPA-WEB-01 | SQLインジェクション | ancestor | CWE-89
+SELECT cwe_id, ipa_id, ipa_name_ja, match_kind, mapping_status FROM kb_cwe WHERE cwe_id = 'CWE-564';
+-- CWE-564 | IPA-WEB-01 | SQLインジェクション | ancestor | seed_unverified
 ```
 
-To map whole scan reports in one go, use `map_findings_to_kb.py` (doc 03 §6.3):
+To map whole scan reports in one go, use `map_findings_to_kb.py` (doc 03 §6.3; output columns in doc 06 §5):
 
 ```bash
 python3 -I scripts/map_findings_to_kb.py kb/kb_cwe.csv kb/kb_cve.csv \
@@ -305,7 +318,7 @@ For PostgreSQL, create the two tables with `TEXT` columns named after the CSV he
 
 ### Step 11 · Keep it current [tested offline]
 
-`update_kb.sh` chains Steps 5 to 10 and replaces `kb/` only when `check_kb.py` passes. One run took 177 s here with the NVD files already up to date (download checks, both builds, the check, the copy).
+`update_kb.sh` chains Steps 5 to 10 and replaces `kb/` only when `check_kb.py` passes. A run took 83 s here with the NVD files already up to date (download checks, both builds, the check against the previous build, the copy).
 
 ```bash
 NVD_SOURCE=nvd scripts/update_kb.sh       # or NVD_SOURCE=fkie; STRICT=1 also stops on WARN
@@ -318,9 +331,9 @@ Each run writes `logs/update-<time>.log` and `build/check.txt`; a successful run
 | When | What to do | Who |
 |---|---|---|
 | Every day | `update_kb.sh`; read the WARN lines in `kb/check.txt` (or `build/check.txt` when the run stopped) | cron, then a person for WARN |
-| Every week | look at a few new `cwe_conflict=Y` CVEs; delete old `logs/` | a person |
+| Every week | look at a few CVEs whose CWE changed; delete old `logs/` | a person |
 | New CWE release | replace `data/cwe/cwec.xml`, rebuild, review the `kb_cwe.csv` diff (new CWEs under an `exact` parent join that IPA item automatically) | a person |
-| New edition of IPA's document | redo Step 4 and update `edition` | a person |
+| New edition of IPA's guide | import its checklist (Step 4a), check `ipa_item.csv`, redo Step 4b, update `edition` | a person |
 | Scanner upgrade | re-check the CWE tags of the scanner's rules (doc 02, `tool_side/`) | a person |
 
 ## 5 · Design decisions to keep
@@ -328,55 +341,59 @@ Each run writes `logs/update-<time>.log` and `build/check.txt`; a successful run
 | Decision | Why | Where |
 |---|---|---|
 | Two files with two keys (CWE, CVE) | scanners emit one key or the other; `kb_cwe` is small and stable, `kb_cve` is large and changes every day | doc 03 §3.1 |
-| Keep the CWE of every source, then choose with a fixed rule (NVD → CNA/ADP → JVN) | sources disagree for 4.5% of CVEs; NVD itself gave a real CWE to only 12.5% of 2025 CVEs | doc 03 §3.4, doc 04 §6.2 |
+| Each fact stored once: CVE → CWE in `kb_cve`, CWE → IPA in `kb_cwe` | a change to the IPA mapping touches one small file; `kb_cve` does not need a rebuild for it | doc 06 |
+| Only the columns a lookup needs; statuses are computed at lookup time | 6 + 3 columns instead of 23 + 35; `kb_cve.csv` 12 MB instead of 271 MB; same IPA results | doc 06 §6, §8 |
+| Read the CWE of every source, keep the chosen one and its source (NVD → CNA/ADP → JVN) | sources disagree for 4.5% of CVEs; NVD itself gave a real CWE to only 12.5% of 2025 CVEs | doc 03 §3.4, doc 04 §6.2 |
 | JVN's CWE last by default | JVN gives one CWE set to a whole JVNDB record, and one record can cover several CVEs | doc 03 §2.2 |
 | Spread only `exact` IPA mappings, at most 4 levels down view 1000 | children of CWE-89 get the SQL injection item without pulling whole classes in | doc 03 §3.2 |
-| Pseudo ids are rows (`NO_CWE_INFO`) | "no information" stays visible in reports instead of disappearing | doc 03 §3.2 |
+| Pseudo ids are rows; rejected CVEs stay as rows | "no information" and "rejected" stay visible; a CVE never vanishes between builds | doc 06 §2, §3 |
 | Scanners send keys only; the mapping lives in the KB | one place to fix a mapping, for every scanner | doc 03 §4 |
 | Newest `lastModified` wins | the same CVE comes from year feeds, the modified feed and API pages | `build_kb_cve.py` |
+| IPA's own text comes from IPA's file, by script | no retyping; a new edition is a re-import plus a review | `import_ipa_checklist.py` |
 | Deterministic output, no timestamps | a diff between two runs shows only real changes | doc 03 §6 |
 | Download → check sha256 → replace in one move; publish only after `check_kb.py` | a cut download or a bad build never reaches users | Appendix A |
 
 ## 6 · Pitfalls met, with real examples
 
 1. **The CWE of a CVE depends on the source.** Log4Shell `CVE-2021-44228`: NVD says CWE-917; Apache, the CNA, says CWE-20, 400 and 502; JVN says CWE-20. The default rule picks CWE-917, which is outside the 11 IPA items.
-2. **The CWE of a CVE changes over time.** jquery `CVE-2019-11358`: NVD gave CWE-79 in 2021 (the value still in Trivy's test database), and gives CWE-1321 now. Rebuild often and keep `nvd_last_modified`.
+2. **The CWE of a CVE changes over time.** jquery `CVE-2019-11358`: NVD gave CWE-79 in 2021 (the value still in Trivy's test database), and gives CWE-1321 now. Rebuild often; the NVD record's `lastModified` tells when it last changed.
 3. **NVD analysts assign few CWEs today.** For 2025 CVEs, 12.5% of chosen CWEs came from NVD and 83.6% from CNAs/ADPs. The 17,278 `Deferred` CVEs of 2025 had no NVD CWE at all. A KB that only reads CWEs whose source is `nvd@nist.gov` loses most of the data.
 4. **"No CWE" has many spellings:** `NVD-CWE-Other` and `NVD-CWE-noinfo` (NVD), `CWE-noinfo` (JVN), an empty list, `-1` or `0` in ZAP. Across all years, 13.5% of non-rejected CVEs carry only a pseudo id and 2.1% carry nothing.
-5. **Categories and Views show up where a weakness is expected.** JVN uses CWE-399 (a Category); GitLab advisories list CWE-1035 and CWE-937 (OWASP categories); 11 NVD records use View ids 701, 702 and 1026. `kb_cwe` has Category rows; View ids end as `OUT_OF_IPA_SCOPE`, and `check_kb.py` warns about them.
+5. **Categories and Views show up where a weakness is expected.** JVN uses CWE-399 (a Category); GitLab advisories list CWE-1035 and CWE-937 (OWASP categories); 11 NVD records use View ids 701, 702 and 1026. `kb_cwe` has Category rows; View ids give `UNKNOWN_CWE` at lookup time, and `check_kb.py` warns about them.
 6. **Year ranges differ.** The official 2002 feed contains 1999–2001; the mirror splits by CVE year from 1999.
 7. **Upper-case sha256** may appear in NVD `.meta` files: compare without regard to case.
 8. **NVD API limits:** windows of at most 120 days with both dates given, 2,000 records per page, about 6 s between requests without a key. Results can shift while you page through them.
-9. **Multi-line descriptions** break simple CSV readers; the builder writes each cell on one line.
-10. **Memory:** the largest year file (`CVE-2026`, 554 MB) is parsed whole; the full build peaked at 3.0 GB.
-11. **Scanner rules carry wrong CWEs sometimes** (the Python Django and Flask variants of Semgrep's `tainted-sql-string` are tagged CWE-915 and CWE-704 instead of CWE-89; only 39 of 78 ZAP rules carry a CWE that agrees with MITRE's WASC→CWE mapping). Fix those on the scanner side (`tool_side/`, doc 02), not in the KB.
-12. **A mirror is only as good as its last sync.** The sha256 check proves the file is the one the mirror published, not that the mirror is current. Prefer the official feeds when you can reach them.
-13. **Unconfirmed or deleted JVN records** may be in the feeds: see Step 5.
+9. **Excel furigana.** IPA's workbook stores readings (furigana) inside the cells. Reading every text run gives `セッション管理の不備カンリフビ` instead of `セッション管理の不備`, and breaks the 根本的解決 / 保険的対策 detection. `import_ipa_checklist.py` skips the phonetic runs; it was checked against `openpyxl`.
+10. **The checklist has no CWE numbers**, so it confirms the IPA items and countermeasures but not the IPA↔CWE mapping.
+11. **Memory:** the largest year file (`CVE-2026`, 554 MB) is parsed whole; the full build peaked at 2.6 GB.
+12. **Scanner rules carry wrong CWEs sometimes** (the Python Django and Flask variants of Semgrep's `tainted-sql-string` are tagged CWE-915 and CWE-704 instead of CWE-89; only 39 of 78 ZAP rules carry a CWE that agrees with MITRE's WASC→CWE mapping). Fix those on the scanner side (`tool_side/`, doc 02), not in the KB.
+13. **A mirror is only as good as its last sync.** The sha256 check proves the file is the one the mirror published, not that the mirror is current. Prefer the official feeds when you can reach them.
+14. **Unconfirmed or deleted JVN records** may be in the feeds: see Step 5.
 
 ## 7 · Reference numbers
 
 Use these to sanity-check your build. The same inputs give the same numbers; a later date gives similar proportions.
 
-`kb_cwe.csv` (CWE 4.14 with the seed IPA tables):
+`kb_cwe.csv` (CWE 4.14 with the current IPA tables):
 
 | Item | Value |
 |---|---|
 | Rows / CWE ids | 1,376 / 1,375 (963 weaknesses, 409 categories, 3 pseudo ids) |
-| CWE ids mapped to an IPA item | 102 (103 rows: one CWE maps to two items) |
-| CWE ids in the NVD subset (view 1003) | 130 |
+| CWE ids in an IPA item | 102 (103 rows: CWE-93 belongs to two items) |
+| Mapped rows still `seed_unverified` | 103 |
 
 `kb_cve.csv`, whole history (mirror release of 2026-10-28):
 
 | Item | Value |
 |---|---|
-| CVE records | 415,469; 18,671 Rejected, 396,798 others |
-| `vulnStatus` | Modified 244,872 · Analyzed 77,291 · Deferred 59,146 · Rejected 18,671 · Awaiting Analysis 9,228 · Received 4,916 · Undergoing Analysis 1,345 |
+| CVE records | 415,469; `rejected` 18,671, others 396,798 |
 | Source of the chosen CWE (non-rejected) | NVD 44.4% · CNA/ADP 40.0% · pseudo id only 13.5% · none 2.1% |
-| `ipa_status` (non-rejected) | MAPPED 46.8% · OUT_OF_IPA_SCOPE 37.6% · NO_CWE_INFO 15.6%; of the CVEs with a real CWE, 55.5% are MAPPED |
-| How MAPPED rows matched | exact 113,357 · ancestor 52,910 · narrower 15,118 · broader 3,157 · related 1,166 |
-| Sources disagree (`cwe_conflict=Y`) | 17,897 (4.5%); the IPA items change with the source for 1,373 (0.35%) |
-| With KEV / CVSS v3 / CVSS v4 (non-rejected) | 1,758 / 312,207 / 43,868 |
+| Status at lookup (non-rejected) | MAPPED 46.8% · OUT_OF_IPA_SCOPE 37.6% · NO_CWE_INFO 15.6%; of the CVEs with a real CWE, 55.5% are MAPPED |
+| How MAPPED CVEs matched (strongest kind) | exact 113,357 · ancestor 52,910 · narrower 15,118 · broader 3,157 · related 1,166 |
+| Sources disagree | 17,897 (4.5%, printed by `build_kb_cve.py`) |
 | Most common CWEs outside the IPA items | CWE-20, 200, 284, 94, 476, 264, 287, 434, 918, 400 |
+
+Measured with the earlier wide schema on the same data (these columns are no longer in the KB): `vulnStatus` Modified 244,872 · Analyzed 77,291 · Deferred 59,146 · Awaiting Analysis 9,228 · Received 4,916 · Undergoing Analysis 1,345; KEV 1,758 · CVSS v3 312,207 · CVSS v4 43,868 (non-rejected); the IPA items change with the chosen source for 1,373 CVEs (0.35%).
 
 CVEs per IPA item (non-rejected; a CVE can count for two items):
 
@@ -394,7 +411,7 @@ CVEs per IPA item (non-rejected; a CVE can count for two items):
 | 1.7 HTTP header injection (`IPA-WEB-07`) | 341 |
 | 1.8 Mail header injection (`IPA-WEB-08`) | 256 |
 
-The 2025 feed alone (doc 03 §5): 45,429 CVEs (43,640 non-rejected), MAPPED 58.8%, chosen CWE from CNA/ADP 83.6% and NVD 12.5%. JVN columns are nearly empty in these numbers because only 13 JVN fixture records were available; with the real JVN feeds, expect `jvn_*` columns filled for the CVEs JVN covers (how many was not measurable here).
+The 2025 feed alone (doc 03 §5): 45,429 CVEs (43,640 non-rejected), MAPPED 58.8%, chosen CWE from CNA/ADP 83.6% and NVD 12.5%. Only 13 JVN fixture records were available, so `jvn` is almost never the chosen source in these numbers; with the real JVN feeds expect more (how many was not measurable here).
 
 Time and size (4-core container, 15 GB RAM):
 
@@ -402,36 +419,40 @@ Time and size (4-core container, 15 GB RAM):
 |---|---|---|
 | NVD download via the mirror, first run | 59 s | 3.3 GB uncompressed |
 | Same, nothing changed | 12 s | |
-| `build_kb_cve.py`, whole history | 85 s | 271 MB CSV; peak 3.0 GB RAM |
-| `check_kb.py` against the previous build | 16 s | |
-| `update_kb.sh`, NVD files already up to date | 177 s | |
-| `load_kb_sqlite.py` | 14 s | 316 MB database |
+| `build_kb_cve.py`, whole history | 73 s (151 s with a cold disk cache) | 12 MB CSV; peak 2.6 GB RAM |
+| `build_kb_cve.py`, 2025 feed only | 15 s | 1.4 MB CSV; peak 1.0 GB RAM |
+| `check_kb.py` against the previous build | 11 s | |
+| `update_kb.sh`, NVD files already up to date | 83 s | |
+| `load_kb_sqlite.py` | about 1 s | 25 MB database |
 
 ## 8 · Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| `check_kb.py`: `kb_cwe columns are [...]` | a file from the old wide builder (before 2026-10-28) | rebuild with the current scripts |
 | `check_kb.py`: `kb_cwe has only 3 CWE ids` | new CWE XML namespace | update `NS` in `build_kb_cwe.py` |
 | `KeyError: 'IPA-WEB-12'` from `build_kb_cwe.py` | `ipa_cwe_map.csv` names an item that `ipa_item.csv` lacks | add the item or fix the id |
 | `ValueError: invalid literal for int()` from `build_kb_cwe.py` | `cwe_id` written as `CWE-89` in `ipa_cwe_map.csv` | write the number only |
+| `import_ipa_checklist.py` prints fewer than 11 types or 0 countermeasures | IPA changed the workbook layout (columns A–H, codes like `1-(i)-a` in column H) | compare the sheet with the 改訂第7版 layout and adjust the column letters |
 | `sync_feeds.py`: `FAILED: … sha256/size does not match` | cut download, or the feed changed during the download (the script already retried once) | run again later; the previous copy is still in place |
 | `FAILED: unexpected filename or host in checksum.txt` | `checksum.txt` points outside its own host | find out why before trusting the feed |
 | HTTP 403 from your own proxy or firewall | host not allowed | allow the hosts in Step 0 |
 | `fetch_nvd_api.py` waits a long time | rate limited | get an API key; raise `--pause` |
 | `first run: pass --since` | no `state.json` yet | pass `--since` once |
 | process killed, or `MemoryError` | less than 4 GB free | use a larger machine; for a quick test, pass fewer year files |
-| many `UNKNOWN_CWE` in `map_findings_to_kb.py` output | the scanner's CWE is newer than your CWE XML, or a typo in rule metadata | update the CWE XML; add a `tool_side/` override |
-| no Japanese CWE names in `kb_cwe` | no JVN feeds given, or JVN never used that CWE | expected for most CWEs |
+| many `UNKNOWN_CWE` in `map_findings_to_kb.py` output | the scanner's CWE is newer than your CWE XML, a typo in rule metadata, or a View id | update the CWE XML; add a `tool_side/` override |
+| `--strict` runs always stop | IPA mappings still `seed_unverified` | finish Step 4b, or run without `--strict` |
 
 ## 9 · Checklists
 
 **First build**
 
 - [ ] Python 3.9+, the hosts of Step 0 reachable, 4 GB RAM, 5 GB disk
-- [ ] 8 scripts extracted (Step 1)
+- [ ] 9 scripts extracted (Step 1)
 - [ ] `data/cwe/cwec.xml` downloaded; version and sha256 in `source_version.csv`
-- [ ] IPA tables verified (Step 4); no row left `seed_unverified`
-- [ ] JVN year feeds downloaded
+- [ ] IPA checklist imported (Step 4a); `ipa_item.csv` matches it
+- [ ] IPA↔CWE rows verified (Step 4b); no row left `seed_unverified`
+- [ ] JVN year feeds downloaded (optional)
 - [ ] NVD option chosen and downloaded
 - [ ] `kb_cwe.csv` built and its diff read
 - [ ] `kb_cve.csv` built; `check_kb.py` passes
@@ -447,8 +468,8 @@ Time and size (4-core container, 15 GB RAM):
 - [`go-cve-dictionary`](https://github.com/vulsio/go-cve-dictionary): `fetcher/jvn/jvn.go` (JVN feed URLs, items it drops), `db/rdb.go` (JVN years from 1998), `commands/fetchnvd.go` (it takes NVD data from its own mirror on GHCR).
 - [`fkie-cad/nvd-json-data-feeds`](https://github.com/fkie-cad/nvd-json-data-feeds): README (schedule, non-endorsement clause) and release files.
 - MITRE CWE: [downloads](https://cwe.mitre.org/data/downloads.html); `cwec_latest.xml.zip` URL confirmed by web search.
-- IPA: [安全なウェブサイトの作り方](https://www.ipa.go.jp/security/vuln/websecurity/about.html), [IPA page on CWE](https://www.ipa.go.jp/en/security/vulnerabilities/cwe.html). JVN iPedia: https://jvndb.jvn.jp/
-- This project: doc 03 (design, builder code, 2025 numbers), doc 04 (glossary, source comparison), [`templates/`](../templates/), [`kb/`](../kb/).
+- IPA: [安全なウェブサイトの作り方](https://www.ipa.go.jp/security/vuln/websecurity/about.html); its 改訂第7版 [checklist workbook](https://www.ipa.go.jp/security/vuln/websecurity/ug65p900000196e2-att/000044403.xlsx) (provided by you, sha256 `07df4d1718514d6b66cb96e7c3e7ce6270497516363278ecfd0868e8f3cb7a75`); [IPA page on CWE](https://www.ipa.go.jp/en/security/vulnerabilities/cwe.html). JVN iPedia: https://jvndb.jvn.jp/
+- This project: doc 03 (design, builder code, 2025 numbers), doc 04 (glossary, source comparison), doc 06 (field reference), [`templates/`](../templates/), [`kb/`](../kb/).
 
 ## Appendix A · Scripts
 
@@ -703,6 +724,85 @@ print(f"# {records} records in {pages} pages; next run starts from {until:%Y-%m-
 </details>
 
 <details>
+<summary><code>import_ipa_checklist.py</code>: IPA's checklist workbook → <code>templates/ipa_countermeasure.csv</code></summary>
+
+```python
+#!/usr/bin/env python3
+"""Turn IPA's checklist workbook (安全なウェブサイトの作り方, e.g. 改訂第7版 000044403.xlsx) into ipa_countermeasure.csv.
+
+  python import_ipa_checklist.py 000044403.xlsx templates/ipa_countermeasure.csv [--url URL]
+Standard library only (reads the first sheet's XML). text_en/text_vi of an item whose text_ja did not change are kept.
+Prints the vulnerability types (No, name) so you can compare them with templates/ipa_item.csv.
+"""
+import argparse, csv, os, re, zipfile
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+
+ap = argparse.ArgumentParser()
+ap.add_argument("xlsx")
+ap.add_argument("out")
+ap.add_argument("--url", default="https://www.ipa.go.jp/security/vuln/websecurity/ug65p900000196e2-att/000044403.xlsx")
+a = ap.parse_args()
+
+M = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+z = zipfile.ZipFile(a.xlsx)
+def text(e):
+    """Text of <si>/<is>: a plain <t> or rich-text runs <r><t>; furigana in <rPh> is skipped."""
+    return "".join(t.text or "" for x in e if x.tag in (M + "t", M + "r")
+                   for t in ([x] if x.tag == M + "t" else x.findall(M + "t")))
+shared = [text(si) for si in ET.fromstring(z.read("xl/sharedStrings.xml")).iter(M + "si")]
+rows = []
+for row in ET.fromstring(z.read("xl/worksheets/sheet1.xml")).iter(M + "row"):
+    cells = {}
+    for c in row.iter(M + "c"):
+        v, col = c.find(M + "v"), re.match(r"[A-Z]+", c.get("r"))[0]
+        cells[col] = (shared[int(v.text)] if c.get("t") == "s" else text(c.find(M + "is")) if c.get("t") == "inlineStr"
+                      else v.text if v is not None else "")
+    rows.append(cells)
+
+TYPES = {"根本的解決": "root_cause", "保険的対策": "defense_in_depth"}  # fundamental solution / safety-net measure
+items, measures = {}, []
+no = group = kind = None
+for r in rows:  # merged cells keep their value in the first row only, so carry No, group and type forward
+    if (r.get("A") or "").strip().isdigit():
+        no, group = int(r["A"]), ""
+        items[no] = re.sub(r"\s+", "", r.get("B", ""))
+    group = (r.get("C") or "").strip() or group
+    kind = TYPES.get((r.get("D") or "").strip(), kind)
+    code = (r.get("H") or "").strip()
+    if no and re.fullmatch(r"\d+-\([ivx]+\)(-[a-z])?", code):
+        measures.append(dict(no=no, code=code, kind=kind, text=" ".join(r.get("G", "").split()), group=group))
+
+old = {}
+if os.path.exists(a.out):
+    with open(a.out, encoding="utf-8-sig", newline="") as f:
+        old = {r["measure_no"]: r for r in csv.DictReader(f)}
+alts = defaultdict(list)
+for m in measures:
+    if re.search(r"-[a-z]$", m["code"]):
+        alts[m["code"].rsplit("-", 1)[0]].append(m["code"])
+COLS = ["measure_id", "ipa_id", "measure_type", "measure_no", "text_ja", "text_en", "text_vi", "source_url",
+        "verification_status", "note"]
+with open(a.out, "w", newline="", encoding="utf-8") as fo:
+    w = csv.writer(fo, lineterminator="\n")
+    w.writerow(COLS)
+    for m in measures:
+        prev = old.get(m["code"], {})
+        keep = prev.get("text_ja") == m["text"]
+        base = m["code"].rsplit("-", 1)[0]
+        note = "; ".join(x for x in (m["group"], f"any one of {' / '.join(alts[base])} is enough" if m["code"] in alts[base] else "",
+                                     "text_en/text_vi are our translation") if x)
+        w.writerow([f"IPA-WEB-{m['no']:02d}-{m['code'].split('-', 1)[1]}", f"IPA-WEB-{m['no']:02d}", m["kind"], m["code"],
+                    m["text"], prev.get("text_en", "") if keep else "", prev.get("text_vi", "") if keep else "", a.url,
+                    "verified", note])
+for n, name in sorted(items.items()):
+    print(f"IPA-WEB-{n:02d}\t{name}")
+print(f"# {len(items)} vulnerability types, {len(measures)} countermeasures -> {a.out}")
+```
+
+</details>
+
+<details>
 <summary><code>check_kb.py</code>: checks before publishing, and comparison with the previous build</summary>
 
 ```python
@@ -713,11 +813,12 @@ print(f"# {records} records in {pages} pages; next run starts from {until:%Y-%m-
 FAIL: do not publish. WARN: a person should look. Exit code 1 on any FAIL (with --strict, also on WARN).
 """
 import csv, re, sys
-from collections import Counter
+from collections import Counter, defaultdict
 
 def load(path):
     with open(path, encoding="utf-8", newline="") as f:
-        return list(csv.DictReader(f))
+        r = csv.DictReader(f)
+        return r.fieldnames or [], list(r)
 
 problems = []
 def check(ok, level, msg):
@@ -726,42 +827,62 @@ def check(ok, level, msg):
 
 STRICT = "--strict" in sys.argv  # also exit 1 on WARN
 args = [x for x in sys.argv[1:] if x != "--strict"]
-kb_cwe, kb_cve = load(args[0]), load(args[1])
-cwe_ids = {r["cwe_id"] for r in kb_cwe}
+(cwe_cols, kb_cwe), (cve_cols, kb_cve) = load(args[0]), load(args[1])
+COLS_CWE = ["cwe_id", "cwe_name_en", "ipa_id", "ipa_name_ja", "match_kind", "mapping_status"]
+COLS_CVE = ["cve_id", "cwe_selected", "cwe_selected_from"]
+check(cwe_cols == COLS_CWE, "FAIL", f"kb_cwe columns are {cwe_cols}, expected {COLS_CWE}")
+check(cve_cols == COLS_CVE, "FAIL", f"kb_cve columns are {cve_cols}, expected {COLS_CVE}")
+if problems:
+    sys.exit("\n".join(problems))
+
+REAL, KINDS = re.compile(r"CWE-\d+"), {"exact", "narrower", "broader", "related", "ancestor"}
+cwe_ids, ipa_of = {r["cwe_id"] for r in kb_cwe}, defaultdict(set)
+for r in kb_cwe:
+    if r["ipa_id"]:
+        ipa_of[r["cwe_id"]].add(r["ipa_id"])
 check(len(cwe_ids) >= 1000, "FAIL", f"kb_cwe has only {len(cwe_ids)} CWE ids (did the CWE XML namespace change?)")
 check({"NVD-CWE-Other", "NVD-CWE-noinfo", "CWE-noinfo"} <= cwe_ids, "FAIL", "kb_cwe lacks the pseudo CWE ids")
-check(any(r["ipa_status"] == "MAPPED" for r in kb_cwe), "FAIL", "no CWE is mapped to an IPA item (templates missing?)")
-check(len({r["cwe_version"] for r in kb_cwe}) == 1, "WARN", "kb_cwe mixes CWE versions")
+check(ipa_of, "FAIL", "no CWE is mapped to an IPA item (templates missing?)")
+odd = [r["cwe_id"] for r in kb_cwe
+       if (r["ipa_id"] and not (r["ipa_name_ja"] and r["match_kind"] in KINDS and r["mapping_status"]))
+       or (not r["ipa_id"] and (r["ipa_name_ja"] or r["match_kind"] or r["mapping_status"]))]
+check(not odd, "FAIL", f"{len(odd)} kb_cwe rows with inconsistent IPA columns, e.g. {odd[:3]}")
+unverified = sum(1 for r in kb_cwe if r["ipa_id"] and r["mapping_status"] != "verified")
+check(not unverified, "WARN", f"{unverified} IPA mappings in kb_cwe are not verified yet (mapping_status)")
 
 ids = [r["cve_id"] for r in kb_cve]
 dup = [i for i, n in Counter(ids).items() if n > 1]
 check(not dup, "FAIL", f"{len(dup)} duplicate cve_id, e.g. {dup[:3]}")
 bad = [i for i in ids if not re.fullmatch(r"CVE-\d{4}-\d{4,}", i)]
 check(not bad, "FAIL", f"{len(bad)} malformed cve_id, e.g. {bad[:3]}")
-status = Counter(r["ipa_status"] for r in kb_cve)
-check(set(status) <= {"MAPPED", "OUT_OF_IPA_SCOPE", "NO_CWE_INFO"}, "FAIL", f"unexpected ipa_status {sorted(status)}")
-check(all(r["ipa_ids"] for r in kb_cve if r["ipa_status"] == "MAPPED"), "FAIL", "MAPPED rows without ipa_ids")
+def fits(r):
+    cw, frm = [c for c in r["cwe_selected"].split("|") if c], r["cwe_selected_from"]
+    if frm in ("nvd", "cna_adp", "jvn"):
+        return bool(cw) and all(REAL.fullmatch(c) for c in cw)
+    if frm == "pseudo":
+        return len(cw) == 1 and not REAL.fullmatch(cw[0])
+    return frm in ("none", "rejected") and not cw
+odd = [r["cve_id"] for r in kb_cve if not fits(r)]
+check(not odd, "FAIL", f"{len(odd)} kb_cve rows where cwe_selected does not fit cwe_selected_from, e.g. {odd[:3]}")
 unknown = Counter(c for r in kb_cve for c in r["cwe_selected"].split("|") if c and c not in cwe_ids)
 check(not unknown, "WARN", f"{sum(unknown.values())} CVE rows use {len(unknown)} CWE ids that kb_cwe does not know "
       f"(newer than your CWE XML, or View ids used by mistake): {unknown.most_common(5)}")
 
-print(f"kb_cwe: {len(kb_cwe)} rows, {len(cwe_ids)} CWE ids, CWE version {sorted({r['cwe_version'] for r in kb_cwe})}")
-print(f"kb_cve: {len(kb_cve)} CVE; ipa_status {dict(status.most_common())}; "
-      f"cwe_selected_from {dict(Counter(r['cwe_selected_from'] for r in kb_cve).most_common())}; "
-      f"cwe_conflict=Y {sum(r['cwe_conflict'] == 'Y' for r in kb_cve)}")
-if len(args) > 2:
-    old = load(args[2])
+ipa = lambda r: {i for c in r["cwe_selected"].split("|") for i in ipa_of.get(c, ())}
+share = lambda rows: (lambda live: sum(1 for r in live if ipa(r)) / max(len(live), 1))(
+    [r for r in rows if r.get("cwe_selected_from") != "rejected"])
+print(f"kb_cwe: {len(kb_cwe)} rows, {len(cwe_ids)} CWE ids, {len(ipa_of)} of them in an IPA item")
+print(f"kb_cve: {len(kb_cve)} CVE; cwe_selected_from {dict(Counter(r['cwe_selected_from'] for r in kb_cve).most_common())}; "
+      f"non-rejected CVEs in an IPA item: {share(kb_cve):.1%}")
+if len(args) > 2:  # the previous kb_cve is judged with the current kb_cwe; review kb_cwe changes with its own diff
+    _, old = load(args[2])
     old_by = {r["cve_id"]: r for r in old}
     gone = sorted(set(old_by) - set(ids))
     check(not gone, "FAIL", f"{len(gone)} CVE disappeared since the previous build, e.g. {gone[:5]}")
-    share = lambda rows: sum(r["ipa_status"] == "MAPPED" for r in rows) / max(len(rows), 1)
     moved = share(kb_cve) - share(old)
-    check(abs(moved) <= 0.02, "WARN", f"MAPPED share moved {moved:+.1%} since the previous build")
-    new_conflicts = sorted(r["cve_id"] for r in kb_cve
-                           if r["cwe_conflict"] == "Y" and old_by.get(r["cve_id"], {}).get("cwe_conflict") != "Y")
-    check(not new_conflicts, "WARN", f"{len(new_conflicts)} new cwe_conflict=Y to review, e.g. {new_conflicts[:10]}")
-    ipa_changed = sum(1 for r in kb_cve if r["cve_id"] in old_by and r["ipa_ids"] != old_by[r["cve_id"]]["ipa_ids"])
-    print(f"vs previous: +{len(set(ids) - set(old_by))} new CVE, {len(gone)} gone, {ipa_changed} changed ipa_ids")
+    check(abs(moved) <= 0.02, "WARN", f"share of CVEs in an IPA item moved {moved:+.1%} since the previous build")
+    changed = sum(1 for r in kb_cve if r["cve_id"] in old_by and r["cwe_selected"] != old_by[r["cve_id"]].get("cwe_selected"))
+    print(f"vs previous: +{len(set(ids) - set(old_by))} new CVE, {len(gone)} gone, {changed} with another cwe_selected")
 print("\n".join(problems) or "OK: no problems found")
 sys.exit(1 if any(p.startswith("FAIL") or (STRICT and p.startswith("WARN")) for p in problems) else 0)
 ```
@@ -817,9 +938,9 @@ case "${NVD_SOURCE:-nvd}" in
   fkie) $PY scripts/sync_feeds.py fkie data/nvd "1999-$Y" Modified ${NVD_BASE:+--base "$NVD_BASE"} ;;
 esac
 
-$PY scripts/build_kb_cwe.py --cwe-xml "${CWE_XML:-data/cwe/cwec.xml}" --ipa-dir templates --jvn data/jvn/*.rdf --out build/kb_cwe.csv
+$PY scripts/build_kb_cwe.py --cwe-xml "${CWE_XML:-data/cwe/cwec.xml}" --ipa-dir templates --out build/kb_cwe.csv
 $PY scripts/build_kb_cve.py --nvd data/nvd $( [ -d data/nvd_api ] && echo data/nvd_api ) \
-    --jvn data/jvn/*.rdf --kb-cwe build/kb_cwe.csv --out build/kb_cve.csv
+    --jvn data/jvn/*.rdf --out build/kb_cve.csv
 $PY scripts/check_kb.py build/kb_cwe.csv build/kb_cve.csv $( [ -f kb/kb_cve.csv ] && echo kb/kb_cve.csv ) \
     ${STRICT:+--strict} | tee build/check.txt
 

@@ -188,11 +188,11 @@ Chỉ áp override có `verification_status = 'approved'`. Hai dòng `replace` l
 |---|---|---|
 | Q1 | Mọi khóa ngoại tồn tại (ipa_id, cwe_id, rule) | Đạt (kể cả `zap_rule_cwe`) |
 | Q2 | Mỗi `ipa_item` có ≥ 1 CWE `exact` | **Chưa đạt:** IPA-WEB-04 (quản lý phiên) chỉ có `related`, cần đối chiếu bản gốc |
-| Q3 | Mỗi `ipa_item` có ≥ 1 đối sách `root_cause` | **Chưa đạt:** mẫu mới có 4 dòng cho SQL injection |
+| Q3 | Mỗi `ipa_item` có ≥ 1 đối sách `root_cause` | **Đạt** (từ 2026-10-28): 47 đối sách nhập từ checklist Excel bản 7 của IPA, mục nào cũng có 根本的解決 |
 | Q4 | Không CWE nào trong `ipa_cwe_map` ở trạng thái Deprecated/Obsolete trong bản CWE hiện hành | Chưa chạy (cần bản CWE mới nhất) |
-| Q5 | `text_ja` là nguyên văn lấy từ tài liệu IPA, có ghi số mục/trang | Chưa có dữ liệu |
+| Q5 | `text_ja` là nguyên văn lấy từ tài liệu IPA, có ghi số mục/trang | **Đạt** (từ 2026-10-28): `text_ja` lấy thẳng từ checklist, `measure_no` là mã của IPA như `1-(i)-a` |
 
-Q1–Q3 đã chạy bằng script tạm lúc dựng mẫu; Q2–Q3 không đạt là **đúng thiết kế** của bản seed và chứng tỏ cổng bắt được thiếu sót.
+Q1–Q3 đã chạy bằng script tạm lúc dựng mẫu; lúc đó Q2–Q3 không đạt là **đúng thiết kế** của bản seed và chứng tỏ cổng bắt được thiếu sót. Q3 và Q5 đạt sau khi nhập checklist của IPA (2026-10-28); Q2 vẫn chưa đạt vì checklist không có mã CWE.
 
 ---
 
@@ -324,8 +324,8 @@ Sáu file nguồn IPA/CWE trong [`../templates/`](../templates/) và ba file ph�
 
 | File | Mục đích | Khóa chính | Khóa ngoại | Nguồn dữ liệu | Dòng mẫu |
 |---|---|---|---|---|---|
-| [`ipa_item.csv`](../templates/ipa_item.csv) | Các mục IPA (hiện 11 mục web) | `ipa_id` | | IPA, nhập tay | 11 (seed) |
-| [`ipa_countermeasure.csv`](../templates/ipa_countermeasure.csv) | Đối sách gốc rễ / bảo hiểm của từng mục | `measure_id` | `ipa_id` → `ipa_item` | IPA, nhập tay | 4 (SQLi) |
+| [`ipa_item.csv`](../templates/ipa_item.csv) | Các mục IPA (hiện 11 mục web) | `ipa_id` | | IPA, đối chiếu với checklist bản 7 | 11 (`verified`) |
+| [`ipa_countermeasure.csv`](../templates/ipa_countermeasure.csv) | Đối sách gốc rễ / bảo hiểm của từng mục | `measure_id` | `ipa_id` → `ipa_item` | IPA, nhập từ checklist bản 7 bằng `import_ipa_checklist.py` (tài liệu 05) | 47 |
 | [`cwe_catalog.csv`](../templates/cwe_catalog.csv) | Danh mục CWE | `cwe_id` | | MITRE XML, tự động | 69 (mẫu) |
 | [`cwe_relation.csv`](../templates/cwe_relation.csv) | Quan hệ cha–con CWE | (`cwe_id`, `related_cwe_id`, `nature`, `view_id`) | cả hai cột → `cwe_catalog` | MITRE XML, tự động | 71 (mẫu) |
 | [`ipa_cwe_map.csv`](../templates/ipa_cwe_map.csv) | **Mapping IPA ↔ CWE** | `map_id` | `ipa_id`, `cwe_id` | Biên soạn + kiểm duyệt | 18 (seed) |
@@ -369,11 +369,11 @@ Bản trước có `exports/ipa_map_all_tools.csv` ghép rule của Semgrep/ZAP 
 
 ### Lưu ý riêng về bản mẫu
 
-- `ipa_item.csv`, `ipa_countermeasure.csv`, `ipa_cwe_map.csv` là **seed theo trí nhớ, chưa xác minh**. Không dùng cho báo cáo chính thức trước khi đối chiếu bản gốc.
+- `ipa_item.csv` (11 mục) và `ipa_countermeasure.csv` (47 đối sách) **đã đối chiếu với checklist Excel 改訂第7版 của IPA** (2026-10-28, file do người dùng cung cấp). `ipa_cwe_map.csv` vẫn là **seed theo trí nhớ, chưa xác minh**, vì checklist không có mã CWE. Không dùng mapping IPA↔CWE cho báo cáo chính thức trước khi đối chiếu.
 - `cwe_catalog.csv` và `cwe_relation.csv` mẫu lấy từ **CWE 4.14** (gói `cwe2`), chỉ gồm các CWE seed, CWE xuất hiện trong mẫu Semgrep/ZAP/Trivy và tổ tiên của chúng.
 - `semgrep_rule_cwe.csv` và `zap_rule_cwe.csv` mẫu chỉ là một phần nhỏ; bản đầy đủ do các script ở mục 9 sinh ra. Với ZAP, một số dòng không có `plugin_id` là lớp trừu tượng hoặc rule khai báo ID theo cách khác, cần xem tay.
 - `source_version.csv`: các nguồn IPA/MITRE và `trivy_db` đang `not_fetched` vì host bị chặn hoặc chưa thử trong phiên này.
-- `name_ja` của CWE để trống chờ nguồn tiếng Nhật; `text_ja` của đối sách để trống chờ nguyên văn từ PDF.
+- `name_ja` của CWE trong `cwe_catalog.csv` để trống chờ nguồn tiếng Nhật; `text_ja` của đối sách đã có (nguyên văn checklist), kèm bản dịch `text_en`/`text_vi` của mình.
 
 ---
 
@@ -791,7 +791,7 @@ Runner GitHub có Internet mở; môi trường chạy trong sandbox/cloud nội
 
 **Bước tiếp theo đề xuất**
 
-1. Sau khi có quyền truy cập: điền `source_version.csv`, nâng `ipa_item`/`ipa_cwe_map` lên `verified`, điền `text_ja`.
+1. `ipa_item` và đối sách đã xong nhờ checklist bản 7 (2026-10-28). Còn lại: đối chiếu và nâng `ipa_cwe_map` lên `verified`; điền `source_version.csv` cho các nguồn còn `not_fetched`.
 2. Tải CWE mới nhất, chạy `cwe_xml_to_csv.py`, chạy cổng Q4.
 3. Chạy `extract_semgrep_rules.py` và `extract_zap_rules.py` để có bản đầy đủ; quét một ứng dụng thật có lỗi cố ý bằng cả ba công cụ để đo độ phủ trên finding (không chỉ trên rule).
 4. Nếu thấy CWE sai ở ZAP/Trivy: mở rộng bảng override thêm cột `tool`.

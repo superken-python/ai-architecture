@@ -1,6 +1,6 @@
 # 04 · Thuật ngữ, so sánh và các cách map (kèm sơ đồ Mermaid)
 
-Ngày: 2026-10-27 · Đọc cùng: [01](01-nghien-cuu-ipa-cwe-semgrep.md) (IPA, CWE, Semgrep), [02](02-mapping-semgrep-ipa-va-cap-nhat.md) (phía công cụ), [03](03-kb-ipa-nvd-cho-cong-cu.md) (KB IPA + NVD).
+Ngày: 2026-10-27, cập nhật 2026-10-28 (KB tối giản; dữ liệu IPA bản 7) · Đọc cùng: [01](01-nghien-cuu-ipa-cwe-semgrep.md) (IPA, CWE, Semgrep), [02](02-mapping-semgrep-ipa-va-cap-nhat.md) (phía công cụ), [03](03-kb-ipa-nvd-cho-cong-cu.md) (KB IPA + NVD), [06](06-kb-field-reference.md) (ý nghĩa từng cột của KB, tiếng Anh).
 
 Cột **"Tin cậy"** trong các bảng:
 
@@ -12,13 +12,12 @@ Cột **"Tin cậy"** trong các bảng:
 
 ## 1 · Trả lời nhanh ba câu hỏi
 
-**1. Trivy được map vào cả NVD và IPA, vậy có phải tra hai KB không?** Không. "KB IPA + NVD" là **một bộ dữ liệu đã gộp sẵn lúc dựng**, không phải hai kho riêng phải tra hai lần. Mỗi dòng của `kb_cve.csv` đã chứa:
+**1. Trivy được map vào cả NVD và IPA, vậy có phải tra hai KB không?** Không. "KB IPA + NVD" là **một bộ dữ liệu đã gộp sẵn lúc dựng**, không phải hai kho riêng của NVD và của IPA. Bản tối giản (từ 2026-10-28) có hai file nối với nhau qua CWE:
 
-- dữ liệu NVD (CWE theo từng nguồn, CVSS, KEV);
-- dữ liệu JVN iPedia của IPA (mã JVNDB, tiêu đề tiếng Nhật, CWE và CVSS do IPA gán);
-- **mục IPA đã tính sẵn** từ CWE được chọn.
+- `kb_cve.csv` (3 cột): CVE → CWE được chọn (từ NVD, CNA/ADP hoặc JVN iPedia của IPA) và nguồn của nó;
+- `kb_cwe.csv` (6 cột): CWE → mục IPA (mã, tên tiếng Nhật), kiểu khớp, trạng thái duyệt.
 
-Vì vậy mỗi lỗ hổng Trivy báo chỉ cần **một lần tra theo CVE**. Chỉ khi CVE không có trong KB mới tra thêm `kb_cwe.csv` bằng CWE của Trivy. Muốn lấy nguyên văn đối sách thì nối `ipa_ids` sang bảng nhỏ `ipa_countermeasure.csv` (mục 5, sơ đồ 7.3).
+Vì vậy mỗi lỗ hổng Trivy báo cần **một lần tra theo CVE rồi một lần tra theo CWE**, trong cùng một KB (một phép nối, không phải hai kho). Khi CVE không có trong KB thì tra thẳng `kb_cwe.csv` bằng CWE của Trivy. Muốn lấy nguyên văn đối sách thì nối `ipa_id` sang bảng nhỏ `ipa_countermeasure.csv` (47 đối sách của checklist bản 7; mục 5, sơ đồ 8.3).
 
 **2. CWE/CVE khác nhau tùy nguồn, hoặc không khớp theo mã nào, thì map thế nào?** Đi theo **chuỗi phương án dự phòng**, từ chắc chắn nhất đến kém nhất:
 
@@ -52,13 +51,13 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | **IPA** (情報処理推進機構) | Cơ quan hành chính độc lập của Nhật về CNTT | Ra hướng dẫn bảo mật (ví dụ "安全なウェブサイトの作り方"), vận hành JVN iPedia, thống kê lỗ hổng theo quý | Nguồn **phân loại** (11 mục) và **đối sách**; tên CWE tiếng Nhật | NỀN (vai trò), KC (dữ liệu JVN) |
 | **JPCERT/CC** | Trung tâm điều phối ứng cứu sự cố của Nhật | Điều phối công bố lỗ hổng với nhà sản xuất; cùng IPA vận hành JVN | Gián tiếp (nguồn mã JVN#) | TK |
 | **JVN** (Japan Vulnerability Notes) | Cổng công bố lỗ hổng của Nhật, mã `JVN#64806328` | Công bố khuyến cáo cho sản phẩm (chủ yếu sản phẩm Nhật) | Mã alias có thể đổi ra CVE | KC (mã), TK (vai trò) |
-| **JVN iPedia** | Cơ sở dữ liệu lỗ hổng của IPA, mã `JVNDB-YYYY-NNNNNN` | Lưu lỗ hổng trong và ngoài nước (lấy cả từ NVD), dịch sang tiếng Nhật, gán CWE, tự chấm CVSS, ghi đối sách | Nguồn **CWE theo IPA**, tiêu đề/CVSS tiếng Nhật trong `kb_cve` | KC (cấu trúc feed), TK (phạm vi) |
+| **JVN iPedia** | Cơ sở dữ liệu lỗ hổng của IPA, mã `JVNDB-YYYY-NNNNNN` | Lưu lỗ hổng trong và ngoài nước (lấy cả từ NVD), dịch sang tiếng Nhật, gán CWE, tự chấm CVSS, ghi đối sách | Nguồn **CWE theo IPA** cho `kb_cve` (khi NVD và CNA/ADP không có CWE thật) | KC (cấu trúc feed), TK (phạm vi) |
 | **MyJVN** | Bộ API/công cụ của JVN iPedia | `getVulnOverviewList`, `getVulnDetailInfo`, `getStatistics`… | Cách lấy dữ liệu JVN tự động | TK |
-| **NIST / NVD** | National Vulnerability Database của Viện Tiêu chuẩn Mỹ | Phân tích CVE: gắn CWE, CVSS, CPE; API 2.0; trạng thái `Analyzed`, `Deferred`… | Nguồn **CVE → CWE/CVSS/KEV** trong `kb_cve` | KC (bản ghi), TK (API) |
+| **NIST / NVD** | National Vulnerability Database của Viện Tiêu chuẩn Mỹ | Phân tích CVE: gắn CWE, CVSS, CPE; API 2.0; trạng thái `Analyzed`, `Deferred`… | Nguồn **CVE → CWE** trong `kb_cve` (CVSS, KEV có trong bản ghi NVD, KB tối giản không lưu) | KC (bản ghi), TK (API) |
 | **CVE Program** (MITRE) | Chương trình cấp mã CVE | Quản lý danh sách CVE, ủy quyền cho CNA | Khóa CVE dùng chung | NỀN |
-| **CNA** | CVE Numbering Authority, ví dụ `security@apache.org`, GitHub | Cấp CVE cho sản phẩm thuộc phạm vi của mình, thường kèm CWE/CVSS | Nguồn CWE thứ hai sau NVD (`cwe_cna_adp`) | KC (có trong `weaknesses.source`), NỀN (định nghĩa) |
+| **CNA** | CVE Numbering Authority, ví dụ `security@apache.org`, GitHub | Cấp CVE cho sản phẩm thuộc phạm vi của mình, thường kèm CWE/CVSS | Nguồn CWE thứ hai sau NVD (`cwe_selected_from = cna_adp`) | KC (có trong `weaknesses.source`), NỀN (định nghĩa) |
 | **ADP** | Authorized Data Publisher, bổ sung dữ liệu vào bản ghi CVE | Thêm CWE, CVSS, SSVC cho CVE thiếu dữ liệu | Cùng nhóm với CNA trong KB; nguồn UUID `134c704f-…` (theo mình là CISA ADP) | KC (có dữ liệu), NỀN (danh tính) |
-| **CISA KEV** | Danh mục *Known Exploited Vulnerabilities* của CISA | Liệt kê CVE đang bị khai thác thật, có hạn xử lý | Cột `kev_*` để ưu tiên | KC (trường trong NVD) |
+| **CISA KEV** | Danh mục *Known Exploited Vulnerabilities* của CISA | Liệt kê CVE đang bị khai thác thật, có hạn xử lý | Dùng để ưu tiên xử lý; KB tối giản không lưu (lấy từ NVD hoặc CISA) | KC (trường trong NVD) |
 | **MITRE CWE** | Danh mục điểm yếu phần mềm | Định nghĩa CWE, cây quan hệ, các view (1000, 699, 1003, Top 25, OWASP) | **Cầu nối** giữa công cụ và IPA | KC (XML 4.14) |
 | **MITRE CAPEC** | Danh mục mẫu tấn công | Mô tả cách tấn công, liên kết tới CWE | Phương án dự phòng hiếm dùng | KC (336 weakness có liên kết) |
 | **OWASP** | Cộng đồng bảo mật ứng dụng web | OWASP Top 10, ASVS…; ZAP trước đây là dự án OWASP | Nhãn `owasp` trong rule Semgrep | KC (nhãn 2017/2021/2025 trong rule) |
@@ -80,7 +79,7 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | **Weakness / Category / View** | Ba loại mục trong CWE | Weakness CWE-89; Category CWE-399; View 1003 | MITRE | Chỉ Weakness mới là điểm yếu cụ thể; Category là nhóm; View là cách nhìn | KC |
 | **Pillar / Class / Base / Variant / Compound** | Mức trừu tượng của Weakness | CWE-284 Pillar; CWE-119 Class; CWE-89 Base; CWE-113 Variant | MITRE | Base/Variant cụ thể hơn, nên ưu tiên khi các nguồn lệch | KC |
 | **View 1000** | Cây cha–con đầy đủ (`ChildOf`) | CWE-113 → 93 → 74 | MITRE | Khớp qua tổ tiên/hậu duệ | KC |
-| **View 1003** | Tập CWE mà NVD dùng để gắn cho CVE | 130 CWE (CWE 4.14) | MITRE / NVD | Cột `nvd_slice`, `nvd_slice_cwe_id` | KC |
+| **View 1003** | Tập CWE mà NVD dùng để gắn cho CVE | 130 CWE (CWE 4.14) | MITRE / NVD | KB tối giản không dùng (bản rộng cũ có cột `nvd_slice`) | KC |
 | **View 1344** | CWE thuộc OWASP Top 10 2021 | A03 Injection: 32 CWE | MITRE | Chuyển nhãn OWASP → CWE (dự phòng) | KC |
 | **CWE Top 25** | 25 điểm yếu nguy hiểm nhất (xếp từ dữ liệu CVE) | View 1425 (bản 2023) | MITRE | Ưu tiên; không dùng để map | KC (view), NỀN (cách xếp) |
 | **CAPEC** | Một **mẫu tấn công** | `CAPEC-66` (SQLi) | MITRE | Liên kết tấn công ↔ CWE | KC (liên kết), NỀN (ví dụ mã) |
@@ -92,7 +91,7 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | **Mã OWASP Top 10** | Nhóm rủi ro web | `A03:2021 - Injection`, `A05:2025 - Injection` | OWASP | Nhãn `owasp` của Semgrep | KC |
 | **CVSS v2 / v3.0 / v3.1 / v4.0** | **Mức nghiêm trọng kỹ thuật** của một CVE | `CVSS:3.1/AV:N/AC:L/…` → 10.0 Critical | FIRST (chuẩn); NVD, CNA, IPA chấm | Ưu tiên xử lý; KB lưu v3 và v4 | KC (dữ liệu), NỀN (chuẩn) |
 | **SSVC** | Mô hình ra quyết định xử lý lỗ hổng | `ssvcV203` trong bản ghi NVD | CISA | Ưu tiên (chưa đưa vào KB) | KC (có mặt), NỀN (nội dung) |
-| **KEV** | CVE đang bị khai thác | `cisaExploitAdd: 2021-12-10` (Log4Shell) | CISA | Cột `kev_*` | KC |
+| **KEV** | CVE đang bị khai thác | `cisaExploitAdd: 2021-12-10` (Log4Shell) | CISA | Không lưu trong KB tối giản | KC |
 | **EPSS** | Xác suất bị khai thác trong 30 ngày tới | điểm 0–1 | FIRST | Ưu tiên (chưa có trong KB) | NỀN |
 
 ### 2.3 Định dạng dữ liệu
@@ -131,11 +130,11 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 
 | Thuật ngữ | Nghĩa | Tin cậy |
 |---|---|---|
-| **安全なウェブサイトの作り方** | Hướng dẫn xây website an toàn; 11 loại lỗ hổng (SQLi, OS command injection, path traversal, quản lý phiên, XSS, CSRF, HTTP header injection, mail header injection, clickjacking, buffer overflow, thiếu kiểm soát truy cập) | NỀN (nội dung chưa đọc được bản gốc) |
-| **根本的解決** | Đối sách giải quyết tận gốc (ví dụ dùng placeholder cho SQL) | NỀN |
-| **保険的対策** | Đối sách bảo hiểm, phòng thủ thêm một lớp (ví dụ không hiện lỗi thô ra trình duyệt) | NỀN |
+| **安全なウェブサイトの作り方** | Hướng dẫn xây website an toàn; 11 loại lỗ hổng (SQLi, OS command injection, path traversal, quản lý phiên, XSS, CSRF, HTTP header injection, mail header injection, clickjacking, buffer overflow, thiếu kiểm soát truy cập) | KC (checklist Excel 改訂第7版 của IPA: 11 mục, 47 đối sách) |
+| **根本的解決** | Đối sách giải quyết tận gốc (ví dụ dùng placeholder cho SQL); `root_cause` | KC (32 đối sách trong checklist) |
+| **保険的対策** | Đối sách bảo hiểm, phòng thủ thêm một lớp (ví dụ không hiện lỗi thô ra trình duyệt); `defense_in_depth` | KC (15 đối sách trong checklist) |
 | **CWE 概説** | Trang giới thiệu CWE bằng tiếng Nhật của IPA | TK |
-| **Tên CWE tiếng Nhật** | Ví dụ `クロスサイトスクリプティング`, `情報不足` (= CWE-noinfo) | KC (feed JVN) |
+| **Tên CWE tiếng Nhật** | Ví dụ `クロスサイトスクリプティング`, `情報不足` (= CWE-noinfo); KB tối giản không lưu | KC (feed JVN) |
 | **CVSS do IPA chấm** | Điểm v2/v3 của JVN iPedia, có thể khác NVD | KC |
 | **Solution (対策)** | Đối sách cho từng lỗ hổng trong feed chi tiết JVN | KC |
 
@@ -143,15 +142,13 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 
 | Thuật ngữ | Nghĩa |
 |---|---|
-| `kb_cwe.csv` | KB khóa CWE: mỗi dòng (CWE, mục IPA); có cả CWE ngoài IPA và mã giả |
-| `kb_cve.csv` | KB khóa CVE: CWE theo nguồn, CWE được chọn, mục IPA, CVSS, KEV, JVNDB |
-| `cwe_selected`, `cwe_selected_from` | CWE được chọn cho một CVE và nguồn của nó (`nvd`, `cna_adp`, `jvn`, `pseudo`, `none`) |
-| `cwe_conflict` | `Y` khi các nguồn có CWE thật nhưng khác nhau |
-| `ipa_ids_any_source` | Mục IPA mà CWE của *bất kỳ* nguồn nào dẫn tới, để thấy chỗ lệch |
-| `ipa_status` | `MAPPED`, `OUT_OF_IPA_SCOPE` (có CWE nhưng ngoài 11 mục), `NO_CWE_INFO` (không có hoặc chỉ có mã giả), `UNKNOWN_CWE` (KB không có mã đó) |
+| `kb_cwe.csv` | KB khóa CWE (6 cột): mỗi dòng (CWE, mục IPA); có cả CWE ngoài IPA và mã giả |
+| `kb_cve.csv` | KB khóa CVE (3 cột): CWE được chọn và nguồn của nó; mục IPA tra tiếp qua `kb_cwe` |
+| `cwe_selected`, `cwe_selected_from` | CWE được chọn cho một CVE và nguồn của nó (`nvd`, `cna_adp`, `jvn`, `pseudo`, `none`, `rejected`) |
+| `ipa_status` | Tính lúc tra, không lưu trong KB: `MAPPED`, `OUT_OF_IPA_SCOPE` (có CWE nhưng ngoài 11 mục), `NO_CWE_INFO` (không có hoặc chỉ có mã giả), `UNKNOWN_CWE` (KB không có mã đó), `REJECTED` (CVE bị NVD loại) |
 | `match_kind` | `exact`, `narrower`, `broader`, `related` (khớp trực tiếp), `ancestor` (khớp qua cây) |
-| `nvd_slice`, `nvd_slice_cwe_id` | CWE có thuộc tập NVD dùng không; CWE gần nhất thuộc tập đó |
 | `mapping_status` | Trạng thái duyệt của dòng mapping IPA↔CWE (hiện `seed_unverified`) |
+| Cột đã bỏ | `cwe_conflict`, `ipa_ids_any_source`, `nvd_slice`, CVSS, KEV, JVNDB… có trong bản KB rộng trước 2026-10-28; danh sách và chỗ lấy lại: [tài liệu 06](06-kb-field-reference.md) mục 6 |
 | `tool_side/`, override | Dữ liệu phía công cụ: catalog rule, sửa CWE sai của rule; **không** thuộc KB |
 | `source_version.csv` | Phiên bản/sha256 của từng nguồn để phát hiện thay đổi |
 
@@ -167,8 +164,8 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | Độ chi tiết | Một lỗi ở một sản phẩm | Một lớp lỗi dùng chung cho mọi sản phẩm | Một kiểu tấn công | Một sản phẩm/gói | Một điểm số + vector |
 | Ví dụ | `CVE-2019-11358` | `CWE-1321` | `CAPEC-66` | `cpe:2.3:a:jquery:jquery` | 6.1 Medium |
 | Quan hệ | Một CVE có 0..n CWE (tùy nguồn) | Một CWE có rất nhiều CVE | Liên kết tới CWE | Một CVE ảnh hưởng nhiều CPE | Một CVE có nhiều CVSS (nhiều nguồn, nhiều phiên bản) |
-| Công cụ nào báo | Trivy; ZAP (tag của rule thư viện JS) | Semgrep, ZAP, Trivy | (không công cụ nào trong dự án) | Trivy dùng nội bộ | Trivy, KB |
-| Khóa của KB | `kb_cve` | `kb_cwe` | — | — | cột trong `kb_cve` |
+| Công cụ nào báo | Trivy; ZAP (tag của rule thư viện JS) | Semgrep, ZAP, Trivy | (không công cụ nào trong dự án) | Trivy dùng nội bộ | Trivy, NVD |
+| Khóa của KB | `kb_cve` | `kb_cwe` | — | — | — (KB tối giản không lưu CVSS) |
 
 Điểm mấu chốt: **CWE là thứ duy nhất cả ba công cụ và IPA cùng nói được**, nên nó là cầu nối. **CVE chính xác hơn** nhưng chỉ có ở lỗ hổng đã công bố (thư viện, sản phẩm), không có ở lỗi trong mã bạn tự viết.
 
@@ -182,7 +179,7 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | CVSS | v2/v3/v4, nhiều nguồn | **IPA tự chấm** v2/v3 | có | tùy nguồn | có | theo distro |
 | Khớp sản phẩm | CPE 2.3 | CPE 2.2 | tên gói + khoảng phiên bản | như GHSA | `package_slug`, `affected_range` | gói của distro |
 | Lấy dữ liệu | API 2.0 (giới hạn tốc độ), mirror | feed RSS/chi tiết + `checksum.txt`, MyJVN API | repo git | bucket/API | repo git | — |
-| Trong KB của dự án | **Có** (`kb_cve`) | **Có** (`kb_cve`, tên tiếng Nhật trong `kb_cwe`) | Đề xuất cho bước đổi alias | Đề xuất cho bước đổi alias | Đề xuất cho bước đổi alias | Không |
+| Trong KB của dự án | **Có** (`kb_cve`) | **Có** (CWE trong `kb_cve`) | Đề xuất cho bước đổi alias | Đề xuất cho bước đổi alias | Đề xuất cho bước đổi alias | Không |
 | Trivy có dùng | Có, **ưu tiên số 1** | Không | Có | Có | Có (`glad`) | Có (sau NVD) |
 | Tin cậy | KC | KC | KC | KC | KC | KC (Trivy), NỀN (đặc điểm) |
 
@@ -194,7 +191,7 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | Độ chi tiết | 11 mục + đối sách | 10 nhóm (mỗi nhóm 1–40 CWE) | 25 CWE | khoảng vài chục lớp | 130 CWE |
 | Quan hệ với CWE | Bảng mapping do dự án biên soạn (seed) | MITRE có view (1344 cho bản 2021) | Chính là CWE | MITRE có bảng chuyển (54 cặp) | Chính là CWE |
 | Có đối sách? | **Có** (gốc rễ / bảo hiểm) | Hướng dẫn chung | Có (mitigation từng CWE) | Không | Không |
-| Ai dùng trong dự án | **Đích phân loại** | Nhãn `owasp` của Semgrep (dự phòng) | — | `wascid` của ZAP (dự phòng) | `nvd_slice` |
+| Ai dùng trong dự án | **Đích phân loại** | Nhãn `owasp` của Semgrep (dự phòng) | — | `wascid` của ZAP (dự phòng) | — |
 | Tin cậy | NỀN (nội dung), KC (seed) | KC | KC (view), NỀN | KC | KC |
 
 ### 3.4 Semgrep, ZAP, Trivy
@@ -209,19 +206,19 @@ Một ví dụ "lệch" mình nêu trước đây hóa ra là **lệch theo th�
 | Có CWE | Mọi rule `security` | Hầu hết scan rule | Chỉ lỗ hổng gói |
 | Phủ 11 mục IPA (theo rule) | Cả 11 mục (1.9 chỉ có 1 rule và rule đó gắn sai tag) | 10/11 (thiếu 1.8) | Gián tiếp qua CWE của CVE |
 | Sai lệch thường gặp | Gắn sai CWE cho rule | Passive bỏ sót; không có CWE ở alert thông tin | **DB cũ** so với NVD hiện tại; misconfig/secret không có CWE |
-| Tra KB bằng | `kb_cwe` | `kb_cwe` (+ `kb_cve` nếu có tag CVE) | `kb_cve` (dự phòng `kb_cwe`) |
+| Tra KB bằng | `kb_cwe` | `kb_cwe` (+ `kb_cve` nếu có tag CVE) | `kb_cve` rồi `kb_cwe` (dự phòng: `kb_cwe` bằng CWE của Trivy) |
 | Giấy phép | Engine mở (NỀN); rule: Semgrep Rules License v1.0 (KC) | Apache-2.0 (KC) | Apache-2.0; `trivy-checks` MIT (KC) |
 
 ### 3.5 Tín hiệu để ưu tiên xử lý
 
 | Tín hiệu | Đo cái gì | Ai cung cấp | Có trong KB | Tin cậy |
 |---|---|---|---|---|
-| CVSS v3.1 / v4.0 | Mức nghiêm trọng kỹ thuật | NVD, CNA, ADP | `cvss_v3_*`, `cvss_v4_*` | KC |
-| CVSS của IPA | Như trên, do IPA chấm | JVN iPedia | `jvn_cvss_v3_*` | KC |
-| KEV | Đang bị khai thác thật | CISA (qua NVD) | `kev_*` | KC |
+| CVSS v3.1 / v4.0 | Mức nghiêm trọng kỹ thuật | NVD, CNA, ADP | Không (Trivy và NVD có sẵn) | KC |
+| CVSS của IPA | Như trên, do IPA chấm | JVN iPedia | Không | KC |
+| KEV | Đang bị khai thác thật | CISA (qua NVD) | Không | KC |
 | SSVC | Quyết định xử lý theo bối cảnh | CISA ADP (qua NVD) | Chưa | KC (có mặt) |
 | EPSS | Xác suất bị khai thác | FIRST | Chưa | NỀN |
-| Mục IPA | *Loại* lỗ hổng theo IPA, kèm đối sách | Dự án (seed) | `ipa_ids` | KC (cách tính) |
+| Mục IPA | *Loại* lỗ hổng theo IPA, kèm đối sách | IPA (checklist bản 7) + dự án (bảng IPA↔CWE seed) | `kb_cwe.ipa_id` (qua `cwe_selected`) | KC (cách tính) |
 
 ---
 
@@ -242,16 +239,16 @@ Sơ đồ ở mục 8.1 và 8.6.
 
 **Không.** Lý do và cách làm:
 
-1. **Gộp lúc dựng, không gộp lúc tra.** `build_kb_cve.py` đã ghép NVD với JVN iPedia theo CVE, chọn CWE theo chính sách, rồi tra `kb_cwe` để điền sẵn `ipa_ids`. Khi tra, mỗi lỗ hổng Trivy chỉ cần **một lần tra theo `cve_id`**.
-2. **Chỉ tra `kb_cwe` khi CVE vắng mặt trong KB**: ví dụ mã không phải CVE (`GMS-2022-20`), hoặc CVE quá mới chưa vào bản KB. Khi đó dùng `CweIDs` của Trivy, hoặc tốt hơn là đổi alias trước (mục 6).
-3. **Muốn đối sách chi tiết**: nối `ipa_ids` sang `ipa_countermeasure.csv` (vài chục dòng). Bước này không phải "tra KB thứ hai".
+1. **Gộp lúc dựng, không gộp lúc tra.** `build_kb_cve.py` đã ghép NVD với JVN iPedia theo CVE và chọn CWE theo chính sách. Khi tra, mỗi lỗ hổng Trivy cần **một lần tra theo `cve_id`** trong `kb_cve` rồi **một lần tra theo `cwe_id`** trong `kb_cwe` (cùng một KB, một phép nối). Mục IPA chỉ lưu ở `kb_cwe`, nên sửa mapping IPA không phải dựng lại `kb_cve`.
+2. **Chỉ dùng CWE của Trivy khi CVE vắng mặt trong KB**: ví dụ mã không phải CVE (`GMS-2022-20`), hoặc CVE quá mới chưa vào bản KB. Khi đó dùng `CweIDs` của Trivy, hoặc tốt hơn là đổi alias trước (mục 6).
+3. **Muốn đối sách chi tiết**: nối `ipa_id` sang `ipa_countermeasure.csv` (47 đối sách của checklist bản 7). Bước này không phải "tra KB thứ hai".
 4. **Vì sao không dùng luôn CWE của Trivy?** Trivy cũng lấy CWE từ NVD trước (rồi Red Hat, distro, GHSA…). Nhưng:
    - DB của Trivy là một bản chụp, có thể cũ hơn KB.
    - Trivy không có dữ liệu JVN/IPA và tên tiếng Nhật.
    - KB áp **cùng một chính sách** cho mọi công cụ.
 
    Vẫn nên giữ CWE của Trivy (`tool_cwe`) để đối chiếu: khi khác KB thì gắn ghi chú.
-5. **Chi phí**: tra theo khóa trong bảng băm hoặc chỉ mục DB, O(1) mỗi finding. Toàn bộ NVD khoảng 415.000 dòng vừa sức một bảng DB thường.
+5. **Chi phí**: hai lần tra theo khóa trong bảng băm hoặc chỉ mục DB, O(1) mỗi finding. Toàn bộ NVD khoảng 415.000 dòng (12 MB) vừa sức một bảng DB thường.
 
 ---
 
@@ -261,7 +258,7 @@ Sơ đồ ở mục 8.1 và 8.6.
 
 | # | Phương án | Khi nào dùng | Từ → tới | Độ tin cậy | Kiểm chứng trong dự án |
 |---|---|---|---|---|---|
-| A | **Khớp CVE** | Công cụ báo CVE | CVE → `kb_cve` | Cao nhất | KC: 23 CVE mẫu, toàn bộ năm 2025 |
+| A | **Khớp CVE** | Công cụ báo CVE | CVE → `kb_cve` → `kb_cwe` | Cao nhất | KC: 23 CVE mẫu, toàn bộ năm 2025 |
 | B | **Đổi alias ra CVE** | Công cụ báo GHSA/GMS/OSV/JVN# | alias → CVE → `kb_cve` | Cao | KC: `GHSA-6c3j-c64m-qhgq` → `CVE-2019-11358` |
 | C | **Lấy CWE của nguồn alias** | Alias không dẫn tới CVE | alias → `cwe_ids` → `kb_cwe` | Trung bình–cao | KC: `GMS-2022-20` → `GHSA-qq97-vm5h-rrhg` (không có CVE) → CWE-843 |
 | D | **Khớp CWE trực tiếp** | Có CWE | CWE → `kb_cwe` (`exact`/`narrower`/`broader`/`related`) | Cao (`exact`) đến thấp (`related`) | KC |
@@ -272,7 +269,7 @@ Sơ đồ ở mục 8.1 và 8.6.
 | I | **Rút mã từ văn bản output** | Mã nằm trong message/tag | regex `CVE-\d{4}-\d+` trong `tags`/`otherinfo` của ZAP | Cao nếu có | KC: rule thư viện JS của ZAP gắn tag CVE (chỉ có trong report `-plus`) |
 | J | **Bảng map theo rule do người biên soạn** | Check không có CWE (misconfig, secret) hoặc rule gắn sai CWE | rule ID → CWE (`tool_side/`), ví dụ secret → CWE-798 | Tùy người duyệt | KC: 4 override đề xuất |
 | K | **Từ khóa / ngữ nghĩa / mô hình ngôn ngữ** | Không còn cách nào | tiêu đề, mô tả → mục IPA (từ khóa Nhật/Anh/Việt hoặc LLM) | Thấp, **bắt buộc người duyệt** | Chưa làm |
-| L | **Giữ nguyên trạng thái** | Không map được | `OUT_OF_IPA_SCOPE`, `NO_CWE_INFO`, `UNKNOWN_CWE` | — | KC |
+| L | **Giữ nguyên trạng thái** | Không map được | `OUT_OF_IPA_SCOPE`, `NO_CWE_INFO`, `UNKNOWN_CWE`, `REJECTED` | — | KC |
 
 Mỗi kết quả nên ghi cột *khớp bằng cách nào* (A…K) để báo cáo thể hiện được độ tin cậy. Không ép một finding vào mục IPA khi chỉ có phương án G hoặc K.
 
@@ -282,8 +279,8 @@ Mỗi kết quả nên ghi cột *khớp bằng cách nào* (A…K) để báo c
 2. **CWE thật hơn mã giả**: CWE-787 của ADP thắng `NVD-CWE-noinfo`.
 3. **Weakness hơn Category**: CWE-843 của GHSA thắng category CWE-1035/937 của GitLab.
 4. **Cụ thể hơn chung chung**: khi hai CWE là cha–con, chọn con (Base/Variant), mục IPA vẫn tìm được qua cây.
-5. **Hai tập có phần chung**: lấy phần chung làm CWE chắc chắn, phần còn lại ghi vào `ipa_ids_any_source`.
-6. **Không liên quan**: giữ cả hai, bật `cwe_conflict`, đánh giá ở **mức mục IPA**. Nếu cùng mục IPA thì chấp nhận, khác thì đưa người duyệt.
+5. **Hai tập có phần chung**: phần chung là CWE chắc chắn. KB tối giản chỉ lưu CWE của nguồn được chọn (bản rộng trước 2026-10-28 có cột `ipa_ids_any_source` để thấy phần lệch).
+6. **Không liên quan**: đánh giá ở **mức mục IPA**. Nếu cùng mục IPA thì chấp nhận, khác thì đưa người duyệt. `build_kb_cve.py` in số CVE có nguồn lệch nhau mỗi lần dựng (17.897 trên toàn bộ lịch sử NVD ngày 2026-10-28).
 7. **Thứ tự nguồn mặc định** cho một CVE: NVD → CNA/ADP → JVN. JVN đứng cuối vì gắn CWE theo cả bản ghi JVNDB nhiều CVE (tài liệu 03 mục 3.4). Đổi bằng `--prefer jvn` nếu tổ chức muốn theo IPA.
 
 ---
@@ -404,7 +401,8 @@ flowchart TD
     F["Finding từ công cụ"] --> Q1{"Có CVE?<br/>Trivy VulnerabilityID,<br/>tag CVE của ZAP"}
     Q1 -- "có" --> L1["A · Tra kb_cve"]
     L1 --> H1{"CVE có trong KB?"}
-    H1 -- "có" --> R1["Lấy cwe_selected, ipa_ids,<br/>CVSS, KEV, JVNDB"]
+    H1 -- "có" --> R1["Lấy cwe_selected<br/>CWE được chọn"]
+    R1 --> L2
     H1 -- "không" --> Q2
     Q1 -- "không" --> Q2{"Có mã alias?<br/>GHSA, GMS, OSV, JVN#"}
     Q2 -- "có" --> A1["B · Đổi alias<br/>GHSA, OSV, GitLab, JVN iPedia"]
@@ -433,7 +431,7 @@ flowchart TD
     V1 --> R5["NO_CWE_INFO<br/>hoặc map thủ công"]
 ```
 
-### 8.3 Trivy tra KB: một lần theo CVE, dự phòng theo CWE
+### 8.3 Trivy tra KB: theo CVE rồi theo CWE, dự phòng bằng CWE của Trivy
 
 ```mermaid
 sequenceDiagram
@@ -445,8 +443,10 @@ sequenceDiagram
     participant C as ipa_countermeasure.csv
     T->>M: VulnerabilityID CVE-2021-38561, CweIDs rỗng
     M->>V: tra theo cve_id
-    V-->>M: cwe_selected CWE-125 từ NVD, ipa_ids IPA-WEB-10, CVSS 7.5
-    Note over V: kb_cve đã gộp sẵn NVD và JVN của IPA,<br/>mục IPA đã được tính lúc dựng KB
+    V-->>M: cwe_selected CWE-125, cwe_selected_from nvd
+    Note over V: kb_cve đã gộp sẵn NVD và JVN của IPA,<br/>chỉ giữ CWE được chọn và nguồn
+    M->>W: tra theo cwe_id CWE-125
+    W-->>M: IPA-WEB-10, match_kind ancestor
     opt Chỉ khi CVE không có trong kb_cve
         M->>W: tra theo CweIDs của Trivy hoặc CWE từ alias
         W-->>M: ipa_id, match_kind
@@ -470,8 +470,7 @@ erDiagram
     KB_CWE }o--o| IPA_ITEM : "ipa_id"
     NVD_CVE ||--|| KB_CVE : "cve_id"
     JVNDB }o--o{ KB_CVE : "tham chiếu CVE"
-    KB_CVE }o--o{ CWE : "cwe_selected"
-    KB_CVE }o--o{ IPA_ITEM : "ipa_ids"
+    KB_CVE }o--o{ KB_CWE : "cwe_selected"
     IPA_ITEM {
         string ipa_id PK
         string name_ja
@@ -481,31 +480,23 @@ erDiagram
         string cwe_id PK
         string kind
         string name_en
-        string name_ja
-        string nvd_slice
     }
     KB_CWE {
         string cwe_id
+        string cwe_name_en
         string ipa_id
-        string ipa_status
+        string ipa_name_ja
         string match_kind
+        string mapping_status
     }
     KB_CVE {
         string cve_id PK
-        string cwe_nvd
-        string cwe_cna_adp
-        string cwe_jvn
         string cwe_selected
-        string ipa_ids
-        float cvss_v3_score
-        string kev_date_added
-        string jvndb_ids
+        string cwe_selected_from
     }
     JVNDB {
         string jvndb_id PK
-        string title_ja
         string cwe
-        float cvss_v3_ipa
     }
     NVD_CVE {
         string id PK
@@ -527,7 +518,7 @@ flowchart LR
     C -- "bằng nhau" --> OK["Đồng thuận"]
     C -- "có CWE chung, 74,1 phần trăm" --> O["Lấy phần chung"]
     C -- "cha–con, 18,1 phần trăm" --> P["Lấy CWE cụ thể hơn"]
-    C -- "họ hàng hoặc không liên quan, 7,8 phần trăm" --> U["Giữ cả hai, bật cwe_conflict"]
+    C -- "họ hàng hoặc không liên quan, 7,8 phần trăm" --> U["Theo thứ tự nguồn,<br/>ghi nhận là lệch"]
     O --> I{"So tập mục IPA"}
     P --> I
     U --> I
