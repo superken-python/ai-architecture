@@ -13,6 +13,7 @@ trên máy GPU, dùng trong **mạng nội bộ** qua HTTPS (tạm chưa mở ra
 | # | Tài liệu | Nội dung |
 |---|---|---|
 | 1 | [Kế hoạch triển khai chi tiết](docs/01-ke-hoach-trien-khai.md) | yêu cầu, SLO, kiến trúc, chọn model cho GPU 8 GB, pipeline realtime, UI điện thoại, cấu trúc thư mục theo best practice, Docker + HTTPS nội bộ, triển khai trên máy GPU, kiểm thử/eval, kế hoạch P0–P6, rủi ro, ADR, câu hỏi mở |
+| 11 | [Hướng dẫn: tải model PyTorch, chuyển sang CTranslate2 float16](docs/11-huong-dan-chuyen-model-pytorch-sang-ctranslate2.md) | từng bước đưa PhoWhisper-large 6,2 GB về 3,1 GB: tải file cần, đọc float16, chuyển, ghi tokenizer, kiểm; kiểu lưu và kiểu chạy; lỗi hay gặp; đối chiếu 9 nhóm bài toán |
 
 Nền tảng cấu trúc: [best practice dự án Python AI](../python-ai-project-structure-best-practices.md).
 

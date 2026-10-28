@@ -792,7 +792,8 @@ docker logs --since 5m rvt_ai 2>&1 | grep -E "Loading|ASR model"   # có dòng n
 uv cache clean                        # torch, transformers chỉ cần lúc chuyển
 ```
 
-- **PhoWhisper-large (bước 8):**
+- **PhoWhisper-large (bước 8):** từng bước và lý do ở
+  [docs 11](11-huong-dan-chuyen-model-pytorch-sang-ctranslate2.md).
   - Chỉ dùng khi nửa nói khoá "Tiếng Việt". "Tự động", tiếng Nhật, tiếng Anh vẫn dùng large-v3-turbo.
   - Script tải những file cần (cấu hình, tokenizer, `pytorch_model.bin`), đọc trọng số ở float16, lưu CTranslate2
     float16 vào `models/phowhisper-large-ct2` (3,1 GB). Xong thì xoá bản tải. Container nạp ở `float16` theo profile.
