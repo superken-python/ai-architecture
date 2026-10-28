@@ -416,6 +416,8 @@ def cvss(metrics, keys):
 
 nvd = {}
 for r in nvd_records(a.nvd):
+    if (nvd.get(r["id"], {}).get("modified") or "") > (r.get("lastModified") or ""):
+        continue                                    # CVE có ở nhiều file (năm, Modified, trang API): giữ bản mới nhất
     by_nvd, other, other_src = [], [], []
     for w in r.get("weaknesses", []):
         vals = [x["value"] for x in w.get("description", [])]
@@ -621,6 +623,8 @@ Nguyên tắc:
 - **`kb_cve.csv` không commit**: lớn và đổi mỗi ngày. Sinh trong CI hoặc job, nạp vào DB hoặc lưu thành artifact có kèm `source_version.csv`. Báo cáo scan ghi phiên bản KB đã dùng.
 - **Kiểm tra trước khi phát hành** `kb_cve`: sha256 khớp `.meta`; không trùng `cve_id`; số CVE không giảm bất thường; tỉ lệ `MAPPED`/`NO_CWE_INFO` không lệch đột ngột so với lần trước; liệt kê CVE có `cwe_conflict = Y` mới phát sinh để người xem.
 - **Không phụ thuộc host bị chặn**: nếu NVD hoặc JVN tạm không truy cập được, dùng bản KB gần nhất và đánh dấu `error` trong `source_version.csv`.
+- **Cùng một CVE có ở nhiều file** (feed năm, feed Modified, trang API): `build_kb_cve.py` giữ bản có `lastModified` mới nhất, không phụ thuộc thứ tự file.
+- **Các bước cụ thể và script đã chạy thử** (đồng bộ feed có kiểm tra sha256, client NVD API, kiểm tra trước khi phát hành, job hằng ngày): [tài liệu 05, tiếng Anh](05-kb-build-runbook.md).
 
 ---
 
