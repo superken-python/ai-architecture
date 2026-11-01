@@ -93,7 +93,9 @@ class RVTClient {
             A: { lang: store.sideALang },
             B: { lang: store.sideBLang }
           },
-          targets
+          targets,
+          // Video & Họp: dịch theo đoạn hoặc từng câu (docs 10 §13.9); hai nửa đối mặt luôn dịch từng câu
+          mt_unit: store.meetingMode ? store.mtUnit : 'segment'
         });
 
         // If mic/turn was active before reconnect, re-register turn immediately
@@ -506,7 +508,8 @@ class RVTClient {
         A: { lang: sideA },
         B: { lang: sideB }
       },
-      targets
+      targets,
+      mt_unit: store.meetingMode ? store.mtUnit : 'segment'
     });
   }
 

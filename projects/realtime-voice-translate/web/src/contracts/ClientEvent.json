@@ -144,6 +144,15 @@
           ],
           "default": null,
           "title": "Client Id"
+        },
+        "mt_unit": {
+          "default": "segment",
+          "enum": [
+            "segment",
+            "paragraph"
+          ],
+          "title": "Mt Unit",
+          "type": "string"
         }
       },
       "title": "SessionStart",
@@ -200,6 +209,22 @@
           ],
           "default": null,
           "title": "Targets"
+        },
+        "mt_unit": {
+          "anyOf": [
+            {
+              "enum": [
+                "segment",
+                "paragraph"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mt Unit"
         }
       },
       "required": [

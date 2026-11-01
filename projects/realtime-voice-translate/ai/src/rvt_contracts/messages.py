@@ -25,6 +25,9 @@ class SessionStart(BaseModel):
     sides: dict[Side, SideConfig] = Field(default_factory=lambda: {"A": SideConfig(), "B": SideConfig()})
     targets: list[Lang] | None = None
     client_id: str | None = None
+    # Đơn vị dịch: "segment" dịch từng câu VAD cắt ra; "paragraph" gom các câu liền nhau thành đoạn và dịch lại cả đoạn
+    # mỗi khi có câu mới (chế độ Video & Họp, docs 10 §13.9)
+    mt_unit: Literal["segment", "paragraph"] = "segment"
 
 
 class TurnStart(BaseModel):
@@ -48,6 +51,7 @@ class SidesUpdate(BaseModel):
     type: Literal["sides.update"] = "sides.update"
     sides: dict[Side, SideConfig]
     targets: list[Lang] | None = None
+    mt_unit: Literal["segment", "paragraph"] | None = None  # None: giữ như cũ
 
 
 class Ping(BaseModel):
@@ -88,6 +92,8 @@ class AsrPartial(BaseModel):
     side: Side
     text: str
     lang: Lang | None = None
+    # Dịch theo đoạn: đoạn mà câu đang nói sẽ vào nếu chốt bây giờ (None: sẽ mở đoạn mới)
+    paragraph_id: int | None = None
 
 
 class AsrFinal(BaseModel):
@@ -99,6 +105,8 @@ class AsrFinal(BaseModel):
     lang_probs: dict[Lang, float]
     uncertain: bool
     audio_ms: int
+    # Dịch theo đoạn: số đoạn chứa câu này (= utterance_id của câu đầu đoạn); bản dịch đến với utterance_id = số đoạn
+    paragraph_id: int | None = None
 
 
 class MtDelta(BaseModel):
@@ -106,6 +114,8 @@ class MtDelta(BaseModel):
     utterance_id: int
     target: Lang
     delta: str
+    # Dịch theo đoạn: lần dịch thứ mấy của đoạn. Lần mới thay lần cũ; chữ của lần cũ đến muộn thì bỏ
+    revision: int | None = None
 
 
 class MtFinal(BaseModel):
@@ -113,6 +123,7 @@ class MtFinal(BaseModel):
     utterance_id: int
     target: Lang
     text: str
+    revision: int | None = None
 
 
 class UtteranceMetrics(BaseModel):

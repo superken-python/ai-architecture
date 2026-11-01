@@ -851,6 +851,70 @@ du -sh models/whisper                      # khoảng 1,6 GB
   - Độ trễ, chi phí và chất lượng dịch thật của GPT-5 mini so với Qwen.
   - VRAM và độ trễ ở `float16`; VRAM khi có cả PhoWhisper (đã đo `int8_float16`, chỉ turbo: 1,1 GB, §13.1).
 
+### 13.9 Dịch theo đoạn thay vì từng câu
+
+**Cập nhật 2026-11-01.**
+
+**Vấn đề.** Ảnh chụp ngày 2026-10-30 (giao diện "Bilingual") cho thấy cách mong muốn: gom các câu của người nói thành
+một đoạn tới khi họ nói xong ý, rồi dịch cả đoạn. App thì dịch từng câu:
+
+- VAD cắt lời nói thành đoạn 4–6 giây (`max_ms` 4000, `hard_max_ms` 6000), nên câu dài bị chẻ đôi, ví dụ
+  「…人の、え、なんか就労の作業が」 và 「なんか減らすんじゃないかなということです。」.
+- Mỗi mảnh được dịch riêng, chỉ kèm 2 câu trước làm ngữ cảnh. Mảnh đầu dịch cụt ("…kiểu như công việc lao động."),
+  mảnh sau mở đầu lạc ("Có lẽ sẽ giảm bớt được.").
+
+**Cách làm:**
+
+- **Công tắc.** Chế độ Video & Họp có thêm ô "Dịch theo: Đoạn | Câu", mặc định là Đoạn. "Câu" giữ cách cũ. Chế độ 2
+  Chiều vẫn dịch từng câu.
+- **Server gom đoạn** ([`pipeline/paragraph.py`](../ai/src/rvt_ai/pipeline/paragraph.py)). Câu chốt liền nhau của cùng
+  một người nói, cùng ngôn ngữ, vào chung một đoạn. Mở đoạn mới khi:
+  - người nói nghỉ khoảng 1,5 giây trở lên (khoảng cách giữa audio hai câu quá 600 ms);
+  - đoạn đã dài quá 20 giây và câu trước đã hết câu (。！？.!?…);
+  - đoạn đã dài quá 40 giây, dù chưa hết câu;
+  - đổi ngôn ngữ, tắt mic, hoặc đổi chế độ.
+- **Dịch lại cả đoạn.** Mỗi lần đoạn có thêm câu, server dịch lại toàn bộ đoạn. Ngữ cảnh gửi kèm là đoạn trước và bản
+  dịch của nó.
+  - Lần dịch cũ còn đang chạy thì dừng ở chữ kế tiếp, không gửi gì thêm.
+  - Lần dịch lại bị lỗi thì gửi lại bản dịch tốt trước đó của đoạn, không hiện "[Lỗi dịch]".
+- **Web.** Mỗi đoạn là một thẻ:
+  - chữ gốc nối các câu (tiếng Nhật viết liền); chữ tạm của câu đang nói hiện ngay trong thẻ đó;
+  - bản dịch cũ giữ trên màn hình tới khi bản mới xong, kèm dòng "↻ đang dịch lại cả đoạn".
+- **Giao thức.** `session.start` và `sides.update` có `mt_unit`; `asr.partial` và `asr.final` có `paragraph_id`;
+  `mt.delta` và `mt.final` có `revision`, gửi với `utterance_id` là số đoạn. Thiếu các trường này thì mọi thứ chạy như
+  cũ, nên web cũ với server mới (và ngược lại) vẫn dùng được.
+
+**Đổi lại:**
+
+- **Chi phí.** Mỗi câu mới gửi lại cả đoạn. Đoạn dài nhất 40 giây, khoảng 240 ký tự tiếng Nhật. Chưa đo chi phí thật.
+- **Bản dịch đổi.** Bản dịch phần đầu đoạn có thể đổi khi đoạn dài thêm, vì có thêm ngữ cảnh.
+- **Stack cũ.** Với llama.cpp (Qwen chạy chung GPU), dịch lại cả đoạn tốn GPU hơn; thấy chậm thì chọn "Câu".
+- **Phim thoại nhanh.** Câu của nhiều nhân vật có thể vào chung một đoạn. Muốn mỗi câu một thẻ thì chọn "Câu".
+
+**Đã kiểm trong sandbox:**
+
+- **Server:**
+  - 11 test luật gom đoạn.
+  - 7 test phiên: dịch lại cả đoạn; nghỉ lâu thì mở đoạn mới và dùng đoạn trước làm ngữ cảnh; lần dịch cũ dừng; dịch
+    lỗi thì giữ bản cũ; chế độ "Câu" không đổi; đổi chế độ thì đóng đoạn.
+  - Chữ tạm và câu chốt mang đúng số đoạn khi chạy qua luồng audio của phiên (VAD giả).
+- **Web:**
+  - 6 test store: gom thẻ; giữ bản cũ khi đang dịch lại; bỏ chữ của lần dịch cũ đến muộn.
+  - 1 test trình duyệt (Chromium, khổ 390 px): một đoạn là một thẻ; chuyển sang "Câu" thì mỗi câu một thẻ.
+- **Bộ test cũ:** ai 176 test, web 31 test, build chạy được.
+
+**Chưa kiểm:** trên server thật với Azure: độ trễ khi dịch lại đoạn dài, chi phí, và ngưỡng nghỉ 1,5 giây có hợp nhịp
+nói trong cuộc họp thật không.
+
+**Áp dụng trên máy GPU:**
+
+```bash
+git pull origin main
+./start.sh --api-mt --build   # web phải build lại; server đọc code mới qua volume ai/src
+```
+
+Sau đó tải lại trang trên điện thoại.
+
 ## 14. Nguồn
 
 Dịch vụ online:

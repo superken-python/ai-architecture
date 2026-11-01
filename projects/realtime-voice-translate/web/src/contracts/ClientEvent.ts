@@ -14,6 +14,7 @@ export type Format = string;
 export type Lang = string;
 export type Targets = ("ja" | "en" | "vi")[] | null;
 export type ClientId = string | null;
+export type MtUnit = "segment" | "paragraph";
 export type Type1 = "turn.start";
 export type Side = "A" | "B";
 export type Source = ("mic" | "tab") | null;
@@ -23,6 +24,7 @@ export type UtteranceId = number;
 export type Lang1 = "ja" | "en" | "vi";
 export type Type4 = "sides.update";
 export type Targets1 = ("ja" | "en" | "vi")[] | null;
+export type MtUnit1 = ("segment" | "paragraph") | null;
 export type Type5 = "ping";
 export type T = number;
 export type Type6 = "client.health";
@@ -40,6 +42,7 @@ export interface SessionStart {
   sides?: Sides;
   targets?: Targets;
   client_id?: ClientId;
+  mt_unit?: MtUnit;
   [k: string]: unknown;
 }
 export interface AudioConfig {
@@ -74,6 +77,7 @@ export interface SidesUpdate {
   type?: Type4;
   sides: Sides1;
   targets?: Targets1;
+  mt_unit?: MtUnit1;
   [k: string]: unknown;
 }
 export interface Sides1 {

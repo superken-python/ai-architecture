@@ -4,6 +4,8 @@ import { cleanTranslationText } from '../utils/cleanText';
 
 export type Side = "A" | "B";
 export type SupportedLang = "auto" | "vi" | "en" | "ja";
+// Đơn vị dịch ở chế độ Video & Họp: gom câu thành đoạn rồi dịch cả đoạn, hoặc dịch từng câu (docs 10 §13.9)
+export type MtUnit = "paragraph" | "segment";
 
 export interface Utterance {
   id: number;
@@ -15,6 +17,12 @@ export interface Utterance {
   translations: Record<string, string>; // "en" -> "Hello", "ja" -> "..."
   isFinal: boolean;
   isSpeaking: boolean;
+  // Dịch theo đoạn: số đoạn chứa câu này. Bản dịch của đoạn nằm ở câu đầu đoạn (id = paragraphId)
+  paragraphId?: number;
+  // Lần dịch mới hơn đang đến; màn hình giữ bản đã xong (translations) tới khi lần mới xong
+  pendingTranslations?: Record<string, string>;
+  mtRevision?: Record<string, number>; // lần dịch mới nhất đã nhận chữ
+  doneRevision?: Record<string, number>; // lần dịch của bản đang hiện
 }
 
 interface AppState {
@@ -35,6 +43,7 @@ interface AppState {
   wakeLockHeld: boolean;
   audioSource: 'mic' | 'tab';
   meetingMode: boolean;
+  mtUnit: MtUnit;
 
   setConnected: (status: boolean) => void;
   setActiveSide: (side: Side | null) => void;
@@ -42,6 +51,7 @@ interface AppState {
   setSideConfig: (side: Side, lang: SupportedLang) => void;
   setAudioSource: (source: 'mic' | 'tab') => void;
   setMeetingMode: (active: boolean) => void;
+  setMtUnit: (unit: MtUnit) => void;
   setError: (msg: string | null) => void;
   setCaptureWarning: (msg: string | null) => void;
   setWakeLockHeld: (held: boolean) => void;
@@ -67,6 +77,7 @@ export const useStore = create<AppState>((set, get) => ({
   wakeLockHeld: true,
   audioSource: 'mic',
   meetingMode: false,
+  mtUnit: "paragraph",
 
   setConnected: (status) => set({ connected: status }),
   setActiveSide: (side) => set({ activeSide: side }),
@@ -75,6 +86,7 @@ export const useStore = create<AppState>((set, get) => ({
   setWakeLockHeld: (held) => set({ wakeLockHeld: held }),
   setAudioSource: (source) => set({ audioSource: source }),
   setMeetingMode: (active) => set({ meetingMode: active }),
+  setMtUnit: (unit) => set({ mtUnit: unit }),
   
   setSideConfig: (side, lang) => {
     set((state) => {
@@ -117,12 +129,14 @@ export const useStore = create<AppState>((set, get) => ({
               originalLang: (event.lang as string) || "",
               translations: {},
               isFinal: false,
-              isSpeaking: true
+              isSpeaking: true,
+              paragraphId: event.paragraph_id ?? undefined
             };
           } else {
             newUtterances[event.utterance_id] = {
               ...newUtterances[event.utterance_id],
-              originalText: event.text
+              originalText: event.text,
+              paragraphId: event.paragraph_id ?? undefined
             };
           }
           break;
@@ -147,7 +161,9 @@ export const useStore = create<AppState>((set, get) => ({
               langProbs: (event as any).lang_probs || {},
               uncertain: (event as any).uncertain || false,
               isFinal: true,
-              isSpeaking: false
+              isSpeaking: false,
+              // Bản gửi lại khi đổi ngôn ngữ không kèm số đoạn: giữ đoạn cũ
+              paragraphId: event.paragraph_id ?? existing.paragraphId
             };
 
             // Update detected language for this side if confidence is high
@@ -162,7 +178,22 @@ export const useStore = create<AppState>((set, get) => ({
           }
 
         case "mt.delta":
-          if (newUtterances[event.utterance_id]) {
+          if (newUtterances[event.utterance_id] && event.revision != null) {
+            // Dịch theo đoạn: chữ của lần dịch mới gom riêng, không chen vào bản đang hiện; lần cũ đến muộn thì bỏ
+            const u = newUtterances[event.utterance_id];
+            const tgt = event.target as string;
+            const seen = u.mtRevision?.[tgt] ?? 0;
+            if (event.revision < seen) break;
+            const before = event.revision > seen ? "" : (u.pendingTranslations?.[tgt] ?? "");
+            newUtterances[event.utterance_id] = {
+              ...u,
+              pendingTranslations: {
+                ...u.pendingTranslations,
+                [tgt]: cleanTranslationText(before + (event.delta as string), u.originalText || "", tgt)
+              },
+              mtRevision: { ...u.mtRevision, [tgt]: event.revision }
+            };
+          } else if (newUtterances[event.utterance_id]) {
             const current = newUtterances[event.utterance_id].translations[event.target as string] || "";
             const orig = newUtterances[event.utterance_id].originalText || "";
             const tgt = event.target as string;
@@ -178,7 +209,21 @@ export const useStore = create<AppState>((set, get) => ({
           break;
 
         case "mt.final":
-          if (newUtterances[event.utterance_id]) {
+          if (newUtterances[event.utterance_id] && event.revision != null) {
+            const u = newUtterances[event.utterance_id];
+            const tgt = event.target as string;
+            if (event.revision < (u.doneRevision?.[tgt] ?? 0)) break;
+            const seen = u.mtRevision?.[tgt] ?? 0;
+            const pending = { ...u.pendingTranslations };
+            if (event.revision >= seen) delete pending[tgt];
+            newUtterances[event.utterance_id] = {
+              ...u,
+              translations: { ...u.translations, [tgt]: cleanTranslationText(event.text as string, u.originalText || "", tgt) },
+              pendingTranslations: pending,
+              mtRevision: { ...u.mtRevision, [tgt]: Math.max(seen, event.revision) },
+              doneRevision: { ...u.doneRevision, [tgt]: event.revision }
+            };
+          } else if (newUtterances[event.utterance_id]) {
             const raw = event.text as string;
             const orig = newUtterances[event.utterance_id].originalText || "";
             const tgt = event.target as string;

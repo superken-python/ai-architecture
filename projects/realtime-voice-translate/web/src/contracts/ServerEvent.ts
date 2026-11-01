@@ -19,6 +19,7 @@ export type UtteranceId = number;
 export type Side1 = "A" | "B";
 export type Text = string;
 export type Lang = ("ja" | "en" | "vi") | null;
+export type ParagraphId = number | null;
 export type Type3 = "asr.final";
 export type UtteranceId1 = number;
 export type Side2 = "A" | "B";
@@ -26,14 +27,17 @@ export type Text1 = string;
 export type Lang1 = "ja" | "en" | "vi";
 export type Uncertain = boolean;
 export type AudioMs = number;
+export type ParagraphId1 = number | null;
 export type Type4 = "mt.delta";
 export type UtteranceId2 = number;
 export type Target = "ja" | "en" | "vi";
 export type Delta = string;
+export type Revision = number | null;
 export type Type5 = "mt.final";
 export type UtteranceId3 = number;
 export type Target1 = "ja" | "en" | "vi";
 export type Text2 = string;
+export type Revision1 = number | null;
 export type Type6 = "utterance.metrics";
 export type UtteranceId4 = number;
 export type AsrMs = number;
@@ -70,6 +74,7 @@ export interface AsrPartial {
   side: Side1;
   text: Text;
   lang?: Lang;
+  paragraph_id?: ParagraphId;
   [k: string]: unknown;
 }
 export interface AsrFinal {
@@ -81,6 +86,7 @@ export interface AsrFinal {
   lang_probs: LangProbs;
   uncertain: Uncertain;
   audio_ms: AudioMs;
+  paragraph_id?: ParagraphId1;
   [k: string]: unknown;
 }
 export interface LangProbs {
@@ -91,6 +97,7 @@ export interface MtDelta {
   utterance_id: UtteranceId2;
   target: Target;
   delta: Delta;
+  revision?: Revision;
   [k: string]: unknown;
 }
 export interface MtFinal {
@@ -98,6 +105,7 @@ export interface MtFinal {
   utterance_id: UtteranceId3;
   target: Target1;
   text: Text2;
+  revision?: Revision1;
   [k: string]: unknown;
 }
 export interface UtteranceMetrics {

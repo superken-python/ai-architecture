@@ -14,6 +14,7 @@ from rvt_ai.engines.ports import AsrEngine, MtEngine, MtHints, VadEngine
 from rvt_ai.packs.glossary import Glossary, fix_leftovers, get_glossary, get_phrasebook
 from rvt_ai.pipeline.lid_policy import correct_language, pick_language, update_side_prior
 from rvt_ai.pipeline.mt_validator import LATIN_REGEX, ValidationResult, mt_validator
+from rvt_ai.pipeline.paragraph import Paragraph, ParagraphTracker
 from rvt_ai.pipeline.scheduler import AsrScheduler
 from rvt_ai.pipeline.segmenter import Segmenter, SegmenterConfig, SegmentStats
 from rvt_ai.pipeline.vad_probe import VadProbe, VadProbeConfig, probe_text_ok
@@ -132,6 +133,12 @@ class RVTSession:
         self.glossary = glossary if glossary is not None else get_glossary()
         self.translations: OrderedDict[tuple[str, Lang], str] = OrderedDict()
         self.targets: list[Lang] | None = None
+        # Dịch theo đoạn (chế độ Video & Họp, docs 10 §13.9): đoạn đang mở của mỗi bên; lần dịch mới nhất đã gửi đi và
+        # bản dịch tốt gần nhất của mỗi (đoạn, ngôn ngữ đích), để dùng khi lần dịch lại bị lỗi
+        self.mt_unit: str = "segment"
+        self.paragraphs = ParagraphTracker()
+        self.paragraph_rev: OrderedDict[tuple[int, Lang], int] = OrderedDict()
+        self.paragraph_good: OrderedDict[tuple[int, Lang], str] = OrderedDict()
 
         self.segmenter = Segmenter(segmenter_config or SegmenterConfig())
         # Dò vùng audio to mà VAD bỏ sót, chỉ khi lượt hiện tại thu âm tab (docs 09 §4.1)
@@ -190,6 +197,7 @@ class RVTSession:
             self.sides_config["A"] = event.sides["A"].lang
             self.sides_config["B"] = event.sides["B"].lang
         self.targets = event.targets
+        self._set_mt_unit(event.mt_unit)
         return True
 
     async def handle_sides_update(self, event: SidesUpdate) -> None:
@@ -197,13 +205,24 @@ class RVTSession:
         for side, cfg in event.sides.items():
             self.sides_config[side] = cfg.lang
         self.targets = event.targets
-        logger.info(f"[{self.session_id}] Sides updated: {self.sides_config}, targets: {self.targets}")
+        if event.mt_unit is not None:
+            self._set_mt_unit(event.mt_unit)
+        logger.info(
+            f"[{self.session_id}] Sides updated: {self.sides_config}, targets: {self.targets}, mt_unit: {self.mt_unit}"
+        )
+
+    def _set_mt_unit(self, unit: str) -> None:
+        if unit != self.mt_unit:
+            self.paragraphs.close()
+        self.mt_unit = unit
 
     async def handle_turn_start(self, side: Side, source: str | None = None) -> None:
         self.last_activity_time = time.time()
         logger.info(f"[{self.session_id}] 🎙️ Turn START on Side {side} (source={source or 'unknown'})")
         if self.current_side != side:
             await self._flush_segmenter()
+        # Lượt mới: câu đầu mở đoạn mới (thời gian audio không tính lúc tắt mic, nên không đo được khoảng nghỉ)
+        self.paragraphs.close()
         self.current_side = side
         self.capture_source = source
         self.probe.reset()
@@ -213,6 +232,7 @@ class RVTSession:
         self.last_activity_time = time.time()
         logger.info(f"[{self.session_id}] ⏹️ Turn STOP on Side {self.current_side}")
         await self._flush_segmenter()
+        self.paragraphs.close()
         self.probe.reset()
         self.current_side = None
 
@@ -260,7 +280,8 @@ class RVTSession:
             # nếu không, "ご視聴…" vẫn nháy lên và có thể quay lại qua nhánh "cứu chữ từ chữ tạm" (docs 08 §3.3)
             probs = self.segmenter.frame_probs
             vad_mean = sum(probs) / len(probs) if probs else None
-            asyncio.create_task(self._process_partial_audio(buffer, side, uid, vad_mean))
+            start_ms = self.segmenter.current_time_ms - len(buffer) * 1000 // 32000
+            asyncio.create_task(self._process_partial_audio(buffer, side, uid, vad_mean, start_ms))
 
     async def handle_override_lang(self, utterance_id: int, new_lang: Lang) -> None:
         self.last_activity_time = time.time()
@@ -327,7 +348,9 @@ class RVTSession:
                 logger.info(f"[{self.session_id}] ⏱️ Flush on turn stop: processing final audio ({duration_ms}ms)")
                 await self._process_final_audio(buf, self.current_side, self.segmenter.last_stats, self._audio_end_ms())
 
-    async def _process_partial_audio(self, audio: bytes, side: Side, uid: int, vad_mean: float | None = None) -> None:
+    async def _process_partial_audio(
+        self, audio: bytes, side: Side, uid: int, vad_mean: float | None = None, start_ms: int | None = None
+    ) -> None:
         try:
             force_lang = self.sides_config[side] if self.sides_config[side] != "auto" else None
             text, lang, _ = await self.scheduler.execute_transcribe(
@@ -354,51 +377,57 @@ class RVTSession:
                             f"[{self.session_id}] ⚡ Early-commit stable sentence: "
                             f"'{stable_sentence}' (uid={commit_uid})"
                         )
-                        self.recent_context.append(stable_sentence)
                         self.committed_sentences.append(stable_sentence)
                         self.committed_offset = stable_end
 
-                        # Emit asr.final for the early committed sentence
+                        # asr.final và lượt dịch của câu chốt sớm, như mọi câu chốt. Câu này nói liền phần trước của
+                        # đoạn (start_ms None), nên ở chế độ dịch theo đoạn nó vào đoạn đang mở
                         approx_ms = int((len(audio) * 1000 // 32000) * (stable_end / max(1, len(text))))
-                        await self.send_event(
-                            AsrFinal(
-                                utterance_id=commit_uid,
-                                side=side,
-                                text=stable_sentence,
-                                lang=lang,
-                                lang_probs={lang: 1.0},
-                                uncertain=False,
-                                audio_ms=approx_ms,
-                            )
+                        await self._emit_final_and_mt(
+                            commit_uid,
+                            side,
+                            stable_sentence,
+                            lang,
+                            {lang: 1.0},
+                            False,
+                            approx_ms,
+                            end_ms=self.segmenter.current_time_ms,
                         )
-
-                        # Trigger MT immediately for the early committed sentence
-                        if self.targets:
-                            mt_targets = [tgt for tgt in self.targets if tgt != lang]
-                        else:
-                            mt_targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != lang]
-                        for tgt in mt_targets:
-                            task = asyncio.create_task(self._run_mt(commit_uid, stable_sentence, lang, tgt))
-                            self.active_tasks.append(task)
 
             self.prev_partial_text = text
 
             # Partials remaining for user view (the uncommitted portion)
             remaining_partial = text[self.committed_offset :].strip() if self.committed_offset < len(text) else ""
             active_partial_uid = self.utterance_id_counter
+            # Dịch theo đoạn: thẻ chữ tạm hiện ngay trong đoạn nó sẽ vào. Đã có câu chốt sớm thì đoạn đã nhận câu này
+            paragraph_id = (
+                self.paragraphs.peek(side, lang, None if self.committed_sentences else start_ms)
+                if self.mt_unit == "paragraph"
+                else None
+            )
 
             if remaining_partial:
                 self.last_partial_uid = active_partial_uid
                 self.last_partial_text = remaining_partial
                 self.last_partial_lang = lang
                 await self.send_event(
-                    AsrPartial(utterance_id=active_partial_uid, side=side, text=remaining_partial, lang=lang)
+                    AsrPartial(
+                        utterance_id=active_partial_uid,
+                        side=side,
+                        text=remaining_partial,
+                        lang=lang,
+                        paragraph_id=paragraph_id,
+                    )
                 )
             elif not self.committed_sentences:
                 self.last_partial_uid = active_partial_uid
                 self.last_partial_text = text
                 self.last_partial_lang = lang
-                await self.send_event(AsrPartial(utterance_id=active_partial_uid, side=side, text=text, lang=lang))
+                await self.send_event(
+                    AsrPartial(
+                        utterance_id=active_partial_uid, side=side, text=text, lang=lang, paragraph_id=paragraph_id
+                    )
+                )
         except Exception as e:
             logger.debug(f"Partial ASR error: {e}")
 
@@ -550,7 +579,17 @@ class RVTSession:
             f"{_audio_summary(audio, stats)}]"
         )
         audio_ms = len(audio) * 1000 // 32000
-        await self._emit_final_and_mt(uid, side, text, final_lang, asr_probs, uncertain, audio_ms)
+        await self._emit_final_and_mt(
+            uid,
+            side,
+            text,
+            final_lang,
+            asr_probs,
+            uncertain,
+            audio_ms,
+            start_ms=None if committed_to_clean else start_ms,
+            end_ms=end_ms,
+        )
 
     async def _process_probe_audio(self, audio: bytes, side: Side, uid: int, end_ms: int) -> None:
         """Nhận dạng một vùng audio to mà VAD bỏ sót (docs 09 §4.1): không prompt, coi VAD bằng 0 để bộ lọc câu bịa
@@ -579,7 +618,9 @@ class RVTSession:
         self.recent_audio[uid] = audio
         if len(self.recent_audio) > self.max_cached_utterances:
             self.recent_audio.popitem(last=False)
-        await self._emit_final_and_mt(uid, side, text, lang, asr_probs, False, audio_ms)
+        await self._emit_final_and_mt(
+            uid, side, text, lang, asr_probs, False, audio_ms, start_ms=end_ms - audio_ms, end_ms=end_ms
+        )
 
     async def _emit_final_and_mt(
         self,
@@ -590,8 +631,16 @@ class RVTSession:
         asr_probs: dict[Lang, float],
         uncertain: bool,
         audio_ms: int,
+        start_ms: int | None = None,
+        end_ms: int | None = None,
     ) -> None:
+        """Gửi câu chốt và đưa đi dịch. `start_ms`, `end_ms`: audio của câu theo thời gian audio; start_ms None là câu
+        nói liền phần trước (câu chốt sớm), dùng để gom đoạn khi dịch theo đoạn."""
         self.recent_context.append(text)
+        para = None
+        if self.mt_unit == "paragraph":
+            end = self.segmenter.current_time_ms if end_ms is None else end_ms
+            para = self.paragraphs.add(uid, side, lang, text, start_ms, end)
         await self.send_event(
             AsrFinal(
                 utterance_id=uid,
@@ -601,6 +650,7 @@ class RVTSession:
                 lang_probs=asr_probs,
                 uncertain=uncertain,
                 audio_ms=audio_ms,
+                paragraph_id=para.pid if para else None,
             )
         )
 
@@ -615,13 +665,54 @@ class RVTSession:
         else:
             targets = [tgt for tgt in ["ja", "en", "vi"] if tgt != lang]
         for tgt in targets:
-            task = asyncio.create_task(self._run_mt(uid, text, lang, tgt))
-            self.active_tasks.append(task)
+            if para is not None:
+                self._schedule_paragraph_mt(para, tgt)
+            else:
+                task = asyncio.create_task(self._run_mt(uid, text, lang, tgt))
+                self.active_tasks.append(task)
 
-    def _mt_hints(self, text: str, source: Lang, target: Lang) -> MtHints:
+    def _schedule_paragraph_mt(self, para: Paragraph, target: Lang) -> None:
+        """Dịch lại cả đoạn sau khi có thêm câu. Lần dịch cũ của đoạn còn đang chạy thì dừng ở chữ kế tiếp, không gửi
+        thêm gì; web giữ bản dịch cũ trên màn hình tới khi lần mới xong (docs 10 §13.9)."""
+        key = (para.pid, target)
+        revision, source, lang = para.revision, para.source, para.lang
+        # Ngữ cảnh là đoạn ngay trước (kèm bản dịch), không phải các câu của chính đoạn này: chúng đã nằm trong đoạn
+        context = list(self.paragraphs.history)[-1:]
+        self.paragraph_rev[key] = revision
+        self.paragraph_rev.move_to_end(key)
+        while len(self.paragraph_rev) > 100:
+            self.paragraph_rev.popitem(last=False)
+
+        def stale() -> bool:
+            return self.paragraph_rev.get(key) != revision
+
+        async def run() -> None:
+            translated = await self._run_mt(
+                para.pid,
+                source,
+                lang,
+                target,
+                revision=revision,
+                context=context,
+                fallback=self.paragraph_good.get(key),
+                is_stale=stale,
+            )
+            if translated and not stale():
+                self.paragraph_good[key] = translated
+                self.paragraph_good.move_to_end(key)
+                while len(self.paragraph_good) > 100:
+                    self.paragraph_good.popitem(last=False)
+
+        task = asyncio.create_task(run())
+        self.active_tasks.append(task)
+
+    def _mt_hints(self, text: str, source: Lang, target: Lang, context: list[str] | None = None) -> MtHints:
         """Ngữ cảnh cho một lượt dịch: 2 câu ngay trước kèm bản dịch đã chốt (nếu có), glossary có trong câu, quy ước
-        xưng hô của ngôn ngữ đích (docs 09 §5.2, §5.3)."""
-        prev = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()][-2:]
+        xưng hô của ngôn ngữ đích (docs 09 §5.2, §5.3). Dịch theo đoạn thì ngữ cảnh là `context` (đoạn trước)."""
+        if context is not None:
+            prev = [s for s in context if s.strip() and s.strip() != text.strip()]
+        else:
+            prev = [s for s in list(self.recent_context)[:-1] if s.strip() and s.strip() != text.strip()][-2:]
         return MtHints(
             history=[(s, self.translations.get((s, target))) for s in prev],
             glossary=self.glossary.match(text, source, target),
@@ -651,32 +742,57 @@ class RVTSession:
                 error_reason=None if first_line else "Empty translation",
             )
 
-    async def _run_mt(self, uid: int, text: str, source: Lang, target: Lang) -> None:
+    async def _run_mt(
+        self,
+        uid: int,
+        text: str,
+        source: Lang,
+        target: Lang,
+        revision: int | None = None,
+        context: list[str] | None = None,
+        fallback: str | None = None,
+        is_stale: Callable[[], bool] | None = None,
+    ) -> str | None:
+        """Dịch một câu, hoặc một đoạn khi dịch theo đoạn, rồi gửi mt.delta, mt.final.
+
+        Trả về bản dịch đã chốt; None nếu lỗi, hoặc nếu `is_stale()` báo đã có lần dịch mới hơn của cùng đoạn (khi đó
+        dừng và không gửi gì thêm). `fallback`: bản dịch tốt trước đó của đoạn, gửi thay cho dòng báo lỗi.
+        """
+
+        def stale() -> bool:
+            return is_stale is not None and is_stale()
+
         # Sanitize text: collapse excessive repeated characters (e.g. scream loop うおおおお... 500 times)
         text = re.sub(r"(.)\1{7,}", r"\1\1\1\1\1", text).strip()
         text = re.sub(r"(.{2,6}?)\1{5,}", r"\1\1\1", text).strip()
         if not text:
-            return
+            return None
 
         # Câu cảm thán ngắn ("うん", "え?"): bảng tra, không gọi model (docs 09 §5.5)
         phrase = get_phrasebook(source).lookup(text, target)
         if phrase:
             self._remember_translation(text, target, phrase)
-            await self.send_event(MtFinal(utterance_id=uid, target=target, text=phrase))
-            return
+            if stale():
+                return None
+            await self.send_event(MtFinal(utterance_id=uid, target=target, text=phrase, revision=revision))
+            return phrase
 
         # Check exact cache first
         cached = mt_validator.get_cached(source, target, text)
         if cached:
             self._remember_translation(text, target, cached)
-            await self.send_event(MtFinal(utterance_id=uid, target=target, text=cached))
-            return
+            if stale():
+                return None
+            await self.send_event(MtFinal(utterance_id=uid, target=target, text=cached, revision=revision))
+            return cached
 
         full_text = ""
         should_stream = True
-        hints = self._mt_hints(text, source, target)
+        hints = self._mt_hints(text, source, target, context)
         try:
             async for delta in self.mt.translate_stream(text, source, target, hints=hints):
+                if stale():
+                    return None
                 full_text += delta
                 lower_full = full_text.lower()
                 # Không ngắt ở "—" hay "**": cleanText.ts đã dọn hai ký hiệu này trên từng mt.delta (docs 08 §3.5)
@@ -735,7 +851,7 @@ class RVTSession:
                 if target == "ja" and re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF].*[a-zA-Z]{3,}", full_text):
                     should_stream = False
                 if should_stream:
-                    await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta))
+                    await self.send_event(MtDelta(utterance_id=uid, target=target, delta=delta, revision=revision))
 
             # Validate output. Tên, thuật ngữ còn để chữ Nhật được thay trước khi kiểm, thay vì loại cả câu (docs 09 §9)
             v_res = self._validate_mt(text, source, target, self._fix_leftovers(full_text, source, target))
@@ -759,25 +875,33 @@ class RVTSession:
                 except Exception as e_retry:
                     logger.warning(f"MT retry failed: {e_retry}")
 
+            if stale():
+                return None
             if not v_res.is_valid:
                 logger.warning(f"MT output validation failed permanently: {v_res.error_reason}")
-                fallback_text = (
+                fallback_text = fallback or (
                     v_res.cleaned_text
                     if (target in ("vi", "en") and LATIN_REGEX.search(v_res.cleaned_text))
                     else f"[Chưa dịch được {target}]"
                 )
-                await self.send_event(MtFinal(utterance_id=uid, target=target, text=fallback_text))
-            else:
-                logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
-                mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
-                self._remember_translation(text, target, v_res.cleaned_text)
-                await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text))
+                await self.send_event(MtFinal(utterance_id=uid, target=target, text=fallback_text, revision=revision))
+                return None
+            logger.info(f"[{self.session_id}] 🌐 MT Final ({source}->{target}): '{v_res.cleaned_text}'")
+            mt_validator.cache_translation(source, target, text, v_res.cleaned_text)
+            self._remember_translation(text, target, v_res.cleaned_text)
+            await self.send_event(MtFinal(utterance_id=uid, target=target, text=v_res.cleaned_text, revision=revision))
+            return v_res.cleaned_text
         except Exception as e:
             logger.error(f"MT failed for {target}: {e}")
+            if stale():
+                return None
             await self.send_event(
                 ErrorEvent(code="mt_failed", message=f"MT failed for {target}: {e}", utterance_id=uid, retryable=True)
             )
-            await self.send_event(MtFinal(utterance_id=uid, target=target, text=f"[Lỗi dịch {target}]"))
+            await self.send_event(
+                MtFinal(utterance_id=uid, target=target, text=fallback or f"[Lỗi dịch {target}]", revision=revision)
+            )
+            return None
 
     async def close(self) -> None:
         logger.info(f"Closing session {self.session_id}...")

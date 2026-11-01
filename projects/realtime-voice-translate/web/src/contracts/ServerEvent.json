@@ -54,6 +54,18 @@
         "audio_ms": {
           "title": "Audio Ms",
           "type": "integer"
+        },
+        "paragraph_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Paragraph Id"
         }
       },
       "required": [
@@ -108,6 +120,18 @@
           ],
           "default": null,
           "title": "Lang"
+        },
+        "paragraph_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Paragraph Id"
         }
       },
       "required": [
@@ -183,6 +207,18 @@
         "delta": {
           "title": "Delta",
           "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
         }
       },
       "required": [
@@ -217,6 +253,18 @@
         "text": {
           "title": "Text",
           "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
         }
       },
       "required": [

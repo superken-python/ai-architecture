@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStore, Side, SupportedLang, Utterance } from './state/useStore';
+import { useStore, Side, SupportedLang, Utterance, MtUnit } from './state/useStore';
+import { paragraphCards } from './state/paragraphs';
 import { rvtClient } from './net/ws_client';
 import { setupWakeLockAutoRefresh } from './audio/wake-lock';
 
@@ -19,9 +20,11 @@ interface MeetingUtteranceCardProps {
   primaryLang: string;
   fontSize: number;
   listenOnly: boolean;
+  // Dịch theo đoạn: đang dịch lại cả đoạn sau khi có thêm câu (bản dịch cũ vẫn hiện)
+  retranslating?: boolean;
 }
 
-const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetLang, primaryLang, fontSize, listenOnly }) => {
+const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetLang, primaryLang, fontSize, listenOnly, retranslating }) => {
   const rawTrans = u.translations[targetLang];
   // Chỉ nghe: không có bản dịch, dòng chính là chữ gốc (docs 10 §10.3)
   const trans = listenOnly
@@ -49,6 +52,7 @@ const MeetingUtteranceCard = React.memo<MeetingUtteranceCardProps>(({ u, targetL
           {spokenLang.toUpperCase()}{conf}
         </span>
         {!u.isFinal && <span style={{ color: '#f59e0b', fontStyle: 'italic' }}>● đang xử lý...</span>}
+        {u.isFinal && retranslating && !listenOnly && <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>↻ đang dịch lại cả đoạn</span>}
       </div>
 
       {!listenOnly && (
@@ -81,6 +85,8 @@ const App: React.FC = () => {
     meetingMode,
     setAudioSource,
     setMeetingMode,
+    mtUnit,
+    setMtUnit,
     setSideConfig,
     clearError,
     clearHistory,
@@ -98,8 +104,15 @@ const App: React.FC = () => {
         A: { lang: sideALang },
         B: { lang: sideBLang }
       },
-      targets
+      targets,
+      mt_unit: mode ? mtUnit : 'segment'
     });
+  };
+
+  // Video & Họp: dịch theo đoạn (gom câu tới khi người nói nghỉ) hoặc từng câu (docs 10 §13.9)
+  const handleMtUnitChange = (unit: MtUnit) => {
+    setMtUnit(unit);
+    rvtClient.updateSides(sideALang, sideBLang);
   };
 
   const [fontSizeA, setFontSizeA] = useState<number>(13);
@@ -134,6 +147,7 @@ const App: React.FC = () => {
   }, []);
 
   const utteranceList = Object.values(utterances);
+  const meetingTarget = sideBLang === "auto" ? "vi" : sideBLang;
 
   // Auto-scroll to latest message in all panels
   useEffect(() => {
@@ -454,7 +468,7 @@ const App: React.FC = () => {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '10px 14px' }}>
           {/* Controls Bar for Meeting Mode */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '11px', color: '#94a3b8' }}>Nói:</span>
               <select
                 value={sideALang}
@@ -476,6 +490,16 @@ const App: React.FC = () => {
                 <option value="vi">🇻🇳 Tiếng Việt</option>
                 <option value="en">🇬🇧 English</option>
                 <option value="ja">🇯🇵 日本語</option>
+              </select>
+
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Dịch theo:</span>
+              <select
+                value={mtUnit}
+                onChange={(e) => handleMtUnitChange(e.target.value as MtUnit)}
+                style={{ backgroundColor: '#1E1E1E', color: '#fff', border: '1px solid #444', borderRadius: '6px', padding: '3px 6px', fontSize: '12px' }}
+              >
+                <option value="paragraph">Đoạn</option>
+                <option value="segment">Câu</option>
               </select>
             </div>
 
@@ -508,20 +532,20 @@ const App: React.FC = () => {
                 <span style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>Hệ thống sẽ tự động ngắt câu linh hoạt và dịch phụ đề liên tục theo thời gian thực.</span>
               </div>
             ) : (
-              utteranceList.slice(-150).map((u) => {
-                const targetLang = sideBLang === "auto" ? "vi" : sideBLang;
-                const primaryLang = u.side === "A" ? primaryLangA : primaryLangB;
-                return (
-                  <MeetingUtteranceCard
-                    key={u.id}
-                    u={u}
-                    targetLang={targetLang}
-                    primaryLang={primaryLang}
-                    fontSize={fontSizeA}
-                    listenOnly={listenOnly}
-                  />
-                );
-              })
+              (mtUnit === "paragraph"
+                ? paragraphCards(utteranceList, meetingTarget)
+                : utteranceList.map((u) => ({ card: u, retranslating: false }))
+              ).slice(-150).map(({ card, retranslating }) => (
+                <MeetingUtteranceCard
+                  key={card.id}
+                  u={card}
+                  targetLang={meetingTarget}
+                  primaryLang={card.side === "A" ? primaryLangA : primaryLangB}
+                  fontSize={fontSizeA}
+                  listenOnly={listenOnly}
+                  retranslating={retranslating}
+                />
+              ))
             )}
           </div>
 
