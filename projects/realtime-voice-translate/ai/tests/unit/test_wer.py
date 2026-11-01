@@ -24,6 +24,11 @@ def test_wer_counts_substitution_insertion_deletion():
     assert wer_mod.cer("tôi đi học", "tôi đi hoc") == pytest.approx(1 / 8)
 
 
+def test_word_errors_counts_per_sentence_for_pooling():
+    assert wer_mod.word_errors("Đây là chữ a, như trong cái áo.", "đây là chữ á như trong cái áo") == (1, 8)
+    assert wer_mod.word_errors("", "thêm") == (1, 0)
+
+
 def test_score_text_skips_lines():
     ref = ["xin chào", "[nhạc mở đầu]", "hôm nay trời đẹp"]
     result = wer_mod.score_text(ref, [(2, 2)], "Xin chào. Hôm nay trời đẹp!")

@@ -83,8 +83,11 @@ Thêm `--quantization int8_float16` để lưu nhỏ hơn, `--force` để chuy�
 ```python
 files = list_repo_files("vinai/PhoWhisper-large")
 weights = "*.safetensors" if any(f.endswith(".safetensors") for f in files) else "*.bin"
-snapshot_download("vinai/PhoWhisper-large", local_dir="models/phowhisper-large-ct2.download",
-                  allow_patterns=["*.json", "*.txt", weights])
+snapshot_download(
+    "vinai/PhoWhisper-large",
+    local_dir="models/phowhisper-large-ct2.download",
+    allow_patterns=["*.json", "*.txt", weights],
+)
 ```
 
 | File | Để làm gì |
@@ -223,7 +226,7 @@ print(" ".join(s.text for s in segments))
 Rà ngày 2026-10-28 các dự án g1–g9, `labs/` và `docs/`:
 
 - **Chưa có bài hướng dẫn từng bước nào** về tải, chuyển định dạng hay lượng tử model. Bài này là bài đầu tiên.
-- **Kỹ năng liên quan mới có thẻ trong danh mục, chưa có lab:**
+- **Kỹ năng liên quan có thẻ trong danh mục; OPS-05 nay có lab (cuối mục này):**
   - [OPS-05 Tối ưu suy luận và serving model](../../../docs/02-skill-map/generated/mang/ops.md#ops-05): mức trung cấp
     là quantization int8, ONNX Runtime/TensorRT. Cốt lõi cho Nhóm 5 Ảnh/tài liệu; cần cho Nhóm 3, 4, 6.
   - LLM-07 Fine-tune, distill và tự host LLM: mức nâng cao có quantization AWQ/GPTQ. Cần cho Nhóm 5, 6.
@@ -232,8 +235,9 @@ Rà ngày 2026-10-28 các dự án g1–g9, `labs/` và `docs/`:
   - docs 09: đổi Qwen sang Q5_K_M;
   - docs 10 §13: float16, PhoWhisper.
 - **g9 (video chữ cái)** dùng model nhận dạng int8 dựng sẵn (sherpa-onnx zipformer-vi), không tự chuyển.
-- **Nếu muốn thành lab:** tách bài này thành `labs/ops-05-trung-cap-...`. Trên một model nhỏ, đo kích thước, tốc độ và
-  CER theo float32, float16, int8.
+- **Lab đi kèm (thêm 2026-10-30):** [OPS-05 · Lượng tử model Whisper](../../../labs/ops-05-trung-cap-luong-tu-whisper/README.md).
+  Lab chuyển PhoWhisper-tiny ở float32, float16, int8, rồi đo kích thước, tốc độ, WER trên 31 câu của video chữ
+  cái g9, và chọn kiểu chạy theo khoảng tin cậy.
 
 ## Nguồn
 

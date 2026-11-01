@@ -197,6 +197,14 @@ sections:
         desc: Phân tích độ nhạy (tornado), điểm hoà vốn của chương trình, khung demo 3 phút.
         kind: lab
         step: A8
+      - key: lab_ops05
+        title: Lab OPS-05 · Lượng tử model Whisper
+        path: labs/ops-05-trung-cap-luong-tu-whisper/README.md
+        desc: Chuyển PhoWhisper-tiny sang CTranslate2 ở float32, float16, int8; đo kích thước, tốc độ, WER; chọn kiểu chạy theo khoảng tin cậy.
+        tag: Lab
+        kind: lab
+        groups: [G5, G6]
+        skills: [{id: OPS-05, level: intermediate}, {id: STAT-02, level: basic}]
 
   - id: agent
     title: AI Agent (Nhóm 7)

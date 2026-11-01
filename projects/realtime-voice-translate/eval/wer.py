@@ -34,9 +34,15 @@ def _edits(ref: list[str], hyp: list[str]) -> int:
     return prev[-1]
 
 
-def wer(ref: str, hyp: str) -> float:
+def word_errors(ref: str, hyp: str) -> tuple[int, int]:
+    """Số lỗi theo từ (thay, xoá, chèn) và số từ của câu tham chiếu: cộng dồn được nhiều câu, hoặc lấy mẫu lại."""
     ref_words, hyp_words = normalize(ref).split(), normalize(hyp).split()
-    return _edits(ref_words, hyp_words) / max(1, len(ref_words))
+    return _edits(ref_words, hyp_words), len(ref_words)
+
+
+def wer(ref: str, hyp: str) -> float:
+    errors, ref_len = word_errors(ref, hyp)
+    return errors / max(1, ref_len)
 
 
 def cer(ref: str, hyp: str) -> float:
