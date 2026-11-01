@@ -3,7 +3,7 @@
 
 # Radar framework agent · bảng so sánh
 
-Dữ liệu duyệt: **2026-10-14** · số liệu registry: **2026-10-14** · 19 framework + 18 công cụ hỗ trợ. Cách đọc và quy trình cập nhật: [README](../README.md).
+Dữ liệu duyệt: **2026-10-14** · số liệu registry: **2026-11-01** · 19 framework + 18 công cụ hỗ trợ. Cách đọc và quy trình cập nhật: [README](../README.md).
 
 ## 1. Radar
 
@@ -48,25 +48,25 @@ Major/12 tháng = số lần lên major trong 12 tháng trước ngày snapshot 
 
 | Framework | Gói | Phiên bản | Phát hành | Major/12 tháng | Giấy phép (registry) | Sao GitHub | Cờ |
 |---|---|---|---|---|---|---|---|
-| Agno + AgentOS | `agno` | `3.1.3` | 2026-10-12 | 1 | Apache Software License | — | — |
-| LangGraph | `langgraph` | `1.2.15` | 2026-10-12 | 1 | MIT | — | — |
-| Pydantic AI | `pydantic-ai-slim` | `2.56.0` | 2026-10-13 | 1 | MIT | — | — |
-| Microsoft Agent Framework | `agent-framework` | `1.21.0` | 2026-10-08 | 0 | MIT License | — | — |
-| Google Agent Development Kit (ADK) | `google-adk` | `2.12.0` | 2026-10-13 | 1 | Apache Software License | — | — |
-| OpenAI Agents SDK | `openai-agents` | `0.23.1` | 2026-10-02 | 0 (0.x) | MIT | — | — |
-| Claude Agent SDK | `claude-agent-sdk` | `0.2.166` | 2026-10-14 | 0 (0.x) | MIT License | — | — |
-| Strands Agents (AWS) | `strands-agents` | `1.60.0` | 2026-10-12 | 0 | Apache Software License | — | — |
-| CrewAI | `crewai` | `1.15.28` | 2026-10-14 | 1 | không khai báo | — | — |
-| LlamaIndex (Agents / Workflows) | `llama-index-core` | `0.14.25` | 2026-09-21 | 0 (0.x) | MIT | — | — |
-| Haystack (deepset) | `haystack-ai` | `3.3.0` | 2026-10-01 | 1 | Apache-2.0 | — | — |
-| DSPy | `dspy` | `3.4.1` | 2026-10-12 | 0 | MIT License | — | — |
-| Mastra | `@mastra/core` | `1.77.0` | 2026-10-14 | 1 | Apache-2.0 | — | — |
-| Vercel AI SDK | `ai` | `7.0.140` | 2026-10-14 | 2 | Apache-2.0 | — | — |
-| AG2 (nhánh cộng đồng của AutoGen 0.2) | `ag2` | `1.1.2` | 2026-10-03 | 1 | Apache-2.0 | — | — |
-| AutoGen (Microsoft) / Semantic Kernel | `autogen-agentchat` | `0.7.5` | 2025-09-30 | 0 (0.x) | MIT License | — | ⚠ autogen-agentchat không phát hành 379 ngày |
-| smolagents (Hugging Face) | `smolagents` | `1.26.0` | 2026-05-29 | 0 | không khai báo | — | — |
-| Hermes Agent (Nous Research) | `hermes-agent` | `0.19.0` | 2026-07-20 | 0 (0.x) | MIT | — | — |
-| Google Antigravity SDK | `google-antigravity` | `0.1.22` | 2026-10-13 | 0 (0.x) | Apache Software License | — | — |
+| Agno + AgentOS | `agno` | `3.1.12` | 2026-10-29 | 1 | Apache Software License | 43.0k | — |
+| LangGraph | `langgraph` | `1.2.19` | 2026-10-30 | 0 | MIT | 44.3k | — |
+| Pydantic AI | `pydantic-ai-slim` | `2.64.0` | 2026-10-31 | 1 | MIT | 21.0k | — |
+| Microsoft Agent Framework | `agent-framework` | `1.24.0` | 2026-10-30 | 0 | MIT License | 14.5k | — |
+| Google Agent Development Kit (ADK) | `google-adk` | `2.13.0` | 2026-10-23 | 1 | Apache Software License | 22.1k | — |
+| OpenAI Agents SDK | `openai-agents` | `0.24.0` | 2026-10-15 | 0 (0.x) | MIT | 30.4k | — |
+| Claude Agent SDK | `claude-agent-sdk` | `0.2.176` | 2026-10-31 | 0 (0.x) | MIT License | 8.4k | — |
+| Strands Agents (AWS) | `strands-agents` | `1.63.0` | 2026-10-30 | 0 | Apache Software License | 9.0k | — |
+| CrewAI | `crewai` | `1.15.33` | 2026-10-28 | 0 | không khai báo | 60.4k | — |
+| LlamaIndex (Agents / Workflows) | `llama-index-core` | `0.14.25` | 2026-09-21 | 0 (0.x) | MIT | 52.8k | — |
+| Haystack (deepset) | `haystack-ai` | `3.4.1` | 2026-10-21 | 1 | Apache-2.0 | 26.9k | — |
+| DSPy | `dspy` | `3.4.1` | 2026-10-12 | 0 | MIT License | 38.9k | — |
+| Mastra | `@mastra/core` | `1.81.0` | 2026-10-30 | 1 | Apache-2.0 | 29.2k | — |
+| Vercel AI SDK | `ai` | `7.0.159` | 2026-10-30 | 2 | Apache-2.0 | 27.7k | — |
+| AG2 (nhánh cộng đồng của AutoGen 0.2) | `ag2` | `1.2.2` | 2026-10-27 | 1 | Apache-2.0 | 5.0k | — |
+| AutoGen (Microsoft) / Semantic Kernel | `autogen-agentchat` | `0.7.5` | 2025-09-30 | 0 (0.x) | MIT License | 61.7k | ⚠ autogen-agentchat không phát hành 397 ngày |
+| smolagents (Hugging Face) | `smolagents` | `1.26.0` | 2026-05-29 | 0 | không khai báo | 30.2k | — |
+| Hermes Agent (Nous Research) | `hermes-agent` | `0.19.0` | 2026-07-20 | 0 (0.x) | MIT | 259.3k | — |
+| Google Antigravity SDK | `google-antigravity` | `0.1.23` | 2026-10-28 | 0 (0.x) | Apache Software License | 3.9k | — |
 
 ## 4. Từng framework
 
@@ -286,20 +286,20 @@ Major/12 tháng = số lần lên major trong 12 tháng trước ngày snapshot 
 | Công cụ | Lớp | Vòng | Gói | Phiên bản | Phát hành | Giấy phép (registry) | Ghi chú |
 |---|---|---|---|---|---|---|---|
 | MCP (Model Context Protocol) SDK | protocol | Adopt | `mcp` | `2.3.0` | 2026-10-02 | MIT License | Chuẩn nối tool/dữ liệu vào agent; bản Python 2.x (2026) |
-| A2A (Agent2Agent) SDK | protocol | Trial | `a2a-sdk` | `1.2.2` | 2026-10-05 | Apache-2.0 | Agent gọi agent qua mạng; 1.x từ 2026 |
+| A2A (Agent2Agent) SDK | protocol | Trial | `a2a-sdk` | `1.3.0` | 2026-10-27 | Apache-2.0 | Agent gọi agent qua mạng; 1.x từ 2026 |
 | AG-UI protocol | protocol | Adopt | `ag-ui-protocol` | `1.0.0` | 2026-09-17 | MIT | Agent ↔ giao diện, frontend tools; 1.0 (09/2026); dùng ở CMB-10 |
-| OpenTelemetry GenAI semantic conventions | protocol | Trial | `openinference-instrumentation` | `0.1.71` | 2026-10-07 | Apache-2.0 | Tên span invoke_agent / execute_tool; vẫn ở trạng thái Development — thuộc tính có thể đổi |
-| Langfuse | observability | Adopt | `langfuse` | `4.18.0` | 2026-10-14 | MIT | Trace + prompt + eval, MIT, tự host được; nhận OTel từ mọi framework |
-| Arize Phoenix | observability | Assess | `arize-phoenix` | `20.21.3` | 2026-10-14 | Elastic-2.0 | Trace + eval tốt; giấy phép Elastic-2.0 (không phải OSI) |
-| Pydantic Logfire | observability | Assess | `logfire` | `5.2.0` | 2026-10-13 | MIT | SDK MIT dựa trên OTel; backend là dịch vụ |
-| LangSmith | observability | Assess | `langsmith` | `0.14.8` | 2026-10-13 | MIT | Tốt nhất cho LangGraph; nền tảng thương mại |
-| MLflow Tracing | observability | Assess | `mlflow` | `3.17.1` | 2026-10-13 | Apache Software License | Apache-2.0; hợp khi đã dùng MLflow cho ML cổ điển |
+| OpenTelemetry GenAI semantic conventions | protocol | Trial | `openinference-instrumentation` | `0.1.75` | 2026-10-31 | Apache-2.0 | Tên span invoke_agent / execute_tool; vẫn ở trạng thái Development — thuộc tính có thể đổi |
+| Langfuse | observability | Adopt | `langfuse` | `5.1.0` | 2026-10-30 | MIT | Trace + prompt + eval, MIT, tự host được; nhận OTel từ mọi framework |
+| Arize Phoenix | observability | Assess | `arize-phoenix` | `21.0.0` | 2026-10-30 | Elastic-2.0 | Trace + eval tốt; giấy phép Elastic-2.0 (không phải OSI) |
+| Pydantic Logfire | observability | Assess | `logfire` | `5.4.0` | 2026-10-26 | MIT | SDK MIT dựa trên OTel; backend là dịch vụ |
+| LangSmith | observability | Assess | `langsmith` | `0.14.16` | 2026-10-29 | MIT License | Tốt nhất cho LangGraph; nền tảng thương mại |
+| MLflow Tracing | observability | Assess | `mlflow` | `3.17.2` | 2026-10-21 | Apache Software License | Apache-2.0; hợp khi đã dùng MLflow cho ML cổ điển |
 | OpenLLMetry (Traceloop) | observability | Assess | `traceloop-sdk` | `0.62.4` | 2026-09-29 | Apache-2.0 | Instrumentation OTel cho nhiều SDK LLM |
-| DeepEval | eval | Trial | `deepeval` | `4.2.8` | 2026-10-02 | Apache Software License | Metric agent (task completion, tool correctness) + LLM-as-judge, chạy như pytest |
-| Inspect AI (UK AISI) | eval | Trial | `inspect-ai` | `0.3.280` | 2026-10-14 | MIT License | Khung eval agent có sandbox, MIT; chấm quỹ đạo và kết quả |
+| DeepEval | eval | Trial | `deepeval` | `4.3.2` | 2026-10-27 | Apache Software License | Metric agent (task completion, tool correctness) + LLM-as-judge, chạy như pytest |
+| Inspect AI (UK AISI) | eval | Trial | `inspect-ai` | `0.3.287` | 2026-10-31 | MIT License | Khung eval agent có sandbox, MIT; chấm quỹ đạo và kết quả |
 | Ragas | eval | Assess | `ragas` | `0.4.3` | 2026-01-13 | Apache License | Metric RAG; nhịp phát hành chậm (bản cuối 01/2026) |
-| Temporal | durable | Assess | `temporalio` | `1.34.0` | 2026-09-30 | MIT | Chạy bền cho luồng dài; tích hợp với Pydantic AI, OpenAI Agents SDK |
-| DBOS | durable | Assess | `dbos` | `3.2.0` | 2026-09-29 | MIT License | Chạy bền dựa trên PostgreSQL, nhẹ hơn Temporal |
+| Temporal | durable | Assess | `temporalio` | `1.35.0` | 2026-10-28 | MIT | Chạy bền cho luồng dài; tích hợp với Pydantic AI, OpenAI Agents SDK |
+| DBOS | durable | Assess | `dbos` | `3.4.0` | 2026-10-28 | MIT License | Chạy bền dựa trên PostgreSQL, nhẹ hơn Temporal |
 | Mem0 | memory | Assess | `mem0ai` | `2.2.1` | 2026-09-25 | Apache-2.0 | Bộ nhớ dài hạn cho agent |
 | Letta | memory | Assess | `letta` | `0.34.12` | 2026-10-12 | Apache-2.0 | Agent có bộ nhớ tự quản (MemGPT cũ) |
-| E2B | sandbox | Assess | `e2b` | `2.56.0` | 2026-10-13 | MIT | Sandbox cloud để agent chạy code an toàn |
+| E2B | sandbox | Assess | `e2b` | `2.62.0` | 2026-10-28 | MIT | Sandbox cloud để agent chạy code an toàn |
